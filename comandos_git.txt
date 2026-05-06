@@ -1,0 +1,29 @@
+# Inicia o Git na pasta
+git init
+
+# Adiciona todos os arquivos ao "palco" de envio
+git add .
+
+# Cria o primeiro ponto de salvamento local
+git commit -m "Primeiro upload do projeto"
+
+# Define o destino remoto (substitua pelo seu link)
+git remote add origin https://github.com/LuisinTheLegend/GueberMansWear.git
+
+# Renomeia a branch principal para 'main' (padrão atual)
+git branch -M main
+
+# Envia os arquivos
+git push -u origin main
+
+# Baixar projeto
+git clone https://github.com/seu-usuario/nome-do-projeto.git
+
+# Atualizaçoes - Pc 1 
+git add . 
+git commit -m "ajuste" 
+git push
+
+#              - Pc 2
+
+git pull
