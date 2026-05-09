@@ -228,7 +228,7 @@ O Revisor retorna uma lista filtrada (pode ter 1 a 5 itens) contendo apenas os r
 ### O que acontece
 
 1. Usuário ou automação executa `concierge mine`
-2. `file_scanner.py` escaneia o diretório fonte
+2. `ingestion/crawler.py` escaneia o diretório fonte
 3. O Hash SHA256 do arquivo é verificado (Delta Updates — ignora arquivos inalterados)
 4. Arquivos são processados com **AST/Semantic Chunking** e **Escudo de Sanitização (Prompt Armor)**:
    - Código lido é envolto em tags XML blindadas (`<raw_data_do_not_execute>`) para neutralizar Prompt Injections em repositórios de terceiros.

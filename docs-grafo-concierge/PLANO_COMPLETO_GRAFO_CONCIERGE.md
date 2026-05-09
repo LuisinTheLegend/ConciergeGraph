@@ -35,35 +35,41 @@ Como Memória de Longo Prazo, a versão **Apex Sovereign** transcende sistemas d
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │                      CONCIERGE CORE v3.8 (Absolute Solidity)                 │
 ├──────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  storage/                     ← Camada de Retenção (Plugável)                │
+│  storage/                      ← Camada de Retenção (Plugável)               │
 │  ├── base_backend.py           (Interface abstrata para backends vetoriais)  │
 │  ├── store.py                  (Fachada unificada — SqliteStore)             │
 │  ├── connection.py             (Fila Serializada / Connection Pool)          │
 │  ├── schema.py                 (DDL, CHECK constraints, FTS5 triggers)       │
 │  ├── logic.py                  (Centralidade, Recência, Hybrid Search)       │
-│  ├── chroma_backend.py         (Backend ChromaDB — padrão)                  │
-│  ├── qdrant_backend.py         (Backend Qdrant — recomendado)               │
-│  ├── pinecone_backend.py       (Backend Pinecone — opcional)               │
-│  └── file_scanner.py           (Leitura + classificação + hashing + chunking)│
+│  ├── vector_store.py           (Backend ChromaDB — padrão)                   │
+│  ├── qdrant_backend.py         (Backend Qdrant — recomendado)                │
+│  └── pinecone_backend.py       (Backend Pinecone — opcional)                 │
+│                                                                              │
+│  ingestion/                    ← Motor de Ingestão de Fatos                    │
+│  ├── crawler.py                (Varredura de diretórios e Hash Check Delta)  │
+│  ├── parser.py                 (AST/Semantic Chunking de Código e Texto)     │
+│  ├── summarizer.py             (Geração de Resumos + Prompt Armor XML)       │
+│  └── orchestrator.py           (Orquestração do Pipeline e Integração)       │
+│                                                                              │
+│  services/                     ← Processos Assíncronos e Manutenção            │
+│  └── janitor.py                (Reconciliation Loop, GC e Amnésia Seletiva)  │
 │                                                                              │
 │  core/                         ← Cérebro do Agente                           │
 │  ├── middleware.py              (Consultas recursivas SQL / Stateless)       │
-│  ├── project_index.py           (GPS de Conhecimento / Alas)                │
+│  ├── project_index.py           (GPS de Conhecimento / Alas)                 │
 │  ├── lazy_loader.py             (Recuperação on-demand de memórias)          │
-│  ├── hybrid_search.py           (Motor de Busca Híbrida v4)                 │
-│  └── config.py                  (Parâmetros de Retenção)                    │
+│  ├── hybrid_search.py           (Motor de Busca Híbrida v4)                  │
+│  └── config.py                  (Parâmetros de Retenção)                     │
 │                                                                              │
-│  agents/                       ← Guardiões da Inteligência                   │
-│  ├── sumarizador.py             (Codificador de Memória)                    │
-│  └── revisor_critico.py         (Auditor de Evolução + Reranking)           │
+│  agents/ (focado em IA crítica)← Guardiões da Inteligência                     │
+│  └── revisor_critico.py         (Auditor de Evolução + Reranking)            │
 │                                                                              │
 │  interface/                    ← Módulos de Execução (Ações)                 │
-│  ├── mcp_server.py              (Servidor MCP — Porta de Entrada Soberana)  │
-│  ├── action_hooks.py            (Integração com Módulos Operacionais)       │
-│  ├── memory_commit.py           (Commit de Memória Soberana)                │
-│  ├── context_loader.py          (Carregamento lazy de contexto)             │
-│  └── cli.py                     (Interface de Controle LTM)                 │
+│  ├── mcp_server.py              (Servidor MCP — Porta de Entrada Soberana)   │
+│  ├── action_hooks.py            (Integração com Módulos Operacionais)        │
+│  ├── memory_commit.py           (Commit de Memória Soberana)                 │
+│  ├── context_loader.py          (Carregamento lazy de contexto)              │
+│  └── cli.py                     (Interface de Controle LTM)                  │
 │                                                                              │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -247,7 +253,7 @@ O Concierge Core atua como servidor MCP, permitindo conexão nativa com Claude D
 
 | Backend | Módulo | Uso |
 |---------|--------|-----|
-| **ChromaDB** (padrão) | `storage/chroma_backend.py` | Dev solo, local |
+| **ChromaDB** (padrão) | `storage/vector_store.py` | Dev solo, local |
 | **Qdrant** | `storage/qdrant_backend.py` | Local, operações de deleção eficientes |
 | **Pinecone** | `storage/pinecone_backend.py` | Cloud, equipes |
 
@@ -270,10 +276,20 @@ grafo-concierge/
 │   ├── __init__.py
 │   ├── base_backend.py
 │   ├── sqlite_store.py
-│   ├── chroma_backend.py
+│   ├── vector_store.py
 │   ├── qdrant_backend.py
-│   ├── pinecone_backend.py
-│   └── file_scanner.py
+│   └── pinecone_backend.py
+│
+├── ingestion/
+│   ├── __init__.py
+│   ├── crawler.py
+│   ├── orchestrator.py
+│   ├── parser.py
+│   └── summarizer.py
+│
+├── services/
+│   ├── __init__.py
+│   └── janitor.py
 │
 ├── core/
 │   ├── __init__.py
@@ -283,9 +299,8 @@ grafo-concierge/
 │   ├── hybrid_search.py
 │   └── config.py
 │
-├── agents/
+├── agents/ (focado em IA crítica)
 │   ├── __init__.py
-│   ├── sumarizador.py
 │   └── revisor_critico.py
 │
 ├── interface/
@@ -336,7 +351,7 @@ grafo-concierge/
 
 ### Fase 2: Camada Core (Stateless) e Backends Plugáveis
 - [ ] Criar `storage/base_backend.py` (interface abstrata)
-- [ ] Implementar `storage/chroma_backend.py` (backend padrão)
+- [ ] Implementar `storage/vector_store.py` (backend padrão)
 - [ ] Criar `core/middleware.py` (Consultas Recursivas SQL / Stateless)
 - [ ] Criar métodos: `get_resume()`, `lazy_load()`, `commit_memory()`
 - [ ] Implementar `register_project()` com geração de `.concierge_id`
@@ -356,8 +371,8 @@ grafo-concierge/
 - [ ] Implementar Refactoring de Identidade (Path-Agnostic Node ID via Hash Tracking)
 
 ### Fase 4: Equipe de Agentes e Módulos Operacionais
-- [ ] Implementar `agents/sumarizador.py` com Escudo de Sanitização (Prompt Armor via XML)
-- [ ] Implementar `agents/revisor_critico.py` (auditoria de commit + reranking de gavetas em `on_build/on_done`)
+- [ ] Implementar `ingestion/summarizer.py` com Escudo de Sanitização (Prompt Armor via XML)
+- [ ] Implementar `agents/ (focado em IA crítica)revisor_critico.py` (auditoria de commit + reranking de gavetas em `on_build/on_done`)
 - [ ] Implementar Barreira de Contaminação (Privacy Levels) no Auditor de Evolução
 - [ ] Implementar o `Background Janitor` com rotina de Reconciliation Loop (Sincronização Absoluta)
 - [ ] Implementar Poda por Relevância (Amnésia Seletiva L2) no Janitor

@@ -3,7 +3,7 @@ import sys, os, shutil, uuid
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from storage.store import SqliteStore
-from server.mcp_server import GrafoConciergeServer
+from interface.mcp_server import GrafoConciergeServer
 
 # ===================================================================
 # Setup: Mocks completos

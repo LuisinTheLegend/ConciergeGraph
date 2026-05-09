@@ -1,0 +1,93 @@
+# Plano de Evolução: Grafo Concierge v3.8.0 (O Prédio de 10 Andares)
+
+Este plano traça o caminho exato e detalhado para construirmos a arquitetura completa proposta na documentação, adaptando os projetos arquiteturais (docs) para respeitarem os alicerces sólidos que já construímos e testamos no nosso MVP "Absolute Solidity".
+
+## Estrutura Atual Consolidada (O "Bunker" MVP)
+
+Durante a fase MVP, provamos que algumas das ideias originais deveriam ser estruturadas de forma muito mais robusta. Implementamos:
+- storage/: Banco de dados SQLite, Conexão, Logic (híbrida básica) e Vector Store (Chroma).
+- ingestion/: Um verdadeiro motor (Crawler, Parser, Orchestrator e Summarizer), substituindo um simples arquivo "file_scanner".
+- services/: O Janitor (limpeza de fundo e reconciliação de estado).
+- interface/: O servidor MCP (anteriormente na pasta server/).
+
+## Fases de Implementação (Roadmap)
+
+Abaixo está o mapeamento extremamente detalhado das fases e seus respectivos arquivos para concluirmos a expansão.
+
+---
+
+### Fase 1: Atualização da Documentação e Harmonização de Nomes (STATUS: CONCLUÍDA)
+Objetivo: Atualizar a documentação teórica para que ela adote as nomenclaturas e a estrutura forte que consolidamos na base do MVP.
+- [x] Renomeada pasta `server` para `interface`.
+- [x] Atualizadas as importações nos códigos (`main.py`, testes e `__init__.py`) para usar `interface.mcp_server`.
+- [x] Atualizados os documentos `.md`, consagrando `ingestion/` como o motor de extração e `services/janitor.py` como responsável pelo background.
+- [x] Validada a nomenclatura de `storage/vector_store.py` ao invés de `chroma_backend.py`.
+
+---
+
+### Fase 2: Construção do "Cérebro" (`core/`)
+A pasta `core/` será o maestro do sistema. Ela será construída em cima das pastas `storage` e `ingestion`, encapsulando suas complexidades em uma API limpa orientada a projetos (a chamada "Fachada").
+
+- **core/config.py**:
+  - Centralização de variáveis mágicas e constantes.
+  - Definição dos Pesos da Busca Híbrida v4 (ex: 0.50 vetorial, 0.25 BM25, 0.25 recência/centralidade).
+  - Parâmetros matemáticos da recência (meia-vida de 7 dias, fator lambda).
+  - `WING_KEYWORDS`: Dicionário de mapeamento contendo palavras-chave para classificação automática de categorias (Alas).
+
+- **core/project_index.py**:
+  - Lógica responsável pelo "GPS de Conhecimento".
+  - Terá a função `categorize_project()` que avalia arquivos ou descrições para inferir em qual Ala o projeto se encaixa.
+  - Gerenciamento de "Primary Wings" (Isolamento principal) e "Reference Wings" (Arestas semânticas) via queries no SQLite.
+
+- **core/hybrid_search.py**:
+  - O motor pesado da Busca Híbrida v4.
+  - Extração e expansão da lógica que hoje se encontra limitada no `storage/logic.py`.
+  - Execução sequencial: Filtro de Strict Scoping -> Agregação do Backend Vetorial -> Busca Nativa FTS5 -> Cálculo da Curva de Recência.
+
+- **core/middleware.py (A Fachada Central)**:
+  - Criação da classe monumental `GrafoConcierge`.
+  - Esta classe instanciará, em seu construtor (`__init__`), o `SqliteStore` e o `IngestionManager`.
+  - Métodos operacionais que serão consumidos pelo exterior:
+    - `wake_up(project_uuid)`: Carrega bússolas e referências.
+    - `register_project(path, wing)`: Registra um novo projeto na tabela SQLite.
+    - `lazy_load(drawer_path)`: Recuperação on-demand de gavetas.
+    - `commit_memory(project_uuid, changes)`: Registra alterações consolidadas.
+
+---
+
+### Fase 3: Guardiões de Evolução (`agents/`)
+Como o componente de resumo foi alocado para Ingestão e a limpeza para Services, a pasta `agents/` se tornará o reduto exclusivo da IA analítica de controle de qualidade e auditoria.
+
+- **agents/revisor_critico.py**:
+  - O "Auditor de Evolução".
+  - **Mecanismo de Reranking**: Usará o LLM como juiz. Ele receberá os Top-10 resultados da Busca Híbrida matemática (da Fase 2) e filtrará ruídos semânticos, devolvendo apenas os Top-5 ou Top-3 resultados estritamente aderentes ao contexto da query atual.
+  - **Mecanismo de Auditoria de Commit**: Avaliará cada `commit_memory` antes de salvá-lo definitivamente no banco de dados. Verificará se existe vazamento de dados confidenciais (contaminação entre Alas) e exigirá que o resumo técnico de alterações esteja legível.
+
+---
+
+### Fase 4: Interface e Execução (`interface/`)
+A interface final de conexão com o mundo exterior. Esta fase DEPENDE COMPLETAMENTE DA FASE 2, pois o MCP e a CLI precisarão instanciar a classe `GrafoConcierge`.
+
+- **interface/mcp_server.py (Refatoração Extensa)**:
+  - Todo o código atual do MCP Server será adaptado. Onde ele instanciava `SqliteStore`, `EmbeddingManager` e `IngestionManager` soltos, ele passará a inicializar unicamente `GrafoConcierge()`.
+  - Adição de novas ferramentas MCP ("Tools") que foram propostas no plano, mas ainda não codificadas:
+    - `concierge_commit`
+    - `concierge_wakeup`
+    - `concierge_resume`
+    - `concierge_load`
+
+- **interface/action_hooks.py**:
+  - Gatilhos reativos para que Módulos Operacionais se conectem ao LTM.
+  - Funções decoradoras de ciclo de vida: `on_planning()`, `on_execution()`, `on_done()`.
+
+- **interface/cli.py**:
+  - Módulo de Terminal usando `argparse` ou `click`.
+  - Permitirá gerenciar o grafo via comandos no Bash/PowerShell (ex: `grafo-concierge mine --path /diretorio`, `grafo-concierge wake-up --id 1234`).
+
+---
+
+## Ordem Rigorosa de Execução
+Para evitar ciclos de dependência ou quebras no servidor MCP, as fases devem ser construídas estritamente na seguinte ordem:
+1. Concluir a **Fase 2** (Construção da API interna via `middleware.py`).
+2. Implementar a **Fase 3** (O LLM de auditoria, para proteger os commits).
+3. E somente no fim, executar a **Fase 4**, alterando a entrada do sistema para utilizar as novas lógicas criadas nas Fases 2 e 3.

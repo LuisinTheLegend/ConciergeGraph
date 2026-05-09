@@ -157,7 +157,7 @@ def bootstrap():
 
     # ── SERVIDOR MCP ─────────────────────────────────────────────────
     logger.info("Inicializando GrafoConciergeServer")
-    from server.mcp_server import GrafoConciergeServer
+    from interface.mcp_server import GrafoConciergeServer
     server = GrafoConciergeServer(
         sqlite_store=store,
         vector_store=vector_store,
