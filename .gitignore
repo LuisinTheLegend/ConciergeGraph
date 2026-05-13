@@ -13,6 +13,10 @@ chroma/
 # Diretórios temporários e de testes
 _stress_test_workspace/
 _test_janitor_tmp/
+_test_core_tmp/
+_test_agents_tmp/
+_test_interface_tmp/
+.pytest_cache/
 
 # Python / Caches
 __pycache__/

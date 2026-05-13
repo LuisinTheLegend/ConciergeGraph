@@ -1,19 +1,26 @@
 """
-server/mcp_server.py — Grafo Concierge v3.8.0 (Absolute Solidity)
+interface/mcp_server.py — Grafo Concierge v3.8.0 (Absolute Solidity)
 
 Servidor MCP (Model Context Protocol) expondo as ferramentas do
 Grafo Concierge para agentes LLM via FastMCP.
 
-Tools expostas:
-    concierge_mine    → Ingestão de projeto: crawl → parse → summarize → embed → store
-    concierge_search  → Busca híbrida: vetorial + FTS5 + reranking
-    concierge_status  → Saúde do sistema, estatísticas e último relatório do Janitor
+REFATORAÇÃO v3.8: Agora consome exclusivamente a Fachada Central
+(core.middleware.GrafoConcierge) em vez de instanciar dependências
+internas soltas. Toda lógica de negócio foi movida para core/.
+
+Tools expostas (6 ferramentas — alinhadas com Architecture v3.8):
+    concierge_mine     → Ingestão de projeto (crawl → parse → store)
+    concierge_search   → Busca Híbrida v4 com Strict Scoping
+    concierge_commit   → Registro de alterações auditadas
+    concierge_wakeup   → Reativação de consciência (Bússola + Wings)
+    concierge_resume   → Bússola de Contexto (resumo conciso)
+    concierge_load     → Lazy Load de um nó sob demanda
+    concierge_status   → Saúde do sistema e estatísticas
 
 Arquitetura:
-    Este módulo é APENAS a ponte MCP ↔ módulos internos.
+    Este módulo é APENAS a ponte MCP ↔ Fachada Central.
     Nenhuma lógica de negócio reside aqui. Toda operação é delegada
-    aos módulos já testados: IngestionManager, SqliteStore,
-    ChromaVectorStore, EmbeddingManager e JanitorService.
+    à classe GrafoConcierge (core/middleware.py).
 """
 
 from __future__ import annotations
@@ -25,44 +32,33 @@ from typing import Optional
 
 from mcp.server.fastmcp import FastMCP
 
-from storage import SqliteStore, ChromaVectorStore, EmbeddingManager
-from ingestion import IngestionManager
+from core.middleware import GrafoConcierge
 from services import JanitorService
 
 logger = logging.getLogger("grafo-concierge.mcp")
 
 
 # ---------------------------------------------------------------------------
-# GrafoConciergeServer — Encapsulamento do FastMCP + dependências
+# GrafoConciergeServer — Encapsulamento do FastMCP + Fachada Central
 # ---------------------------------------------------------------------------
 
 class GrafoConciergeServer:
     """Servidor MCP do Grafo Concierge.
 
-    Encapsula o FastMCP e registra as tools com acesso às dependências
-    injetadas. Cada tool é uma closure que captura `self` para acessar
-    os módulos internos.
+    Encapsula o FastMCP e registra as tools com acesso à Fachada Central.
+    Cada tool é uma closure que delega à instância de GrafoConcierge.
 
     Args:
-        sqlite_store:       Instância do SqliteStore (persistência relacional).
-        vector_store:       Instância do ChromaVectorStore (persistência vetorial).
-        embedding_manager:  Instância do EmbeddingManager (Flash/Elite).
-        ingestion_manager:  Instância do IngestionManager (pipeline de ingestão).
-        janitor:            Instância do JanitorService (manutenção autônoma).
+        concierge: Instância da Fachada Central GrafoConcierge.
+        janitor: Instância do JanitorService (manutenção autônoma).
     """
 
     def __init__(
         self,
-        sqlite_store: SqliteStore,
-        vector_store: ChromaVectorStore,
-        embedding_manager: EmbeddingManager,
-        ingestion_manager: IngestionManager,
+        concierge: GrafoConcierge,
         janitor: Optional[JanitorService] = None,
     ) -> None:
-        self._store = sqlite_store
-        self._vector = vector_store
-        self._embedder = embedding_manager
-        self._ingestion = ingestion_manager
+        self._gc = concierge
         self._janitor = janitor
 
         # Cria o servidor FastMCP
@@ -71,7 +67,7 @@ class GrafoConciergeServer:
         # Registra as tools
         self._register_tools()
 
-        logger.info("GrafoConciergeServer inicializado — 3 tools registradas.")
+        logger.info("GrafoConciergeServer inicializado — 7 tools registradas.")
 
     @property
     def mcp(self) -> FastMCP:
@@ -85,8 +81,33 @@ class GrafoConciergeServer:
     def _register_tools(self) -> None:
         """Registra todas as tools MCP como closures com acesso a self."""
 
-        # Captura self para as closures
         server = self
+
+        # --- concierge_register ---
+        @self._mcp.tool(
+            name="concierge_register",
+            description=(
+                "Registra um novo projeto e define Nível de Privacidade."
+            ),
+        )
+        def concierge_register(
+            project_path: str,
+            wing: str = "geral",
+            privacy_level: str = "PUBLIC",
+            summary: Optional[str] = None,
+        ) -> dict:
+            """Registra um novo projeto no Grafo Concierge.
+
+            Args:
+                project_path: Caminho ou nome da pasta do projeto.
+                wing: Ala principal (Primary Wing). Padrão: "geral".
+                privacy_level: Nível de privacidade (PUBLIC, INTERNAL, RESTRICTED).
+                summary: Descrição opcional.
+
+            Returns:
+                Dicionário com o UUID gerado e status.
+            """
+            return server._handle_register(project_path, wing, privacy_level, summary)
 
         # --- concierge_mine ---
         @self._mcp.tool(
@@ -130,6 +151,8 @@ class GrafoConciergeServer:
             project_uuid: str,
             top_k: int = 10,
             node_type: Optional[str] = None,
+            include_references: bool = False,
+            all_wings: bool = False,
         ) -> dict:
             """Busca híbrida no Grafo de Memória.
 
@@ -137,12 +160,109 @@ class GrafoConciergeServer:
                 query: Texto da consulta em linguagem natural.
                 project_uuid: UUID do projeto para Strict Scoping.
                 top_k: Número máximo de resultados (default: 10).
-                node_type: Filtro opcional de tipo de nó (FACT, RULE, etc.).
+                node_type: Filtro opcional de tipo de nó (FACT, SKILL, etc.).
+                include_references: Incluir Reference Wings no escopo.
+                all_wings: Buscar em todas as alas (ignora Strict Scoping).
 
             Returns:
                 Dicionário com resultados ranqueados e metadata.
             """
-            return server._handle_search(query, project_uuid, top_k, node_type)
+            return server._handle_search(
+                query, project_uuid, top_k, node_type,
+                include_references, all_wings,
+            )
+
+        # --- concierge_commit ---
+        @self._mcp.tool(
+            name="concierge_commit",
+            description=(
+                "Registra alterações consolidadas no Grafo de Memória. "
+                "Grava na tabela commit_log, atualiza recência dos nós "
+                "afetados e audita via Revisor Crítico."
+            ),
+        )
+        def concierge_commit(
+            project_uuid: str,
+            phase: str,
+            technical_changes: str,
+            updated_pointers: list[str],
+            node_ids: Optional[list[int]] = None,
+        ) -> dict:
+            """Registra um commit de memória auditado.
+
+            Args:
+                project_uuid: UUID do projeto.
+                phase: Fase atual (planning, build, done, review).
+                technical_changes: Descrição das mudanças técnicas.
+                updated_pointers: Lista de ponteiros atualizados.
+                node_ids: IDs dos nós afetados (atualiza recência).
+
+            Returns:
+                Dicionário com ID do commit e status.
+            """
+            return server._handle_commit(
+                project_uuid, phase, technical_changes,
+                updated_pointers, node_ids,
+            )
+
+        # --- concierge_wakeup ---
+        @self._mcp.tool(
+            name="concierge_wakeup",
+            description=(
+                "Reativa a consciência do agente para um projeto. "
+                "Retorna a Bússola de Contexto, Reference Wings, "
+                "últimos commits e estatísticas."
+            ),
+        )
+        def concierge_wakeup(project_uuid: str) -> dict:
+            """Reativação de consciência do agente.
+
+            Args:
+                project_uuid: UUID do projeto.
+
+            Returns:
+                Dicionário com Bússola, Wings, commits e stats.
+            """
+            return server._handle_wakeup(project_uuid)
+
+        # --- concierge_resume ---
+        @self._mcp.tool(
+            name="concierge_resume",
+            description=(
+                "Retorna a Bússola de Contexto (resumo conciso) "
+                "do projeto. Ideal para injeção em system prompts."
+            ),
+        )
+        def concierge_resume(project_uuid: str) -> dict:
+            """Bússola de Contexto do projeto.
+
+            Args:
+                project_uuid: UUID do projeto.
+
+            Returns:
+                Dicionário com resumo e estatísticas básicas.
+            """
+            return server._handle_resume(project_uuid)
+
+        # --- concierge_load ---
+        @self._mcp.tool(
+            name="concierge_load",
+            description=(
+                "Carrega os dados completos de um nó sob demanda "
+                "(Lazy Load). Retorna conteúdo, tags, arestas e "
+                "metadados do nó."
+            ),
+        )
+        def concierge_load(node_id: int) -> dict:
+            """Carrega um nó completo sob demanda.
+
+            Args:
+                node_id: ID do nó a carregar.
+
+            Returns:
+                Dicionário com todos os campos e arestas do nó.
+            """
+            return server._handle_load(node_id)
 
         # --- concierge_status ---
         @self._mcp.tool(
@@ -150,7 +270,7 @@ class GrafoConciergeServer:
             description=(
                 "Retorna o status de saúde do Grafo Concierge: "
                 "estatísticas do projeto, saúde do ChromaDB, último "
-                "relatório do Janitor e métricas do pipeline de ingestão."
+                "relatório do Janitor e métricas do pipeline."
             ),
         )
         def concierge_status(
@@ -168,42 +288,89 @@ class GrafoConciergeServer:
             return server._handle_status(project_uuid)
 
     # ===================================================================
+    # HANDLER: concierge_register
+    # ===================================================================
+
+    def _handle_register(
+        self, project_path: str, wing: str, privacy_level: str, summary: Optional[str]
+    ) -> dict:
+        """Handler do concierge_register — delega à Fachada."""
+        t0 = time.perf_counter()
+
+        try:
+            folder_name = os.path.basename(project_path.strip(r"\/")) or project_path
+            
+            project_uuid = self._gc.register_project(
+                folder_name=folder_name,
+                wing=wing,
+                privacy_level=privacy_level,
+                summary=summary or f"Projeto registrado via MCP: {folder_name}",
+            )
+
+            elapsed = time.perf_counter() - t0
+            logger.info(
+                "concierge_register OK: %s → %s (wing=%s, privacy=%s), %.3fs",
+                folder_name, project_uuid, wing, privacy_level, elapsed,
+            )
+
+            return {
+                "success": True,
+                "project_uuid": project_uuid,
+                "folder_name": folder_name,
+                "wing": wing,
+                "privacy_level": privacy_level,
+                "duration_seconds": round(elapsed, 3),
+            }
+
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("concierge_register FALHOU: %s", e)
+            return {
+                "success": False,
+                "error": str(e),
+                "duration_seconds": round(elapsed, 3),
+            }
+
+    # ===================================================================
     # HANDLER: concierge_mine
     # ===================================================================
 
     def _handle_mine(
         self, path: str, project_name: str, auto_tag: bool,
     ) -> dict:
-        """Handler real do concierge_mine."""
+        """Handler do concierge_mine — delega à Fachada."""
         t0 = time.perf_counter()
 
         try:
-            # Garante que o projeto existe (cria se necessário)
-            project_uuid = self._ensure_project(project_name, path)
+            # Registra projeto (cria se não existir)
+            project_uuid = self._gc.register_project(
+                folder_name=project_name,
+                summary=f"Projeto ingerido de: {path}",
+            )
 
             # Sinaliza Idle-Lock para o Janitor
             if self._janitor:
                 self._janitor.signal_mine_start()
 
             try:
-                result = self._ingestion.mine(project_uuid, path, auto_tag=auto_tag)
+                result = self._gc.mine(project_uuid, path, auto_tag=auto_tag)
             finally:
                 if self._janitor:
                     self._janitor.signal_mine_end()
 
             elapsed = time.perf_counter() - t0
-            response = result.to_dict()
-            response["project_uuid"] = project_uuid
-            response["project_name"] = project_name
-            response["path"] = path
-            response["duration_seconds"] = round(elapsed, 3)
-            response["success"] = True
+            result["project_uuid"] = project_uuid
+            result["project_name"] = project_name
+            result["path"] = path
+            result["duration_seconds"] = round(elapsed, 3)
+            result["success"] = True
 
             logger.info(
                 "concierge_mine OK: %s → %d arquivos, %d nós, %.2fs",
-                project_name, result.files_processed, result.nodes_created, elapsed,
+                project_name, result.get("files_processed", 0),
+                result.get("nodes_created", 0), elapsed,
             )
-            return response
+            return result
 
         except Exception as e:
             elapsed = time.perf_counter() - t0
@@ -227,71 +394,29 @@ class GrafoConciergeServer:
         project_uuid: str,
         top_k: int,
         node_type: Optional[str],
+        include_references: bool,
+        all_wings: bool,
     ) -> dict:
-        """Handler real do concierge_search — Hybrid Search Pipeline."""
+        """Handler do concierge_search — delega à Fachada."""
         t0 = time.perf_counter()
 
         try:
-            # --- Fase 1: Busca Vetorial ---
-            query_embedding = self._embedder.embed(query)
-            vector_results = self._vector.search(
-                query_embedding=query_embedding,
-                project_uuids=[project_uuid],
-                top_k=top_k * 2,  # Over-fetch para reranking
-                filters={"node_type": node_type} if node_type else None,
-            )
-
-            # --- Fase 2: Busca FTS5 (BM25) ---
-            fts_results = self._store.fts_search(
+            results = self._gc.hybrid_search(
                 query=query,
                 project_uuid=project_uuid,
+                top_k=top_k,
+                include_references=include_references,
+                all_wings=all_wings,
                 node_type=node_type,
-                limit=top_k * 2,
             )
-            fts_scores: dict[int, float] = {
-                r["id"]: r.get("bm25_score", 0.0) for r in fts_results
-            }
 
-            # --- Fase 3: Merge + Hybrid Scoring ---
-            candidates: list[dict] = []
-            seen_node_ids: set[int] = set()
-
-            # Candidatos da busca vetorial
-            for vr in vector_results:
-                if vr.node_id not in seen_node_ids:
-                    seen_node_ids.add(vr.node_id)
-                    candidates.append({
-                        "node_id": vr.node_id,
-                        "vector_score": vr.score,
-                        "fts_score": fts_scores.get(vr.node_id, 0.0),
-                    })
-
-            # Candidatos exclusivos do FTS (não cobertos pela vetorial)
-            for fr in fts_results:
-                nid = fr.get("id")
-                if nid and nid not in seen_node_ids:
-                    seen_node_ids.add(nid)
-                    candidates.append({
-                        "node_id": nid,
-                        "vector_score": 0.0,
-                        "fts_score": fr.get("bm25_score", 0.0),
-                    })
-
-            # --- Fase 4: Hybrid Reranking (recência + centralidade) ---
-            if candidates:
-                ranked = self._store.hybrid_search_score_batch(candidates)
-                # hybrid_search_score_batch já retorna ordenado por score_final DESC
-                ranked = ranked[:top_k]
-            else:
-                ranked = []
-
-            # --- Fase 5: Enriquecimento com dados do nó ---
-            enriched_results = []
-            for item in ranked:
+            # Enriquece com dados do nó para resposta MCP
+            enriched = []
+            for item in results:
                 try:
-                    node = self._store.get_node(item["node_id"])
+                    node = self._gc.store.get_node(item["node_id"])
                     breakdown = item.get("score_breakdown", {})
-                    enriched_results.append({
+                    enriched.append({
                         "node_id": item["node_id"],
                         "label": node.get("label", ""),
                         "summary": node.get("summary", ""),
@@ -302,30 +427,24 @@ class GrafoConciergeServer:
                         "fts_score": round(breakdown.get("frequencia", 0), 4),
                         "recency_score": round(breakdown.get("recencia", 0), 4),
                         "centrality_score": round(breakdown.get("centralidade", 0), 4),
+                        "is_super_node": item.get("is_super_node", False),
                     })
                 except Exception:
-                    # Nó pode ter sido deletado entre search e fetch
-                    logger.debug("Nó %d não encontrado no enriquecimento.", item["node_id"])
+                    logger.debug("Nó %d não encontrado no enriquecimento.", item.get("node_id"))
 
             elapsed = time.perf_counter() - t0
 
             logger.info(
                 "concierge_search OK: query='%.40s' → %d resultados, %.3fs",
-                query, len(enriched_results), elapsed,
+                query, len(enriched), elapsed,
             )
 
             return {
                 "success": True,
                 "query": query,
                 "project_uuid": project_uuid,
-                "results_count": len(enriched_results),
-                "results": enriched_results,
-                "pipeline": {
-                    "vector_candidates": len(vector_results),
-                    "fts_candidates": len(fts_results),
-                    "merged_candidates": len(candidates),
-                    "final_results": len(enriched_results),
-                },
+                "results_count": len(enriched),
+                "results": enriched,
                 "duration_seconds": round(elapsed, 3),
             }
 
@@ -342,11 +461,160 @@ class GrafoConciergeServer:
             }
 
     # ===================================================================
+    # HANDLER: concierge_commit
+    # ===================================================================
+
+    def _handle_commit(
+        self,
+        project_uuid: str,
+        phase: str,
+        technical_changes: str,
+        updated_pointers: list[str],
+        node_ids: Optional[list[int]],
+    ) -> dict:
+        """Handler do concierge_commit — delega à Fachada."""
+        t0 = time.perf_counter()
+
+        try:
+            commit_id = self._gc.commit_memory(
+                project_uuid=project_uuid,
+                phase=phase,
+                technical_changes=technical_changes,
+                updated_pointers=updated_pointers,
+                node_ids=node_ids,
+            )
+
+            elapsed = time.perf_counter() - t0
+
+            logger.info(
+                "concierge_commit OK: id=%d, projeto=%s, fase='%s', %.3fs",
+                commit_id, project_uuid, phase, elapsed,
+            )
+
+            return {
+                "success": True,
+                "commit_id": commit_id,
+                "project_uuid": project_uuid,
+                "phase": phase,
+                "duration_seconds": round(elapsed, 3),
+            }
+
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("concierge_commit FALHOU: %s", e)
+            return {
+                "success": False,
+                "error": str(e),
+                "project_uuid": project_uuid,
+                "duration_seconds": round(elapsed, 3),
+            }
+
+    # ===================================================================
+    # HANDLER: concierge_wakeup
+    # ===================================================================
+
+    def _handle_wakeup(self, project_uuid: str) -> dict:
+        """Handler do concierge_wakeup — delega à Fachada."""
+        t0 = time.perf_counter()
+
+        try:
+            result = self._gc.wake_up(project_uuid)
+            elapsed = time.perf_counter() - t0
+
+            result["success"] = True
+            result["duration_seconds"] = round(elapsed, 3)
+
+            logger.info(
+                "concierge_wakeup OK: projeto=%s, %.3fs", project_uuid, elapsed,
+            )
+            return result
+
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("concierge_wakeup FALHOU: %s", e)
+            return {
+                "success": False,
+                "error": str(e),
+                "project_uuid": project_uuid,
+                "duration_seconds": round(elapsed, 3),
+            }
+
+    # ===================================================================
+    # HANDLER: concierge_resume
+    # ===================================================================
+
+    def _handle_resume(self, project_uuid: str) -> dict:
+        """Handler do concierge_resume — delega à Fachada."""
+        t0 = time.perf_counter()
+
+        try:
+            resume = self._gc.get_resume(project_uuid)
+            project = self._gc.store.get_project(project_uuid)
+            stats = self._gc.store.get_project_stats(project_uuid)
+            elapsed = time.perf_counter() - t0
+
+            logger.info(
+                "concierge_resume OK: projeto=%s, %.3fs", project_uuid, elapsed,
+            )
+
+            return {
+                "success": True,
+                "project_uuid": project_uuid,
+                "folder_name": project.get("folder_name", ""),
+                "primary_wing": project.get("primary_wing", "geral"),
+                "resume": resume,
+                "stats": stats,
+                "duration_seconds": round(elapsed, 3),
+            }
+
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("concierge_resume FALHOU: %s", e)
+            return {
+                "success": False,
+                "error": str(e),
+                "project_uuid": project_uuid,
+                "duration_seconds": round(elapsed, 3),
+            }
+
+    # ===================================================================
+    # HANDLER: concierge_load
+    # ===================================================================
+
+    def _handle_load(self, node_id: int) -> dict:
+        """Handler do concierge_load — delega à Fachada."""
+        t0 = time.perf_counter()
+
+        try:
+            result = self._gc.lazy_load(node_id)
+            elapsed = time.perf_counter() - t0
+
+            logger.info(
+                "concierge_load OK: node_id=%d, %.3fs", node_id, elapsed,
+            )
+
+            return {
+                "success": True,
+                "node": result,
+                "duration_seconds": round(elapsed, 3),
+            }
+
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("concierge_load FALHOU: %s", e)
+            return {
+                "success": False,
+                "error": str(e),
+                "node_id": node_id,
+                "duration_seconds": round(elapsed, 3),
+            }
+
+    # ===================================================================
     # HANDLER: concierge_status
     # ===================================================================
 
     def _handle_status(self, project_uuid: Optional[str]) -> dict:
-        """Handler real do concierge_status."""
+        """Handler do concierge_status — delega à Fachada + componentes."""
         t0 = time.perf_counter()
 
         try:
@@ -358,7 +626,7 @@ class GrafoConciergeServer:
 
             # --- SQLite Health ---
             try:
-                projects = self._store.list_projects()
+                projects = self._gc.store.list_projects()
                 status["components"]["sqlite"] = {
                     "status": "healthy",
                     "total_projects": len(projects),
@@ -368,25 +636,6 @@ class GrafoConciergeServer:
                     "status": "degraded",
                     "error": str(e),
                 }
-
-            # --- ChromaDB Health ---
-            try:
-                chroma_healthy = self._vector.health_check()
-                chroma_count = self._vector.count()
-                status["components"]["chromadb"] = {
-                    "status": "healthy" if chroma_healthy else "degraded",
-                    "total_embeddings": chroma_count,
-                }
-            except Exception as e:
-                status["components"]["chromadb"] = {
-                    "status": "degraded",
-                    "error": str(e),
-                }
-
-            # --- Embedding Manager ---
-            status["components"]["embedding"] = {
-                "tier": str(self._embedder.tier.value),
-            }
 
             # --- Janitor ---
             if self._janitor:
@@ -404,19 +653,8 @@ class GrafoConciergeServer:
             # --- Project Stats (se UUID fornecido) ---
             if project_uuid:
                 try:
-                    project = self._store.get_project(project_uuid)
-                    stats = self._store.get_project_stats(project_uuid)
-                    last_phase = self._store.get_last_commit_phase(project_uuid)
-                    wings = self._store.get_reference_wings(project_uuid)
-
-                    status["project"] = {
-                        "uuid": project_uuid,
-                        "folder_name": project.get("folder_name", ""),
-                        "privacy_level": project.get("privacy_level", ""),
-                        "stats": stats,
-                        "last_commit_phase": last_phase,
-                        "reference_wings": wings,
-                    }
+                    project_status = self._gc.status(project_uuid)
+                    status["project"] = project_status
                 except Exception as e:
                     status["project"] = {
                         "uuid": project_uuid,
@@ -437,37 +675,6 @@ class GrafoConciergeServer:
                 "error": str(e),
                 "duration_seconds": round(elapsed, 3),
             }
-
-    # ===================================================================
-    # PROJECT HELPER
-    # ===================================================================
-
-    def _ensure_project(self, project_name: str, path: str) -> str:
-        """Garante que o projeto existe. Cria se necessário.
-
-        Busca por folder_name. Se não existir, cria com UUID auto-gerado.
-
-        Returns:
-            UUID do projeto.
-        """
-        import uuid as uuid_mod
-
-        try:
-            project = self._store.get_project(project_name)
-            return project["uuid"]
-        except Exception:
-            # Projeto não existe — cria
-            new_uuid = str(uuid_mod.uuid4())
-            self._store.create_project(
-                uuid=new_uuid,
-                folder_name=project_name,
-                primary_wing="geral",
-                summary=f"Projeto ingerido de: {path}",
-            )
-            logger.info(
-                "Projeto criado: %s → %s", project_name, new_uuid,
-            )
-            return new_uuid
 
     # ===================================================================
     # RUN — Inicialização do servidor
