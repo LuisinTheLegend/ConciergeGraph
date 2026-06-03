@@ -1,52 +1,71 @@
-# Security: Ignorar variáveis de ambiente (Credenciais, API Keys, etc.)
-.env
-.env.*
-!.env.example
+# ==============================================================================
+# GRAFO CONCIERGE - DEFINITIVE GITIGNORE FOR NEW REPOSITORIES
+# ==============================================================================
 
-# Dados locais (Banco de Dados, Vetores, etc)
-data/
-*.db
-*.sqlite
-*.sqlite3
-chroma/
-
-# Diretórios temporários e de testes
-_stress_test_workspace/
-_stress_test_v2_workspace/
-_colossus_workspace/
-_test_janitor_tmp/
-_test_core_tmp/
-_test_agents_tmp/
-_test_interface_tmp/
-
-# Relatórios e logs de teste
-colossus_report.json
-relatorio_stress_test_v2.txt
-plano_stress_test_v2.txt
-.pytest_cache/
-
-# Python / Caches
+# 🐍 Caches e Ambientes Virtuais (Python Core & Build)
 __pycache__/
 *.py[cod]
 *$py.class
-.mypy_cache/
 .pytest_cache/
-.coverage
-htmlcov/
+.mypy_cache/
+.venv/
 venv/
 env/
-.venv/
+.uv/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
 
-# Node (caso exista algum script TS/JS misturado)
-node_modules/
+# 🔒 Credenciais e Chaves de Acesso (Segurança)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
 
-# IDEs e OS
-.vscode/
-.idea/
-*.swp
+# 🗄️ PERSISTÊNCIA LOCAL (Propriedade Intelectual & Bancos de Dados)
+# Evita terminantemente que bancos físicos ou índices vetoriais locais subam para o repositório público.
+data/
+chroma/
+chroma_db/
+.qdrant/
+concierge.db
+concierge.db-wal
+concierge.db-shm
+*.db
+*.sqlite
+*.sqlite3
+
+# 🖥️ Logs de Ingestão e Logs de Sistema
+*.log
+logs/
 .DS_Store
 Thumbs.db
 
-# Reversa
-.reversa/config.user.toml
+# 🧪 Ambientes Temporários e Relatórios de Testes
+_stress_test_workspace/
+_stress_test_v2_workspace/
+_colossus_workspace/
+_test_*_tmp/
+colossus_report.json
+relatorio_stress_test_v2.txt
+plano_stress_test_v2.txt
+
+# 📦 Dependências Javascript / Node.js
+node_modules/
+package.json
+package-lock.json
+
+# 🛠️ Configurações Locais de IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 🔄 Framework Reversa (Engenharia Reversa & Resumos Físicos Locais)
+.reversa/
 _reversa_sdd/
