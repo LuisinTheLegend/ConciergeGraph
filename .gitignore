@@ -46,3 +46,7 @@ node_modules/
 *.swp
 .DS_Store
 Thumbs.db
+
+# Reversa
+.reversa/config.user.toml
+_reversa_sdd/
