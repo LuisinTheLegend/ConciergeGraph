@@ -31,7 +31,8 @@ logger = logging.getLogger("grafo-concierge.schema")
 # ---------------------------------------------------------------------------
 
 VALID_NODE_TYPES: frozenset[str] = frozenset({
-    "FACT", "SKILL", "INSIGHT", "TRAJECTORY", "PATCH"
+    "FACT", "SKILL", "INSIGHT", "TRAJECTORY", "PATCH",
+    "CLASS", "FUNCTION", "METHOD", "MODULE"
 })
 
 VALID_PRIVACY_LEVELS: frozenset[str] = frozenset({
@@ -66,7 +67,7 @@ CREATE TABLE IF NOT EXISTS nodes (
     summary       TEXT,
     content       TEXT,
     node_type     TEXT NOT NULL DEFAULT 'FACT' 
-        CHECK(node_type IN ('FACT', 'SKILL', 'INSIGHT', 'TRAJECTORY', 'PATCH')),
+        CHECK(node_type IN ('FACT', 'SKILL', 'INSIGHT', 'TRAJECTORY', 'PATCH', 'CLASS', 'FUNCTION', 'METHOD', 'MODULE')),
     type          TEXT NOT NULL DEFAULT 'file',
     tags          TEXT,
     file_hash     TEXT,

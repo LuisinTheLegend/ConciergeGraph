@@ -173,27 +173,56 @@ class FileParser:
     def _get_tree_sitter_parser(self, ext: str) -> Optional[Any]:
         try:
             import tree_sitter
+            import ctypes
+            
+            # Setup ctypes helper to get pointer from capsule if needed
+            try:
+                ctypes.pythonapi.PyCapsule_GetPointer.restype = ctypes.c_void_p
+                ctypes.pythonapi.PyCapsule_GetPointer.argtypes = [ctypes.py_object, ctypes.c_char_p]
+            except Exception:
+                pass
+
+            def _get_lang_ptr(capsule_or_ptr):
+                if isinstance(capsule_or_ptr, int):
+                    return capsule_or_ptr
+                # If it's a PyCapsule, extract using ctypes
+                try:
+                    return ctypes.pythonapi.PyCapsule_GetPointer(capsule_or_ptr, b"tree_sitter.Language")
+                except Exception:
+                    try:
+                        return ctypes.pythonapi.PyCapsule_GetPointer(capsule_or_ptr, None)
+                    except Exception:
+                        return capsule_or_ptr
+
             if ext == ".py":
                 import tree_sitter_python
-                lang = tree_sitter.Language(tree_sitter_python.language())
+                raw_lang = tree_sitter_python.language()
+                lang = tree_sitter.Language(_get_lang_ptr(raw_lang), "python")
             elif ext in (".js", ".jsx", ".mjs", ".cjs"):
                 import tree_sitter_javascript
-                lang = tree_sitter.Language(tree_sitter_javascript.language())
+                raw_lang = tree_sitter_javascript.language()
+                lang = tree_sitter.Language(_get_lang_ptr(raw_lang), "javascript")
             elif ext == ".ts":
                 import tree_sitter_typescript
-                lang = tree_sitter.Language(tree_sitter_typescript.language_typescript())
+                raw_lang = tree_sitter_typescript.language_typescript()
+                lang = tree_sitter.Language(_get_lang_ptr(raw_lang), "typescript")
             elif ext == ".tsx":
                 import tree_sitter_typescript
-                lang = tree_sitter.Language(tree_sitter_typescript.language_tsx())
+                raw_lang = tree_sitter_typescript.language_tsx()
+                lang = tree_sitter.Language(_get_lang_ptr(raw_lang), "tsx")
             elif ext == ".go":
                 import tree_sitter_go
-                lang = tree_sitter.Language(tree_sitter_go.language())
+                raw_lang = tree_sitter_go.language()
+                lang = tree_sitter.Language(_get_lang_ptr(raw_lang), "go")
             elif ext == ".rs":
                 import tree_sitter_rust
-                lang = tree_sitter.Language(tree_sitter_rust.language())
+                raw_lang = tree_sitter_rust.language()
+                lang = tree_sitter.Language(_get_lang_ptr(raw_lang), "rust")
             else:
                 return None
-            return tree_sitter.Parser(lang)
+            parser = tree_sitter.Parser()
+            parser.set_language(lang)
+            return parser
         except Exception as e:
             logger.warning("Erro ao carregar parser tree-sitter para %s: %s", ext, e)
             return None

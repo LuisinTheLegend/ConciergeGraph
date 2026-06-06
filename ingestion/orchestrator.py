@@ -316,10 +316,15 @@ class IngestionManager:
 
         # Adiciona chunks de código/doc
         dir_offset = len(nodes_to_create)
+        from ingestion.parser import ChunkType
         for i, chunk in enumerate(chunks):
             summary_text = None
             if i < len(summaries):
                 summary_text = summaries[i].summary
+            
+            ntype = "FACT"
+            if chunk.chunk_type in (ChunkType.CLASS, ChunkType.FUNCTION, ChunkType.METHOD, ChunkType.MODULE):
+                ntype = chunk.chunk_type.value.upper()
             
             tags = chunk.detected_tags if auto_tag else None
             nodes_to_create.append({
@@ -327,7 +332,7 @@ class IngestionManager:
                 "label": f"{chunk.source_file}::{chunk.symbol_name}",
                 "summary": summary_text,
                 "content": chunk.content,
-                "node_type": "FACT",
+                "node_type": ntype,
                 "type": chunk.chunk_type.value,
                 "tags": tags,
                 "file_hash": chunk.file_hash,
@@ -542,7 +547,7 @@ class IngestionManager:
         # Reconciliation Loop: verifica sincronização SQLite ↔ Vector
         try:
             existing_nodes = self._store.get_nodes_by_project(project_uuid)
-            sqlite_ids = [f"node_{n['id']}" for n in existing_nodes if n.get("type") == "file"]
+            sqlite_ids = [f"node_{n['id']}" for n in existing_nodes if n.get("type") not in ("directory", "cluster", "project")]
             sync_report = self._vector.verify_sync(sqlite_ids)
             orphan_count = sync_report.get("orphans_removed", 0)
             if orphan_count > 0:
@@ -575,7 +580,7 @@ class IngestionManager:
         l0_summaries: list[SummaryResult] = []
 
         for node in all_nodes:
-            if node.get("type") != "file" or not node.get("summary"):
+            if node.get("type") in ("directory", "cluster", "project") or not node.get("summary"):
                 continue
 
             tags = node.get("tags", [])

@@ -617,10 +617,9 @@ class ProjectCrawler:
         try:
             # Busca todos os nós do tipo 'file' com file_hash preenchido
             all_nodes = self._store.get_nodes_by_project(project_uuid)
-
             for node in all_nodes:
-                # Apenas nós do tipo 'file' com hash
-                if node.get("type") != "file":
+                # Apenas nós que não sejam diretórios ou projetos
+                if node.get("type") in ("directory", "cluster", "project"):
                     continue
 
                 node_hash = node.get("file_hash")
