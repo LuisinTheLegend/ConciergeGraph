@@ -155,14 +155,21 @@ def bootstrap():
         ingestion_manager=ingestion_manager,
     )
 
-    # ── SERVIDOR MCP ─────────────────────────────────────────────────
-    logger.info("Inicializando GrafoConciergeServer")
-    from interface.mcp_server import GrafoConciergeServer
-    server = GrafoConciergeServer(
+    # ── FACHADA CENTRAL ──────────────────────────────────────────────
+    logger.info("Inicializando Fachada GrafoConcierge")
+    from core.middleware import GrafoConcierge
+    concierge = GrafoConcierge(
         sqlite_store=store,
         vector_store=vector_store,
         embedding_manager=embedder,
         ingestion_manager=ingestion_manager,
+    )
+
+    # ── SERVIDOR MCP ─────────────────────────────────────────────────
+    logger.info("Inicializando GrafoConciergeServer")
+    from interface.mcp_server import GrafoConciergeServer
+    server = GrafoConciergeServer(
+        concierge=concierge,
         janitor=janitor,
     )
 

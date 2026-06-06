@@ -271,10 +271,17 @@ class ChromaVectorStore(BaseVectorBackend):
         collection_name: str = "grafo_concierge",
         embedding_manager: Optional[EmbeddingManager] = None,
     ) -> None:
+        self._available = CHROMADB_AVAILABLE
+        self._embedding_mgr = embedding_manager or EmbeddingManager()
+        self._collection_name = collection_name
+
         if not CHROMADB_AVAILABLE:
-            raise VectorStoreNotAvailableError(
-                "chromadb não instalado. Instale com: pip install chromadb>=0.4.0"
+            logger.warning(
+                "ChromaVectorStore operando em modo NO-OP (chromadb não instalado)."
             )
+            self._client = None
+            self._collection = None
+            return
 
         resolved_dir = str(Path(persist_dir).expanduser().absolute())
         Path(resolved_dir).mkdir(parents=True, exist_ok=True)
@@ -287,8 +294,6 @@ class ChromaVectorStore(BaseVectorBackend):
             name=collection_name,
             metadata={"hnsw:space": "cosine"},
         )
-        self._embedding_mgr = embedding_manager or EmbeddingManager()
-        self._collection_name = collection_name
 
         logger.info(
             "ChromaVectorStore inicializado: dir=%s, collection=%s, tier=%s",
@@ -315,6 +320,10 @@ class ChromaVectorStore(BaseVectorBackend):
         Raises:
             ValueError: Se metadata não contém campos obrigatórios.
         """
+        if not self._available:
+            logger.warning("store_embedding ignorado: ChromaDB indisponível.")
+            return
+
         self._validate_metadata(metadata)
 
         # ChromaDB requer que todos os valores de metadata sejam str, int ou float
@@ -346,6 +355,10 @@ class ChromaVectorStore(BaseVectorBackend):
         Returns:
             Número de embeddings efetivamente armazenados.
         """
+        if not self._available:
+            logger.warning("store_embeddings_batch ignorado: ChromaDB indisponível.")
+            return 0
+
         stored = 0
         # Filtra itens com embedding válido
         valid_items = [
@@ -414,6 +427,10 @@ class ChromaVectorStore(BaseVectorBackend):
         Returns:
             Lista de VectorSearchResult ordenada por score DESC.
         """
+        if not self._available:
+            logger.warning("search ignorada: ChromaDB indisponível.")
+            return []
+
         # Monta o filtro do ChromaDB
         where_filter = self._build_where_filter(project_uuids, filters)
 
@@ -457,6 +474,9 @@ class ChromaVectorStore(BaseVectorBackend):
 
     def delete(self, doc_id: str) -> None:
         """Remove um embedding pelo doc_id."""
+        if not self._available:
+            return
+
         try:
             self._collection.delete(ids=[doc_id])
             logger.debug("Embedding removido: %s", doc_id)
@@ -472,6 +492,9 @@ class ChromaVectorStore(BaseVectorBackend):
         Returns:
             Número de IDs processados para remoção.
         """
+        if not self._available:
+            return 0
+
         if not doc_ids:
             return 0
 
@@ -506,6 +529,9 @@ class ChromaVectorStore(BaseVectorBackend):
         Returns:
             Lista de doc_ids órfãos (existem no vetor mas não no SQLite).
         """
+        if not self._available:
+            return []
+
         orphans: list[str] = []
 
         try:
@@ -542,6 +568,9 @@ class ChromaVectorStore(BaseVectorBackend):
 
     def health_check(self) -> bool:
         """Verifica se o ChromaDB está operacional."""
+        if not self._available:
+            return False
+
         try:
             self._client.heartbeat()
             return True
@@ -555,6 +584,9 @@ class ChromaVectorStore(BaseVectorBackend):
         Args:
             project_uuid: Se informado, conta apenas vetores deste projeto.
         """
+        if not self._available:
+            return 0
+
         try:
             if project_uuid:
                 result = self._collection.get(
