@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS nodes (
     project_uuid  TEXT NOT NULL REFERENCES projects(uuid) ON DELETE CASCADE,
     label         TEXT NOT NULL,
     summary       TEXT,
+    content       TEXT,
     node_type     TEXT NOT NULL DEFAULT 'FACT' 
         CHECK(node_type IN ('FACT', 'SKILL', 'INSIGHT', 'TRAJECTORY', 'PATCH')),
     type          TEXT NOT NULL DEFAULT 'file',
@@ -194,6 +195,14 @@ class SchemaManager:
             self._conn.executescript(FTS5_TRIGGERS_SQL)
             self._conn.commit()
             
+            # Garantir que a coluna 'content' existe (migração retroativa para bancos legados)
+            cursor = self._conn.execute("PRAGMA table_info(nodes)")
+            cols = [row[1] for row in cursor.fetchall()]
+            if "content" not in cols:
+                self._conn.execute("ALTER TABLE nodes ADD COLUMN content TEXT;")
+                self._conn.commit()
+                logger.info("Migração: coluna 'content' adicionada à tabela 'nodes'.")
+
             # Garantir que a versão atual está salva no DB.
             current_version = self.get_schema_version()
             if not current_version or current_version != self.SCHEMA_VERSION:

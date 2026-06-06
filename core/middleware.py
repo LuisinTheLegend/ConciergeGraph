@@ -471,3 +471,23 @@ class GrafoConcierge:
     def store(self) -> SqliteStore:
         """Acesso ao SqliteStore (para operações internas avançadas)."""
         return self._store
+
+    def search_symbols(self, query: str, project_uuid: Optional[str] = None, limit: int = 50) -> list[dict]:
+        """Realiza busca rápida por símbolos no FTS5."""
+        return self._store.search_symbols(query, project_uuid, limit)
+
+    def get_implementations(self, symbol_id: int) -> dict:
+        """Retorna o bloco de código exato da AST armazenado no nó."""
+        node = self._store.get_node(symbol_id)
+        return {
+            "id": node["id"],
+            "label": node["label"],
+            "type": node["type"],
+            "project_uuid": node["project_uuid"],
+            "content": node.get("content"),
+            "file_hash": node.get("file_hash"),
+        }
+
+    def get_callers(self, symbol_id: int) -> list[dict]:
+        """Consulta as arestas para retornar todas as chamadas ao símbolo."""
+        return self._store.get_callers(symbol_id)

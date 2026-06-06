@@ -173,7 +173,7 @@ class SqliteStore:
         self, project_uuid: str, label: str, summary: Optional[str] = None,
         node_type: str = "FACT", type_: str = "file",
         tags: Optional[list[str]] = None, file_hash: Optional[str] = None,
-        status: str = "ACTIVE",
+        status: str = "ACTIVE", content: Optional[str] = None,
     ) -> int:
         """Cria um nó no grafo (alinhado com concierge_mine)."""
         if node_type not in VALID_NODE_TYPES:
@@ -182,13 +182,13 @@ class SqliteStore:
             raise ValueError(f"status inválido: '{status}'. Aceitos: {sorted(VALID_STATUSES)}")
         tags_json = json.dumps(tags, ensure_ascii=False) if tags else None
 
-        def _do(conn, pu, lb, sm, nt, tp, tg, fh, st):
+        def _do(conn, pu, lb, sm, nt, tp, tg, fh, st, ct):
             cur = conn.execute(
-                """INSERT INTO nodes (project_uuid, label, summary, node_type, type, tags, file_hash, status)
-                   VALUES (?,?,?,?,?,?,?,?)""",
-                (pu, lb, sm, nt, tp, tg, fh, st))
+                """INSERT INTO nodes (project_uuid, label, summary, node_type, type, tags, file_hash, status, content)
+                   VALUES (?,?,?,?,?,?,?,?,?)""",
+                (pu, lb, sm, nt, tp, tg, fh, st, ct))
             return cur.lastrowid
-        return self._conn_mgr.write(_do, project_uuid, label, summary, node_type, type_, tags_json, file_hash, status)
+        return self._conn_mgr.write(_do, project_uuid, label, summary, node_type, type_, tags_json, file_hash, status, content)
 
     def get_node(self, node_id: int) -> dict:
         """Retorna um nó pelo ID."""
@@ -267,6 +267,52 @@ class SqliteStore:
         """Atualiza last_commit_at para agora (usado no commit_memory)."""
         now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
         self.update_node(node_id, last_commit_at=now)
+
+    def create_nodes_and_edges_bulk(
+        self,
+        nodes_to_create: list[dict],
+        edges_to_create: list[dict]
+    ) -> list[int]:
+        """Cria múltiplos nós e arestas em uma única transação SQLite (WAL-friendly)."""
+        def _do(conn) -> list[int]:
+            node_ids = []
+            # Inserir nós
+            for n in nodes_to_create:
+                if n.get("node_type", "FACT") not in VALID_NODE_TYPES:
+                    raise ValueError(f"node_type inválido no bulk: {n.get('node_type')}")
+                if n.get("status", "ACTIVE") not in VALID_STATUSES:
+                    raise ValueError(f"status inválido no bulk: {n.get('status')}")
+                    
+                tags_json = json.dumps(n.get("tags"), ensure_ascii=False) if n.get("tags") else None
+                cur = conn.execute(
+                    """INSERT INTO nodes (project_uuid, label, summary, content, node_type, type, tags, file_hash, status)
+                       VALUES (?,?,?,?,?,?,?,?,?)""",
+                    (n["project_uuid"], n["label"], n.get("summary"), n.get("content"),
+                     n.get("node_type", "FACT"), n.get("type", "file"), tags_json,
+                     n.get("file_hash"), n.get("status", "ACTIVE"))
+                )
+                node_ids.append(cur.lastrowid)
+                
+            # Inserir arestas
+            for e in edges_to_create:
+                src_id = e["source_id"]
+                tgt_id = e["target_id"]
+                
+                # Resolução de referências de índices temporários se passados como idx_0, idx_1 etc.
+                if isinstance(src_id, str) and src_id.startswith("idx_"):
+                    idx = int(src_id.split("_")[1])
+                    src_id = node_ids[idx]
+                if isinstance(tgt_id, str) and tgt_id.startswith("idx_"):
+                    idx = int(tgt_id.split("_")[1])
+                    tgt_id = node_ids[idx]
+                    
+                conn.execute(
+                    "INSERT OR REPLACE INTO edges (source_id, target_id, relation_type, weight) VALUES (?,?,?,?)",
+                    (src_id, tgt_id, e.get("relation_type", "depends_on"), e.get("weight", 1.0))
+                )
+            return node_ids
+            
+        return self._conn_mgr.write(_do)
 
     # ===================================================================
     # EDGES
@@ -460,3 +506,31 @@ class SqliteStore:
     def bulk_decay_stale_trajectories(self, project_uuid: str, stale_threshold_days: int = 30) -> int:
         """Decaimento em massa para o Background Janitor."""
         return self._logic.bulk_decay_stale_trajectories(project_uuid, stale_threshold_days)
+
+    def search_symbols(self, query: str, project_uuid: Optional[str] = None, limit: int = 50) -> list[dict]:
+        """Busca por classes, métodos e funções indexados usando FTS5."""
+        safe_query = query.replace('"', '""')
+        sql = """
+            SELECT n.id, n.label, n.type, n.project_uuid, n.file_hash
+            FROM nodes_fts f
+            JOIN nodes n ON n.id = f.rowid
+            WHERE nodes_fts MATCH ? AND n.type IN ('class', 'function', 'method')
+            ORDER BY CASE n.type WHEN 'class' THEN 1 WHEN 'function' THEN 2 WHEN 'method' THEN 3 ELSE 4 END, n.id
+        """
+        params: list[Any] = [f'"{safe_query}"']
+        if project_uuid:
+            sql += " AND n.project_uuid = ?"
+            params.append(project_uuid)
+        sql += " LIMIT ?"
+        params.append(limit)
+        return self._conn_mgr.execute_raw_read(sql, tuple(params))
+
+    def get_callers(self, symbol_id: int) -> list[dict]:
+        """Retorna todos os nós que chamam o símbolo especificado."""
+        sql = """
+            SELECT n.id, n.label, n.type, n.project_uuid
+            FROM edges e
+            JOIN nodes n ON e.source_id = n.id
+            WHERE e.target_id = ? AND e.relation_type = 'calls'
+        """
+        return self._conn_mgr.execute_raw_read(sql, (symbol_id,))

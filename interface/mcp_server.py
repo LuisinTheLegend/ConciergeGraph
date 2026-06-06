@@ -270,8 +270,8 @@ class GrafoConciergeServer:
             name="concierge_status",
             description=(
                 "Retorna o status de saúde do Grafo Concierge: "
-                "estatísticas do projeto, saúde do ChromaDB, último "
-                "relatório do Janitor e métricas do pipeline."
+                "estatísticas do projeto, último relatório do Janitor "
+                "e métricas do pipeline."
             ),
         )
         def concierge_status(
@@ -287,6 +287,49 @@ class GrafoConciergeServer:
                 Dicionário com métricas de saúde e estatísticas.
             """
             return server._handle_status(project_uuid)
+
+        # --- search_symbols ---
+        @self._mcp.tool(
+            name="search_symbols",
+            description=(
+                "Realiza busca rápida por símbolos (classes, métodos ou funções) "
+                "no FTS5 da tabela de nós."
+            ),
+        )
+        def search_symbols(
+            query: str,
+            project_uuid: Optional[str] = None,
+        ) -> dict:
+            """Busca símbolos no FTS5."""
+            return server._handle_search_symbols(query, project_uuid)
+
+        # --- get_implementations ---
+        @self._mcp.tool(
+            name="get_implementations",
+            description=(
+                "Retorna o bloco de código exato da AST armazenado no nó "
+                "para a implementação da classe ou função."
+            ),
+        )
+        def get_implementations(
+            symbol_id: int,
+        ) -> dict:
+            """Retorna código de implementação de um símbolo."""
+            return server._handle_get_implementations(symbol_id)
+
+        # --- get_callers ---
+        @self._mcp.tool(
+            name="get_callers",
+            description=(
+                "Retorna a lista de todas as funções ou classes que "
+                "chamam o símbolo especificado."
+            ),
+        )
+        def get_callers(
+            symbol_id: int,
+        ) -> dict:
+            """Retorna chamadores de um símbolo."""
+            return server._handle_get_callers(symbol_id)
 
     # ===================================================================
     # HANDLER: concierge_register
@@ -638,6 +681,7 @@ class GrafoConciergeServer:
                     "error": str(e),
                 }
 
+
             # --- Janitor ---
             if self._janitor:
                 last = self._janitor.last_reports
@@ -655,7 +699,12 @@ class GrafoConciergeServer:
             if project_uuid:
                 try:
                     project_status = self._gc.status(project_uuid)
-                    status["project"] = project_status
+                    status["project"] = {
+                        **project_status.get("project", {}),
+                        "stats": project_status.get("stats"),
+                        "reference_wings": project_status.get("reference_wings"),
+                        "last_commit_phase": project_status.get("last_commit_phase"),
+                    }
                 except Exception as e:
                     status["project"] = {
                         "uuid": project_uuid,
@@ -675,6 +724,81 @@ class GrafoConciergeServer:
                 "success": False,
                 "error": str(e),
                 "duration_seconds": round(elapsed, 3),
+            }
+
+    # ===================================================================
+    # HANDLER: search_symbols
+    # ===================================================================
+
+    def _handle_search_symbols(self, query: str, project_uuid: Optional[str]) -> dict:
+        """Handler do search_symbols — delega à Fachada."""
+        t0 = time.perf_counter()
+        try:
+            results = self._gc.search_symbols(query, project_uuid)
+            elapsed = time.perf_counter() - t0
+            return {
+                "success": True,
+                "query": query,
+                "results": results,
+                "duration_seconds": round(elapsed, 3)
+            }
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("search_symbols FALHOU: %s", e)
+            return {
+                "success": False,
+                "error": str(e),
+                "duration_seconds": round(elapsed, 3)
+            }
+
+    # ===================================================================
+    # HANDLER: get_implementations
+    # ===================================================================
+
+    def _handle_get_implementations(self, symbol_id: int) -> dict:
+        """Handler do get_implementations — delega à Fachada."""
+        t0 = time.perf_counter()
+        try:
+            result = self._gc.get_implementations(symbol_id)
+            elapsed = time.perf_counter() - t0
+            return {
+                "success": True,
+                "symbol_id": symbol_id,
+                "implementation": result,
+                "duration_seconds": round(elapsed, 3)
+            }
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("get_implementations FALHOU: %s", e)
+            return {
+                "success": False,
+                "error": str(e),
+                "duration_seconds": round(elapsed, 3)
+            }
+
+    # ===================================================================
+    # HANDLER: get_callers
+    # ===================================================================
+
+    def _handle_get_callers(self, symbol_id: int) -> dict:
+        """Handler do get_callers — delega à Fachada."""
+        t0 = time.perf_counter()
+        try:
+            results = self._gc.get_callers(symbol_id)
+            elapsed = time.perf_counter() - t0
+            return {
+                "success": True,
+                "symbol_id": symbol_id,
+                "callers": results,
+                "duration_seconds": round(elapsed, 3)
+            }
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("get_callers FALHOU: %s", e)
+            return {
+                "success": False,
+                "error": str(e),
+                "duration_seconds": round(elapsed, 3)
             }
 
     # ===================================================================

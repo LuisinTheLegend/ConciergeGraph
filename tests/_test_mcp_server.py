@@ -4,6 +4,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from storage.store import SqliteStore
 from interface.mcp_server import GrafoConciergeServer
+from core.middleware import GrafoConcierge
 
 # ===================================================================
 # Setup: Mocks completos
@@ -141,13 +142,14 @@ mock_ingestion = MockIngestionManager()
 mock_janitor = MockJanitor()
 
 # ===================================================================
-# Cria o servidor
-# ===================================================================
-server = GrafoConciergeServer(
+gc = GrafoConcierge(
     sqlite_store=store,
     vector_store=mock_vector,
     embedding_manager=mock_embedder,
     ingestion_manager=mock_ingestion,
+)
+server = GrafoConciergeServer(
+    concierge=gc,
     janitor=mock_janitor,
 )
 
@@ -182,6 +184,8 @@ search_result = server._handle_search(
     project_uuid=project_uuid,
     top_k=5,
     node_type=None,
+    include_references=True,
+    all_wings=True,
 )
 print(f"  success: {search_result['success']}")
 print(f"  results_count: {search_result['results_count']}")
@@ -209,6 +213,8 @@ search_filtered = server._handle_search(
     project_uuid=project_uuid,
     top_k=3,
     node_type="FACT",
+    include_references=True,
+    all_wings=True,
 )
 assert search_filtered["success"] is True
 print(f"  results_count: {search_filtered['results_count']}")
@@ -225,11 +231,10 @@ print(f"  system: {status.get('system')}")
 print(f"  components: {list(status.get('components', {}).keys())}")
 assert status["success"] is True
 assert "sqlite" in status["components"]
-assert "chromadb" in status["components"]
-assert "embedding" in status["components"]
+assert "chromadb" not in status["components"], "ChromaDB residue found in status components!"
+assert "embedding" not in status["components"], "Embedding residue found in status components!"
 assert "janitor" in status["components"]
 assert status["components"]["sqlite"]["status"] == "healthy"
-assert status["components"]["embedding"]["tier"] == "FLASH"
 print("  [PASS] concierge_status (global) OK")
 
 # ===================================================================
@@ -258,11 +263,14 @@ class FailingIngestion:
     def generate_project_context(self, *args):
         return {}
 
-fail_server = GrafoConciergeServer(
+fail_gc = GrafoConcierge(
     sqlite_store=store,
     vector_store=mock_vector,
     embedding_manager=mock_embedder,
     ingestion_manager=FailingIngestion(),
+)
+fail_server = GrafoConciergeServer(
+    concierge=fail_gc,
     janitor=None,
 )
 fail_result = fail_server._handle_mine("/nonexistent", "fail-project", True)
@@ -282,6 +290,8 @@ bad_search = server._handle_search(
     project_uuid="non-existent-uuid-12345",
     top_k=5,
     node_type=None,
+    include_references=True,
+    all_wings=True,
 )
 # Deve retornar sucesso mas com 0 resultados (ou erro tratado)
 print(f"  success: {bad_search['success']}")
@@ -293,7 +303,7 @@ print()
 print("=" * 60)
 print("TESTE 8: _ensure_project (cria novo)")
 print("=" * 60)
-new_uuid = server._ensure_project("brand-new-project", "/tmp/test")
+new_uuid = gc.register_project("brand-new-project")
 print(f"  UUID criado: {new_uuid}")
 assert len(new_uuid) == 36  # UUID format
 # Verifica que foi persistido
@@ -306,7 +316,7 @@ print()
 print("=" * 60)
 print("TESTE 9: _ensure_project (reutiliza existente)")
 print("=" * 60)
-same_uuid = server._ensure_project("mcp-test", TEST_DIR)
+same_uuid = gc.register_project("mcp-test")
 print(f"  UUID reutilizado: {same_uuid}")
 # Deve retornar o UUID do projeto existente (criado no setup ou no mine)
 stored = store.get_project("mcp-test")

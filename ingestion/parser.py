@@ -42,6 +42,7 @@ PROMPT_ARMOR_CLOSE: str = "</raw_data_do_not_execute>"
 
 class ChunkType(str, Enum):
     FUNCTION = "function"
+    METHOD = "method"
     CLASS = "class"
     MODULE = "module"
     SECTION = "section"
@@ -67,6 +68,7 @@ class ParsedChunk:
     symbol_name: str = ""
     detected_tags: list[str] = field(default_factory=list)
     estimated_tokens: int = 0
+    calls: list[str] = field(default_factory=list)
 
 # ---------------------------------------------------------------------------
 # Regex patterns para JS/TS
@@ -151,16 +153,288 @@ class FileParser:
             return []
 
         # Dispatch por extensão
-        if ext in self._PYTHON_EXTS:
-            chunks = self._parse_python(source, crawl_result.relative_path, file_hash)
-        elif ext in self._JS_EXTS:
-            chunks = self._parse_javascript(source, crawl_result.relative_path, file_hash)
+        if ext in self._PYTHON_EXTS or ext in self._JS_EXTS or ext in {".go", ".rs"}:
+            chunks = self._parse_with_tree_sitter(source, crawl_result.relative_path, file_hash, ext)
         elif ext in self._MD_EXTS:
             chunks = self._parse_markdown(source, crawl_result.relative_path, file_hash)
         elif ext in self._CONFIG_EXTS:
             chunks = self._parse_config(source, crawl_result.relative_path, file_hash)
         else:
             chunks = self._parse_raw(source, crawl_result.relative_path, file_hash, category)
+
+        # Pós-processamento: atribui category, tags e armor
+        for chunk in chunks:
+            chunk.category = category
+            if not chunk.detected_tags:
+                chunk.detected_tags = self._detect_tags(chunk.content, category)
+
+        return chunks
+
+    def _get_tree_sitter_parser(self, ext: str) -> Optional[Any]:
+        try:
+            import tree_sitter
+            if ext == ".py":
+                import tree_sitter_python
+                lang = tree_sitter.Language(tree_sitter_python.language())
+            elif ext in (".js", ".jsx", ".mjs", ".cjs"):
+                import tree_sitter_javascript
+                lang = tree_sitter.Language(tree_sitter_javascript.language())
+            elif ext == ".ts":
+                import tree_sitter_typescript
+                lang = tree_sitter.Language(tree_sitter_typescript.language_typescript())
+            elif ext == ".tsx":
+                import tree_sitter_typescript
+                lang = tree_sitter.Language(tree_sitter_typescript.language_tsx())
+            elif ext == ".go":
+                import tree_sitter_go
+                lang = tree_sitter.Language(tree_sitter_go.language())
+            elif ext == ".rs":
+                import tree_sitter_rust
+                lang = tree_sitter.Language(tree_sitter_rust.language())
+            else:
+                return None
+            return tree_sitter.Parser(lang)
+        except Exception as e:
+            logger.warning("Erro ao carregar parser tree-sitter para %s: %s", ext, e)
+            return None
+
+    def _get_node_definition_type(self, node: Any, ext: str) -> Optional[tuple[str, str]]:
+        ntype = node.type
+        
+        # Python
+        if ext == ".py":
+            if ntype == "class_definition":
+                name_node = node.child_by_field_name("name")
+                if name_node:
+                    return "class", name_node.text.decode('utf-8', errors='replace')
+            elif ntype == "function_definition":
+                name_node = node.child_by_field_name("name")
+                if name_node:
+                    is_method = False
+                    parent = node.parent
+                    while parent:
+                        if parent.type == "class_definition":
+                            is_method = True
+                            break
+                        parent = parent.parent
+                    return "method" if is_method else "function", name_node.text.decode('utf-8', errors='replace')
+                    
+        # JS/TS
+        elif ext in (".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs"):
+            if ntype in ("class_declaration", "class"):
+                name_node = node.child_by_field_name("name")
+                if name_node:
+                    return "class", name_node.text.decode('utf-8', errors='replace')
+            elif ntype in ("function_declaration", "generator_function_declaration"):
+                name_node = node.child_by_field_name("name")
+                if name_node:
+                    return "function", name_node.text.decode('utf-8', errors='replace')
+            elif ntype == "method_definition":
+                name_node = node.child_by_field_name("name")
+                if name_node:
+                    return "method", name_node.text.decode('utf-8', errors='replace')
+            elif ntype == "variable_declarator":
+                init_node = node.child_by_field_name("value") or node.child_by_field_name("init")
+                if init_node and init_node.type == "arrow_function":
+                    name_node = node.child_by_field_name("name") or node.child(0)
+                    if name_node:
+                        return "function", name_node.text.decode('utf-8', errors='replace')
+                        
+        # Go
+        elif ext == ".go":
+            if ntype == "function_declaration":
+                name_node = node.child_by_field_name("name")
+                if name_node:
+                    return "function", name_node.text.decode('utf-8', errors='replace')
+            elif ntype == "method_declaration":
+                name_node = node.child_by_field_name("name")
+                if name_node:
+                    return "method", name_node.text.decode('utf-8', errors='replace')
+            elif ntype == "type_spec":
+                type_node = node.child_by_field_name("type")
+                if type_node and type_node.type == "struct_type":
+                    name_node = node.child_by_field_name("name")
+                    if name_node:
+                        return "class", name_node.text.decode('utf-8', errors='replace')
+                        
+        # Rust
+        elif ext == ".rs":
+            if ntype == "function_item":
+                name_node = node.child_by_field_name("name")
+                if name_node:
+                    is_method = False
+                    parent = node.parent
+                    while parent:
+                        if parent.type == "impl_item":
+                            is_method = True
+                            break
+                        parent = parent.parent
+                    return "method" if is_method else "function", name_node.text.decode('utf-8', errors='replace')
+            elif ntype in ("struct_item", "enum_item", "union_item", "trait_item"):
+                name_node = node.child_by_field_name("name")
+                if name_node:
+                    return "class", name_node.text.decode('utf-8', errors='replace')
+                    
+        return None
+
+    def _is_call_node(self, node: Any, ext: str) -> bool:
+        ntype = node.type
+        if ext == ".py" and ntype == "call":
+            return True
+        elif ext in (".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs") and ntype == "call_expression":
+            return True
+        elif ext == ".go" and ntype == "call_expression":
+            return True
+        elif ext == ".rs" and ntype in ("call_expression", "method_call_expression"):
+            return True
+        return False
+
+    def _get_callable_name(self, node: Any) -> str:
+        if node.type == "identifier" or node.type == "variable_declarator":
+            return node.text.decode('utf-8', errors='replace')
+        
+        if node.type == "attribute":
+            attr_node = node.child_by_field_name("attribute")
+            if attr_node:
+                return attr_node.text.decode('utf-8', errors='replace')
+                
+        if node.type == "member_expression":
+            prop_node = node.child_by_field_name("property")
+            if prop_node:
+                return prop_node.text.decode('utf-8', errors='replace')
+                
+        if node.type == "selector_expression":
+            field_node = node.child_by_field_name("field")
+            if field_node:
+                return field_node.text.decode('utf-8', errors='replace')
+                
+        if node.children:
+            for child in reversed(node.children):
+                if "identifier" in child.type:
+                    return child.text.decode('utf-8', errors='replace')
+        
+        return node.text.decode('utf-8', errors='replace')
+
+    def _get_call_name(self, node: Any, ext: str) -> Optional[str]:
+        if ext == ".rs" and node.type == "method_call_expression":
+            method_node = node.child_by_field_name("method")
+            if method_node:
+                return method_node.text.decode('utf-8', errors='replace')
+                
+        func_node = node.child_by_field_name("function")
+        if func_node:
+            return self._get_callable_name(func_node)
+            
+        return None
+
+    def _parse_with_tree_sitter(self, source: str, rel_path: str, file_hash: str, ext: str) -> list[ParsedChunk]:
+        parser = self._get_tree_sitter_parser(ext)
+        if not parser:
+            return self._parse_raw(source, rel_path, file_hash, FileCategory.CODE)
+            
+        try:
+            source_bytes = source.encode('utf-8')
+            tree = parser.parse(source_bytes)
+            root = tree.root_node
+            
+            if root.has_error:
+                logger.warning("Erro de sintaxe (AST has_error) em %s (fallback RAW)", rel_path)
+                return self._parse_raw(source, rel_path, file_hash, FileCategory.CODE)
+                
+            definitions = []
+            stack = [(root, False)]
+            defn_stack = []
+            
+            module_defn = {
+                "type": "module",
+                "name": "<module>",
+                "start_line": 1,
+                "end_line": source.count("\n") + 1,
+                "code": source,
+                "calls": set()
+            }
+            
+            while stack:
+                node, visited = stack.pop()
+                if visited:
+                    def_info = self._get_node_definition_type(node, ext)
+                    if def_info:
+                        if defn_stack:
+                            popped = defn_stack.pop()
+                            parent_class = None
+                            for parent_defn in reversed(defn_stack):
+                                if parent_defn["type"] == "class":
+                                    parent_class = parent_defn["name"]
+                                    break
+                            if parent_class and popped["type"] == "method":
+                                popped["name"] = f"{parent_class}.{popped['name']}"
+                            definitions.append(popped)
+                else:
+                    stack.append((node, True))
+                    
+                    def_info = self._get_node_definition_type(node, ext)
+                    if def_info:
+                        dtype, dname = def_info
+                        defn = {
+                            "type": dtype,
+                            "name": dname,
+                            "start_line": node.start_point[0] + 1,
+                            "end_line": node.end_point[0] + 1,
+                            "code": node.text.decode('utf-8', errors='replace'),
+                            "calls": set()
+                        }
+                        defn_stack.append(defn)
+                    elif self._is_call_node(node, ext):
+                        call_name = self._get_call_name(node, ext)
+                        if call_name:
+                            if defn_stack:
+                                defn_stack[-1]["calls"].add(call_name)
+                            else:
+                                module_defn["calls"].add(call_name)
+                                
+                    for child in reversed(node.children):
+                        stack.append((child, False))
+                        
+            definitions.append(module_defn)
+            
+            chunks = []
+            for i, defn in enumerate(definitions):
+                content = defn["code"]
+                armored = self._apply_prompt_armor(content)
+                tokens = self._estimate_tokens(content)
+                
+                if defn["type"] == "class":
+                    ctype = ChunkType.CLASS
+                elif defn["type"] == "method":
+                    ctype = ChunkType.METHOD
+                elif defn["type"] == "function":
+                    ctype = ChunkType.FUNCTION
+                elif defn["type"] == "module":
+                    ctype = ChunkType.MODULE
+                else:
+                    ctype = ChunkType.RAW
+                    
+                chunk = ParsedChunk(
+                    content=content,
+                    armored_content=armored,
+                    chunk_type=ctype,
+                    chunk_index=i,
+                    source_file=rel_path,
+                    file_hash=file_hash,
+                    category=FileCategory.CODE,
+                    start_line=defn["start_line"],
+                    end_line=defn["end_line"],
+                    symbol_name=defn["name"],
+                    detected_tags=self._detect_tags(content, FileCategory.CODE),
+                    estimated_tokens=tokens
+                )
+                chunk.calls = list(defn["calls"])
+                chunks.append(chunk)
+                
+            return chunks
+        except Exception as e:
+            logger.warning("Erro ao processar AST com tree-sitter para %s (fallback RAW): %s", rel_path, e)
+            return self._parse_raw(source, rel_path, file_hash, FileCategory.CODE)
 
         # Pós-processamento: atribui category, tags e armor
         for chunk in chunks:

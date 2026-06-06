@@ -269,86 +269,203 @@ class IngestionManager:
         auto_tag: bool,
         result: IngestionResult,
     ) -> int:
-        """Etapa 4: Persistência no SQLite (nós + arestas).
+        """Etapa 4: Persistência no SQLite (nós + arestas) via Bulk Insert (WAL-friendly).
 
-        Transaction Safety: cada chunk é inserido individualmente.
-        Se um chunk falhar, o erro é logado e o pipeline continua.
-        Os nós já inseridos permanecem consistentes.
+        Transaction Safety: nós e arestas de diretórios e chamadas são inseridos em lote
+        dentro de transações dedicadas.
         """
-        # Mapa de summaries por source_file para lookup rápido
-        summary_map: dict[str, SummaryResult] = {}
-        for s in summaries:
-            summary_map[s.source_label] = s
+        if not chunks:
+            return 0
 
-        # Cache de nós de diretório para criar arestas estruturais
-        dir_node_cache: dict[str, int] = {}
-        created = 0
+        # Coleta nós existentes no projeto para cachear diretórios e mapear símbolos globais
+        try:
+            existing_nodes = self._store.get_nodes_by_project(project_uuid)
+        except Exception as e:
+            logger.warning("Erro ao listar nós existentes para cache: %s", e)
+            existing_nodes = []
+
+        dir_node_cache = {n["label"]: n["id"] for n in existing_nodes if n.get("type") == "directory"}
+        
+        # 1. PREPARAR NÓS PARA CRIAÇÃO EM LOTE
+        nodes_to_create = []
+        new_dirs = set()
 
         for chunk in chunks:
-            try:
-                # Busca resumo correspondente
-                summary_text = None
-                s = summary_map.get(chunk.source_file)
-                if s:
-                    summary_text = s.summary
+            parent_dir = chunk.source_file.replace("\\", "/")
+            if "/" in parent_dir:
+                parent_dir = parent_dir.rsplit("/", 1)[0]
+            else:
+                parent_dir = "<root>"
+                
+            if parent_dir not in dir_node_cache:
+                new_dirs.add(parent_dir)
 
-                # Tags
-                tags = chunk.detected_tags if auto_tag else None
+        # Adiciona diretórios novos primeiro
+        for d in sorted(new_dirs):
+            nodes_to_create.append({
+                "project_uuid": project_uuid,
+                "label": d,
+                "summary": None,
+                "content": None,
+                "node_type": "FACT",
+                "type": "directory",
+                "tags": None,
+                "file_hash": None,
+                "status": "ACTIVE"
+            })
 
-                # Cria nó
-                node_id = self._store.create_node(
-                    project_uuid=project_uuid,
-                    label=f"{chunk.source_file}::{chunk.symbol_name}",
-                    summary=summary_text,
-                    node_type="FACT",
-                    type_="file",
-                    tags=tags,
-                    file_hash=chunk.file_hash,
-                )
+        # Adiciona chunks de código/doc
+        dir_offset = len(nodes_to_create)
+        for i, chunk in enumerate(chunks):
+            summary_text = None
+            if i < len(summaries):
+                summary_text = summaries[i].summary
+            
+            tags = chunk.detected_tags if auto_tag else None
+            nodes_to_create.append({
+                "project_uuid": project_uuid,
+                "label": f"{chunk.source_file}::{chunk.symbol_name}",
+                "summary": summary_text,
+                "content": chunk.content,
+                "node_type": "FACT",
+                "type": chunk.chunk_type.value,
+                "tags": tags,
+                "file_hash": chunk.file_hash,
+                "status": "ACTIVE"
+            })
 
-                # Aresta estrutural: diretório pai → chunk
-                parent_dir = chunk.source_file.replace("\\", "/")
-                if "/" in parent_dir:
-                    parent_dir = parent_dir.rsplit("/", 1)[0]
-                else:
-                    parent_dir = "<root>"
+        # Executa bulk insert de nós
+        try:
+            node_ids = self._store.create_nodes_and_edges_bulk(nodes_to_create, [])
+        except Exception as e:
+            error_msg = f"Bulk insert de nós falhou: {e}"
+            logger.error(error_msg)
+            result.errors.append(error_msg)
+            raise RuntimeError(error_msg) from e
 
-                if parent_dir not in dir_node_cache:
-                    # Cria nó de diretório (se não existir)
-                    try:
-                        dir_node_id = self._store.create_node(
-                            project_uuid=project_uuid,
-                            label=parent_dir,
-                            node_type="FACT",
-                            type_="directory",
-                        )
-                        dir_node_cache[parent_dir] = dir_node_id
-                    except Exception:
-                        # Diretório já pode existir — ignora
-                        dir_node_cache[parent_dir] = -1
+        # Atualiza caches com os novos IDs gerados
+        for idx, d in enumerate(sorted(new_dirs)):
+            dir_node_cache[d] = node_ids[idx]
 
-                dir_id = dir_node_cache.get(parent_dir, -1)
+        # Associa IDs aos chunks (offset pula os diretórios criados no início)
+        chunk_node_ids = node_ids[dir_offset:]
+        for i, chunk in enumerate(chunks):
+            chunk._node_id = chunk_node_ids[i]  # type: ignore[attr-defined]
+
+        # 2. RESOLVER MAPAS DE SÍMBOLOS PARA MAPEAMENTO DE ARESTAS
+        project_symbol_map = {}
+        global_symbol_map = {}
+
+        # Mapear nós pré-existentes
+        for n in existing_nodes:
+            label = n["label"]
+            nid = n["id"]
+            sf = label
+            sym = ""
+            if "::" in label:
+                sf, sym = label.split("::", 1)
+            project_symbol_map[(sf, sym)] = nid
+            if sym:
+                if sym not in global_symbol_map:
+                    global_symbol_map[sym] = []
+                global_symbol_map[sym].append(nid)
+
+        # Mapear novos nós inseridos
+        for i, chunk in enumerate(chunks):
+            nid = chunk_node_ids[i]
+            sf = chunk.source_file
+            sym = chunk.symbol_name
+            project_symbol_map[(sf, sym)] = nid
+            if sym:
+                if sym not in global_symbol_map:
+                    global_symbol_map[sym] = []
+                global_symbol_map[sym].append(nid)
+
+        # 3. PREPARAR ARESTAS PARA CRIAÇÃO EM LOTE
+        edges_to_create = []
+        file_module_map = {}
+
+        # Mapear módulos (arquivos) de entrada do lote atual
+        for i, chunk in enumerate(chunks):
+            if chunk.chunk_type.value == "module":
+                file_module_map[chunk.source_file] = chunk_node_ids[i]
+
+        for i, chunk in enumerate(chunks):
+            chunk_node_id = chunk_node_ids[i]
+
+            # Arestas de estrutura: diretório -> arquivo, arquivo -> símbolo
+            parent_dir = chunk.source_file.replace("\\", "/")
+            if "/" in parent_dir:
+                parent_dir = parent_dir.rsplit("/", 1)[0]
+            else:
+                parent_dir = "<root>"
+                
+            dir_id = dir_node_cache.get(parent_dir, -1)
+
+            if chunk.chunk_type.value == "module":
                 if dir_id > 0:
-                    try:
-                        self._store.create_edge(
-                            source_id=dir_id,
-                            target_id=node_id,
-                            relation_type="contains",
-                            weight=1.0,
-                        )
-                    except Exception as e:
-                        logger.debug("Aresta dir→chunk falhou (não fatal): %s", e)
+                    edges_to_create.append({
+                        "source_id": dir_id,
+                        "target_id": chunk_node_id,
+                        "relation_type": "contains",
+                        "weight": 1.0
+                    })
+            else:
+                module_id = file_module_map.get(chunk.source_file)
+                if module_id:
+                    edges_to_create.append({
+                        "source_id": module_id,
+                        "target_id": chunk_node_id,
+                        "relation_type": "contains",
+                        "weight": 1.0
+                    })
+                elif dir_id > 0:
+                    edges_to_create.append({
+                        "source_id": dir_id,
+                        "target_id": chunk_node_id,
+                        "relation_type": "contains",
+                        "weight": 1.0
+                    })
 
-                # Atualiza chunk com node_id para embedding step
-                chunk._node_id = node_id  # type: ignore[attr-defined]
-                created += 1
+            # Arestas de chamadas (calls)
+            calls = getattr(chunk, "calls", [])
+            for call_name in calls:
+                target_node_id = None
+                
+                # Check 1: Lookup de símbolo no mesmo arquivo
+                if (chunk.source_file, call_name) in project_symbol_map:
+                    target_node_id = project_symbol_map[(chunk.source_file, call_name)]
+                
+                # Check 2: Dotted path (ex: Class.method)
+                if not target_node_id and "." in call_name:
+                    parts = call_name.split(".")
+                    if (chunk.source_file, call_name) in project_symbol_map:
+                        target_node_id = project_symbol_map[(chunk.source_file, call_name)]
+                    else:
+                        last_part = parts[-1]
+                        if (chunk.source_file, last_part) in project_symbol_map:
+                            target_node_id = project_symbol_map[(chunk.source_file, last_part)]
+                            
+                # Check 3: Lookup global de símbolo no projeto
+                if not target_node_id and call_name in global_symbol_map:
+                    target_node_id = global_symbol_map[call_name][0]
 
+                if target_node_id and target_node_id != chunk_node_id:
+                    edges_to_create.append({
+                        "source_id": chunk_node_id,
+                        "target_id": target_node_id,
+                        "relation_type": "calls",
+                        "weight": 1.0
+                    })
+
+        # Executa bulk insert de arestas
+        if edges_to_create:
+            try:
+                self._store.create_nodes_and_edges_bulk([], edges_to_create)
             except Exception as e:
-                error_msg = f"Store SQLite falhou para {chunk.source_file}::{chunk.symbol_name}: {e}"
-                logger.error(error_msg)
-                result.errors.append(error_msg)
+                logger.warning("Falha ao persistir arestas em lote (não fatal): %s", e)
 
-        return created
+        return len(chunks)
 
     def _step_embed(self, chunks: list[ParsedChunk], project_uuid: str, result: IngestionResult) -> list[dict]:
         """Etapa 5: Geração de embeddings em batch."""
