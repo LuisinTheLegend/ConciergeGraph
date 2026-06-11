@@ -74,7 +74,9 @@ CREATE TABLE IF NOT EXISTS nodes (
     last_accessed TEXT,
     last_commit_at TEXT,
     status        TEXT NOT NULL DEFAULT 'ACTIVE' 
-        CHECK(status IN ('ACTIVE', 'STALE', 'ARCHIVED'))
+        CHECK(status IN ('ACTIVE', 'STALE', 'ARCHIVED')),
+    valid_from_commit TEXT NULL,
+    valid_to_commit   TEXT NULL
 );
 
 CREATE TABLE IF NOT EXISTS edges (
@@ -82,6 +84,10 @@ CREATE TABLE IF NOT EXISTS edges (
     target_id     INTEGER NOT NULL REFERENCES nodes(id) ON DELETE CASCADE,
     relation_type TEXT NOT NULL DEFAULT 'depends_on',
     weight        REAL NOT NULL DEFAULT 1.0,
+    valid_from_commit TEXT NULL,
+    valid_to_commit   TEXT NULL,
+    confidence_tag    TEXT NOT NULL DEFAULT 'EXTRACTED'
+        CHECK(confidence_tag IN ('EXTRACTED', 'INFERRED', 'AMBIGUOUS')),
     PRIMARY KEY (source_id, target_id)
 );
 
