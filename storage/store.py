@@ -174,21 +174,33 @@ class SqliteStore:
         node_type: str = "FACT", type_: str = "file",
         tags: Optional[list[str]] = None, file_hash: Optional[str] = None,
         status: str = "ACTIVE", content: Optional[str] = None,
+        valid_from_commit: Optional[str] = None,
+        valid_to_commit: Optional[str] = None,
     ) -> int:
-        """Cria um nó no grafo (alinhado com concierge_mine)."""
+        """Cria um nó no grafo (alinhado com concierge_mine).
+
+        Args:
+            valid_from_commit: SHA do commit em que o nó passa a ser válido (opcional).
+            valid_to_commit: SHA do commit em que o nó deixa de ser válido (opcional).
+        """
         if node_type not in VALID_NODE_TYPES:
             raise ValueError(f"node_type inválido: '{node_type}'. Aceitos: {sorted(VALID_NODE_TYPES)}")
         if status not in VALID_STATUSES:
             raise ValueError(f"status inválido: '{status}'. Aceitos: {sorted(VALID_STATUSES)}")
         tags_json = json.dumps(tags, ensure_ascii=False) if tags else None
 
-        def _do(conn, pu, lb, sm, nt, tp, tg, fh, st, ct):
+        def _do(conn, pu, lb, sm, nt, tp, tg, fh, st, ct, vfc, vtc):
             cur = conn.execute(
-                """INSERT INTO nodes (project_uuid, label, summary, node_type, type, tags, file_hash, status, content)
-                   VALUES (?,?,?,?,?,?,?,?,?)""",
-                (pu, lb, sm, nt, tp, tg, fh, st, ct))
+                """INSERT INTO nodes
+                   (project_uuid, label, summary, node_type, type, tags, file_hash, status, content,
+                    valid_from_commit, valid_to_commit)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+                (pu, lb, sm, nt, tp, tg, fh, st, ct, vfc, vtc))
             return cur.lastrowid
-        return self._conn_mgr.write(_do, project_uuid, label, summary, node_type, type_, tags_json, file_hash, status, content)
+        return self._conn_mgr.write(
+            _do, project_uuid, label, summary, node_type, type_, tags_json,
+            file_hash, status, content, valid_from_commit, valid_to_commit,
+        )
 
     def get_node(self, node_id: int) -> dict:
         """Retorna um nó pelo ID."""
@@ -230,9 +242,10 @@ class SqliteStore:
         return results
 
     def update_node(self, node_id: int, **fields: Any) -> None:
-        """Atualiza campos permitidos de um nó."""
+        """Atualiza campos permitidos de um nó (inclui campos temporais)."""
         allowed = {"label", "summary", "node_type", "type", "tags", "file_hash",
-                    "last_accessed", "last_commit_at", "status"}
+                    "last_accessed", "last_commit_at", "status",
+                    "valid_from_commit", "valid_to_commit"}
         updates = {k: v for k, v in fields.items() if k in allowed}
         if not updates:
             return
@@ -273,7 +286,10 @@ class SqliteStore:
         nodes_to_create: list[dict],
         edges_to_create: list[dict]
     ) -> list[int]:
-        """Cria múltiplos nós e arestas em uma única transação SQLite (WAL-friendly)."""
+        """Cria múltiplos nós e arestas em uma única transação SQLite (WAL-friendly).
+
+        Suporta campos temporais e confidence_tag em cada dict de nó/aresta.
+        """
         def _do(conn) -> list[int]:
             node_ids = []
             # Inserir nós
@@ -285,11 +301,14 @@ class SqliteStore:
                     
                 tags_json = json.dumps(n.get("tags"), ensure_ascii=False) if n.get("tags") else None
                 cur = conn.execute(
-                    """INSERT INTO nodes (project_uuid, label, summary, content, node_type, type, tags, file_hash, status)
-                       VALUES (?,?,?,?,?,?,?,?,?)""",
+                    """INSERT INTO nodes
+                       (project_uuid, label, summary, content, node_type, type, tags, file_hash, status,
+                        valid_from_commit, valid_to_commit)
+                       VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
                     (n["project_uuid"], n["label"], n.get("summary"), n.get("content"),
                      n.get("node_type", "FACT"), n.get("type", "file"), tags_json,
-                     n.get("file_hash"), n.get("status", "ACTIVE"))
+                     n.get("file_hash"), n.get("status", "ACTIVE"),
+                     n.get("valid_from_commit"), n.get("valid_to_commit"))
                 )
                 node_ids.append(cur.lastrowid)
                 
@@ -307,8 +326,13 @@ class SqliteStore:
                     tgt_id = node_ids[idx]
                     
                 conn.execute(
-                    "INSERT OR REPLACE INTO edges (source_id, target_id, relation_type, weight) VALUES (?,?,?,?)",
-                    (src_id, tgt_id, e.get("relation_type", "depends_on"), e.get("weight", 1.0))
+                    """INSERT OR REPLACE INTO edges
+                       (source_id, target_id, relation_type, weight,
+                        valid_from_commit, valid_to_commit, confidence_tag)
+                       VALUES (?,?,?,?,?,?,?)""",
+                    (src_id, tgt_id, e.get("relation_type", "depends_on"), e.get("weight", 1.0),
+                     e.get("valid_from_commit"), e.get("valid_to_commit"),
+                     e.get("confidence_tag", "EXTRACTED"))
                 )
             return node_ids
             
@@ -318,14 +342,31 @@ class SqliteStore:
     # EDGES
     # ===================================================================
 
-    def create_edge(self, source_id: int, target_id: int,
-                    relation_type: str = "depends_on", weight: float = 1.0) -> None:
-        """Cria ou atualiza uma aresta entre dois nós."""
-        def _do(conn, s, t, r, w):
+    def create_edge(
+        self, source_id: int, target_id: int,
+        relation_type: str = "depends_on", weight: float = 1.0,
+        valid_from_commit: Optional[str] = None,
+        valid_to_commit: Optional[str] = None,
+        confidence_tag: str = "EXTRACTED",
+    ) -> None:
+        """Cria ou atualiza uma aresta entre dois nós.
+
+        Args:
+            valid_from_commit: SHA do commit em que a aresta passa a ser válida.
+            valid_to_commit: SHA do commit em que a aresta deixa de ser válida.
+            confidence_tag: Grau de confiança da relação ('EXTRACTED'|'INFERRED'|'AMBIGUOUS').
+        """
+        def _do(conn, s, t, r, w, vfc, vtc, ct):
             conn.execute(
-                "INSERT OR REPLACE INTO edges (source_id, target_id, relation_type, weight) VALUES (?,?,?,?)",
-                (s, t, r, w))
-        self._conn_mgr.write(_do, source_id, target_id, relation_type, weight)
+                """INSERT OR REPLACE INTO edges
+                   (source_id, target_id, relation_type, weight,
+                    valid_from_commit, valid_to_commit, confidence_tag)
+                   VALUES (?,?,?,?,?,?,?)""",
+                (s, t, r, w, vfc, vtc, ct))
+        self._conn_mgr.write(
+            _do, source_id, target_id, relation_type, weight,
+            valid_from_commit, valid_to_commit, confidence_tag,
+        )
 
     def get_edges_from(self, node_id: int) -> list[dict]:
         """Arestas saindo de um nó (source → targets)."""
