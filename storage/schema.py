@@ -119,6 +119,25 @@ CREATE TABLE IF NOT EXISTS commit_log (
     partial_audit     INTEGER NOT NULL DEFAULT 0,
     created_at        TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS user_core_memory (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    scope_type    TEXT NOT NULL CHECK(scope_type IN ('user', 'session', 'agent', 'org')),
+    scope_id      TEXT NOT NULL,
+    block_label   TEXT NOT NULL,
+    content       TEXT,
+    updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS semantic_facts (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    scope_type     TEXT NOT NULL CHECK(scope_type IN ('user', 'session', 'agent', 'org')),
+    scope_id       TEXT NOT NULL,
+    fact_statement TEXT NOT NULL,
+    t_valid        TEXT NOT NULL DEFAULT (datetime('now')),
+    t_invalid      TEXT NULL,
+    created_at     TEXT NOT NULL DEFAULT (datetime('now'))
+);
 """
 
 INDEXES_SQL: str = """
@@ -132,6 +151,9 @@ CREATE INDEX IF NOT EXISTS idx_trajectories_project ON trajectories(project_uuid
 CREATE INDEX IF NOT EXISTS idx_trajectories_status ON trajectories(status);
 CREATE INDEX IF NOT EXISTS idx_commitlog_project ON commit_log(project_uuid);
 CREATE INDEX IF NOT EXISTS idx_commitlog_date ON commit_log(created_at);
+CREATE INDEX IF NOT EXISTS idx_user_core_memory_scope ON user_core_memory(scope_type, scope_id);
+CREATE INDEX IF NOT EXISTS idx_semantic_facts_scope ON semantic_facts(scope_type, scope_id);
+CREATE INDEX IF NOT EXISTS idx_semantic_facts_temporal ON semantic_facts(t_valid, t_invalid);
 """
 
 FTS5_TABLE_SQL: str = """
@@ -231,7 +253,8 @@ class SchemaManager:
         """
         required_tables = [
             "projects", "nodes", "edges", "reference_wings", 
-            "trajectories", "commit_log", "nodes_fts"
+            "trajectories", "commit_log", "nodes_fts",
+            "user_core_memory", "semantic_facts"
         ]
         
         cursor = self._conn.execute(
@@ -315,7 +338,7 @@ class SchemaManager:
         counts = {}
         tables = [
             "projects", "nodes", "edges", "reference_wings", 
-            "trajectories", "commit_log"
+            "trajectories", "commit_log", "user_core_memory", "semantic_facts"
         ]
         
         for table in tables:
