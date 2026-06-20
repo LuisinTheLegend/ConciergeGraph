@@ -98,7 +98,7 @@ class QdrantVectorStore(BaseVectorBackend):
     def _validate_payload(self, metadata: dict) -> None:
         """Valida os campos obrigatórios dependendo da coleção alvo."""
         if self._collection_name == "episodic_memory":
-            required = ["scope_type", "scope_id", "timestamp"]
+            required = ["scope_type", "scope_id", "timestamp", "utility_alpha", "utility_beta"]
             for r in required:
                 if r not in metadata:
                     raise ValueError(

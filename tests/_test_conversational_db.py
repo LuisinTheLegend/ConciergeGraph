@@ -107,13 +107,15 @@ def test_qdrant_vector_store_payload_validation():
         "scope_type": "user",
         "scope_id": "user-123",
         "timestamp": "2026-06-17T18:00:00Z",
-        "message": "Fato conversacional"
+        "message": "Fato conversacional",
+        "utility_alpha": 1.0,
+        "utility_beta": 1.0
     }
     # Não deve subir exceção
     store._validate_payload(valid_payload)
 
     # 2. Falta de chaves obrigatórias
-    for missing_key in ["scope_type", "scope_id", "timestamp"]:
+    for missing_key in ["scope_type", "scope_id", "timestamp", "utility_alpha", "utility_beta"]:
         invalid_payload = valid_payload.copy()
         invalid_payload.pop(missing_key)
         

@@ -136,6 +136,8 @@ CREATE TABLE IF NOT EXISTS semantic_facts (
     fact_statement TEXT NOT NULL,
     t_valid        TEXT NOT NULL DEFAULT (datetime('now')),
     t_invalid      TEXT NULL,
+    utility_alpha  REAL NOT NULL DEFAULT 1.0,
+    utility_beta   REAL NOT NULL DEFAULT 1.0,
     created_at     TEXT NOT NULL DEFAULT (datetime('now'))
 );
 """
@@ -231,6 +233,18 @@ class SchemaManager:
                 self._conn.execute("ALTER TABLE nodes ADD COLUMN content TEXT;")
                 self._conn.commit()
                 logger.info("Migração: coluna 'content' adicionada à tabela 'nodes'.")
+
+            # Garantir que as colunas 'utility_alpha' e 'utility_beta' existem em semantic_facts
+            cursor = self._conn.execute("PRAGMA table_info(semantic_facts)")
+            sem_cols = [row[1] for row in cursor.fetchall()]
+            if "utility_alpha" not in sem_cols:
+                self._conn.execute("ALTER TABLE semantic_facts ADD COLUMN utility_alpha REAL NOT NULL DEFAULT 1.0;")
+                self._conn.commit()
+                logger.info("Migração: coluna 'utility_alpha' adicionada à tabela 'semantic_facts'.")
+            if "utility_beta" not in sem_cols:
+                self._conn.execute("ALTER TABLE semantic_facts ADD COLUMN utility_beta REAL NOT NULL DEFAULT 1.0;")
+                self._conn.commit()
+                logger.info("Migração: coluna 'utility_beta' adicionada à tabela 'semantic_facts'.")
 
             # Garantir que a versão atual está salva no DB.
             current_version = self.get_schema_version()
