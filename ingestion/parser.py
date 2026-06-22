@@ -359,6 +359,10 @@ class FileParser:
     def _parse_with_tree_sitter(self, source: str, rel_path: str, file_hash: str, ext: str) -> list[ParsedChunk]:
         parser = self._get_tree_sitter_parser(ext)
         if not parser:
+            if ext == ".py":
+                return self._parse_python(source, rel_path, file_hash)
+            elif ext in self._JS_EXTS:
+                return self._parse_javascript(source, rel_path, file_hash)
             return self._parse_raw(source, rel_path, file_hash, FileCategory.CODE)
             
         try:
@@ -460,9 +464,12 @@ class FileParser:
                 chunk.calls = list(defn["calls"])
                 chunks.append(chunk)
                 
-            return chunks
         except Exception as e:
-            logger.warning("Erro ao processar AST com tree-sitter para %s (fallback RAW): %s", rel_path, e)
+            logger.warning("Erro ao processar AST com tree-sitter para %s (fallback native/RAW): %s", rel_path, e)
+            if ext == ".py":
+                return self._parse_python(source, rel_path, file_hash)
+            elif ext in self._JS_EXTS:
+                return self._parse_javascript(source, rel_path, file_hash)
             return self._parse_raw(source, rel_path, file_hash, FileCategory.CODE)
 
         # Pós-processamento: atribui category, tags e armor
@@ -499,61 +506,73 @@ class FileParser:
             logger.warning("SyntaxError em %s (fallback RAW): %s", rel_path, e)
             return self._parse_raw(source, rel_path, file_hash, FileCategory.CODE)
 
-        # Coleta nós de primeiro nível (funções, classes)
-        top_level_nodes: list[ast.AST] = []
+        # Coleta nós (funções, classes, métodos)
+        nodes_to_process: list[tuple[ChunkType, str, int, int, ast.AST]] = []
+
+        # Traverse AST child nodes
         for node in ast.iter_child_nodes(tree):
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-                top_level_nodes.append(node)
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                start = node.lineno
+                end = node.end_lineno if hasattr(node, "end_lineno") and node.end_lineno else start
+                nodes_to_process.append((ChunkType.FUNCTION, node.name, start, end, node))
+            elif isinstance(node, ast.ClassDef):
+                start = node.lineno
+                end = node.end_lineno if hasattr(node, "end_lineno") and node.end_lineno else start
+                nodes_to_process.append((ChunkType.CLASS, node.name, start, end, node))
+                # Mapeia métodos internos da classe
+                for subnode in ast.iter_child_nodes(node):
+                    if isinstance(subnode, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                        sub_start = subnode.lineno
+                        sub_end = subnode.end_lineno if hasattr(subnode, "end_lineno") and subnode.end_lineno else sub_start
+                        nodes_to_process.append((ChunkType.METHOD, f"{node.name}.{subnode.name}", sub_start, sub_end, subnode))
 
-        # Ordena por linha
-        top_level_nodes.sort(key=lambda n: n.lineno)
+        # Adiciona o módulo no final para corresponder ao comportamento do tree-sitter
+        nodes_to_process.append((ChunkType.MODULE, "<module>", 1, len(lines) if lines else 1, tree))
 
-        # Bloco MODULE: tudo antes do primeiro nó de top-level
-        first_line = top_level_nodes[0].lineno if top_level_nodes else len(lines) + 1
-        module_lines = lines[:first_line - 1]
-        module_text = "".join(module_lines).strip()
-        if module_text:
-            armored = self._apply_prompt_armor(module_text)
-            tokens = self._estimate_tokens(module_text)
-            chunks.append(ParsedChunk(
-                content=module_text,
-                armored_content=armored,
-                chunk_type=ChunkType.MODULE,
-                chunk_index=chunk_idx,
-                source_file=rel_path,
-                file_hash=file_hash,
-                category=FileCategory.CODE,
-                start_line=1,
-                end_line=first_line - 1,
-                symbol_name="<module>",
-                detected_tags=self._detect_tags(module_text, FileCategory.CODE),
-                estimated_tokens=tokens,
-            ))
-            chunk_idx += 1
+        # Mapeia chamadas usando escopo de definição
+        calls_map = {tree: set()}
 
-        # Chunks para cada função/classe
-        for node in top_level_nodes:
-            start = node.lineno
-            end = node.end_lineno if hasattr(node, "end_lineno") and node.end_lineno else start
-            block_text = "".join(lines[start - 1:end]).rstrip()
-
-            if isinstance(node, ast.ClassDef):
-                ctype = ChunkType.CLASS
-                name = node.name
+        def traverse_ast(n, current_defn):
+            if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                calls_map[n] = set()
+                for child in ast.iter_child_nodes(n):
+                    traverse_ast(child, n)
             else:
-                ctype = ChunkType.FUNCTION
-                name = node.name
+                if isinstance(n, ast.Call):
+                    name = None
+                    if isinstance(n.func, ast.Name):
+                        name = n.func.id
+                    elif isinstance(n.func, ast.Attribute):
+                        name = n.func.attr
+                    if name:
+                        calls_map[current_defn].add(name)
+                for child in ast.iter_child_nodes(n):
+                    traverse_ast(child, current_defn)
+
+        traverse_ast(tree, tree)
+
+        for ctype, name, start, end, ast_node in nodes_to_process:
+            if ctype == ChunkType.MODULE:
+                block_text = source.rstrip()
+            else:
+                block_text = "".join(lines[start - 1:end]).rstrip()
 
             armored = self._apply_prompt_armor(block_text)
             tokens = self._estimate_tokens(block_text)
 
-            # Se excede max_tokens, subdivide
-            if tokens > self._max_tokens:
+            # Obtém chamadas específicas deste escopo
+            calls = list(calls_map.get(ast_node, set()))
+
+            # Se excede max_tokens, subdivide (exceto module para simplificar)
+            if tokens > self._max_tokens and ctype != ChunkType.MODULE:
                 sub_chunks = self._split_oversized(block_text, rel_path, file_hash, ctype, name, start, chunk_idx)
+                # Copia chamadas para sub-chunks
+                for sc in sub_chunks:
+                    sc.calls = calls
                 chunks.extend(sub_chunks)
                 chunk_idx += len(sub_chunks)
             else:
-                chunks.append(ParsedChunk(
+                chunk = ParsedChunk(
                     content=block_text,
                     armored_content=armored,
                     chunk_type=ctype,
@@ -566,12 +585,10 @@ class FileParser:
                     symbol_name=name,
                     detected_tags=self._detect_tags(block_text, FileCategory.CODE),
                     estimated_tokens=tokens,
-                ))
+                )
+                chunk.calls = calls
+                chunks.append(chunk)
                 chunk_idx += 1
-
-        # Se não tinha nós top-level e não gerou MODULE chunk, faz RAW
-        if not chunks:
-            return self._parse_raw(source, rel_path, file_hash, FileCategory.CODE)
 
         return chunks
 

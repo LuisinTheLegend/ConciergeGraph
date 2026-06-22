@@ -11,6 +11,7 @@ Backend vetorial concreto baseado no Qdrant com suporte a:
 from __future__ import annotations
 
 import logging
+import time
 from typing import Any, Optional
 
 logger = logging.getLogger("grafo-concierge.qdrant-backend")
@@ -22,8 +23,8 @@ try:
     QDRANT_AVAILABLE = True
 except ImportError:
     QDRANT_AVAILABLE = False
-    logger.warning(
-        "qdrant-client não instalado. Instale com: pip install qdrant-client"
+    logger.error(
+        "[CRITICAL] qdrant-client não encontrado. QdrantVectorStore operando em modo NO-OP. Buscas semânticas retornarão vazias!"
     )
 
 from storage.base_backend import BaseVectorBackend, VectorSearchResult
@@ -52,6 +53,7 @@ class QdrantVectorStore(BaseVectorBackend):
         self._available = QDRANT_AVAILABLE
         self._collection_name = collection_name
         self._dimensions = embedding_dimensions
+        self._last_warn_time = 0.0
 
         if not self._available:
             logger.warning("QdrantVectorStore operando em modo NO-OP (qdrant-client ausente).")
@@ -95,6 +97,13 @@ class QdrantVectorStore(BaseVectorBackend):
         except Exception as e:
             logger.error("Falha ao inicializar coleção Qdrant '%s': %s", name, e)
 
+    def _log_noop_warning(self) -> None:
+        """Logs a warning when operating in NO-OP mode, throttled to once every 5 seconds."""
+        current_time = time.time()
+        if current_time - self._last_warn_time >= 5.0:
+            logger.warning("Operação ignorada: Qdrant em modo NO-OP")
+            self._last_warn_time = current_time
+
     def _validate_payload(self, metadata: dict) -> None:
         """Valida os campos obrigatórios dependendo da coleção alvo."""
         if self._collection_name == "episodic_memory":
@@ -130,6 +139,7 @@ class QdrantVectorStore(BaseVectorBackend):
     ) -> None:
         """Armazena um embedding com metadados/payload no Qdrant."""
         if not self._available or not self._client:
+            self._log_noop_warning()
             return
 
         self._validate_payload(metadata)
@@ -148,7 +158,10 @@ class QdrantVectorStore(BaseVectorBackend):
 
     def store_embeddings_batch(self, items: list[dict]) -> int:
         """Armazena múltiplos embeddings em lote no Qdrant."""
-        if not self._available or not self._client or not items:
+        if not self._available or not self._client:
+            self._log_noop_warning()
+            return 0
+        if not items:
             return 0
 
         points = []
@@ -190,6 +203,7 @@ class QdrantVectorStore(BaseVectorBackend):
     ) -> list[VectorSearchResult]:
         """Busca por similaridade coseno no Qdrant aplicando filtros."""
         if not self._available or not self._client:
+            self._log_noop_warning()
             return []
 
         # Constrói o filtro de busca no formato Qdrant
@@ -227,6 +241,7 @@ class QdrantVectorStore(BaseVectorBackend):
     def delete(self, doc_id: str) -> None:
         """Deleta um vetor pelo ID."""
         if not self._available or not self._client:
+            self._log_noop_warning()
             return
 
         try:
@@ -241,7 +256,10 @@ class QdrantVectorStore(BaseVectorBackend):
 
     def delete_batch(self, doc_ids: list[str]) -> int:
         """Deleta múltiplos vetores em lote."""
-        if not self._available or not self._client or not doc_ids:
+        if not self._available or not self._client:
+            self._log_noop_warning()
+            return 0
+        if not doc_ids:
             return 0
 
         try:
@@ -259,6 +277,7 @@ class QdrantVectorStore(BaseVectorBackend):
     def verify_sync(self, sqlite_node_ids: set[int]) -> list[str]:
         """Detecta vetores órfãos no Qdrant."""
         if not self._available or not self._client:
+            self._log_noop_warning()
             return []
 
         orphans: list[str] = []
