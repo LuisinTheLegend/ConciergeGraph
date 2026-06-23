@@ -71,6 +71,8 @@ class MaintenanceReport:
     trajectories_decayed: int = 0
     orphan_vectors_removed: int = 0
     inactive_nodes_archived: int = 0
+    communities_detected: int = 0
+    summaries_generated: int = 0
     zoom_triggered: bool = False
     zoom_l1_count: int = 0
     zoom_l2_summary: str = ""
@@ -86,6 +88,8 @@ class MaintenanceReport:
             "trajectories_decayed": self.trajectories_decayed,
             "orphan_vectors_removed": self.orphan_vectors_removed,
             "inactive_nodes_archived": self.inactive_nodes_archived,
+            "communities_detected": self.communities_detected,
+            "summaries_generated": self.summaries_generated,
             "zoom_triggered": self.zoom_triggered,
             "zoom_l1_count": self.zoom_l1_count,
             "zoom_l2_summary": self.zoom_l2_summary,
@@ -123,6 +127,7 @@ class JanitorService:
         stale_days: int = STALE_TRAJECTORY_DAYS,
         auto_zoom_threshold: int = AUTO_ZOOM_THRESHOLD,
         inactive_days: int = INACTIVE_NODE_DAYS,
+        super_node_threshold: int = 10,
     ) -> None:
         self._store = sqlite_store
         self._vector = vector_store
@@ -130,6 +135,7 @@ class JanitorService:
         self._stale_days = stale_days
         self._zoom_threshold = auto_zoom_threshold
         self._inactive_days = inactive_days
+        self._super_node_threshold = super_node_threshold
 
         # Idle-Lock: flag compartilhada para detectar mine() em andamento
         self._mine_active = threading.Event()
@@ -139,9 +145,12 @@ class JanitorService:
         self._stop_event = threading.Event()
         self._last_reports: list[MaintenanceReport] = []
 
+        # Vector payloads em testes ou mock vector stores
+        self.vector_payloads: dict[int, dict[str, Any]] = {}
+
         logger.info(
-            "JanitorService inicializado: stale=%dd, zoom_threshold=%d, inactive=%dd",
-            stale_days, auto_zoom_threshold, inactive_days,
+            "JanitorService inicializado: stale=%dd, zoom_threshold=%d, inactive=%dd, super_node_threshold=%d",
+            stale_days, auto_zoom_threshold, inactive_days, super_node_threshold,
         )
 
     # ===================================================================
@@ -158,19 +167,32 @@ class JanitorService:
         self._mine_active.clear()
         logger.debug("Idle-Lock: mine() finalizado — Janitor liberado.")
 
+    def is_system_active(self) -> bool:
+        """Retorna True se houver atividade ativa no sistema (mine ativo ou Event Bus com tarefas)."""
+        if self._mine_active.is_set():
+            return True
+        # Verifica se a fila de escrita (SerializedWriteQueue) não está vazia
+        if self._store and hasattr(self._store, "_conn_mgr") and self._store._conn_mgr:
+            conn_mgr = self._store._conn_mgr
+            if hasattr(conn_mgr, "_write_queue") and conn_mgr._write_queue:
+                write_q = conn_mgr._write_queue
+                if hasattr(write_q, "_queue") and write_q._queue is not None:
+                    if not write_q._queue.empty():
+                        return True
+        return False
+
     def _wait_for_idle(self) -> bool:
         """Espera até que mine() termine ou timeout expire.
 
         Returns:
             True se o sistema ficou idle, False se timeout.
         """
-        if not self._mine_active.is_set():
+        if not self.is_system_active():
             return True
 
-        logger.info("Idle-Lock: aguardando mine() finalizar (timeout=%ds)...", IDLE_LOCK_TIMEOUT)
-        # Espera o evento ser *cleared* (mine finalizado)
+        logger.info("Idle-Lock: aguardando sistema ficar ocioso (timeout=%ds)...", IDLE_LOCK_TIMEOUT)
         start = time.monotonic()
-        while self._mine_active.is_set():
+        while self.is_system_active():
             if time.monotonic() - start > IDLE_LOCK_TIMEOUT:
                 logger.warning("Idle-Lock: timeout — manutenção adiada.")
                 return False
@@ -186,12 +208,14 @@ class JanitorService:
         """Executa uma rodada completa de manutenção para um projeto.
 
         Fluxo:
-            1. Idle-Lock check: adia se mine() ativo.
+            1. Idle-Lock check: adia se mine() ativo ou fila com tarefas.
             2. Decaimento de trajetórias stale.
             3. Sincronização SQLite ↔ ChromaDB (vetores órfãos).
             4. Arquivamento de nós inativos.
-            5. Auto-Zoom (L1/L2) se threshold atingido.
-            6. FTS Rebuild se houve mudanças significativas.
+            5. Detecção de Comunidades (WITH RECURSIVE na tabela edges com FTS5).
+            6. Sumarização das Comunidades e injeção vetorial.
+            7. Auto-Zoom (L1/L2) se threshold atingido.
+            8. FTS Rebuild se houve mudanças significativas.
         """
         t0 = time.perf_counter()
         report = MaintenanceReport(
@@ -211,21 +235,59 @@ class JanitorService:
             return report
 
         # --- STEP 1: Decaimento de trajetórias ---
+        if self.is_system_active():
+            report.skipped_idle_lock = True
+            report.duration_seconds = time.perf_counter() - t0
+            return report
         report.trajectories_decayed = self._decay_trajectories(project_uuid, report)
 
         # --- STEP 2: Sincronização atômica (vetores órfãos) ---
+        if self.is_system_active():
+            report.skipped_idle_lock = True
+            report.duration_seconds = time.perf_counter() - t0
+            return report
         report.orphan_vectors_removed = self._sync_vectors(project_uuid, report)
 
         # --- STEP 3: Arquivamento de nós inativos ---
+        if self.is_system_active():
+            report.skipped_idle_lock = True
+            report.duration_seconds = time.perf_counter() - t0
+            return report
         report.inactive_nodes_archived = self._archive_inactive_nodes(project_uuid, report)
 
-        # --- STEP 4: Auto-Zoom ---
+        # --- STEP 4: Detecção de Comunidades (GraphRAG) ---
+        if self.is_system_active():
+            report.skipped_idle_lock = True
+            report.duration_seconds = time.perf_counter() - t0
+            return report
+        communities = self.detect_communities(project_uuid)
+        report.communities_detected = len(communities)
+
+        # --- STEP 5: Sumarização e Injeção ---
+        if communities:
+            if self.is_system_active():
+                report.skipped_idle_lock = True
+                report.duration_seconds = time.perf_counter() - t0
+                return report
+            summaries = self.generate_and_persist_community_summaries(project_uuid, communities)
+            report.summaries_generated = len(summaries)
+
+        # --- STEP 6: Auto-Zoom ---
+        if self.is_system_active():
+            report.skipped_idle_lock = True
+            report.duration_seconds = time.perf_counter() - t0
+            return report
         self._auto_zoom(project_uuid, report)
 
-        # --- STEP 5: FTS Rebuild (se houve mudanças) ---
+        # --- STEP 7: FTS Rebuild (se houve mudanças) ---
+        if self.is_system_active():
+            report.skipped_idle_lock = True
+            report.duration_seconds = time.perf_counter() - t0
+            return report
         changes = (report.trajectories_decayed
                    + report.orphan_vectors_removed
-                   + report.inactive_nodes_archived)
+                   + report.inactive_nodes_archived
+                   + report.summaries_generated)
         if changes > 0:
             self._fts_rebuild(report)
 
@@ -233,11 +295,13 @@ class JanitorService:
 
         logger.info("=" * 50)
         logger.info(
-            "JANITOR concluído em %.2fs: decayed=%d, orphans=%d, archived=%d, zoom=%s",
+            "JANITOR concluído em %.2fs: decayed=%d, orphans=%d, archived=%d, communities=%d, summaries=%d, zoom=%s",
             report.duration_seconds,
             report.trajectories_decayed,
             report.orphan_vectors_removed,
             report.inactive_nodes_archived,
+            report.communities_detected,
+            report.summaries_generated,
             report.zoom_triggered,
         )
         logger.info("=" * 50)
@@ -396,6 +460,205 @@ class JanitorService:
             error_msg = f"FTS Rebuild falhou: {e}"
             logger.error(error_msg)
             report.errors.append(error_msg)
+
+    # ===================================================================
+    # STEP 4 & 5: Detecção de Comunidades e Sumarização (GraphRAG)
+    # ===================================================================
+
+    def detect_communities(self, project_uuid: str) -> dict[int, list[int]]:
+        """Detecta comunidades no grafo usando WITH RECURSIVE e FTS5.
+        Retorna um dicionário mapeando o ID do super-nó para a lista de IDs dos nós pertencentes à comunidade.
+        """
+        communities: dict[int, list[int]] = {}
+        try:
+            # 1. Encontra os super-nós (in_degree >= self._super_node_threshold)
+            with self._store._conn_mgr.read() as conn:
+                super_nodes_rows = conn.execute(
+                    """
+                    SELECT n.id
+                    FROM nodes n
+                    JOIN nodes_fts f ON n.id = f.rowid
+                    LEFT JOIN edges e ON n.id = e.target_id
+                    WHERE n.project_uuid = ? AND n.status = 'ACTIVE'
+                    GROUP BY n.id
+                    HAVING COUNT(e.source_id) >= ?
+                    """,
+                    (project_uuid, self._super_node_threshold)
+                ).fetchall()
+                
+                super_node_ids = [row["id"] for row in super_nodes_rows]
+                logger.info("Janitor detectou %d super-nós (threshold=%d) no projeto %s.",
+                            len(super_node_ids), self._super_node_threshold, project_uuid)
+                
+                # 2. Para cada super-nó, busca recursivamente a comunidade associada
+                for sn_id in super_node_ids:
+                    community_rows = conn.execute(
+                        """
+                        WITH RECURSIVE community(id, depth) AS (
+                            SELECT ? AS id, 0 AS depth
+                            UNION
+                            SELECT e.source_id, c.depth + 1
+                            FROM edges e
+                            JOIN community c ON e.target_id = c.id
+                            JOIN nodes n ON e.source_id = n.id
+                            WHERE c.depth < 5 AND n.project_uuid = ? AND n.status = 'ACTIVE'
+                            UNION
+                            SELECT e.target_id, c.depth + 1
+                            FROM edges e
+                            JOIN community c ON e.source_id = c.id
+                            JOIN nodes n ON e.target_id = n.id
+                            WHERE c.depth < 5 AND n.project_uuid = ? AND n.status = 'ACTIVE'
+                        )
+                        SELECT DISTINCT id FROM community
+                        """,
+                        (sn_id, project_uuid, project_uuid)
+                    ).fetchall()
+                    
+                    communities[sn_id] = [row["id"] for row in community_rows]
+                    
+        except Exception as e:
+            logger.error("Falha na detecção de comunidades: %s", e)
+            
+        return communities
+
+    def generate_and_persist_community_summaries(
+        self,
+        project_uuid: str,
+        communities: dict[int, list[int]],
+    ) -> list[dict[str, Any]]:
+        """Gera resumos para as comunidades detectadas, salva como nós INSIGHT e atualiza o Qdrant."""
+        from typing import Any
+        import json
+        
+        summaries: list[dict[str, Any]] = []
+        for community_id, node_ids in communities.items():
+            # Proteção de Concorrência (Idle-Lock): suspende se o sistema ficar ativo
+            if self.is_system_active():
+                logger.warning("Janitor: suspensão de comunidade ativada devido a atividade no barramento.")
+                break
+                
+            # Busca os detalhes dos nós na comunidade
+            node_details = []
+            try:
+                with self._store._conn_mgr.read() as conn:
+                    placeholders = ",".join("?" for _ in node_ids)
+                    rows = conn.execute(
+                        f"SELECT id, label, summary, node_type, type, tags FROM nodes WHERE id IN ({placeholders})",
+                        tuple(node_ids)
+                    ).fetchall()
+                    for row in rows:
+                        node_details.append(dict(row))
+            except Exception as e:
+                logger.error("Falha ao carregar detalhes dos nós da comunidade %d: %s", community_id, e)
+                continue
+
+            if not node_details:
+                continue
+
+            nodes_block = "\n".join(
+                f"- [{n['label']}] ({n['node_type']}/{n['type']}): {n['summary'] or 'Sem resumo'}"
+                for n in node_details
+            )
+
+            summary_text = None
+            tags: list[str] = []
+            for n in node_details:
+                if n.get("tags"):
+                    try:
+                        t_list = json.loads(n["tags"]) if isinstance(n["tags"], str) else n["tags"]
+                        if isinstance(t_list, list):
+                            tags.extend(t_list)
+                    except Exception:
+                        pass
+            
+            # Tenta utilizar o LLM do IngestionManager se configurado
+            if (self._ingestion and hasattr(self._ingestion, "_summarizer") and 
+                    self._ingestion._summarizer and hasattr(self._ingestion._summarizer, "_llm") and 
+                    self._ingestion._summarizer._llm):
+                try:
+                    prompt = (
+                        "You are a software architect. Synthesize the following node descriptions belonging to a logical "
+                        "community in the project graph into a single cohesive community summary.\n"
+                        "Return ONLY a valid JSON object with these fields:\n"
+                        '- "summary": A cohesive description of this community\'s purpose and responsibilities (max 3 sentences).\n'
+                        '- "tags": Consolidated list of key technologies and concepts.\n\n'
+                        f"Nodes in community:\n{nodes_block}\n\n"
+                        "Respond with ONLY the JSON object, no markdown fences, no extra text."
+                    )
+                    raw_response = self._ingestion._summarizer._llm.generate(prompt, max_tokens=300)
+                    parsed = self._ingestion._summarizer._extract_json_with_fallback(raw_response)
+                    if parsed and "summary" in parsed:
+                        summary_text = parsed["summary"]
+                        if "tags" in parsed and isinstance(parsed["tags"], list):
+                            tags.extend(parsed["tags"])
+                except Exception as e:
+                    logger.warning("Falha ao chamar LLM para sumarizar a comunidade %d: %s", community_id, e)
+
+            if not summary_text:
+                # Heuristic / Dumb fallback
+                labels_str = ", ".join(n["label"] for n in node_details[:5])
+                if len(node_details) > 5:
+                    labels_str += f" and {len(node_details) - 5} more"
+                summary_text = f"Logical community anchored by super-node {community_id}, containing nodes: {labels_str}."
+
+            # Salva o INSIGHT no SQLite
+            try:
+                insight_node_id = self._store.create_node(
+                    project_uuid=project_uuid,
+                    label=f"community_{community_id}_summary",
+                    summary=summary_text,
+                    node_type="INSIGHT",
+                    type_="community_summary",
+                    tags=sorted(list(set(tags))),
+                )
+                
+                # Cria a aresta conectando o INSIGHT ao super-nó
+                self._store.create_edge(
+                    source_id=insight_node_id,
+                    target_id=community_id,
+                    relation_type="summarizes",
+                    weight=1.0,
+                )
+                
+                # Injeta os IDs de comunidade de forma direta nos metadados vetoriais
+                for nid in node_ids:
+                    self._update_vector_metadata(nid, project_uuid, community_id)
+                    
+                summaries.append({
+                    "community_id": community_id,
+                    "insight_node_id": insight_node_id,
+                    "summary": summary_text,
+                    "tags": sorted(list(set(tags))),
+                })
+                
+            except Exception as e:
+                logger.error("Falha ao salvar INSIGHT da comunidade %d no SQLite: %s", community_id, e)
+
+        return summaries
+
+    def _update_vector_metadata(self, node_id: int, project_uuid: str, community_id: int) -> None:
+        """Atualiza a metadata no vector store injetando o community_id."""
+        metadata = {
+            "node_id": node_id,
+            "project_uuid": project_uuid,
+            "community_id": community_id,
+        }
+        
+        # 1. Armazena no cache local do Janitor (útil para testes/mocks)
+        self.vector_payloads[node_id] = metadata
+        
+        # 2. Tenta atualizar no ChromaVectorStore real se disponível
+        if self._vector and hasattr(self._vector, "_collection") and self._vector._collection is not None:
+            try:
+                doc_id = f"node_{node_id}"
+                # ChromaDB update permite atualizar apenas metadados
+                self._vector._collection.update(
+                    ids=[doc_id],
+                    metadatas=[self._vector._sanitize_metadata(metadata)]
+                )
+                logger.debug("Metadata vetorial atualizada no ChromaDB: doc_id=%s, community_id=%d", doc_id, community_id)
+            except Exception as e:
+                logger.error("Falha ao atualizar metadados no ChromaDB para o nó %d: %s", node_id, e)
 
     # ===================================================================
     # BACKGROUND THREAD — Execução contínua

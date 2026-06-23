@@ -236,6 +236,78 @@ assert len(all_reports) >= 2, f"Esperado >= 2 projetos, obteve {len(all_reports)
 print("  [PASS] run_all_projects() OK")
 
 # ===================================================================
+print()
+print("=" * 60)
+print("TESTE 11: Detecção de Comunidades (Leiden) & Sumarização")
+print("=" * 60)
+project3 = str(uuid.uuid4())
+store.create_project(project3, "project-three", "dev/test")
+
+# 1. Cria um super-nó com in_degree = 10
+super_node_id = store.create_node(project3, "core_node", node_type="FACT")
+for i in range(10):
+    dep_node = store.create_node(project3, f"dep_node_{i}", node_type="FACT")
+    store.create_edge(source_id=dep_node, target_id=super_node_id, relation_type="depends_on")
+
+# 2. Cria um nó quase-super-nó com in_degree = 9 (não deve ser detectado se threshold=10)
+almost_super_node_id = store.create_node(project3, "almost_core", node_type="FACT")
+for i in range(9):
+    dep_node = store.create_node(project3, f"almost_dep_{i}", node_type="FACT")
+    store.create_edge(source_id=dep_node, target_id=almost_super_node_id, relation_type="depends_on")
+
+# Inicializa o janitor com super_node_threshold = 10
+janitor_rag = JanitorService(
+    sqlite_store=store,
+    vector_store=MockVectorStore(),
+    ingestion_manager=mock_ingestion,
+    super_node_threshold=10,
+    auto_zoom_threshold=999,
+)
+
+# Detecta comunidades
+communities = janitor_rag.detect_communities(project3)
+print(f"  Comunidades detectadas: {list(communities.keys())}")
+assert len(communities) == 1, f"Esperado 1 comunidade, obteve {len(communities)}"
+assert super_node_id in communities, "O super-nó deve ser o anchor da comunidade"
+assert almost_super_node_id not in communities, "O nó com in_degree 9 não deve ser anchor"
+
+# Verifica se os membros da comunidade incluem os dependentes
+members = communities[super_node_id]
+print(f"  Membros da comunidade: {len(members)}")
+assert len(members) == 11, f"Esperado 11 membros (super-nó + 10 dependentes), obteve {len(members)}"
+assert super_node_id in members
+
+# Gera e persiste os resumos
+summaries = janitor_rag.generate_and_persist_community_summaries(project3, communities)
+print(f"  Resumos gerados: {len(summaries)}")
+assert len(summaries) == 1
+assert summaries[0]["community_id"] == super_node_id
+assert "Logical community anchored by super-node" in summaries[0]["summary"]
+
+# Verifica se o nó INSIGHT foi persistido no SQLite
+with store._conn_mgr.read() as conn:
+    insight_node = conn.execute(
+        "SELECT id, label, summary, node_type FROM nodes WHERE node_type = 'INSIGHT' AND project_uuid = ?",
+        (project3,)
+    ).fetchone()
+assert insight_node is not None, "O nó INSIGHT deveria ter sido persistido"
+assert insight_node["summary"] == summaries[0]["summary"]
+
+# Verifica se os payloads vetoriais foram injetados com o community_id
+print(f"  Payloads vetoriais atualizados: {list(janitor_rag.vector_payloads.keys())}")
+for mid in members:
+    assert mid in janitor_rag.vector_payloads, f"Nó {mid} deveria ter payload vetorial atualizado"
+    assert janitor_rag.vector_payloads[mid]["community_id"] == super_node_id
+
+# Executa o run_maintenance completo no projeto 3
+report11 = janitor_rag.run_maintenance(project3)
+print(f"  report11 communities_detected: {report11.communities_detected}")
+print(f"  report11 summaries_generated: {report11.summaries_generated}")
+assert report11.communities_detected == 1
+assert report11.summaries_generated == 1
+print("  [PASS] Detecção de Comunidades (Leiden) & Sumarização OK")
+
+# ===================================================================
 # Cleanup
 # ===================================================================
 store.close()
@@ -246,5 +318,5 @@ except PermissionError:
 
 print()
 print("=" * 60)
-print("TODOS OS 10 TESTES PASSARAM — janitor.py v3.8.0 OPERACIONAL")
+print("TODOS OS 11 TESTES PASSARAM — janitor.py v3.8.0 OPERACIONAL")
 print("=" * 60)

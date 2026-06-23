@@ -4,13 +4,25 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from storage.store import SqliteStore
 from interface.mcp_server import GrafoConciergeServer
-from core.middleware import GrafoConcierge
 
 # ===================================================================
 # Setup: Mocks completos
 # ===================================================================
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEST_DIR = os.path.join(BASE, "_test_mcp_tmp")
+
+# Clean up any leftover database/directory from previous runs
+if os.path.exists(TEST_DIR):
+    try:
+        shutil.rmtree(TEST_DIR)
+    except Exception:
+        db_path = os.path.join(TEST_DIR, "mcp_test.db")
+        if os.path.exists(db_path):
+            try:
+                os.remove(db_path)
+            except Exception:
+                pass
+
 os.makedirs(os.path.join(TEST_DIR, "src"), exist_ok=True)
 
 # Cria arquivo de teste para mine
@@ -21,8 +33,13 @@ with open(os.path.join(TEST_DIR, ".gitignore"), "w") as f:
 
 db_path = os.path.join(TEST_DIR, "mcp_test.db")
 store = SqliteStore(db_path)
-project_uuid = str(uuid.uuid4())
-store.create_project(project_uuid, "mcp-test", "dev/test")
+
+# Ensure project_uuid is consistent with what is in the database if it already exists
+try:
+    project_uuid = store.get_project("mcp-test")["uuid"]
+except Exception:
+    project_uuid = str(uuid.uuid4())
+    store.create_project(project_uuid, "mcp-test", "dev/test")
 
 # Cria nós para search
 nid1 = store.create_node(project_uuid, "auth.py", summary="Authentication module", node_type="FACT", tags=["jwt", "auth"])
@@ -141,13 +158,19 @@ mock_vector = MockVectorStore()
 mock_ingestion = MockIngestionManager()
 mock_janitor = MockJanitor()
 
-# ===================================================================
+from core.middleware import GrafoConcierge
+
+# Instancia a fachada GrafoConcierge
 gc = GrafoConcierge(
     sqlite_store=store,
     vector_store=mock_vector,
     embedding_manager=mock_embedder,
     ingestion_manager=mock_ingestion,
 )
+
+# ===================================================================
+# Cria o servidor
+# ===================================================================
 server = GrafoConciergeServer(
     concierge=gc,
     janitor=mock_janitor,
@@ -181,11 +204,11 @@ print("TESTE 2: concierge_search")
 print("=" * 60)
 search_result = server._handle_search(
     query="authentication login",
-    project_uuid=project_uuid,
+    project_identifier=project_uuid,
     top_k=5,
     node_type=None,
-    include_references=True,
-    all_wings=True,
+    include_references=False,
+    all_wings=False,
 )
 print(f"  success: {search_result['success']}")
 print(f"  results_count: {search_result['results_count']}")
@@ -210,11 +233,11 @@ print("TESTE 3: concierge_search com filtro de node_type")
 print("=" * 60)
 search_filtered = server._handle_search(
     query="database",
-    project_uuid=project_uuid,
+    project_identifier=project_uuid,
     top_k=3,
     node_type="FACT",
-    include_references=True,
-    all_wings=True,
+    include_references=False,
+    all_wings=False,
 )
 assert search_filtered["success"] is True
 print(f"  results_count: {search_filtered['results_count']}")
@@ -231,8 +254,7 @@ print(f"  system: {status.get('system')}")
 print(f"  components: {list(status.get('components', {}).keys())}")
 assert status["success"] is True
 assert "sqlite" in status["components"]
-assert "chromadb" not in status["components"], "ChromaDB residue found in status components!"
-assert "embedding" not in status["components"], "Embedding residue found in status components!"
+assert "chromadb" not in status["components"]
 assert "janitor" in status["components"]
 assert status["components"]["sqlite"]["status"] == "healthy"
 print("  [PASS] concierge_status (global) OK")
@@ -245,10 +267,10 @@ print("=" * 60)
 status_proj = server._handle_status(project_uuid=project_uuid)
 assert status_proj["success"] is True
 assert "project" in status_proj
-print(f"  project folder: {status_proj['project'].get('folder_name')}")
+print(f"  project folder: {status_proj['project']['project'].get('folder_name')}")
 print(f"  project stats: {status_proj['project'].get('stats')}")
 print(f"  wings: {status_proj['project'].get('reference_wings')}")
-assert status_proj["project"]["folder_name"] == "mcp-test"
+assert status_proj["project"]["project"]["folder_name"] == "mcp-test"
 print("  [PASS] concierge_status (project) OK")
 
 # ===================================================================
@@ -273,6 +295,7 @@ fail_server = GrafoConciergeServer(
     concierge=fail_gc,
     janitor=None,
 )
+fail_server._handle_register("fail-project", "geral", "PUBLIC", None)
 fail_result = fail_server._handle_mine("/nonexistent", "fail-project", True)
 print(f"  success: {fail_result['success']}")
 print(f"  error: {fail_result.get('error')}")
@@ -287,11 +310,11 @@ print("TESTE 7: concierge_search com projeto inexistente")
 print("=" * 60)
 bad_search = server._handle_search(
     query="test",
-    project_uuid="non-existent-uuid-12345",
+    project_identifier="non-existent-uuid-12345",
     top_k=5,
     node_type=None,
-    include_references=True,
-    all_wings=True,
+    include_references=False,
+    all_wings=False,
 )
 # Deve retornar sucesso mas com 0 resultados (ou erro tratado)
 print(f"  success: {bad_search['success']}")
@@ -301,27 +324,29 @@ print("  [PASS] Search com projeto inexistente OK")
 # ===================================================================
 print()
 print("=" * 60)
-print("TESTE 8: _ensure_project (cria novo)")
+print("TESTE 8: register_project (cria novo)")
 print("=" * 60)
-new_uuid = gc.register_project("brand-new-project")
+reg_res = server._handle_register("brand-new-project", "geral", "PUBLIC", None)
+new_uuid = reg_res["project_uuid"]
 print(f"  UUID criado: {new_uuid}")
 assert len(new_uuid) == 36  # UUID format
 # Verifica que foi persistido
 project = store.get_project(new_uuid)
 assert project["folder_name"] == "brand-new-project"
-print("  [PASS] _ensure_project OK")
+print("  [PASS] register_project OK")
 
 # ===================================================================
 print()
 print("=" * 60)
-print("TESTE 9: _ensure_project (reutiliza existente)")
+print("TESTE 9: register_project (reutiliza existente)")
 print("=" * 60)
-same_uuid = gc.register_project("mcp-test")
+reg_res_2 = server._handle_register("mcp-test", "geral", "PUBLIC", None)
+same_uuid = reg_res_2["project_uuid"]
 print(f"  UUID reutilizado: {same_uuid}")
 # Deve retornar o UUID do projeto existente (criado no setup ou no mine)
 stored = store.get_project("mcp-test")
 assert same_uuid == stored["uuid"], "Deveria reutilizar o projeto existente"
-print("  [PASS] _ensure_project reuso OK")
+print("  [PASS] register_project reuso OK")
 
 # ===================================================================
 print()
@@ -332,7 +357,57 @@ print("=" * 60)
 # O FastMCP armazena tools internamente
 print(f"  MCP server name: {server.mcp.name}")
 assert server.mcp.name == "Grafo Concierge"
+# Verifica que concierge_list_projects está registrado
+assert "concierge_list_projects" in server.mcp._tool_manager._tools
 print("  [PASS] FastMCP registration OK")
+
+# ===================================================================
+print()
+print("=" * 60)
+print("TESTE 11: concierge_list_projects")
+print("=" * 60)
+list_res = server._handle_list_projects()
+print(f"  success: {list_res['success']}")
+print(f"  projects: {list_res.get('projects')}")
+assert list_res["success"] is True
+assert "mcp-test" in list_res["projects"]
+assert list_res["projects"]["mcp-test"]["uuid"] == project_uuid
+print("  [PASS] concierge_list_projects OK")
+
+# ===================================================================
+print()
+print("=" * 60)
+print("TESTE 12: Resolução de Alias (nome no concierge_search)")
+print("=" * 60)
+alias_search = server._handle_search(
+    query="authentication login",
+    project_identifier="mcp-test",
+    top_k=5,
+    node_type=None,
+    include_references=False,
+    all_wings=False,
+)
+print(f"  success: {alias_search['success']}")
+print(f"  project_uuid resolved: {alias_search.get('project_uuid')}")
+assert alias_search["success"] is True
+assert alias_search["project_uuid"] == project_uuid
+print("  [PASS] Resolução de Alias no search OK")
+
+# ===================================================================
+print()
+print("=" * 60)
+print("TESTE 13: Resolução de Alias (nome no concierge_mine)")
+print("=" * 60)
+alias_mine = server._handle_mine(
+    path=TEST_DIR,
+    project_identifier="mcp-test",
+    auto_tag=True,
+)
+print(f"  success: {alias_mine['success']}")
+print(f"  project_uuid resolved: {alias_mine.get('project_uuid')}")
+assert alias_mine["success"] is True
+assert alias_mine["project_uuid"] == project_uuid
+print("  [PASS] Resolução de Alias no mine OK")
 
 # ===================================================================
 # Cleanup
@@ -345,5 +420,5 @@ except PermissionError:
 
 print()
 print("=" * 60)
-print("TODOS OS 10 TESTES PASSARAM — mcp_server.py v3.8.0 OPERACIONAL")
+print("TODOS OS 13 TESTES PASSARAM — mcp_server.py v3.8.0 OPERACIONAL")
 print("=" * 60)

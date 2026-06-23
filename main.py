@@ -156,7 +156,7 @@ def bootstrap():
     )
 
     # ── FACHADA CENTRAL ──────────────────────────────────────────────
-    logger.info("Inicializando Fachada GrafoConcierge")
+    logger.info("Inicializando Fachada Central GrafoConcierge")
     from core.middleware import GrafoConcierge
     concierge = GrafoConcierge(
         sqlite_store=store,
