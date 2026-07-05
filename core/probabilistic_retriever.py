@@ -31,6 +31,11 @@ class ThompsonRetriever:
         """
         self.vector_search_fn = vector_search_fn
 
+    @staticmethod
+    def sample_multiplier(alpha: float, beta: float) -> float:
+        """Sorteia um multiplicador probabilístico usando a Distribuição Beta do numpy."""
+        return float(np.random.beta(alpha, beta))
+
     def retrieve(
         self,
         query: str,
@@ -43,7 +48,7 @@ class ThompsonRetriever:
             1. Executa a busca vetorial padrão (similaridade semântica).
             2. Para cada candidato retornado, extrai utility_alpha e utility_beta do metadado.
             3. Sorteia multiplicador probabilístico usando a Distribuição Beta:
-               thompson_multiplier = numpy.random.beta(alpha, beta)
+               thompson_multiplier = ThompsonRetriever.sample_multiplier(alpha, beta)
             4. O score final do candidato será: similaridade_vetorial * thompson_multiplier.
             5. Retorna as top_k memórias baseadas no score final.
         """
@@ -75,7 +80,7 @@ class ThompsonRetriever:
             beta = float(metadata.get("utility_beta", 1.0))
 
             # Realiza sorteio com a Distribuição Beta do numpy
-            thompson_multiplier = float(np.random.beta(alpha, beta))
+            thompson_multiplier = ThompsonRetriever.sample_multiplier(alpha, beta)
             final_score = similarity * thompson_multiplier
 
             results.append({

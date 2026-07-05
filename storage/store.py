@@ -111,6 +111,14 @@ class SqliteStore:
         self._conn_mgr.close()
         logger.info("SqliteStore encerrado.")
 
+    def write_callback(self, fn: Callable, *args: Any, **kwargs: Any) -> Any:
+        """Delega uma operação de escrita para a fila serializada do ConnectionManager.
+
+        Este método protege o encapsulamento do ConnectionManager e de sua
+        fila de escrita interna.
+        """
+        return self._conn_mgr.write(fn, *args, **kwargs)
+
     # ===================================================================
     # PROJECTS
     # ===================================================================

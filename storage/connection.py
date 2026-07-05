@@ -227,6 +227,10 @@ class ConnectionManager:
         # Fila serializada para escritas isoladas
         self._write_queue = SerializedWriteQueue(self._db_path)
 
+        # Registro global e thread-safe de conexões de leitura para prevenir vazamentos
+        self._read_conns_lock = threading.Lock()
+        self._read_connections: list[sqlite3.Connection] = []
+
     def is_write_queue_empty(self) -> bool:
         """Retorna True se a SerializedWriteQueue está vazia (sem jobs pendentes)."""
         return self._write_queue.is_empty()
@@ -236,17 +240,19 @@ class ConnectionManager:
         self._write_queue.start()
 
     def close(self) -> None:
-        """Para a fila de escrita e fecha a conexão de leitura da thread atual."""
+        """Para a fila de escrita e fecha as conexões de leitura de todas as threads."""
         self._write_queue.stop()
-        conn = getattr(self._local, "conn", None)
-        if conn:
-            try:
-                conn.close()
-                logger.debug("Conexão de leitura thread-local fechada.")
-            except Exception as e:
-                logger.warning("Falha ao fechar conexão de leitura: %s", e)
-            finally:
-                self._local.conn = None
+        with self._read_conns_lock:
+            for conn in self._read_connections:
+                try:
+                    conn.close()
+                    logger.debug("Conexão de leitura fechada com sucesso.")
+                except Exception as e:
+                    logger.warning("Falha ao fechar conexão de leitura: %s", e)
+            self._read_connections.clear()
+        
+        # Reseta o thread local
+        self._local = threading.local()
 
     def get_read_connection(self) -> sqlite3.Connection:
         """Retorna a conexão de leitura da thread atual (cria se necessário).
@@ -257,11 +263,13 @@ class ConnectionManager:
         conn = getattr(self._local, "conn", None)
         if conn is None:
             logger.debug("Criando nova conexão de leitura para a thread atual.")
-            conn = sqlite3.connect(self._db_path)
+            conn = sqlite3.connect(self._db_path, check_same_thread=False)
             conn.row_factory = sqlite3.Row
             for pragma in self.PRAGMAS:
                 conn.execute(pragma)
             self._local.conn = conn
+            with self._read_conns_lock:
+                self._read_connections.append(conn)
         return conn
 
     @contextmanager

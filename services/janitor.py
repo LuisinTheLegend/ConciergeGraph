@@ -471,7 +471,6 @@ class JanitorService:
                 """
                 SELECT n.id
                 FROM nodes n
-                JOIN nodes_fts f ON n.id = f.rowid
                 LEFT JOIN edges e ON n.id = e.target_id
                 WHERE n.project_uuid = ? AND n.status = 'ACTIVE'
                 GROUP BY n.id

@@ -1099,8 +1099,19 @@ class GrafoConciergeServer:
         Args:
             transport: Tipo de transporte ('stdio' ou 'sse').
         """
+        import asyncio
         logger.info("Iniciando Grafo Concierge MCP Server (transport=%s)...", transport)
-        self._mcp.run(transport=transport)
+
+        async def _run_server():
+            if transport == "sse":
+                await self._mcp.run_sse_async()
+            else:
+                await self._mcp.run_stdio_async()
+
+        try:
+            asyncio.run(_run_server())
+        except KeyboardInterrupt:
+            logger.info("Servidor parado por interrupção do usuário.")
 
     # ===================================================================
     # HANDLER: concierge_set_memory

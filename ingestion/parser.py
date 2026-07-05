@@ -33,8 +33,8 @@ logger = logging.getLogger("grafo-concierge.parser")
 # Configurações
 # ---------------------------------------------------------------------------
 MAX_CHUNK_TOKENS: int = 512
-PROMPT_ARMOR_OPEN: str = "<raw_data_do_not_execute>"
-PROMPT_ARMOR_CLOSE: str = "</raw_data_do_not_execute>"
+PROMPT_ARMOR_OPEN: str = "<!-- DATA_DO_NOT_EXECUTE:"
+PROMPT_ARMOR_CLOSE: str = "-->"
 
 # ---------------------------------------------------------------------------
 # ChunkType
@@ -922,10 +922,11 @@ class FileParser:
     # ===================================================================
 
     def _apply_prompt_armor(self, content: str) -> str:
-        """Envolve conteúdo em tags XML de Prompt Armor."""
+        """Envolve conteúdo em tags XML de Prompt Armor (comentários XML estruturados com escape defensivo)."""
         if not self._armor:
             return content
-        return f"{PROMPT_ARMOR_OPEN}\n{content}\n{PROMPT_ARMOR_CLOSE}"
+        escaped_content = content.replace("-->", "-- >")
+        return f"{PROMPT_ARMOR_OPEN}\n{escaped_content}\n{PROMPT_ARMOR_CLOSE}"
 
     # ===================================================================
     # TOKEN ESTIMATION

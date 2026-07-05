@@ -50,32 +50,66 @@ class QdrantVectorStore(BaseVectorBackend):
         collection_name: str = "grafo_concierge",
         embedding_dimensions: int = 384,
     ) -> None:
-        self._available = QDRANT_AVAILABLE
         self._collection_name = collection_name
         self._dimensions = embedding_dimensions
         self._last_warn_time = 0.0
 
-        if not self._available:
-            logger.warning("QdrantVectorStore operando em modo NO-OP (qdrant-client ausente).")
+        # Parâmetros guardados para reconexão
+        self._url = url
+        self._location = location
+        self._memory = memory
+
+        # Controle dinâmico de conexão e backoff
+        self._connected = False
+        self._client: Optional[qdrant_client.QdrantClient] = None
+        self._backoff = 1.0
+        self._max_backoff = 60.0
+        self._last_connect_attempt = 0.0
+
+        # Tenta a conexão inicial
+        self._ensure_connected()
+
+    def _ensure_connected(self) -> bool:
+        """Garante a conexão dinâmica e resiliente com o Qdrant usando exponential backoff."""
+        if not QDRANT_AVAILABLE:
+            return False
+        if self._connected and self._client:
+            return True
+
+        current_time = time.time()
+        # Respeita o intervalo do backoff atual para evitar requisições frenéticas
+        if current_time - self._last_connect_attempt < self._backoff:
+            return False
+
+        self._last_connect_attempt = current_time
+        try:
+            logger.info("Tentando estabelecer conexão com o Qdrant...")
+            if self._memory:
+                self._client = qdrant_client.QdrantClient(":memory:")
+            elif self._location:
+                self._client = qdrant_client.QdrantClient(location=self._location)
+            else:
+                self._client = qdrant_client.QdrantClient(url=self._url)
+
+            # Inicializa as coleções necessárias
+            self._ensure_collection(self._collection_name)
+            self._ensure_collection("episodic_memory")
+
+            self._connected = True
+            self._backoff = 1.0  # reset backoff
+            logger.info("Qdrant conectado e coleções inicializadas com sucesso.")
+            return True
+        except Exception as e:
+            self._connected = False
             self._client = None
-            return
-
-        # Inicializa o cliente do Qdrant
-        if memory:
-            self._client = qdrant_client.QdrantClient(":memory:")
-            logger.info("QdrantClient inicializado em memória (:memory:).")
-        elif location:
-            self._client = qdrant_client.QdrantClient(location=location)
-            logger.info("QdrantClient inicializado na localização: %s", location)
-        else:
-            self._client = qdrant_client.QdrantClient(url=url)
-            logger.info("QdrantClient inicializado no endpoint: %s", url)
-
-        # Garante a criação da coleção principal de código/nós
-        self._ensure_collection(self._collection_name)
-
-        # Garante a criação da coleção independente de memória episódica
-        self._ensure_collection("episodic_memory")
+            logger.warning(
+                "Falha ao conectar ou inicializar coleções do Qdrant: %s. Próxima tentativa em %.1fs",
+                e,
+                self._backoff
+            )
+            # Aumenta exponencialmente o backoff
+            self._backoff = min(self._backoff * 2.0, self._max_backoff)
+            return False
 
     def _ensure_collection(self, name: str) -> None:
         """Cria a coleção se ela não existir de forma idempotente."""
@@ -96,6 +130,7 @@ class QdrantVectorStore(BaseVectorBackend):
                 logger.debug("Coleção Qdrant '%s' já existe.", name)
         except Exception as e:
             logger.error("Falha ao inicializar coleção Qdrant '%s': %s", name, e)
+            raise
 
     def _log_noop_warning(self) -> None:
         """Logs a warning when operating in NO-OP mode, throttled to once every 5 seconds."""
@@ -137,15 +172,17 @@ class QdrantVectorStore(BaseVectorBackend):
         embedding: list[float],
         metadata: dict,
     ) -> None:
-        """Armazena um embedding com metadados/payload no Qdrant."""
-        if not self._available or not self._client:
+        """Armazena um embedding com metadados/payload no Qdrant (com roteamento dinâmico de coleção)."""
+        if not self._ensure_connected():
             self._log_noop_warning()
             return
 
         self._validate_payload(metadata)
 
+        collection = "episodic_memory" if "timestamp" in metadata else self._collection_name
+
         self._client.upsert(
-            collection_name=self._collection_name,
+            collection_name=collection,
             points=[
                 qdrant_models.PointStruct(
                     id=doc_id if isinstance(doc_id, (int, str)) else hash(doc_id),
@@ -154,17 +191,17 @@ class QdrantVectorStore(BaseVectorBackend):
                 )
             ]
         )
-        logger.debug("Embedding armazenado no Qdrant: %s", doc_id)
+        logger.debug("Embedding armazenado no Qdrant (coleção: %s): %s", collection, doc_id)
 
     def store_embeddings_batch(self, items: list[dict]) -> int:
-        """Armazena múltiplos embeddings em lote no Qdrant."""
-        if not self._available or not self._client:
+        """Armazena múltiplos embeddings em lote no Qdrant (com suporte a múltiplas coleções)."""
+        if not self._ensure_connected():
             self._log_noop_warning()
             return 0
         if not items:
             return 0
 
-        points = []
+        points_by_collection: dict[str, list] = {}
         for item in items:
             doc_id = item["doc_id"]
             embedding = item["embedding"]
@@ -175,7 +212,11 @@ class QdrantVectorStore(BaseVectorBackend):
 
             try:
                 self._validate_payload(metadata)
-                points.append(
+                collection = "episodic_memory" if "timestamp" in metadata else self._collection_name
+                if collection not in points_by_collection:
+                    points_by_collection[collection] = []
+
+                points_by_collection[collection].append(
                     qdrant_models.PointStruct(
                         id=doc_id if isinstance(doc_id, (int, str)) else hash(doc_id),
                         vector=embedding,
@@ -186,13 +227,15 @@ class QdrantVectorStore(BaseVectorBackend):
                 logger.warning("Item ignorado no lote Qdrant devido a payload inválido: %s", e)
                 continue
 
-        if points:
-            self._client.upsert(
-                collection_name=self._collection_name,
-                points=points
-            )
-            return len(points)
-        return 0
+        total_upserted = 0
+        for collection, points in points_by_collection.items():
+            if points:
+                self._client.upsert(
+                    collection_name=collection,
+                    points=points
+                )
+                total_upserted += len(points)
+        return total_upserted
 
     def search(
         self,
@@ -202,7 +245,7 @@ class QdrantVectorStore(BaseVectorBackend):
         filters: Optional[dict] = None,
     ) -> list[VectorSearchResult]:
         """Busca por similaridade coseno no Qdrant aplicando filtros."""
-        if not self._available or not self._client:
+        if not self._ensure_connected():
             self._log_noop_warning()
             return []
 
@@ -240,7 +283,7 @@ class QdrantVectorStore(BaseVectorBackend):
 
     def delete(self, doc_id: str) -> None:
         """Deleta um vetor pelo ID."""
-        if not self._available or not self._client:
+        if not self._ensure_connected():
             self._log_noop_warning()
             return
 
@@ -256,7 +299,7 @@ class QdrantVectorStore(BaseVectorBackend):
 
     def delete_batch(self, doc_ids: list[str]) -> int:
         """Deleta múltiplos vetores em lote."""
-        if not self._available or not self._client:
+        if not self._ensure_connected():
             self._log_noop_warning()
             return 0
         if not doc_ids:
@@ -276,7 +319,7 @@ class QdrantVectorStore(BaseVectorBackend):
 
     def verify_sync(self, sqlite_node_ids: set[int]) -> list[str]:
         """Detecta vetores órfãos no Qdrant."""
-        if not self._available or not self._client:
+        if not self._ensure_connected():
             self._log_noop_warning()
             return []
 
@@ -306,7 +349,7 @@ class QdrantVectorStore(BaseVectorBackend):
 
     def health_check(self) -> bool:
         """Verifica se o cluster Qdrant está acessível."""
-        if not self._available or not self._client:
+        if not self._ensure_connected():
             return False
         try:
             # Um simples ping ou consulta de coleções
@@ -318,7 +361,7 @@ class QdrantVectorStore(BaseVectorBackend):
 
     def count(self, project_uuid: Optional[str] = None) -> int:
         """Conta a quantidade de vetores armazenados."""
-        if not self._available or not self._client:
+        if not self._ensure_connected():
             return 0
         try:
             if project_uuid:
@@ -377,3 +420,18 @@ class QdrantVectorStore(BaseVectorBackend):
         if not must_conditions:
             return None
         return qdrant_models.Filter(must=must_conditions)
+
+    def update_metadata(self, doc_id: str, metadata: dict) -> None:
+        """Atualiza metadados/payload de um ponto no Qdrant."""
+        if not self._ensure_connected() or not self._client:
+            self._log_noop_warning()
+            return
+
+        try:
+            self._client.set_payload(
+                collection_name=self._collection_name,
+                payload=metadata,
+                points=[doc_id if isinstance(doc_id, (int, str)) else hash(doc_id)]
+            )
+        except Exception as e:
+            logger.error("Falha ao atualizar metadados no Qdrant: %s", e)

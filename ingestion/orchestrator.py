@@ -394,7 +394,7 @@ class IngestionManager:
         # Associa IDs aos chunks (offset pula os diretórios criados no início)
         chunk_node_ids = node_ids[dir_offset:]
         for i, chunk in enumerate(chunks):
-            chunk._node_id = chunk_node_ids[i]  # type: ignore[attr-defined]
+            chunk.node_id = chunk_node_ids[i]
 
         # 2. RESOLVER MAPAS DE SÍMBOLOS PARA MAPEAMENTO DE ARESTAS
         project_symbol_map = {}
@@ -527,7 +527,7 @@ class IngestionManager:
         # Monta items para vector store
         items: list[dict] = []
         for chunk, embedding in zip(chunks, embeddings):
-            node_id = getattr(chunk, "_node_id", None)
+            node_id = chunk.node_id
             if node_id is None:
                 continue
 

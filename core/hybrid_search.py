@@ -229,7 +229,7 @@ class HybridSearchEngine:
         Returns:
             Mesma lista com score_final ajustado pelo Thompson multiplier.
         """
-        import numpy as np
+        from core.probabilistic_retriever import ThompsonRetriever
 
         for item in results:
             try:
@@ -239,7 +239,7 @@ class HybridSearchEngine:
             except Exception:
                 alpha, beta_param = 1.0, 1.0
 
-            multiplier = float(np.random.beta(alpha, beta_param))
+            multiplier = ThompsonRetriever.sample_multiplier(alpha, beta_param)
             item["score_final"] = round(item["score_final"] * multiplier, 4)
             item["score_breakdown"]["thompson_multiplier"] = round(multiplier, 4)
 

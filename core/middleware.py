@@ -541,11 +541,40 @@ class GrafoConcierge:
                 new_facts=[fact_statement],
             )
 
-        results = self._store._conn_mgr.write(_do_store)
+        results = self._store.write_callback(_do_store)
         logger.info(
             "store_fact: scope=%s/%s, resultados=%d",
             scope_type, scope_id, len(results),
         )
+
+        # Sincronização vetorial episódica se o backend for QdrantVectorStore
+        try:
+            from core.vector_backend import QdrantVectorStore
+            if isinstance(self._vector, QdrantVectorStore) and results:
+                for fact in results:
+                    fact_id = fact.get("id")
+                    statement = fact.get("fact_statement")
+                    if fact_id is not None and statement:
+                        emb = self._embedder.embed(statement)
+                        if emb:
+                            metadata = {
+                                "scope_type": scope_type,
+                                "scope_id": scope_id,
+                                "timestamp": datetime.utcnow().isoformat() + "Z",
+                                "utility_alpha": 1.0,
+                                "utility_beta": 1.0,
+                                "fact_id": fact_id,
+                                "fact_statement": statement
+                            }
+                            self._vector.store_embedding(
+                                doc_id=f"fact_{fact_id}",
+                                embedding=emb,
+                                metadata=metadata
+                            )
+                            logger.info("Fato semântico %d sincronizado no Qdrant (episodic_memory).", fact_id)
+        except Exception as q_err:
+            logger.warning("Falha ao sincronizar fato semântico no Qdrant: %s", q_err)
+
         return results
 
     # ===================================================================
@@ -613,7 +642,7 @@ class GrafoConcierge:
         def _do_update(conn) -> None:
             update_memory_utility(conn, fact_id, was_useful)
 
-        self._store._conn_mgr.write(_do_update)
+        self._store.write_callback(_do_update)
         logger.info(
             "update_fact_utility: fact_id=%d, was_useful=%s → %s atualizado.",
             fact_id, was_useful, "utility_alpha" if was_useful else "utility_beta",
