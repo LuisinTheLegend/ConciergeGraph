@@ -75,7 +75,7 @@ class GrafoConciergeServer:
         # Registra as tools
         self._register_tools()
 
-        logger.info("GrafoConciergeServer inicializado — 7 tools registradas.")
+        logger.info("GrafoConciergeServer inicializado — 10 tools registradas.")
 
     @property
     def mcp(self) -> FastMCP:
@@ -366,6 +366,109 @@ class GrafoConciergeServer:
                 Dicionário com os callers e detalhes da relação.
             """
             return server._handle_get_callers(symbol_id)
+
+        # --- concierge_store_fact ---
+        @self._mcp.tool(
+            name="concierge_store_fact",
+            description=(
+                "Grava um fato semântico no Grafo de Memória via SemanticExtractor. "
+                "O extrator avalia o fato contra os existentes no escopo e decide: "
+                "ADD, UPDATE, DELETE ou NOOP (bi-temporal)."
+            ),
+        )
+        def concierge_store_fact(
+            scope_type: str,
+            scope_id: str,
+            fact_statement: str,
+        ) -> dict:
+            """Grava um fato semântico no grafo.
+
+            Args:
+                scope_type: Tipo de escopo ('user', 'session', 'agent', 'org').
+                scope_id: Identificador único do escopo.
+                fact_statement: Texto do fato/preferência a gravar.
+
+            Returns:
+                Dicionário com as decisões tomadas pelo SemanticExtractor.
+            """
+            return server._handle_store_fact(scope_type, scope_id, fact_statement)
+
+        # --- concierge_set_memory ---
+        @self._mcp.tool(
+            name="concierge_set_memory",
+            description=(
+                "Grava ou atualiza um bloco de memória core persistente (user_core_memory). "
+                "Use para armazenar preferências, configurações e contexto permanente do usuário/sessão."
+            ),
+        )
+        def concierge_set_memory(
+            scope_type: str,
+            scope_id: str,
+            block_label: str,
+            content: str,
+        ) -> dict:
+            """Grava um bloco de memória core persistente.
+
+            Args:
+                scope_type: Tipo de escopo ('user', 'session', 'agent', 'org').
+                scope_id: Identificador único do escopo.
+                block_label: Rótulo do bloco (ex: 'preferred_language', 'persona_name').
+                content: Conteúdo a armazenar no bloco.
+
+            Returns:
+                Dicionário com success e memory_id do registro.
+            """
+            return server._handle_set_memory(scope_type, scope_id, block_label, content)
+
+        # --- concierge_get_memory ---
+        @self._mcp.tool(
+            name="concierge_get_memory",
+            description=(
+                "Consulta blocos de memória core persistente. "
+                "Se block_label for informado, retorna apenas aquele bloco. "
+                "Se omitido, retorna todos os blocos do escopo."
+            ),
+        )
+        def concierge_get_memory(
+            scope_type: str,
+            scope_id: str,
+            block_label: Optional[str] = None,
+        ) -> dict:
+            """Consulta blocos de memória core.
+
+            Args:
+                scope_type: Tipo de escopo ('user', 'session', 'agent', 'org').
+                scope_id: Identificador único do escopo.
+                block_label: Rótulo específico (opcional). Se ausente, retorna todos.
+
+            Returns:
+                Dicionário com success e lista de blocks.
+            """
+            return server._handle_get_memory(scope_type, scope_id, block_label)
+
+        # --- concierge_feedback ---
+        @self._mcp.tool(
+            name="concierge_feedback",
+            description=(
+                "Registra feedback de utilidade sobre um fato semântico (semantic_fact). "
+                "Aciona o aprendizado Bayesiano: incrementa utility_alpha (sucesso) ou "
+                "utility_beta (falha), alimentando o Thompson Sampling da busca híbrida."
+            ),
+        )
+        def concierge_feedback(
+            fact_id: int,
+            was_useful: bool,
+        ) -> dict:
+            """Registra feedback de utilidade de um fato semântico.
+
+            Args:
+                fact_id: ID do semantic_fact a avaliar (campo 'id' retornado por concierge_store_fact).
+                was_useful: True se o fato foi útil na resposta, False caso contrário.
+
+            Returns:
+                Dicionário com success, fact_id, was_useful e mensagem.
+            """
+            return server._handle_feedback(fact_id, was_useful)
 
     def _resolve_project_identifier(self, project_identifier: str) -> str:
         """Resolve project_identifier (UUID ou folder_name) para project_uuid.
@@ -885,17 +988,18 @@ class GrafoConciergeServer:
     # ===================================================================
 
     def _handle_get_implementations(self, symbol_id: int) -> dict:
-        """Handler do get_implementations."""
+        """Handler do get_implementations — delega à Fachada Central."""
         t0 = time.perf_counter()
         try:
-            node = self._gc.store.get_node(symbol_id)
+            impl = self._gc.get_implementations(symbol_id)
             elapsed = time.perf_counter() - t0
             return {
                 "success": True,
                 "symbol_id": symbol_id,
-                "label": node.get("label", ""),
-                "node_type": node.get("node_type", ""),
-                "implementation": node.get("summary", ""),
+                "label": impl.get("label", ""),
+                "type": impl.get("type", ""),
+                "implementation": impl.get("content", ""),
+                "project_uuid": impl.get("project_uuid", ""),
                 "duration_seconds": round(elapsed, 3),
             }
         except Exception as e:
@@ -945,6 +1049,47 @@ class GrafoConciergeServer:
             }
 
     # ===================================================================
+    # HANDLER: concierge_store_fact
+    # ===================================================================
+
+    def _handle_store_fact(
+        self, scope_type: str, scope_id: str, fact_statement: str,
+    ) -> dict:
+        """Handler do concierge_store_fact — delega à Fachada."""
+        t0 = time.perf_counter()
+        try:
+            results = self._gc.store_fact(
+                scope_type=scope_type,
+                scope_id=scope_id,
+                fact_statement=fact_statement,
+            )
+            elapsed = time.perf_counter() - t0
+
+            logger.info(
+                "concierge_store_fact OK: scope=%s/%s, decisões=%d, %.3fs",
+                scope_type, scope_id, len(results), elapsed,
+            )
+
+            return {
+                "success": True,
+                "scope_type": scope_type,
+                "scope_id": scope_id,
+                "decisions": results,
+                "duration_seconds": round(elapsed, 3),
+            }
+
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("concierge_store_fact FALHOU: %s", e)
+            return {
+                "success": False,
+                "error": str(e),
+                "scope_type": scope_type,
+                "scope_id": scope_id,
+                "duration_seconds": round(elapsed, 3),
+            }
+
+    # ===================================================================
     # RUN — Inicialização do servidor
     # ===================================================================
 
@@ -956,3 +1101,122 @@ class GrafoConciergeServer:
         """
         logger.info("Iniciando Grafo Concierge MCP Server (transport=%s)...", transport)
         self._mcp.run(transport=transport)
+
+    # ===================================================================
+    # HANDLER: concierge_set_memory
+    # ===================================================================
+
+    def _handle_set_memory(
+        self,
+        scope_type: str,
+        scope_id: str,
+        block_label: str,
+        content: str,
+    ) -> dict:
+        """Handler do concierge_set_memory — delega à Façada."""
+        t0 = time.perf_counter()
+        try:
+            memory_id = self._gc.set_core_memory(
+                scope_type=scope_type,
+                scope_id=scope_id,
+                block_label=block_label,
+                content=content,
+            )
+            elapsed = time.perf_counter() - t0
+            logger.info(
+                "concierge_set_memory OK: scope=%s/%s, label=%s, id=%s, %.3fs",
+                scope_type, scope_id, block_label, memory_id, elapsed,
+            )
+            return {
+                "success": True,
+                "memory_id": memory_id,
+                "scope_type": scope_type,
+                "scope_id": scope_id,
+                "block_label": block_label,
+                "duration_seconds": round(elapsed, 3),
+            }
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("concierge_set_memory FALHOU: %s", e)
+            return {
+                "success": False,
+                "error": str(e),
+                "scope_type": scope_type,
+                "scope_id": scope_id,
+                "duration_seconds": round(elapsed, 3),
+            }
+
+    # ===================================================================
+    # HANDLER: concierge_get_memory
+    # ===================================================================
+
+    def _handle_get_memory(
+        self,
+        scope_type: str,
+        scope_id: str,
+        block_label: Optional[str],
+    ) -> dict:
+        """Handler do concierge_get_memory — delega à Façada."""
+        t0 = time.perf_counter()
+        try:
+            blocks = self._gc.get_core_memory_blocks(
+                scope_type=scope_type,
+                scope_id=scope_id,
+                block_label=block_label,
+            )
+            elapsed = time.perf_counter() - t0
+            logger.info(
+                "concierge_get_memory OK: scope=%s/%s, label=%s, blocos=%d, %.3fs",
+                scope_type, scope_id, block_label or '*', len(blocks), elapsed,
+            )
+            return {
+                "success": True,
+                "scope_type": scope_type,
+                "scope_id": scope_id,
+                "block_label": block_label,
+                "blocks": blocks,
+                "duration_seconds": round(elapsed, 3),
+            }
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("concierge_get_memory FALHOU: %s", e)
+            return {
+                "success": False,
+                "error": str(e),
+                "scope_type": scope_type,
+                "scope_id": scope_id,
+                "duration_seconds": round(elapsed, 3),
+            }
+
+    # ===================================================================
+    # HANDLER: concierge_feedback
+    # ===================================================================
+
+    def _handle_feedback(self, fact_id: int, was_useful: bool) -> dict:
+        """Handler do concierge_feedback — aciona o aprendizado Bayesiano."""
+        t0 = time.perf_counter()
+        try:
+            self._gc.update_fact_utility(fact_id=fact_id, was_useful=was_useful)
+            elapsed = time.perf_counter() - t0
+            updated_field = "utility_alpha" if was_useful else "utility_beta"
+            logger.info(
+                "concierge_feedback OK: fact_id=%d, was_useful=%s, %s+1, %.3fs",
+                fact_id, was_useful, updated_field, elapsed,
+            )
+            return {
+                "success": True,
+                "fact_id": fact_id,
+                "was_useful": was_useful,
+                "updated_field": updated_field,
+                "message": f"{updated_field} incrementado para o fato {fact_id}.",
+                "duration_seconds": round(elapsed, 3),
+            }
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("concierge_feedback FALHOU: %s", e)
+            return {
+                "success": False,
+                "fact_id": fact_id,
+                "error": str(e),
+                "duration_seconds": round(elapsed, 3),
+            }

@@ -39,6 +39,7 @@ from typing import Any, Optional
 from core.config import ConciergeConfig, DEFAULT_CONFIG
 from core.project_index import ProjectIndex
 from core.hybrid_search import HybridSearchEngine
+from core.memory_extractor import SemanticExtractor
 from storage.store import SqliteStore
 from storage.vector_store import ChromaVectorStore, EmbeddingManager
 from ingestion.orchestrator import IngestionManager
@@ -67,6 +68,7 @@ class GrafoConcierge:
         embedding_manager: EmbeddingManager,
         ingestion_manager: IngestionManager,
         config: ConciergeConfig = DEFAULT_CONFIG,
+        llm_adapter: Any = None,
     ) -> None:
         self._store = sqlite_store
         self._vector = vector_store
@@ -82,6 +84,11 @@ class GrafoConcierge:
             embedding_manager=embedding_manager,
             project_index=self._project_index,
             config=config,
+        )
+
+        # Motor de Extração Semântica (requer LLM adapter)
+        self._semantic_extractor: SemanticExtractor | None = (
+            SemanticExtractor(llm_adapter) if llm_adapter else None
         )
 
         logger.info("GrafoConcierge (Fachada) inicializada com sucesso.")
@@ -491,3 +498,123 @@ class GrafoConcierge:
     def get_callers(self, symbol_id: int) -> list[dict]:
         """Consulta as arestas para retornar todas as chamadas ao símbolo."""
         return self._store.get_callers(symbol_id)
+
+    # ===================================================================
+    # STORE FACT — Gravação de Fatos Semânticos via SemanticExtractor
+    # ===================================================================
+
+    def store_fact(
+        self,
+        scope_type: str,
+        scope_id: str,
+        fact_statement: str,
+    ) -> list[dict]:
+        """Grava um fato semântico no grafo via SemanticExtractor.
+
+        O SemanticExtractor avalia o fato contra os fatos existentes
+        do escopo e decide: ADD, UPDATE, DELETE ou NOOP.
+
+        Alinhado com a Tool MCP concierge_store_fact.
+
+        Args:
+            scope_type: Tipo de escopo ('user', 'session', 'agent', 'org').
+            scope_id: Identificador único do escopo.
+            fact_statement: Texto do fato/preferência a gravar.
+
+        Returns:
+            Lista de dicts detalhando as decisões tomadas.
+
+        Raises:
+            RuntimeError: Se o SemanticExtractor não está configurado.
+        """
+        if self._semantic_extractor is None:
+            raise RuntimeError(
+                "SemanticExtractor não disponível: llm_adapter não foi "
+                "fornecido na inicialização do GrafoConcierge."
+            )
+
+        def _do_store(conn) -> list[dict]:
+            return self._semantic_extractor.evaluate_and_store_facts(
+                conn=conn,
+                scope_type=scope_type,
+                scope_id=scope_id,
+                new_facts=[fact_statement],
+            )
+
+        results = self._store._conn_mgr.write(_do_store)
+        logger.info(
+            "store_fact: scope=%s/%s, resultados=%d",
+            scope_type, scope_id, len(results),
+        )
+        return results
+
+    # ===================================================================
+    # USER CORE MEMORY — Patch 1
+    # ===================================================================
+
+    def set_core_memory(
+        self,
+        scope_type: str,
+        scope_id: str,
+        block_label: str,
+        content: str,
+    ) -> int:
+        """Grava ou atualiza um bloco de memória core do usuário/sessão.
+
+        Args:
+            scope_type: 'user', 'session', 'agent' ou 'org'.
+            scope_id: Identificador único do escopo.
+            block_label: Rótulo do bloco de memória.
+            content: Conteúdo a armazenar.
+
+        Returns:
+            ID do registro inserido/atualizado.
+        """
+        return self._store.set_core_memory(scope_type, scope_id, block_label, content)
+
+    def get_core_memory_blocks(
+        self,
+        scope_type: str,
+        scope_id: str,
+        block_label: Optional[str] = None,
+    ) -> list[dict]:
+        """Retorna blocos de memória core para um escopo.
+
+        Args:
+            scope_type: Tipo de escopo.
+            scope_id: Identificador único do escopo.
+            block_label: Se informado, retorna apenas o bloco específico
+                         (lista com 0 ou 1 elemento). Se ausente, retorna todos.
+
+        Returns:
+            Lista de dicts com os registros de user_core_memory.
+        """
+        if block_label:
+            record = self._store.get_core_memory(scope_type, scope_id, block_label)
+            return [record] if record else []
+        return self._store.list_core_memory_blocks(scope_type, scope_id)
+
+    # ===================================================================
+    # FEEDBACK LOOP BAYESIANO — Patch 3
+    # ===================================================================
+
+    def update_fact_utility(self, fact_id: int, was_useful: bool) -> None:
+        """Atualiza a utilidade Bayesiana de um semantic_fact.
+
+        Incrementa utility_alpha (sucesso) ou utility_beta (falha) do fato,
+        alimentando o Thompson Sampling do HybridSearchEngine.
+
+        Args:
+            fact_id: ID do fato semântico (campo id de semantic_facts).
+            was_useful: True se o fato foi útil, False caso contrário.
+        """
+        from storage.semantic_logic import update_memory_utility
+
+        def _do_update(conn) -> None:
+            update_memory_utility(conn, fact_id, was_useful)
+
+        self._store._conn_mgr.write(_do_update)
+        logger.info(
+            "update_fact_utility: fact_id=%d, was_useful=%s → %s atualizado.",
+            fact_id, was_useful, "utility_alpha" if was_useful else "utility_beta",
+        )

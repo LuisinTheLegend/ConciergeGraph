@@ -1,0 +1,228 @@
+================================================================================
+ANÁLISE CRÍTICA DO GRAFO CONCIERGE
+================================================================================
+Data: 2026-07-04
+Baseada em: schema do banco SQLite + assinaturas dos MCP tools + documentação
+Acuidade estimada: ~60% (sem acesso ao código fonte do servidor MCP)
+
+================================================================================
+1. ARQUITETURA INFERIDA
+================================================================================
+
+1.1 Camada de Dados (SQLite + Qdrant)
+
+    Projetos (1:N) ──► Nodes (M:N via Edges)
+                           │
+                           ├── FTS5 (full-text search)
+                           └── Qdrant (embeddings vetoriais)
+
+    Tabela: projects
+      uuid (PK) | folder_name | primary_wing | privacy_level (PUBLIC/INTERNAL/RESTRICTED)
+      summary | created_at | updated_at
+
+    Tabela: nodes
+      id (PK) | project_uuid (FK) | label | summary | node_type (FACT/SKILL/INSIGHT/TRAJECTORY/PATCH)
+      type (default "file") | tags | file_hash | last_accessed | last_commit_at
+      status (ACTIVE/STALE/ARCHIVED)
+
+    Tabela: edges
+      source_id (FK) | target_id (FK) | relation_type (default "depends_on") | weight (default 1.0)
+
+    Tabela: commit_log
+      id (PK) | project_uuid (FK) | phase | technical_changes | updated_pointers
+      revisor_approved | partial_audit | created_at
+
+    Tabela: trajectories
+      id (PK) | project_uuid (FK) | prompt_origem | tentativa_execucao
+      erro_encontrado | solucao_aplicada | status | created_at
+
+    Tabela: reference_wings
+      project_uuid (FK) | wing_name (PK composta)
+
+    Índices FTS5: nodes_fts em label, tags, summary (sincronizado via triggers)
+
+1.2 Pipeline de Ingestão (inferido dos tools)
+
+    register -> mine:
+      1. Crawl do filesystem
+      2. Parse AST / análise semântica
+      3. Geração de resumos recursivos L0 -> L1 -> L2
+      4. Geração de embeddings
+      5. Sincronização SQLite + Qdrant
+
+1.3 Motor de Busca Híbrido (inferido dos tools)
+
+    score = alfa * cosine(vetor_query, vetor_doc) +
+            beta  * BM25(consulta, texto) +
+            gama  * graph_score(recencia, centralidade)
+
+================================================================================
+2. PONTOS POSITIVOS
+================================================================================
+
+  [Grafo nativo]
+    Não e apenas vector store -- arestas relacionam nos, permitindo
+    travessia (ex: "o que esse modulo afeta?").
+
+  [Taxonomia rica de nos]
+    5 tipos semanticos: FACT, SKILL, INSIGHT, TRAJECTORY, PATCH --
+    cobre conhecimento factual, habilidade, insight, rastro de debug e patch.
+
+  [Busca hibrida 3-sinais]
+    Combina vetor (semântica) + BM25 (termos exatos) + grafo
+    (centralidade/recencia) -- mais robusto que apenas similaridade cosseno.
+
+  [Auditoria embutida]
+    commit_log com revisor_approved e partial_audit -- rastreabilidade
+    e controle de qualidade.
+
+  [Resumo recursivo L0/L1/L2]
+    Hierarquia de compressao de contexto -- ideal para injecao
+    progressiva em prompts.
+
+  [Trajectories (debug trail)]
+    Unico no mercado -- registra prompt -> erro -> solucao, permitindo
+    aprendizado com falhas passadas.
+
+  [Reference Wings]
+    Memoria compartilhada entre projetos.
+
+  [Ciclo de vida do no]
+    ACTIVE -> STALE -> ARCHIVED -- evita poluicao de contexto.
+
+  [Niveis de privacidade]
+    PUBLIC / INTERNAL / RESTRICTED -- adequado para multi-projeto.
+
+  [MCP nativo]
+    Integra-se como servidor MCP, sem necessidade de SDK especifico.
+
+  [Dual storage]
+    SQLite (relacional + FTS5) + Qdrant (vetorial) -- balanced approach.
+
+================================================================================
+3. PONTOS NEGATIVOS
+================================================================================
+
+  [Sem timestamps em arestas]
+    edges nao tem created_at -- impossivel saber quando uma relacao
+    foi estabelecida, limitando reasoning temporal.
+
+  [Sem versionamento de nos]
+    Sobrescreve summary -- nao mantem historico do conteudo do no.
+
+  [Coluna "type" redundante/confusa]
+    node_type + type ("file" default) -- propenso a ambiguidade.
+
+  [Sem memoria de sessao/conversa]
+    Focado em conhecimento de codigo, nao em dialogo. Nao ha tabela
+    de messages ou sessions.
+
+  [Sem proveniencia]
+    Nao rastreia de onde veio um fato (arquivo:linha especifica? LLM?).
+
+  [Sem reasoning temporal nativo]
+    Comparado a Zep (Graphiti) que tem "janelas de validade" para fatos.
+
+  [Sem resolucao de contradicoes]
+    Se dois fatos conflitam, nao ha mecanismo explicito de resolucao.
+
+  [Banco vazio]
+    projects: 0, nodes: 0, edges: 0 -- ou e muito novo ou nao esta
+    em uso ativo.
+
+  [Dependencia externa (Qdrant)]
+    Infraestrutura adicional -- nao e self-contained.
+
+  [Sem isolamento multi-tenant explicito]
+    Nao ha coluna de user_id ou tenant_id nas tabelas.
+
+  [Codigo fechado]
+    Nao e possivel auditar a implementacao dos algoritmos (embedding,
+    ranking, AST parser).
+
+  [Sem benchmarks publicos]
+    Diferente de Mem0, Zep e Hindsight que publicam resultados no
+    LongMemEval/BEAM.
+
+  [Campo "summary" generico]
+    Um unico campo TEXT para conteudo pode ser insuficiente para
+    documentos complexos.
+
+================================================================================
+4. COMPARACAO COM O MERCADO (2026)
+================================================================================
+
+  Dimensao              | Concierge | Mem0  | Zep   | Letta | Cognee | Hindsight | Supermemory
+  ----------------------|-----------|-------|-------|-------|--------|-----------|------------
+  Foco                  | Codigo    | Prefs | Temp. | Agent | Docs   | Precisao  | Coding
+  Categoria             | Graf+Vec  | Vec   | TempKG| 3-tier| Graf+Vec| 4-redes   | MCP-first
+  Relacoes (grafo)      | SIM       | NAO   | SIM   | NAO   | SIM    | NAO       | Limitado
+  Busca hibrida         | 3 sinais  | 2     | 2     | 2     | 3+     | 2         | Vetor
+  Auditoria             | SIM       | NAO   | NAO   | NAO   | NAO    | NAO       | NAO
+  Debug trail           | SIM       | NAO   | NAO   | NAO   | NAO    | NAO       | NAO
+  Resolucao temporal    | Limitada  | NAO   | Excel | Boa   | NAO    | Boa       | NAO
+  Proveniencia          | NAO       | NAO   | NAO   | NAO   | NAO    | NAO       | NAO
+  Versionamento         | NAO       | NAO   | NAO   | NAO   | NAO    | NAO       | NAO
+  Benchmarks publicos   | NAO       | SIM   | SIM   | SIM   | NAO    | SIM (SOTA)| NAO
+  Codigo aberto         | Fechado   | SIM   | SIM   | SIM   | SIM    | SIM       | SIM
+  Integracao            | MCP nativo| SDKs  | REST  | Python| Python | Python    | MCP nativo
+  Producao              | Desconh.  | SIM   | SIM   | SIM   | Parcial| Novo      | SIM
+
+================================================================================
+5. MATRIZ DE DECISAO POR CENARIO
+================================================================================
+
+  Seu cenario                          | Melhor escolha
+  --------------------------------------|-------------------------------------------
+  Memoria de codigo + arquitetura      | Grafo Concierge ou Cognee
+  Preferencias de usuario (chat)       | Mem0
+  Reasoning temporal multi-hop         | Zep (Graphiti engine)
+  Agente autonomo long-running         | Letta (3 tiers)
+  Precisao factual maxima              | Hindsight (4-network)
+  Memoria para coding agents           | Supermemory ou Grafo Concierge
+  Cross-tool personal memory           | Memobase.ai (MCP passport)
+  Stack LangChain/LangGraph            | LangMem
+
+================================================================================
+6. RECOMENDACOES PARA EVOLUCAO
+================================================================================
+
+  1. Adicionar created_at em edges para permitir reasoning temporal.
+
+  2. Adicionar version INTEGER em nodes com append-only history.
+
+  3. Adicionar provenance TEXT (ex: "arquivo:linha") para rastrear
+     origem de cada fato.
+
+  4. Separar a coluna ambigua "type" em algo mais descritivo como
+     origin ou source_type.
+
+  5. Publicar benchmarks no LongMemEval ou BEAM para credibilidade.
+
+  6. Implementar resolucao de contradicoes (ex: peso por recencia ou
+     confianca da fonte).
+
+  7. Considerar tabela de sessao/mensagens se o objetivo incluir
+     memoria conversacional.
+
+  8. Adicionar user_id para suportar multi-tenant de forma explicita.
+
+================================================================================
+7. VEREDITO FINAL
+================================================================================
+
+  O Grafo Concierge tem uma arquitetura solida e diferenciais
+  legitimos (auditoria, debug trail, busca 3-sinais, resumo
+  hierarquico L0/L1/L2) que nenhum concorrente oferece no mesmo
+  pacote.
+
+  Porem, o codigo fechado e a falta de benchmarks sao barreiras
+  serias para adocao em producao quando comparado a alternativas
+  open source como Cognee, Zep ou Supermemory.
+
+  Se o objetivo e memoria de codigo/projeto com rastreabilidade e
+  auditoria, ele e o mais bem posicionado -- mas a falta de
+  transparencia impede validar se a implementacao entrega o que a
+  arquitetura promete.
+
+================================================================================

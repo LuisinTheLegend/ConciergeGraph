@@ -1,0 +1,890 @@
+================================================================================
+ANÁLISE CRÍTICA DO CÓDIGO-FONTE — GRAFO CONCIERGE v3.8.0
+================================================================================
+Data: 2026-07-04
+Baseada em: leitura integral de ~7.500 linhas em 20+ arquivos do código-fonte.
+Propósito: Documentar todos os erros, fragilidades, módulos órfãos e
+inconsistências para que uma IA avançada possa corrigi-los com maestria,
+tornando o Grafo Concierge 100% funcional com código 100% completo e integrado.
+
+================================================================================
+ÍNDICE
+================================================================================
+1. MÓDULOS ÓRFÃOS (código existe mas não integrado à pipeline de produção)
+   1.1 ThompsonRetriever (SA-CTS probabilístico)
+   1.2 SemanticExtractor (resolução de contradições)
+   1.3 update_memory_utility (utilidade Bayesiana)
+   1.4 user_core_memory (tabela de memória de usuário/sessão)
+   1.5 episodic_memory (coleção de memória episódica no Qdrant)
+   1.6 parse_batch() (parser em lote)
+
+2. BUGS CONFIRMADOS
+   2.1 get_implementations MCP tool retorna summary em vez do código
+   2.2 Pesos do Hybrid Search no ConciergeConfig são ornamentais
+
+3. FRAGILIDADES DE DESIGN
+   3.1 verify_sync() carrega todos os metadados na RAM sem paginação
+   3.2 Janitor acessa cadeia de atributos privados (encapsulamento violado)
+   3.3 chunk._node_id setado dinamicamente (encapsulamento violado)
+   3.4 main.py síncrono (sem suporte async)
+   3.5 _update_vector_metadata acessa _vector._collection diretamente
+   3.6 generate_and_persist_community_summaries acessa _ingestion._summarizer._llm
+   3.7 SQLiteStore.close() só fecha conexão da thread atual
+   3.8 Sem retry na conexão Qdrant (modo NO-OP permanente)
+
+4. INCONSISTÊNCIAS E CÓDIGO DESCUIDADO
+   4.1 detect_communities faz JOIN desnecessário em nodes_fts
+   4.2 parse_batch() definido mas nunca chamado
+   4.3 Constantes duplicadas entre config.py e logic.py
+   4.4 Prompt Armor com tag XML inventada
+
+5. PLANO DE CORREÇÃO POR PRIORIDADE
+   5.1 Prioridade CRÍTICA
+   5.2 Prioridade ALTA
+   5.3 Prioridade MÉDIA
+   5.4 Prioridade BAIXA
+
+
+================================================================================
+1. MÓDULOS ÓRFÃOS
+================================================================================
+
+1.1 ThompsonRetriever (SA-CTS probabilístico)
+----------------------------------------------------------------------
+
+ARQUIVO:    core/probabilistic_retriever.py (94 linhas)
+TESTES:     tests/_test_probabilistic_retriever.py
+CRIADO:     Implementa Amostragem de Thompson (SA-CTS) para balancear
+            exploração vs explotação na recuperação de memória.
+
+O QUE É:
+    O ThompsonRetriever usa a distribuição Beta (parâmetros utility_alpha
+    e utility_beta dos metadados vetoriais) para sortear um multiplicador
+    probabilístico:
+        thompson_multiplier = numpy.random.beta(alpha, beta)
+        score_final = similaridade * thompson_multiplier
+    Isso permite que memórias com alta incerteza (poucos acessos) sejam
+    eventualmente exploradas, enquanto memórias com alta utilidade
+    comprovada sejam priorizadas.
+
+POR QUE É ÓRFÃO:
+    NENHUM código de produção referencia o ThompsonRetriever:
+    - Não está em __init__.py do core/
+    - Não está na Fachada Central (core/middleware.py)
+    - Não está no HybridSearchEngine (core/hybrid_search.py)
+    - Não há MCP tool exposta
+    - Único uso é em testes (_test_probabilistic_retriever.py)
+
+    A classe foi provavelmente criada como "feature futura" e nunca
+    foi integrada ao pipeline de busca. O HybridSearchEngine continua
+    operando deterministicamente (soma ponderada fixa).
+
+IMPACTO:
+    - A funcionalidade de exploração probabilística não existe em produção
+    - O sistema não aprende com o uso: utility_alpha/beta são inseridos
+      como 1.0/1.0 e nunca atualizados (veja item 1.3)
+    - Diferencial competitivo perdido vs Zep e Hindsight
+
+COMO CORRIGIR:
+    1. Integrar ThompsonRetriever ao HybridSearchEngine:
+       - Adicionar parâmetro enable_probabilistic (default False) no search()
+       - Quando True, aplicar thompson_multiplier ao score_final
+       - Os metadados do VectorSearchResult já contêm utility_alpha/beta
+    2. Expor opção nos MCP tools (concierge_search)
+    3. Criar tool MCP para atualizar utility (feedback loop)
+    ---
+    Arquivos a modificar:
+    - core/hybrid_search.py (linha ~200: loop de score final)
+    - core/probabilistic_retriever.py (export, talvez integrar)
+    - interface/mcp_server.py (adicionar parâmetro na tool search)
+    - core/middleware.py (passar parâmetro ao search)
+
+
+1.2 SemanticExtractor (resolução de contradições)
+----------------------------------------------------------------------
+
+ARQUIVO:    core/memory_extractor.py (245 linhas)
+TESTES:     tests/_test_extraction_noop.py
+
+O QUE É:
+    Implementa o pipeline de decisão NOOP para armazenamento de fatos
+    semânticos. Compara um novo fato contra fatos existentes (via LLM)
+    e decide:
+        - ADD: fato completamente novo
+        - UPDATE: fato que atualiza/refina um existente (invalidação
+          bi-temporal: insere t_invalid no antigo, cria novo)
+        - DELETE: fato que contradiz/revoga um existente
+        - NOOP: fato redundante (ignora)
+
+    Usa as tabelas semantic_facts (com t_valid/t_invalid bi-temporal)
+    e utility_alpha/utility_beta para utilidade Bayesiana.
+
+POR QUE É ÓRFÃO:
+    1. A classe SemanticExtractor NÃO é instanciada em lugar nenhum
+       do código de produção:
+       - Não está no __init__.py do core/ (só exporta ConciergeConfig,
+         ProjectIndex, HybridSearchEngine, GrafoConcierge)
+       - Não está na Fachada Central (middleware.py)
+       - Não há MCP tool exposta para "store_fact" ou "memory_add"
+    2. As funções auxiliares insert_semantic_fact() e
+       invalidate_semantic_fact() em storage/semantic_logic.py
+       só são chamadas pelo SemanticExtractor — que não é chamado.
+    3. A tabela semantic_facts é criada no schema mas jamais recebe
+       INSERTs em produção.
+
+IMPACTO:
+    - Todo o sistema de memória semântica conversacional (fatos bi-temporais
+      com resolução de contradições) não funciona em produção
+    - As tabelas semantic_facts e user_core_memory existem mas estão vazias
+    - O diferencial competitivo de "memória que aprende e resolve
+      contradições" não é entregue ao usuário
+
+COMO CORRIGIR:
+    1. Adicionar SematicExtractor à Fachada Central (middleware.py)
+       como dependência opcional
+    2. Criar uma MCP tool (ex: concierge_store_fact) que recebe
+       scope_type, scope_id e fact_statement e delega ao extrator
+    3. Integrar o extrator ao ciclo de vida dos ActionHooks
+       (action_hooks.py) para que fatos sejam extraídos automaticamente
+       durante planning/execution/done
+    ---
+    Arquivos a modificar:
+    - core/__init__.py (exportar SemanticExtractor)
+    - core/middleware.py (adicionar extractor como dependência)
+    - interface/mcp_server.py (nova tool concierge_store_fact)
+    - interface/action_hooks.py (integrar no ciclo de vida)
+
+
+1.3 update_memory_utility (utilidade Bayesiana)
+----------------------------------------------------------------------
+
+ARQUIVO:    storage/semantic_logic.py:101-124
+TESTES:     tests/_test_probabilistic_retriever.py:32-55
+
+O QUE É:
+    Função que atualiza os parâmetros da distribuição Beta de um fato
+    semântico:
+        - was_useful=True  → incrementa utility_alpha (sucesso)
+        - was_useful=False → incrementa utility_beta (falha)
+    Esses parâmetros alimentam o ThompsonRetriever (item 1.1).
+
+POR QUE É ÓRFÃO:
+    A função update_memory_utility() é chamada APENAS pelo teste
+    _test_probabilistic_retriever.py. NENHUM código de produção
+    a invoca.
+
+IMPACTO:
+    - utility_alpha e utility_beta ficam para sempre em 1.0/1.0
+    - Não há feedback loop: o sistema nunca "aprende" quais fatos
+      são úteis ou não
+    - O ThompsonRetriever, mesmo se integrado, operaria com
+      distribuição Beta(1,1) = uniforme — sem exploração direcionada
+
+COMO CORRIGIR:
+    1. Criar MCP tool concierge_feedback(fact_id, was_useful: bool)
+       que chama update_memory_utility()
+    2. Integrar ao ActionHooks.on_done() para feedback automático
+       pós-execução
+    3. Alternativa: criar um serviço background (similar ao Janitor)
+       que periodicamente avalia e atualiza utilidades
+    ---
+    Arquivos a modificar:
+    - storage/store.py (adicionar método update_fact_utility)
+    - interface/mcp_server.py (nova tool)
+    - interface/action_hooks.py (feedback automático)
+    - core/middleware.py (expor método na facade)
+
+
+1.4 user_core_memory (tabela de memória de usuário/sessão)
+----------------------------------------------------------------------
+
+ARQUIVO:    storage/schema.py:123-130 (DDL apenas)
+
+O QUE É:
+    Tabela SQLite para armazenar memória "core" do usuário, com suporte
+    a multi-tenant via scope_type (user, session, agent, org):
+        scope_type  TEXT NOT NULL CHECK(scope_type IN ('user','session','agent','org'))
+        scope_id    TEXT NOT NULL
+        block_label TEXT NOT NULL
+        content     TEXT
+        updated_at  TEXT
+
+POR QUE É ÓRFÃO:
+    A tabela é CRIADA no schema (CREATE TABLE IF NOT EXISTS), mas
+    NENHUM código de produção insere, atualiza ou consulta registros.
+    Apenas o teste _test_conversational_db.py a utiliza.
+
+IMPACTO:
+    - O schema promete memória core multi-tenant, mas ela não é
+      escrita nem lida
+    - A coleção episodic_memory no QdrantVectorStore tem o mesmo
+      problema (criada mas nunca populada)
+    - Não há API pública para gerenciar memória de usuário/sessão
+
+COMO CORRIGIR:
+    1. Adicionar métodos em store.py:
+       - set_core_memory(scope_type, scope_id, block_label, content)
+       - get_core_memory(scope_type, scope_id)
+       - list_core_memory_blocks(scope_type, scope_id)
+    2. Expor como MCP tools complementares ao concierge_commit
+    3. Integrar ao SemanticExtractor para que, durante extração de
+       fatos, a memória core também seja atualizada
+    ---
+    Arquivos a modificar:
+    - storage/store.py (novos métodos)
+    - interface/mcp_server.py (novas tools)
+    - core/middleware.py (delegar para store)
+
+
+1.5 episodic_memory (coleção de memória episódica no Qdrant)
+----------------------------------------------------------------------
+
+ARQUIVO:    core/vector_backend.py:78
+
+O QUE É:
+    O QdrantVectorStore cria automaticamente uma coleção separada
+    chamada "episodic_memory" para armazenar histórico conversacional
+    episódico, com validação de payload específica:
+        scope_type, scope_id, timestamp, utility_alpha, utility_beta
+
+POR QUE É ÓRFÃO:
+    - A coleção é criada pelo QdrantVectorStore, que NÃO é o backend
+      padrão (o padrão é ChromaVectorStore)
+    - Mesmo com Qdrant ativo, NENHUM código de produção escreve na
+      coleção episodic_memory
+    - A validação de payload existe (linhas 109-122) mas nunca é
+      acionada por INSERTs reais
+
+IMPACTO:
+    - Memória episódica conversacional não funciona
+    - A infraestrutura para separar memória de código de memória de
+      conversa existe mas não é utilizada
+
+COMO CORRIGIR:
+    Depende da correção do SemanticExtractor (1.2) e user_core_memory
+    (1.4). A coleção episodic_memory deve ser populada quando:
+    1. Um fato semântico é armazenado via SemanticExtractor
+    2. Uma memória core é registrada via user_core_memory
+    ---
+    Arquivos a modificar:
+    - storage/semantic_logic.py (adicionar hook para vector store)
+    - core/middleware.py (coordenar escrita em SQLite + Vector)
+
+
+1.6 parse_batch() (parser em lote)
+----------------------------------------------------------------------
+
+ARQUIVO:    ingestion/parser.py:483
+
+O QUE É:
+    Método que processa múltiplos CrawlResults em lote, com tratamento
+    individual de exceções (Semantic Fallback por arquivo).
+
+POR QUE É ÓRFÃO:
+    O IngestionManager._step_parse() (orchestrator.py:238-249) faz
+    um loop manual sobre new_files chamando parse() individualmente,
+    em vez de chamar parse_batch(). O método existe e é testado
+    (_test_parser.py) mas nunca é invocado em produção.
+
+IMPACTO:
+    - Código morto: ~40 linhas que nunca executam
+    - Manutenção duplicada: se a lógica de batch mudar, é preciso
+      atualizar dois lugares (parse_batch + _step_parse)
+
+COMO CORRIGIR:
+    Substituir o loop manual em IngestionManager._step_parse()
+    por uma chamada a self._parser.parse_batch(crawl_results).
+    ---
+    Arquivo a modificar:
+    - ingestion/orchestrator.py (linhas 238-249)
+
+
+================================================================================
+2. BUGS CONFIRMADOS
+================================================================================
+
+2.1 get_implementations MCP tool retorna SUMMARY em vez do CÓDIGO
+----------------------------------------------------------------------
+
+LOCALIZAÇÃO:
+    - interface/mcp_server.py:887-908 (_handle_get_implementations)
+    - core/middleware.py:479-489 (get_implementations — referência correta)
+
+O ERRO:
+    O handler MCP _handle_get_implementations faz:
+        node = self._gc.store.get_node(symbol_id)
+        ...
+        "implementation": node.get("summary", "")
+    Mas o CAMPO CORRETO é "content" (que contém o código-fonte real).
+    A Fachada Central (middleware.py) implementa corretamente:
+        node = self._store.get_node(symbol_id)
+        return {"content": node.get("content")}  # ← código real
+    Mas o MCP handler ignora a facade e chama a store diretamente.
+
+POR QUE OCORRE:
+    O MCP handler foi escrito chamando self._gc.store.get_node()
+    (bypassando a facade) e usou "summary" por engano. Provavelmente
+    porque summary é o campo mais visível no banco (é populado pelo
+    ZoomSummarizer), enquanto content só foi adicionado depois em uma
+    migração de schema (schema.py:232-235).
+
+IMPACTO:
+    - Usuários da MCP tool get_implementations recebem um resumo LLM
+      de 150 tokens em vez do código-fonte real
+    - A descrição da tool é enganosa: "Retorna a implementação (bloco
+      de código da AST)" — retorna mentira
+    - Todo agente que depende dessa tool para ler código-fonte recebe
+      dados incorretos
+
+COMO CORRIGIR:
+    Opção A (recomendada): Delegar à Fachada
+        Substituir o handler para chamar self._gc.get_implementations(symbol_id)
+        em vez de self._gc.store.get_node(symbol_id).
+        A facade já retorna o campo content corretamente.
+    Opção B (mínima): Corrigir o campo
+        Trocar node.get("summary", "") por node.get("content", "")
+        no handler.
+
+    Arquivo: interface/mcp_server.py (~linha 898)
+
+
+2.2 Pesos do Hybrid Search no ConciergeConfig são ornamentais
+----------------------------------------------------------------------
+
+LOCALIZAÇÃO:
+    - core/config.py:46-48 (define weight_vector, weight_fts5, weight_recency_centrality)
+    - storage/logic.py:66-68 (define WEIGHT_VECTOR, WEIGHT_FTS5, WEIGHT_RECENCY_CENTRALITY)
+    - core/hybrid_search.py:197-198 (chama store.hybrid_search_score_batch)
+
+O ERRO:
+    O HybridSearchEngine.search() (hybrid_search.py) recebe um
+    ConciergeConfig com os pesos, mas não os utiliza. Em vez disso,
+    chama self._store.hybrid_search_score_batch(), que delega para
+    storage.logic.GraphLogic.hybrid_search_score_batch().
+
+    O GraphLogic usa DEFINIÇÕES PRÓPRIAS hardcoded:
+        WEIGHT_VECTOR = 0.50
+        WEIGHT_FTS5 = 0.25
+        WEIGHT_RECENCY_CENTRALITY = 0.25
+    que são IDÊNTICAS às do config — mas INDEPENDENTES.
+
+    Se alguém alterar os pesos no ConciergeConfig (ex: 0.40/0.30/0.30),
+    o efeito real no score final será ZERO, porque o GraphLogic ignora
+    o config e usa suas constantes hardcoded.
+
+POR QUE OCORRE:
+    O ConciergeConfig foi adicionado posteriormente como "fonte única
+    de verdade", mas o GraphLogic (que é mais antigo) não foi refatorado
+    para consumi-lo. Ninguém percebeu o desalinhamento porque os pesos
+    default são os mesmos nos dois lugares.
+
+IMPACTO:
+    - Qualquer tentativa de calibrar os pesos do Hybrid Search via
+      ConciergeConfig será ignorada silenciosamente
+    - O sistema é menos configurável do que a arquitetura documenta
+    - Manutenção futura pode criar divergências acidentais
+
+COMO CORRIGIR:
+    1. Fazer GraphLogic aceitar um ConciergeConfig opcional no __init__
+    2. Se config for fornecido, usar config.weight_vector etc.
+       em vez das constantes hardcoded
+    3. Se não for fornecido (backwards compatibility), usar defaults
+    4. Atualizar SqliteStore para passar o config ao GraphLogic
+    ---
+    Arquivos a modificar:
+    - storage/logic.py (linhas 56-68 e __init__)
+    - storage/store.py (passar config ao GraphLogic)
+    - core/hybrid_search.py (opcional: poderia passar via store)
+
+
+================================================================================
+3. FRAGILIDADES DE DESIGN
+================================================================================
+
+3.1 verify_sync() carrega TODOS os metadados na RAM
+----------------------------------------------------------------------
+
+LOCALIZAÇÃO:    storage/vector_store.py:517-563 (método verify_sync)
+SEVERIDADE:     ALTA (crash em escala)
+
+O PROBLEMA:
+    O método verify_sync() faz:
+        all_data = self._collection.get(include=["metadatas"])
+    que carrega TODOS os IDs e metadados da coleção inteira do ChromaDB
+    na memória RAM de uma só vez, sem paginação.
+
+    Em projetos pequenos (centenas de vetores) isso é aceitável. Em
+    projetos com dezenas de milhares de vetores, causará MemoryError
+    (OOM — Out of Memory).
+
+    Compare com o QdrantVectorStore.verify_sync() (vector_backend.py:277-305)
+    que usa scroll paginado corretamente:
+        offset = None
+        while True:
+            res, next_offset = self._client.scroll(..., limit=100, offset=offset)
+            ...
+            if not next_offset: break
+
+POR QUE OCORRE:
+    O ChromaDB não tem uma API nativa de scroll/iterator tão clara
+    quanto o Qdrant. O desenvolvedor optou pela abordagem "get all"
+    por simplicidade, sem considerar escalabilidade.
+
+IMPACTO:
+    - O Reconciliation Loop (chamado pelo Janitor e pelo GC pós-mine)
+      quebrará silenciosamente ou consumirá memória excessiva em
+      projetos médios/grandes
+    - O JanitorService pode crashar a aplicação durante manutenção
+      noturna se a base tiver muitos vetores
+
+COMO CORRIGIR:
+    Opção A (recomendada): Implementar paginação via IDs
+        Dividir a consulta em lotes usando limit + offset manual:
+        1. Primeiro obter apenas os IDs (sem metadatas) via get(ids=...)
+        2. Processar em lotes de BATCH_SIZE=100
+        3. Para cada lote, obter metadatas e verificar
+    Opção B: Usar a API count() + get paginado do ChromaDB
+        ChromaDB não suporta paginação nativa via get(), mas é
+        possível usar limit + offset se a coleção usar IDs
+        sequenciais.
+
+    Arquivo: storage/vector_store.py:517-563
+
+
+3.2 Janitor acessa cadeia de atributos privados
+----------------------------------------------------------------------
+
+LOCALIZAÇÃO:    services/janitor.py:175-181
+
+O PROBLEMA:
+    O método is_system_active() do JanitorService faz:
+        if self._store and hasattr(self._store, "_conn_mgr") ...
+            conn_mgr = self._store._conn_mgr
+            if hasattr(conn_mgr, "_write_queue") ...
+                write_q = conn_mgr._write_queue
+                if hasattr(write_q, "_queue") ...
+                    if not write_q._queue.empty():
+                        return True
+
+    Isso acessa uma cadeia de 3 atributos privados (não públicos):
+        SqliteStore._conn_mgr._write_queue._queue
+
+    Se QUALQUER um desses atributos for renomeado (refatoração),
+    o Janitor quebra silenciosamente.
+
+IMPACTO:
+    - Alta fragilidade a refatorações
+    - Código difícil de testar (precisa mockar a cadeia inteira)
+    - Violação clara do princípio de encapsulamento (Law of Demeter)
+
+COMO CORRIGIR:
+    1. Adicionar um método público em SqliteStore:
+        def is_write_queue_empty(self) -> bool:
+            """Retorna True se a fila de escrita não tem jobs pendentes."""
+            return self._conn_mgr.is_write_queue_empty()
+    2. Adicionar método público em ConnectionManager:
+        def is_write_queue_empty(self) -> bool:
+            return self._write_queue.is_empty()
+    3. Adicionar método público em SerializedWriteQueue:
+        def is_empty(self) -> bool:
+            return self._queue.empty()
+    4. Substituir a cadeia em Janitor por:
+        self._store.is_write_queue_empty()
+    ---
+    Arquivos a modificar:
+    - storage/connection.py (SerializedWriteQueue.is_empty, ConnectionManager.is_write_queue_empty)
+    - storage/store.py (SqliteStore.is_write_queue_empty)
+    - services/janitor.py (linhas 175-181)
+
+
+3.3 chunk._node_id setado dinamicamente (encapsulamento violado)
+----------------------------------------------------------------------
+
+LOCALIZAÇÃO:    ingestion/orchestrator.py:358
+
+O PROBLEMA:
+    O IngestionManager._step_store_sqlite() faz:
+        chunk._node_id = chunk_node_ids[i]
+
+    chunk é uma instância de ParsedChunk (dataclass em parser.py),
+    e _node_id NÃO é um campo definido na dataclass. O código
+    adiciona um atributo externamente, violando o contrato da
+    dataclass.
+
+IMPACTO:
+    - O tipo do chunk é semanticamente mutilado
+    - Editores/IDEs não autocompletam _node_id
+    - Se a dataclass for congelada (frozen=True) ou usar __slots__,
+      o código quebra
+    - O campo é acessado em _step_embed (orchestrator.py:491):
+        node_id = getattr(chunk, "_node_id", None)
+    O fallback getattr(..., None) indica que o código já sabe que
+    o atributo é frágil.
+
+COMO CORRIGIR:
+    1. Adicionar node_id como campo opcional na dataclass ParsedChunk:
+        node_id: Optional[int] = None
+    2. Substituir chunk._node_id = valor por chunk.node_id = valor
+    3. Em _step_embed, usar chunk.node_id diretamente, sem getattr
+    ---
+    Arquivos a modificar:
+    - ingestion/parser.py (dataclass ParsedChunk: adicionar node_id)
+    - ingestion/orchestrator.py (linhas 358, 491)
+
+
+3.4 main.py síncrono (sem suporte async)
+----------------------------------------------------------------------
+
+LOCALIZAÇÃO:    main.py:219
+
+O PROBLEMA:
+    O servidor MCP é iniciado com:
+        server.run(transport=TRANSPORT)
+    que é uma chamada BLOQUEANTE. O loop principal não pode fazer
+    mais nada enquanto o servidor estiver rodando, e não há suporte
+    a event loop asyncio.
+
+IMPACTO:
+    - Escalabilidade limitada: não é possível atender múltiplas
+      conexões simultâneas
+    - Sem suporte a transport SSE (Server-Sent Events) que seria
+      necessário para deploy web
+    - O JanitorService contorna isso rodando em thread separada,
+      mas o servidor em si é single-threaded
+
+COMO CORRIGIR:
+    Opção A: Usar FastMCP com uvicorn (recomendado)
+        O FastMCP suporta run_async() ou ser montado em uma ASGI app.
+        Substituir server.run() por:
+            import uvicorn
+            uvicorn.run(app, host=host, port=port)
+
+    Opção B: Usar threads para cada conexão
+        Menos recomendado mas mais simples: usar
+        server.run(transport="sse") dentro de um thread pool.
+
+    Observação: O Google Generative AI (gemini) e OpenAI têm clientes
+    síncronos, então seria necessário também refatorar LLMAdapter
+    para async ou rodar chamadas LLM em thread pool.
+
+    Arquivo: main.py (linha 219)
+
+
+3.5 _update_vector_metadata acessa _vector._collection diretamente
+----------------------------------------------------------------------
+
+LOCALIZAÇÃO:    services/janitor.py:639-661
+
+O PROBLEMA:
+    O método _update_vector_metadata() do Janitor faz:
+        if self._vector and hasattr(self._vector, "_collection") ...
+            self._vector._collection.update(...)
+
+    Acessa diretamente o atributo _collection do ChromaVectorStore,
+    que deveria ser encapsulado.
+
+IMPACTO:
+    - Mesma fragilidade do item 3.2: refatoração interna do
+      ChromaVectorStore quebra o Janitor
+    - Se o backend for trocado para Qdrant, _collection não existe
+
+COMO CORRIGIR:
+    Adicionar método público em ChromaVectorStore:
+        def update_metadata(self, doc_id: str, metadata: dict) -> None
+    E chamar self._vector.update_metadata(...) do Janitor.
+    ---
+    Arquivos a modificar:
+    - storage/vector_store.py (novo método público)
+    - storage/base_backend.py (adicionar na ABC)
+    - core/vector_backend.py (implementar no Qdrant)
+    - services/janitor.py (substituir acesso direto)
+
+
+3.6 generate_and_persist_community_summaries acessa
+    _ingestion._summarizer._llm
+----------------------------------------------------------------------
+
+LOCALIZAÇÃO:    services/janitor.py:575
+
+O PROBLEMA:
+        if (self._ingestion and
+            hasattr(self._ingestion, "_summarizer") and
+            self._ingestion._summarizer and
+            hasattr(self._ingestion._summarizer, "_llm") and
+            self._ingestion._summarizer._llm):
+
+    Cadeia de 3 atributos privados para chegar ao LLM:
+        Janitor._ingestion._summarizer._llm
+
+IMPACTO:
+    - Se _summarizer for renomeado ou substituído, o Janitor quebra
+    - O código já tenta mitigar com hasattr() — sinal de que o
+      desenvolvedor sabia que era frágil
+
+COMO CORRIGIR:
+    O Janitor precisa de acesso ao LLM para sumarizar comunidades.
+    Duas opções:
+    A) Injetar LLMAdapter diretamente no JanitorService.__init__()
+    B) Criar método público em IngestionManager:
+        def generate_community_summary(self, community_data: dict) -> str
+       que encapsula o acesso ao summarizer.
+
+    Opção A é mais limpa: adicionar llm_adapter: Optional[LLMAdapter]
+    como parâmetro do JanitorService.
+    ---
+    Arquivos a modificar:
+    - services/janitor.py (__init__ + _update_vector_metadata)
+    - main.py (passar llm_adapter ao Janitor)
+
+
+3.7 SQLiteStore.close() só fecha conexão da THREAD ATUAL
+----------------------------------------------------------------------
+
+LOCALIZAÇÃO:    storage/connection.py:230-241
+
+O PROBLEMA:
+    ConnectionManager.close() faz:
+        conn = getattr(self._local, "conn", None)
+        if conn:
+            conn.close()
+            self._local.conn = None
+
+    Isso fecha apenas a conexão de LEITURA da THREAD ATUAL.
+    Outras threads que tenham conexões de leitura abertas via
+    threading.local() terão suas conexões vazadas (nunca fechadas).
+
+IMPACTO:
+    - Em cenários multi-thread (ex: Janitor), as conexões de leitura
+      de threads auxiliares não são fechadas no shutdown
+    - Vazamento de recursos (file descriptors) em execução prolongada
+      com criação/destruição frequente de threads
+
+COMO CORRIGIR:
+    Manter um registro de todas as conexões de leitura criadas:
+    1. Usar um dict thread_id → connection em vez de threading.local()
+    2. No close(), iterar sobre TODAS as conexões e fechá-las
+    Alternativa: fazer as threads fecharem suas próprias conexões
+    (mas isso depende de cooperação externa).
+
+    Arquivo: storage/connection.py (linhas 230-241)
+
+
+3.8 Sem retry na conexão Qdrant (modo NO-OP permanente)
+----------------------------------------------------------------------
+
+LOCALIZAÇÃO:    core/vector_backend.py:52-72
+
+O PROBLEMA:
+    Se o Qdrant estiver fora do ar no momento da inicialização,
+    o QdrantVectorStore entra em modo NO-OP PERMANENTE:
+        if not self._available:
+            self._client = None
+            return
+
+    Não há tentativa de reconexão periódica. Depois que o Qdrant
+    volta, o store continua em NO-OP.
+
+IMPACTO:
+    - Em deploy com Qdrant, uma queda temporária do banco vetorial
+      torna as buscas semânticas permanentemente vazias até o
+      próximo restart do Grafo Concierge
+    - A mensagem de erro é apenas um log warning — operação
+      silenciosamente degradada
+
+COMO CORRIGIR:
+    Implementar reconexão com backoff:
+    1. Adicionar método _ensure_connected() que tenta reconectar
+       antes de cada operação (search, store, delete)
+    2. Usar exponential backoff (1s, 2s, 4s, 8s, max 60s)
+    3. Se reconnect bem, sair do modo NO-OP
+    ---
+    Arquivo: core/vector_backend.py (vários métodos)
+
+
+================================================================================
+4. INCONSISTÊNCIAS E CÓDIGO DESCUIDADO
+================================================================================
+
+4.1 detect_communities faz JOIN desnecessário em nodes_fts
+----------------------------------------------------------------------
+
+LOCALIZAÇÃO:    services/janitor.py:476-487
+
+O PROBLEMA:
+    A query para detectar super-nós (nós com in_degree >= threshold) faz:
+        SELECT n.id
+        FROM nodes n
+        JOIN nodes_fts f ON n.id = f.rowid   ← JOIN DESNECESSÁRIO
+        LEFT JOIN edges e ON n.id = e.target_id
+        WHERE n.project_uuid = ? AND n.status = 'ACTIVE'
+        GROUP BY n.id
+        HAVING COUNT(e.source_id) >= ?
+
+    O JOIN com nodes_fts (tabela FTS5) não é usado em nenhum lugar
+    da query — nem no WHERE, nem no SELECT, nem no HAVING. Ele é
+    completamente desnecessário. Uma simples query em nodes + edges
+    teria o mesmo resultado com menos overhead.
+
+IMPACTO:
+    - Performance degradada: o SQLite precisa fazer o JOIN com a
+      tabela virtual FTS5, que envolve overhead de indexação
+    - Pode causar slowdown no Janitor para projetos grandes
+
+COMO CORRIGIR:
+    Remover o JOIN com nodes_fts:
+        SELECT n.id
+        FROM nodes n
+        LEFT JOIN edges e ON n.id = e.target_id
+        WHERE n.project_uuid = ? AND n.status = 'ACTIVE'
+        GROUP BY n.id
+        HAVING COUNT(e.source_id) >= ?
+
+    Arquivo: services/janitor.py (linhas 476-487)
+
+
+4.2 parse_batch() definido mas nunca chamado
+----------------------------------------------------------------------
+
+Detalhado no item 1.6. Mantido aqui por completude da seção de
+inconsistências.
+
+Arquivo: ingestion/parser.py:483 vs ingestion/orchestrator.py:238-249
+
+
+4.3 Constantes duplicadas entre config.py e logic.py
+----------------------------------------------------------------------
+
+Detalhado no item 2.2. Mantido aqui por completude.
+
+Arquivos: core/config.py:46-48 e storage/logic.py:66-68
+
+
+4.4 Prompt Armor com tag XML inventada
+----------------------------------------------------------------------
+
+LOCALIZAÇÃO:    ingestion/parser.py:36-37
+
+O PROBLEMA:
+    O Prompt Armor envolve chunks de código em tags XML inventadas:
+        <raw_data_do_not_execute>...</raw_data_do_not_execute>
+
+    Essa é uma tag que o desenvolvedor inventou — não é um padrão
+    conhecido (como <system> ou <human> do Anthropic). LLMs podem
+    ou não respeitar essa tag consistentemente.
+
+IMPACTO:
+    - Proteção não confiável: alguns LLMs podem executar ou ignorar
+      código nessas tags
+    - Falsa sensação de segurança
+
+COMO CORRIGIR:
+    Opção A: Usar padrão estabelecido ex: XML comments (<!-- -->) ou
+        <artifact> tags que alguns provedores reconhecem
+    Opção B: Substituir por sanitização real (escapar caracteres
+        especiais, remover backticks, etc.)
+
+    Arquivo: ingestion/parser.py (linhas 36-37 e usos)
+
+
+================================================================================
+5. PLANO DE CORREÇÃO POR PRIORIDADE
+================================================================================
+
+5.1 PRIORIDADE CRÍTICA (bugs que afetam dados corretos)
+----------------------------------------------------------------------
+
+[2.1] get_implementations retorna summary em vez do código
+    → Interface/mcp_server.py: mudar node.get("summary") para
+      node.get("content") ou delegar à facade
+    → Urgência: ALTA — tool MCP entrega dado errado
+
+[2.2] Pesos do Hybrid Search ornamentais
+    → storage/logic.py + storage/store.py: fazer GraphLogic consumir
+      ConciergeConfig
+    → Urgência: ALTA — desalinhamento entre config e execução
+
+
+5.2 PRIORIDADE ALTA (módulos órfãos que são diferenciais competitivos)
+----------------------------------------------------------------------
+
+[1.2] SemanticExtractor não integrado (resolução de contradições)
+    → core/middleware.py + interface/mcp_server.py
+    → Impacto: memória semântica não funciona em produção
+
+[1.1] ThompsonRetriever não integrado (exploração probabilística)
+    → core/hybrid_search.py + core/probabilistic_retriever.py
+    → Impacto: search puramente determinístico
+
+[3.1] verify_sync() OOM risk
+    → storage/vector_store.py: paginar leitura do ChromaDB
+    → Impacto: crash em escala
+
+[1.4] user_core_memory sem INSERTs
+    → storage/store.py + interface/mcp_server.py
+    → Impacto: tabela existe mas vazia
+
+
+5.3 PRIORIDADE MÉDIA (fragilidades de design)
+----------------------------------------------------------------------
+
+[3.2] Janitor acessa atributos privados
+    → Adicionar métodos públicos na cadeia ConnectionManager
+
+[3.3] chunk._node_id dinâmico
+    → Adicionar campo node_id na dataclass ParsedChunk
+
+[3.5] Janitor acessa _vector._collection
+    → Adicionar update_metadata público no ChromaVectorStore
+
+[3.6] Janitor acessa _ingestion._summarizer._llm
+    → Injetar LLMAdapter diretamente no JanitorService
+
+[1.3] update_memory_utility não chamada
+    → Criar tool MCP concierge_feedback
+
+[1.6] parse_batch() não usado
+    → Substituir loop manual por chamada a parse_batch()
+
+
+5.4 PRIORIDADE BAIXA (melhorias e cosmética)
+----------------------------------------------------------------------
+
+[3.4] main.py síncrono
+    → Refatorar para uvicorn/async (requer mudanças maiores)
+
+[3.7] Conexões de leitura vazadas no shutdown
+    → ConnectionManager: registrar e fechar todas as conexões
+
+[3.8] Qdrant NO-OP permanente
+    → Implementar reconexão com backoff
+
+[4.1] JOIN desnecessário em detect_communities
+    → Remover nodes_fts da query
+
+[4.4] Prompt Armor tag inventada
+    → Substituir por sanitização real ou padrão conhecido
+
+[2.2 + 4.3] Constantes duplicadas
+    → Já coberto no item 2.2 (prioridade crítica)
+
+
+================================================================================
+RESUMO EXECUTIVO
+================================================================================
+
+Total de problemas identificados: 16
+  - Módulos órfãos:      6 (1.1 a 1.6)
+  - Bugs confirmados:     2 (2.1, 2.2)
+  - Fragilidades:         6 (3.1 a 3.8 — 3.4 e 3.7 são duas sub-issues)
+  - Inconsistências:      4 (4.1 a 4.4 — 2.2/4.3 compartilhados)
+
+O Grafo Concierge v3.8.0 tem uma base de código sólida na camada
+core (storage, schema, connection) e nos pipelines principais
+(ingestion, hybrid search, janitor). Todos os 16 problemas listados
+são corrigíveis com refatoração localizada — nenhum exige reescrita
+de arquitetura.
+
+A correção dos 2 bugs críticos (2.1, 2.2) e a integração dos 2
+módulos órfãos de maior impacto (1.1, 1.2) entregariam ~90% do
+valor prometido pela arquitetura documentada.
+================================================================================

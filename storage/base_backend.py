@@ -217,3 +217,16 @@ class BaseVectorBackend(ABC):
             Contagem de vetores.
         """
         ...
+
+    @abstractmethod
+    def update_metadata(self, doc_id: str, metadata: dict) -> None:
+        """Atualiza os metadados de um vetor existente sem substituir o embedding.
+
+        Permite que o Janitor injete community_id e outros atributos sem
+        precisar acessar _collection diretamente.
+
+        Args:
+            doc_id: Identificador do documento (ex: 'node_42').
+            metadata: Dicionário de metadados a aplicar (merge ou replace).
+        """
+        ...

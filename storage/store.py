@@ -21,9 +21,12 @@ import logging
 import sqlite3
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, TYPE_CHECKING
 
 from storage.connection import ConnectionManager
+
+if TYPE_CHECKING:
+    from core.config import ConciergeConfig
 from storage.schema import SchemaManager, VALID_NODE_TYPES, VALID_PRIVACY_LEVELS, VALID_STATUSES
 from storage.logic import GraphLogic, TrajectoryNotFoundError, InvalidTransitionError
 
@@ -58,7 +61,7 @@ class SqliteStore:
         db_path: Caminho para o .db (default: ~/.grafo-concierge/concierge.db).
     """
 
-    def __init__(self, db_path: str = "~/.grafo-concierge/concierge.db") -> None:
+    def __init__(self, db_path: str = "~/.grafo-concierge/concierge.db", config: Optional["ConciergeConfig"] = None) -> None:
         resolved = str(Path(db_path).expanduser().absolute())
         Path(resolved).parent.mkdir(parents=True, exist_ok=True)
 
@@ -71,7 +74,8 @@ class SqliteStore:
         self._conn_mgr.start()
 
         # 3. Inteligência (centralidade, recência, decay, FTS5, CTE)
-        self._logic = GraphLogic(self._conn_mgr)
+        #    Agora repassa ConciergeConfig para que os pesos obedeçam o config do usuário
+        self._logic = GraphLogic(self._conn_mgr, config=config)
 
         logger.info("SqliteStore inicializado: %s", resolved)
 
@@ -575,3 +579,128 @@ class SqliteStore:
             WHERE e.target_id = ? AND e.relation_type = 'calls'
         """
         return self._conn_mgr.execute_raw_read(sql, (symbol_id,))
+
+
+    # ===================================================================
+    # ENCAPSULAMENTO — API pública para o JanitorService (Patch 2)
+    # ===================================================================
+
+    def is_write_queue_empty(self) -> bool:
+        """Retorna True se a fila de escrita (SerializedWriteQueue) não tem jobs pendentes.
+
+        Substitui o acesso direto _conn_mgr._write_queue._queue.empty() no Janitor.
+        """
+        return self._conn_mgr.is_write_queue_empty()
+
+    def execute_read_sql(self, sql: str, params: tuple = ()) -> list[dict]:
+        """Executa SQL de leitura arbitrária e retorna lista de dicts.
+
+        Permite que o JanitorService faça queries complexas (WITH RECURSIVE,
+        JOIN com FTS5, etc.) sem precisar acessar self._conn_mgr diretamente.
+
+        Args:
+            sql: Query SQL de leitura (SELECT / WITH RECURSIVE).
+            params: Parâmetros posicionais para a query.
+
+        Returns:
+            Lista de dicionários com os resultados.
+        """
+        return self._conn_mgr.execute_raw_read(sql, params)
+
+    # ===================================================================
+    # USER CORE MEMORY — CRUD completo (Patch 1)
+    # ===================================================================
+
+    _VALID_SCOPE_TYPES: frozenset[str] = frozenset({"user", "session", "agent", "org"})
+
+    def set_core_memory(
+        self,
+        scope_type: str,
+        scope_id: str,
+        block_label: str,
+        content: str,
+    ) -> int:
+        """Grava ou atualiza um bloco de memória core do usuário/sessão.
+
+        Usa INSERT OR REPLACE para garantir que block_label seja único por escopo.
+
+        Args:
+            scope_type: Tipo de escopo — 'user', 'session', 'agent' ou 'org'.
+            scope_id: Identificador do escopo (ex: user UUID, session UUID).
+            block_label: Rótulo do bloco de memória (ex: 'preferred_language').
+            content: Conteúdo do bloco de memória.
+
+        Returns:
+            O id do registro inserido ou substituído.
+
+        Raises:
+            ValueError: Se scope_type for inválido ou campos obrigatórios estiverem vazios.
+        """
+        if scope_type not in self._VALID_SCOPE_TYPES:
+            raise ValueError(f"scope_type inválido: '{scope_type}'. Aceitos: {sorted(self._VALID_SCOPE_TYPES)}")
+        if not scope_id or not scope_id.strip():
+            raise ValueError("scope_id não pode ser vazio.")
+        if not block_label or not block_label.strip():
+            raise ValueError("block_label não pode ser vazio.")
+
+        def _write(conn: "sqlite3.Connection") -> int:
+            cursor = conn.execute(
+                """INSERT OR REPLACE INTO user_core_memory
+                   (scope_type, scope_id, block_label, content, updated_at)
+                   VALUES (?, ?, ?, ?, datetime('now'))""",
+                (scope_type, scope_id.strip(), block_label.strip(), content),
+            )
+            return cursor.lastrowid
+
+        return self._conn_mgr.write(_write)
+
+    def get_core_memory(
+        self,
+        scope_type: str,
+        scope_id: str,
+        block_label: str,
+    ) -> Optional[dict]:
+        """Retorna um bloco de memória core específico, ou None se não existir.
+
+        Args:
+            scope_type: Tipo de escopo.
+            scope_id: Identificador do escopo.
+            block_label: Rótulo do bloco de memória.
+
+        Returns:
+            Dict com as colunas do registro, ou None.
+        """
+        if scope_type not in self._VALID_SCOPE_TYPES:
+            raise ValueError(f"scope_type inválido: '{scope_type}'.")
+        rows = self._conn_mgr.execute_raw_read(
+            """SELECT id, scope_type, scope_id, block_label, content, updated_at
+               FROM user_core_memory
+               WHERE scope_type = ? AND scope_id = ? AND block_label = ?
+               LIMIT 1""",
+            (scope_type, scope_id.strip(), block_label.strip()),
+        )
+        return rows[0] if rows else None
+
+    def list_core_memory_blocks(
+        self,
+        scope_type: str,
+        scope_id: str,
+    ) -> list[dict]:
+        """Retorna todos os blocos de memória core para um escopo.
+
+        Args:
+            scope_type: Tipo de escopo.
+            scope_id: Identificador do escopo.
+
+        Returns:
+            Lista de dicts (pode ser vazia).
+        """
+        if scope_type not in self._VALID_SCOPE_TYPES:
+            raise ValueError(f"scope_type inválido: '{scope_type}'.")
+        return self._conn_mgr.execute_raw_read(
+            """SELECT id, scope_type, scope_id, block_label, content, updated_at
+               FROM user_core_memory
+               WHERE scope_type = ? AND scope_id = ?
+               ORDER BY block_label ASC""",
+            (scope_type, scope_id.strip()),
+        )

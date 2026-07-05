@@ -69,6 +69,7 @@ class ParsedChunk:
     detected_tags: list[str] = field(default_factory=list)
     estimated_tokens: int = 0
     calls: list[str] = field(default_factory=list)
+    node_id: Optional[int] = None
 
 # ---------------------------------------------------------------------------
 # Regex patterns para JS/TS

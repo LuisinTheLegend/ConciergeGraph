@@ -517,11 +517,11 @@ class ChromaVectorStore(BaseVectorBackend):
     def verify_sync(self, sqlite_node_ids: set[int]) -> list[str]:
         """Detecta vetores órfãos comparando com os IDs válidos do SQLite.
 
-        Fluxo:
-            1. Lista todos os doc_ids no ChromaDB.
-            2. Extrai o node_id de cada doc_id (formato 'node_{id}').
-            3. Compara com sqlite_node_ids.
-            4. Retorna doc_ids cujo node_id NÃO existe no SQLite.
+        Fluxo paginado (proteção OOM):
+            1. Obtém apenas os doc_ids do ChromaDB (sem metadados pesados).
+            2. Itera em lotes de BATCH_SIZE, carregando metadados por fatia.
+            3. Compara node_id de cada lote com sqlite_node_ids.
+            4. Acumula doc_ids cujo node_id NÃO existe no SQLite.
 
         Args:
             sqlite_node_ids: Conjunto de node_ids válidos no SQLite.
@@ -535,20 +535,33 @@ class ChromaVectorStore(BaseVectorBackend):
         orphans: list[str] = []
 
         try:
-            # ChromaDB: obtém todos os IDs da coleção
-            all_data = self._collection.get(include=["metadatas"])
-            all_ids = all_data.get("ids", [])
-            all_metas = all_data.get("metadatas", [])
+            # Fase 1: obtém apenas IDs (sem metadados pesados na RAM)
+            id_data = self._collection.get(include=[])
+            all_ids = id_data.get("ids", [])
 
-            for doc_id, meta in zip(all_ids, all_metas):
-                node_id = meta.get("node_id") if meta else None
-                if node_id is None:
-                    # Metadata corrompida — considerar órfão
-                    orphans.append(doc_id)
-                    continue
+            if not all_ids:
+                logger.info("Reconciliation Loop: coleção vazia — nada a verificar.")
+                return []
 
-                if int(node_id) not in sqlite_node_ids:
-                    orphans.append(doc_id)
+            # Fase 2: itera em lotes de BATCH_SIZE, carregando metadados por fatia
+            for offset in range(0, len(all_ids), self.BATCH_SIZE):
+                batch_ids = all_ids[offset:offset + self.BATCH_SIZE]
+                batch_data = self._collection.get(
+                    ids=batch_ids,
+                    include=["metadatas"],
+                )
+                batch_metas = batch_data.get("metadatas", [])
+                batch_doc_ids = batch_data.get("ids", batch_ids)
+
+                for doc_id, meta in zip(batch_doc_ids, batch_metas):
+                    node_id = meta.get("node_id") if meta else None
+                    if node_id is None:
+                        # Metadata corrompida — considerar órfão
+                        orphans.append(doc_id)
+                        continue
+
+                    if int(node_id) not in sqlite_node_ids:
+                        orphans.append(doc_id)
 
         except Exception as e:
             logger.error("Falha no Reconciliation Loop (verify_sync): %s", e)
@@ -602,6 +615,28 @@ class ChromaVectorStore(BaseVectorBackend):
     # ===================================================================
     # MÉTODOS AUXILIARES INTERNOS
     # ===================================================================
+
+    def update_metadata(self, doc_id: str, metadata: dict) -> None:
+        """Atualiza os metadados de um vetor existente sem substituir o embedding.
+
+        Permite que o JanitorService injete community_id e outros atributos
+        sem precisar acessar self._collection diretamente.
+
+        Args:
+            doc_id: Identificador do documento (ex: 'node_42').
+            metadata: Dicionário de metadados a aplicar.
+        """
+        if not self._available or self._collection is None:
+            logger.debug("update_metadata: ChromaDB indisponível — ignorado para %s.", doc_id)
+            return
+
+        try:
+            safe_meta = self._sanitize_metadata(metadata)
+            self._collection.update(ids=[doc_id], metadatas=[safe_meta])
+            logger.debug("Metadata vetorial atualizada: doc_id=%s", doc_id)
+        except Exception as e:
+            logger.error("Falha ao atualizar metadados no ChromaDB para %s: %s", doc_id, e)
+
 
     @staticmethod
     def _validate_metadata(metadata: dict) -> None:

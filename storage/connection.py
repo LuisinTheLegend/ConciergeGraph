@@ -88,6 +88,10 @@ class SerializedWriteQueue:
         self._thread.start()
         logger.info("SerializedWriteQueue iniciada com sucesso (db: %s)", self._db_path)
 
+    def is_empty(self) -> bool:
+        """Retorna True se a fila de escrita não tem tarefas pendentes."""
+        return self._queue.empty()
+
     def stop(self, timeout: float = 5.0) -> None:
         """Envia sentinel e aguarda a thread finalizar.
 
@@ -222,6 +226,10 @@ class ConnectionManager:
         
         # Fila serializada para escritas isoladas
         self._write_queue = SerializedWriteQueue(self._db_path)
+
+    def is_write_queue_empty(self) -> bool:
+        """Retorna True se a SerializedWriteQueue está vazia (sem jobs pendentes)."""
+        return self._write_queue.is_empty()
 
     def start(self) -> None:
         """Inicia a SerializedWriteQueue. Chamar após __init__."""

@@ -83,6 +83,7 @@ class HybridSearchEngine:
         include_references: bool = False,
         all_wings: bool = False,
         node_type: Optional[str] = None,
+        enable_probabilistic: bool = False,
     ) -> list[dict]:
         """Executa a Busca Híbrida v4 completa.
 
@@ -196,7 +197,11 @@ class HybridSearchEngine:
         # --- STEP 6: SCORE HÍBRIDO ---
         scored_results = self._store.hybrid_search_score_batch(candidates)
 
-        # --- STEP 7: SORT e TRUNCATE ---
+        # --- STEP 7: THOMPSON SAMPLING (opcional) ---
+        if enable_probabilistic:
+            scored_results = self._apply_thompson_sampling(scored_results)
+
+        # --- STEP 8: SORT e TRUNCATE ---
         scored_results.sort(key=lambda x: x.get("score_final", 0), reverse=True)
         final = scored_results[:top_k]
 
@@ -205,6 +210,40 @@ class HybridSearchEngine:
             len(candidates), len(final),
         )
         return final
+
+    # ===================================================================
+    # THOMPSON SAMPLING — Multiplicador probabilístico (SA-CTS)
+    # ===================================================================
+
+    def _apply_thompson_sampling(self, results: list[dict]) -> list[dict]:
+        """Aplica multiplicador probabilístico Thompson ao score_final.
+
+        Para cada candidato, obtém utility_alpha e utility_beta dos
+        metadados do nó e sorteia um multiplicador via Distribuição Beta.
+        O score_final é multiplicado por esse fator, balanceando
+        exploração (nós pouco acessados) e explotação (nós comprovados).
+
+        Args:
+            results: Lista de dicts com score_final e score_breakdown.
+
+        Returns:
+            Mesma lista com score_final ajustado pelo Thompson multiplier.
+        """
+        import numpy as np
+
+        for item in results:
+            try:
+                node = self._store.get_node(item["node_id"])
+                alpha = float(node.get("utility_alpha", 1.0) or 1.0)
+                beta_param = float(node.get("utility_beta", 1.0) or 1.0)
+            except Exception:
+                alpha, beta_param = 1.0, 1.0
+
+            multiplier = float(np.random.beta(alpha, beta_param))
+            item["score_final"] = round(item["score_final"] * multiplier, 4)
+            item["score_breakdown"]["thompson_multiplier"] = round(multiplier, 4)
+
+        return results
 
     # ===================================================================
     # FALLBACK — Busca apenas FTS5 quando embedding falha

@@ -19,9 +19,12 @@ from __future__ import annotations
 import logging
 import math
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any, Optional, TYPE_CHECKING
 
 from storage.schema import VALID_STATUSES
+
+if TYPE_CHECKING:
+    from core.config import ConciergeConfig
 
 logger = logging.getLogger("grafo-concierge.logic")
 
@@ -75,8 +78,18 @@ class GraphLogic:
         "ARCHIVED": frozenset(),  # Estado terminal — sem retorno
     }
 
-    def __init__(self, conn_manager: Any) -> None:
+    def __init__(self, conn_manager: Any, config: Optional["ConciergeConfig"] = None) -> None:
         self._conn = conn_manager
+
+        # Se config fornecido, sobrescreve constantes de classe com valores do usuário
+        if config is not None:
+            self.WEIGHT_VECTOR = config.weight_vector
+            self.WEIGHT_FTS5 = config.weight_fts5
+            self.WEIGHT_RECENCY_CENTRALITY = config.weight_recency_centrality
+            self.CENTRALITY_MAX_IN_DEGREE = config.centrality_max_in_degree
+            self.RECENCY_HALF_LIFE_DAYS = config.recency_half_life_days
+            self.RECENCY_LAMBDA = config.recency_lambda
+            self.RECENCY_MIN_SCORE = config.recency_min_score
 
     # ===================================================================
     # 1. DECAIMENTO DE TRAJETÓRIAS (Version-Binding)

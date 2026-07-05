@@ -236,17 +236,55 @@ class IngestionManager:
         return self._crawler.crawl(source_path, project_uuid)
 
     def _step_parse(self, new_files: list[CrawlResult], result: IngestionResult) -> list[ParsedChunk]:
-        """Etapa 2: Chunking semântico com Semantic Fallback por arquivo."""
-        all_chunks: list[ParsedChunk] = []
-        for cr in new_files:
-            try:
-                chunks = self._parser.parse(cr)
-                all_chunks.extend(chunks)
-            except Exception as e:
-                error_msg = f"Parse falhou para {cr.relative_path}: {e}"
-                logger.error(error_msg)
-                result.errors.append(error_msg)
-        return all_chunks
+        """Etapa 2: Chunking semântico via parse_batch (Semantic Fallback nativo).
+
+        Delega para self._parser.parse_batch() que já implementa o mesmo
+        Semantic Fallback por arquivo, eliminando duplicação de loop.
+        """
+        try:
+            return self._parser.parse_batch(new_files)
+        except Exception as e:
+            error_msg = f"parse_batch falhou: {e}"
+            logger.error(error_msg)
+            result.errors.append(error_msg)
+            return []
+
+    def generate_community_summary(self, nodes_block: str) -> Optional[dict]:
+        """Gera um resumo de comunidade via LLM se o summarizer estiver configurado.
+
+        API pública que encapsula o acesso ao LLM, evitando que o JanitorService
+        acesse self._ingestion._summarizer._llm diretamente (violação da Lei de Demeter).
+
+        Args:
+            nodes_block: Texto com os nós da comunidade para sumarizar.
+
+        Returns:
+            Dict com 'summary' (str) e 'tags' (list[str]), ou None se LLM
+            não estiver configurado ou falhar.
+        """
+        if not self._summarizer or not hasattr(self._summarizer, "_llm") or not self._summarizer._llm:
+            return None
+        try:
+            prompt = (
+                "You are a software architect. Synthesize the following node descriptions belonging "
+                "to a logical community in the project graph into a single cohesive community summary.\n"
+                "Return ONLY a valid JSON object with these fields:\n"
+                '- "summary": A cohesive description of this community\'s purpose (max 3 sentences).\n'
+                '- "tags": Consolidated list of key technologies and concepts.\n\n'
+                f"Nodes in community:\n{nodes_block}\n\n"
+                "Respond with ONLY the JSON object, no markdown fences, no extra text."
+            )
+            raw = self._summarizer._llm.generate(prompt, max_tokens=300)
+            parsed = self._summarizer._extract_json_with_fallback(raw)
+            if parsed and "summary" in parsed:
+                return {
+                    "summary": parsed["summary"],
+                    "tags": parsed.get("tags", []) if isinstance(parsed.get("tags"), list) else [],
+                }
+        except Exception as e:
+            logger.warning("generate_community_summary: LLM falhou: %s", e)
+        return None
+
 
     def _step_summarize(self, chunks: list[ParsedChunk], result: IngestionResult) -> list[SummaryResult]:
         """Etapa 3: Geração de resumos L0."""
@@ -260,6 +298,7 @@ class IngestionManager:
                 logger.error(error_msg)
                 result.errors.append(error_msg)
         return summaries
+
 
     def _step_store_sqlite(
         self,

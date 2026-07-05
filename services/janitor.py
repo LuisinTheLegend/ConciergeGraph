@@ -168,17 +168,12 @@ class JanitorService:
         logger.debug("Idle-Lock: mine() finalizado — Janitor liberado.")
 
     def is_system_active(self) -> bool:
-        """Retorna True se houver atividade ativa no sistema (mine ativo ou Event Bus com tarefas)."""
+        """Retorna True se houver atividade ativa no sistema (mine ativo ou fila ocupada)."""
         if self._mine_active.is_set():
             return True
-        # Verifica se a fila de escrita (SerializedWriteQueue) não está vazia
-        if self._store and hasattr(self._store, "_conn_mgr") and self._store._conn_mgr:
-            conn_mgr = self._store._conn_mgr
-            if hasattr(conn_mgr, "_write_queue") and conn_mgr._write_queue:
-                write_q = conn_mgr._write_queue
-                if hasattr(write_q, "_queue") and write_q._queue is not None:
-                    if not write_q._queue.empty():
-                        return True
+        # Verifica a fila de escrita via API pública (sem violar encapsulamento)
+        if self._store and not self._store.is_write_queue_empty():
+            return True
         return False
 
     def _wait_for_idle(self) -> bool:
@@ -472,49 +467,47 @@ class JanitorService:
         communities: dict[int, list[int]] = {}
         try:
             # 1. Encontra os super-nós (in_degree >= self._super_node_threshold)
-            with self._store._conn_mgr.read() as conn:
-                super_nodes_rows = conn.execute(
+            super_nodes_rows = self._store.execute_read_sql(
+                """
+                SELECT n.id
+                FROM nodes n
+                JOIN nodes_fts f ON n.id = f.rowid
+                LEFT JOIN edges e ON n.id = e.target_id
+                WHERE n.project_uuid = ? AND n.status = 'ACTIVE'
+                GROUP BY n.id
+                HAVING COUNT(e.source_id) >= ?
+                """,
+                (project_uuid, self._super_node_threshold)
+            )
+            
+            super_node_ids = [row["id"] for row in super_nodes_rows]
+            logger.info("Janitor detectou %d super-nós (threshold=%d) no projeto %s.",
+                        len(super_node_ids), self._super_node_threshold, project_uuid)
+            
+            # 2. Para cada super-nó, busca recursivamente a comunidade associada
+            for sn_id in super_node_ids:
+                community_rows = self._store.execute_read_sql(
                     """
-                    SELECT n.id
-                    FROM nodes n
-                    JOIN nodes_fts f ON n.id = f.rowid
-                    LEFT JOIN edges e ON n.id = e.target_id
-                    WHERE n.project_uuid = ? AND n.status = 'ACTIVE'
-                    GROUP BY n.id
-                    HAVING COUNT(e.source_id) >= ?
+                    WITH RECURSIVE community(id, depth) AS (
+                        SELECT ? AS id, 0 AS depth
+                        UNION
+                        SELECT e.source_id, c.depth + 1
+                        FROM edges e
+                        JOIN community c ON e.target_id = c.id
+                        JOIN nodes n ON e.source_id = n.id
+                        WHERE c.depth < 5 AND n.project_uuid = ? AND n.status = 'ACTIVE'
+                        UNION
+                        SELECT e.target_id, c.depth + 1
+                        FROM edges e
+                        JOIN community c ON e.source_id = c.id
+                        JOIN nodes n ON e.target_id = n.id
+                        WHERE c.depth < 5 AND n.project_uuid = ? AND n.status = 'ACTIVE'
+                    )
+                    SELECT DISTINCT id FROM community
                     """,
-                    (project_uuid, self._super_node_threshold)
-                ).fetchall()
-                
-                super_node_ids = [row["id"] for row in super_nodes_rows]
-                logger.info("Janitor detectou %d super-nós (threshold=%d) no projeto %s.",
-                            len(super_node_ids), self._super_node_threshold, project_uuid)
-                
-                # 2. Para cada super-nó, busca recursivamente a comunidade associada
-                for sn_id in super_node_ids:
-                    community_rows = conn.execute(
-                        """
-                        WITH RECURSIVE community(id, depth) AS (
-                            SELECT ? AS id, 0 AS depth
-                            UNION
-                            SELECT e.source_id, c.depth + 1
-                            FROM edges e
-                            JOIN community c ON e.target_id = c.id
-                            JOIN nodes n ON e.source_id = n.id
-                            WHERE c.depth < 5 AND n.project_uuid = ? AND n.status = 'ACTIVE'
-                            UNION
-                            SELECT e.target_id, c.depth + 1
-                            FROM edges e
-                            JOIN community c ON e.source_id = c.id
-                            JOIN nodes n ON e.target_id = n.id
-                            WHERE c.depth < 5 AND n.project_uuid = ? AND n.status = 'ACTIVE'
-                        )
-                        SELECT DISTINCT id FROM community
-                        """,
-                        (sn_id, project_uuid, project_uuid)
-                    ).fetchall()
-                    
-                    communities[sn_id] = [row["id"] for row in community_rows]
+                    (sn_id, project_uuid, project_uuid)
+                )
+                communities[sn_id] = [row["id"] for row in community_rows]
                     
         except Exception as e:
             logger.error("Falha na detecção de comunidades: %s", e)
@@ -540,14 +533,11 @@ class JanitorService:
             # Busca os detalhes dos nós na comunidade
             node_details = []
             try:
-                with self._store._conn_mgr.read() as conn:
-                    placeholders = ",".join("?" for _ in node_ids)
-                    rows = conn.execute(
-                        f"SELECT id, label, summary, node_type, type, tags FROM nodes WHERE id IN ({placeholders})",
-                        tuple(node_ids)
-                    ).fetchall()
-                    for row in rows:
-                        node_details.append(dict(row))
+                placeholders = ",".join("?" for _ in node_ids)
+                node_details = self._store.execute_read_sql(
+                    f"SELECT id, label, summary, node_type, type, tags FROM nodes WHERE id IN ({placeholders})",
+                    tuple(node_ids)
+                )
             except Exception as e:
                 logger.error("Falha ao carregar detalhes dos nós da comunidade %d: %s", community_id, e)
                 continue
@@ -571,28 +561,14 @@ class JanitorService:
                     except Exception:
                         pass
             
-            # Tenta utilizar o LLM do IngestionManager se configurado
-            if (self._ingestion and hasattr(self._ingestion, "_summarizer") and 
-                    self._ingestion._summarizer and hasattr(self._ingestion._summarizer, "_llm") and 
-                    self._ingestion._summarizer._llm):
-                try:
-                    prompt = (
-                        "You are a software architect. Synthesize the following node descriptions belonging to a logical "
-                        "community in the project graph into a single cohesive community summary.\n"
-                        "Return ONLY a valid JSON object with these fields:\n"
-                        '- "summary": A cohesive description of this community\'s purpose and responsibilities (max 3 sentences).\n'
-                        '- "tags": Consolidated list of key technologies and concepts.\n\n'
-                        f"Nodes in community:\n{nodes_block}\n\n"
-                        "Respond with ONLY the JSON object, no markdown fences, no extra text."
-                    )
-                    raw_response = self._ingestion._summarizer._llm.generate(prompt, max_tokens=300)
-                    parsed = self._ingestion._summarizer._extract_json_with_fallback(raw_response)
-                    if parsed and "summary" in parsed:
-                        summary_text = parsed["summary"]
-                        if "tags" in parsed and isinstance(parsed["tags"], list):
-                            tags.extend(parsed["tags"])
-                except Exception as e:
-                    logger.warning("Falha ao chamar LLM para sumarizar a comunidade %d: %s", community_id, e)
+            # Delega ao IngestionManager que encapsula o acesso ao LLM
+            if self._ingestion:
+                result = self._ingestion.generate_community_summary(nodes_block)
+                if result:
+                    summary_text = result.get("summary")
+                    extra_tags = result.get("tags", [])
+                    if isinstance(extra_tags, list):
+                        tags.extend(extra_tags)
 
             if not summary_text:
                 # Heuristic / Dumb fallback
@@ -643,22 +619,14 @@ class JanitorService:
             "project_uuid": project_uuid,
             "community_id": community_id,
         }
-        
+
         # 1. Armazena no cache local do Janitor (útil para testes/mocks)
         self.vector_payloads[node_id] = metadata
-        
-        # 2. Tenta atualizar no ChromaVectorStore real se disponível
-        if self._vector and hasattr(self._vector, "_collection") and self._vector._collection is not None:
-            try:
-                doc_id = f"node_{node_id}"
-                # ChromaDB update permite atualizar apenas metadados
-                self._vector._collection.update(
-                    ids=[doc_id],
-                    metadatas=[self._vector._sanitize_metadata(metadata)]
-                )
-                logger.debug("Metadata vetorial atualizada no ChromaDB: doc_id=%s, community_id=%d", doc_id, community_id)
-            except Exception as e:
-                logger.error("Falha ao atualizar metadados no ChromaDB para o nó %d: %s", node_id, e)
+
+        # 2. Atualiza via API pública (sem acessar _collection diretamente)
+        if self._vector:
+            doc_id = f"node_{node_id}"
+            self._vector.update_metadata(doc_id, metadata)
 
     # ===================================================================
     # BACKGROUND THREAD — Execução contínua

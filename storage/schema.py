@@ -126,7 +126,8 @@ CREATE TABLE IF NOT EXISTS user_core_memory (
     scope_id      TEXT NOT NULL,
     block_label   TEXT NOT NULL,
     content       TEXT,
-    updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
+    updated_at    TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(scope_type, scope_id, block_label)
 );
 
 CREATE TABLE IF NOT EXISTS semantic_facts (
@@ -250,8 +251,32 @@ class SchemaManager:
             current_version = self.get_schema_version()
             if not current_version or current_version != self.SCHEMA_VERSION:
                 self.set_schema_version(self.SCHEMA_VERSION)
-            
-            logger.info("Schema v3.8 aplicado com sucesso.")
+
+            # Migration retroativa: UNIQUE(scope_type, scope_id, block_label) em user_core_memory.
+            # Bancos criados antes desta versão não têm o índice único — sem ele o
+            # INSERT OR REPLACE não funciona como upsert.
+            cursor = self._conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='index' AND name='uq_core_memory_scope_label'"
+            )
+            if cursor.fetchone() is None:
+                try:
+                    # Remove duplicatas mantendo apenas o registro mais recente
+                    self._conn.execute("""
+                        DELETE FROM user_core_memory
+                        WHERE id NOT IN (
+                            SELECT MAX(id) FROM user_core_memory
+                            GROUP BY scope_type, scope_id, block_label
+                        )
+                    """)
+                    self._conn.execute("""
+                        CREATE UNIQUE INDEX IF NOT EXISTS uq_core_memory_scope_label
+                        ON user_core_memory(scope_type, scope_id, block_label)
+                    """)
+                    self._conn.commit()
+                    logger.info("Migration: UNIQUE index 'uq_core_memory_scope_label' criado em user_core_memory.")
+                except Exception as idx_err:
+                    logger.warning("Migration UNIQUE index user_core_memory falhou (pode já existir): %s", idx_err)
+
         except Exception as e:
             self._conn.rollback()
             logger.error("Falha ao aplicar schema: %s", e)

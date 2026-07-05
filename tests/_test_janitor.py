@@ -39,6 +39,13 @@ class MockVectorStore:
     def health_check(self):
         return True
 
+    def update_metadata(self, doc_id: str, metadata: dict) -> None:
+        """Mock: aceita update de metadata sem fazer nada (ChromaDB indisponível em testes)."""
+        pass
+
+    def count(self, project_uuid=None):
+        return 0
+
 # --- Mock IngestionManager ---
 class MockIngestionManager:
     def __init__(self):
@@ -48,6 +55,11 @@ class MockIngestionManager:
     def generate_project_context(self, project_uuid):
         self.zoom_called = True
         return self.zoom_result
+
+    def generate_community_summary(self, nodes_block: str):
+        """Mock: sem LLM, retorna None (janitor usará o fallback heurístico)."""
+        return None
+
 
 mock_vector = MockVectorStore()
 mock_ingestion = MockIngestionManager()
