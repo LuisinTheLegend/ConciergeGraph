@@ -473,12 +473,6 @@ class FileParser:
                 return self._parse_javascript(source, rel_path, file_hash)
             return self._parse_raw(source, rel_path, file_hash, FileCategory.CODE)
 
-        # Pós-processamento: atribui category, tags e armor
-        for chunk in chunks:
-            chunk.category = category
-            if not chunk.detected_tags:
-                chunk.detected_tags = self._detect_tags(chunk.content, category)
-
         return chunks
 
     def parse_batch(self, crawl_results: list[CrawlResult]) -> list[ParsedChunk]:

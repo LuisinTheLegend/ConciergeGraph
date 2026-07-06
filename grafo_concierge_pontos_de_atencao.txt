@@ -1,0 +1,900 @@
+================================================================================
+GRAFO CONCIERGE v3.8.0 — PONTOS DE ATENCAO, ERROS E PLANO DE ACAO
+================================================================================
+Data: 2026-07-04
+Base: analise do codigo fonte em c:/Nexus-Memory
+
+Indice:
+  1. Chave de API exposta em texto plano
+  2. Semantic Facts vazio (store_fact sem uso)
+  3. User Core Memory vazio (set/get_memory sem uso)
+  4. Trajectories vazio (debug trail sem uso)
+  5. Dependencia critica de LLM
+  6. Sem proveniencia de fatos
+  7. Coluna "type" ambigua
+  8. Wings sem validacao
+  9. Sem versionamento append-only
+  10. Sem cobertura de testes visivel
+  11. Benchmarks publicos ausentes
+  12. Infraestrutura pesada
+  13. Nos sem "content" populado
+  14. Janitor Idle-Lock baseado em threading.Event()
+  15. Sem validacao de schema nas tools MCP
+
+================================================================================
+1. CHAVE DE API EXPOSTA EM TEXTO PLANO
+================================================================================
+
+O que e:
+  A chave de API do OpenRouter (GRAFO_LLM_API_KEY) esta hardcoded em
+  texto plano no arquivo de configuracao do opencode.
+
+Localizacao:
+  C:\Users\guial\.config\opencode\opencode.json — linha 31
+    "GRAFO_LLM_API_KEY": "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"
+
+Por que ocorre:
+  A configuracao do MCP server no opencode.json aceita um bloco
+  "environment" com variaveis em texto plano. Durante o desenvolvimento,
+  a chave foi colocada diretamente ali por conveniencia, sem usar um
+  gerenciador de segredos ou arquivo .env separado.
+
+Impacto:
+  - Qualquer pessoa com acesso ao arquivo opencode.json pode usar a chave
+  - Se o repositorio for versionado e compartilhado, a chave vaza
+  - A chave pode ser usada para chamadas a API OpenRouter em seu nome
+  - Custo financeiro imprevisto se a chave for abusada por terceiros
+
+Como corrigir (passo a passo):
+
+  1. Abra C:\Users\guial\.config\opencode\opencode.json
+
+  2. Remova a entrada "GRAFO_LLM_API_KEY" do bloco "environment" do
+     servidor "grafo-concierge":
+     {
+       "grafo-concierge": {
+         "type": "local",
+         "command": ["C:/Python314/python.exe", "main.py"],
+         "environment": {
+           "GRAFO_LLM_MODEL": "openrouter/free",
+           "GRAFO_DB_PATH": "c:/Nexus-Memory/data/concierge.db",
+           "GRAFO_CHROMA_PATH": "c:/Nexus-Memory/data/chroma",
+           "GRAFO_CHROMA_COLLECTION": "grafo_concierge",
+           "PYTHONPATH": "c:/Nexus-Memory"
+         },
+         "cwd": "c:/Nexus-Memory"
+       }
+     }
+
+  3. Crie ou edite o arquivo c:/Nexus-Memory/.env adicionando:
+     GRAFO_LLM_API_KEY=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
+
+  4. Verifique se c:/Nexus-Memory/.env esta listado no .gitignore:
+     .env
+     .env.*
+
+  5. Reinicie o servidor MCP do grafo-concierge para que ele leia o .env
+
+  6. (Recomendado) Rode uma ferramenta de scan de segredos como
+     'trufflehog' ou 'gitleaks' no repositorio para detectar se a
+     chave ja foi commitada em algum momento. Se sim, rotacione a
+     chave no OpenRouter e atualize o .env com a nova.
+
+================================================================================
+2. SEMANTIC FACTS VAZIO (STORE_FACT SEM USO)
+================================================================================
+
+O que e:
+  A tabela semantic_facts e a tool concierge_store_fact estao
+  completamente implementadas mas sem nenhum registro. O recurso de
+  fatos semanticos bi-temporais com utilidade Bayesiana nunca foi
+  utilizado.
+
+Localizacao:
+  - Tabela: c:/Nexus-Memory/data/concierge.db -> semantic_facts (0 linhas)
+  - Implementacao: c:/Nexus-Memory/storage/semantic_logic.py (125 linhas)
+  - Tool MCP: c:/Nexus-Memory/interface/mcp_server.py:370-394
+  - Fachada: c:/Nexus-Memory/core/middleware.py:506-578 (store_fact)
+  - Extrator: c:/Nexus-Memory/core/memory_extractor.py (245 linhas)
+
+Por que ocorre:
+  A funcionalidade foi implementada (v3.8.0) mas:
+  - Nenhum fluxo automatizado chama store_fact
+  - Nenhuma integracao com o pipeline de mine() foi feita
+  - Nenhum script ou CLI foi criado para popular a tabela
+  - O SemanticExtractor requer llm_adapter, que so e passado se
+    o GRAFO_LLM_API_KEY estiver configurada
+
+Impacto:
+  - 245 linhas de codigo (memory_extractor.py) e 125 linhas
+    (semantic_logic.py) estao ociosas
+  - O Thompson Sampling (diferenciador unico) depende dos
+    utility_alpha/beta do semantic_facts para funcionar
+  - O feedback loop (concierge_feedback) nao pode ser utilizado
+  - Perda do diferencial competitivo de aprendizado Bayesiano
+
+Como corrigir (passo a passo):
+
+  Opcao A — Integrar no pipeline de mine():
+
+    1. Edite c:/Nexus-Memory/ingestion/orchestrator.py
+    2. Apos o step de parse, para cada chunk processado, chame:
+       self._gc.store_fact(
+           scope_type="project",
+           scope_id=project_uuid,
+           fact_statement=f"{chunk.label}: {chunk.summary}"
+       )
+       (Requer injetar o GrafoConcierge ou pelo menos o SemanticExtractor
+        no IngestionManager)
+
+    3. Adicione contador de fatos gerados no IngestionResult
+
+  Opcao B — Script de migracao batch:
+
+    1. Crie um script em c:/Nexus-Memory/scripts/populate_semantic_facts.py
+    2. Para cada no ACTIVE no banco, extraia label + summary
+    3. Chame insert_semantic_fact() com scope_type="project",
+       scope_id=project_uuid
+    4. Execute: python scripts/populate_semantic_facts.py
+
+  Opcao C — Habilitar no Janitor:
+
+    1. Edite c:/Nexus-Memory/services/janitor.py
+    2. No metodo run_maintenance(), apos o step de comunidades,
+       adicione um passo que converte nos FACT em semantic_facts
+    3. Use bulk insert para performance
+
+  Apos qualquer opcao, verifique:
+    python -c "import sqlite3; c=sqlite3.connect('c:/Nexus-Memory/data/concierge.db'); print(c.execute('SELECT COUNT(*) FROM semantic_facts').fetchone()[0])"
+
+================================================================================
+3. USER CORE MEMORY VAZIO (SET/GET_MEMORY SEM USO)
+================================================================================
+
+O que e:
+  A tabela user_core_memory e as tools concierge_set_memory /
+  concierge_get_memory estao implementadas mas sem dados. O recurso
+  de blocos de memoria persistente por escopo nunca foi utilizado.
+
+Localizacao:
+  - Tabela: user_core_memory (0 linhas)
+  - Tool set: c:/Nexus-Memory/interface/mcp_server.py:396-421
+  - Tool get: c:/Nexus-Memory/interface/mcp_server.py:423-447
+  - Schema: c:/Nexus-Memory/storage/schema.py:123-131
+
+Por que ocorre:
+  Similar ao semantic_facts: implementado mas sem consumidor.
+  As tools MCP estao disponiveis mas nenhum agente ou script as invoca.
+  O recurso depende de acao explicita do usuario (ou de um agente
+  configurado para chama-las).
+
+Impacto:
+  - Recurso de memoria persistente de longa duracao inutilizado
+  - Impossivel armazenar preferencias do usuario entre sessoes
+  - Blocos como "persona_name", "preferred_language", "context_rules"
+    nao podem ser definidos
+
+Como corrigir (passo a passo):
+
+  1. Crie um script de bootstrap:
+     c:/Nexus-Memory/scripts/bootstrap_core_memory.py
+
+  2. Inclua registros padrao para cada projeto existente:
+     scope_type="agent", scope_id=project_uuid,
+     block_label="context_rules",
+     content="Regras de contexto padrao para este projeto..."
+
+     scope_type="agent", scope_id=project_uuid,
+     block_label="persona",
+     content="Assistente de codigo especializado em [dominio do projeto]."
+
+  3. Execute: python scripts/bootstrap_core_memory.py
+
+  4. (Recomendado) Adicione no wake_up() um bloco que injeta
+     automaticamente a core_memory no contexto retornado
+
+  5. Atualize a documentacao das tools para incentivar uso por agentes
+
+================================================================================
+4. TRAJECTORIES VAZIO (DEBUG TRAIL SEM USO)
+================================================================================
+
+O que e:
+  A tabela trajectories, projetada para registrar o debug trail
+  (prompt_origem -> tentativa_execucao -> erro_encontrado ->
+  solucao_aplicada), esta vazia. Nenhuma ferramenta ou fluxo
+  a popula.
+
+Localizacao:
+  - Tabela: trajectories (0 linhas)
+  - Schema: c:/Nexus-Memory/storage/schema.py:100-110
+  - Nao ha tools MCP especificas para trajectories (so o commit_log)
+  - Decaimento no Janitor: c:/Nexus-Memory/services/janitor.py:311-329
+
+Por que ocorre:
+  A tabela trajectories nunca foi integrada a nenhum fluxo. O Janitor
+  ja tem logica de decaimento para trajectories (step 1 do
+  run_maintenance), mas como nao ha insercao, o decaimento nunca
+  acontece. E um recurso "orfao": tem manutencao mas nao tem criacao.
+
+Impacto:
+  - Recurso de debug trail inteiramente ocioso
+  - Oportunidade perdida de aprendizado com erros passados
+  - O Janitor gasta CPU verificando decaimento de uma tabela vazia
+  - Diferencial unico do Grafo Concierge desperdicado
+
+Como corrigir (passo a passo):
+
+  1. Crie uma tool MCP concierge_track_error:
+     Em c:/Nexus-Memory/interface/mcp_server.py, adicione:
+     @self._mcp.tool(name="concierge_track_error", ...)
+     que recebe prompt_origem, tentativa_execucao, erro_encontrado,
+     solucao_aplicada e insere em trajectories.
+
+  2. Integre no Revisor Critico:
+     Edite c:/Nexus-Memory/agents/revisor_critico.py
+     Quando uma auditoria de commit falhar e entrar em fallback
+     (partial_audit=True), registre automaticamente uma trajectory
+     com o erro encontrado e a solucao aplicada.
+
+  3. Integre no pipeline de mine():
+     Em c:/Nexus-Memory/ingestion/orchestrator.py, no bloco de
+     tratamento de excecoes, registre o erro como trajectory.
+
+  4. Atualize o concierge_wakeup para incluir trajectories recentes
+     no contexto de reativacao.
+
+================================================================================
+5. DEPENDENCIA CRITICA DE LLM
+================================================================================
+
+O que e:
+  Tres componentes principais dependem de chamadas a LLM para
+  funcionar: SemanticExtractor (store_fact), ZoomSummarizer (L0/L1/L2)
+  e Revisor Critico (auditoria/reranking). Se o LLM ficar indisponivel
+  ou a chave expirar, esses componentes falham ou operam em modo
+  degradado.
+
+Localizacao:
+  - memory_extractor.py:108 -> self.llm.generate(prompt, max_tokens=300)
+  - summarizer.py: ~linha 200 (chamada LLM para cada nivel de resumo)
+  - revisor_critico.py: ~linha 150 (chamada LLM para auditoria)
+  - Configuracao: c:/Nexus-Memory/main.py:50-51
+    LLM_MODEL = os.environ.get("GRAFO_LLM_MODEL", "gemini-2.0-flash")
+    LLM_API_KEY = os.environ.get("GRAFO_LLM_API_KEY", "")
+
+Por que ocorre:
+  O design usa LLM como "cerebro" para tarefas de compreensao semantica
+  (sumarizar, classificar fatos, auditar qualidade). Isso e intencional,
+  mas cria single point of failure. Os fallbacks existem (dumb summary,
+  ADD for store_fact, partial_audit) mas entregam qualidade inferior.
+
+Impacto:
+  - Se a API key expirar: store_fact retorna erro, summarizer gera
+    "dumb summaries", revisor faz partial_audit sem validacao real
+  - Se o modelo estiver sobrecarregado: latencia alta em todas as
+    operacoes que envolvem LLM
+  - Se o OpenRouter ficar fora do ar: sistema opera em modo degradado
+  - Custo: cada mine(), store_fact() e commit() gasta tokens de LLM
+
+Como corrigir (passo a passo):
+
+  1. Implemente caching de respostas LLM:
+     - Crie c:/Nexus-Memory/services/llm_cache.py
+     - Use SQLite ou disco para cachear respostas de summarizacao
+     - Invalide o cache quando o conteudo do arquivo mudar (file_hash)
+     - Estime reducao de 40-60% nas chamadas LLM
+
+  2. Adicione fallback entre modelos:
+     - Edite c:/Nexus-Memory/ingestion/summarizer.py
+     - Se o modelo primario falhar, tente um secundario:
+       PRIMARY_MODEL = os.environ.get("GRAFO_LLM_MODEL", "gemini-2.0-flash")
+       FALLBACK_MODEL = os.environ.get("GRAFO_LLM_FALLBACK", "openrouter/free")
+     - Isso requer configurar GRAFO_LLM_FALLBACK_API_KEY tambem
+
+  3. Adicione health check do LLM antes de operacoes:
+     - Crie um metodo ping_llm() que faz uma chamada minimamente cara
+       (ex: "Say 'ok'") e verifica se resposta e valida
+     - Se o health check falhar, ative modo degraded com aviso no log
+
+  4. Crie um modo "offline":
+     - Sem LLM, use apenas FTS5 + similaridade de texto (TF-IDF)
+       para buscas
+     - Summarizer gera apenas "dumb summaries" (primeiros N caracteres)
+     - store_fact sempre faz ADD (sem consolidacao semantica)
+     - Revisor Critico sempre aprova com partial_audit=True
+
+================================================================================
+6. SEM PROVENIENCIA DE FATOS
+================================================================================
+
+O que e:
+  Nao ha colunas que rastreiem a origem de um conhecimento. Dado um
+  fato armazenado, nao e possivel saber:
+  - De qual arquivo veio?
+  - De qual linha?
+  - De qual sessao/conversa?
+  - Foi extraido por LLM ou veio do parser de AST?
+  - Qual usuario registrou?
+
+Localizacao:
+  - nodes: nao tem coluna source_file, source_line, source_session
+  - semantic_facts: nao tem coluna source
+  - edges: nao tem coluna source
+  - memory_extractor.py: funciona mas sem metadados de origem
+
+Por que ocorre:
+  O schema foi projetado para armazenar o conhecimento em si (label,
+  summary, content) mas nao a procedencia. O campo file_hash e uma
+  aproximacao mas aponta para o arquivo inteiro, nao para o trecho
+  especifico.
+
+Impacto:
+  - Audit trail incompleto: nao da para saber "quem disse isso"
+  - Dificuldade de debugar informacao incorreta
+  - Impossivel implementar "confianca por fonte" (ex: AST parser
+    tem peso maior que LLM)
+  - Regulatorio: sem proveniencia, nao atende requisitos de
+    rastreabilidade
+
+Como corrigir (passo a passo):
+
+  1. Adicione colunas na tabela nodes:
+     Em c:/Nexus-Memory/storage/schema.py, altere CREATE TABLE nodes:
+       source_type TEXT DEFAULT 'ast_parser'
+         CHECK(source_type IN ('ast_parser', 'llm_extraction', 'user_input', 'conversation')),
+       source_location TEXT,     -- arquivo:linha ou conversa_id:msg_id
+       source_session TEXT,      -- UUID da sessao que gerou o no
+       source_confidence REAL DEFAULT 0.8  -- 0.0 a 1.0
+
+  2. Adicione colunas na tabela semantic_facts:
+       source TEXT DEFAULT 'store_fact_tool',
+       source_session TEXT
+
+  3. Atualize o SchemaManager para migrar bancos existentes:
+     Adicione ALTER TABLE migratorio em apply_full_schema()
+
+  4. Atualize todos os pontos de insercao:
+     - ingestion/orchestrator.py: passe source_location ao criar nodes
+     - memory_extractor.py: aceite parametro source e propague
+     - logic.py: inclua source nos metadados vetoriais
+
+  5. Atualize o retorno de concierge_load para incluir a proveniencia
+
+================================================================================
+7. COLUNA "TYPE" AMBIGUA
+================================================================================
+
+O que e:
+  A tabela nodes tem duas colunas de tipo: node_type (FACT, SKILL, ...)
+  e type (default "file"). A semantica de "type" nao e clara — parece
+  indicar a origem do no (veio de um arquivo) mas conflita com node_type.
+
+Localizacao:
+  c:/Nexus-Memory/storage/schema.py:71
+    type          TEXT NOT NULL DEFAULT 'file',
+
+  c:/Nexus-Memory/core/middleware.py:489
+    "type": node["type"],
+
+Por que ocorre:
+  Provavelmente "type" foi criada primeiro para indicar a categoria
+  do arquivo fonte (file, dir, symlink) e depois node_type foi
+  adicionada para o tipo semantico. Mas a nomenclatura "type" e
+  generica demais e causa confusao.
+
+Impacto:
+  - Desenvolvedores podem confundir type com node_type
+  - Consultas SQL precisam de discriminacao explicita
+  - A documentacao precisa explicar a diferenca sempre
+  - Propenso a erros em codigo que le "type" esperando o tipo logico
+
+Como corrigir (passo a passo):
+
+  1. Renomeie a coluna no schema (opcao preferida):
+     ALTER TABLE nodes RENAME COLUMN type TO origin;
+
+     Nota: SQLite nao suporta RENAME COLUMN diretamente em versoes
+     antigas. Alternativa:
+     a. CREATE TABLE nodes_new (... origin TEXT NOT NULL DEFAULT 'file'...)
+     b. INSERT INTO nodes_new SELECT id, ..., type AS origin, ... FROM nodes
+     c. DROP TABLE nodes
+     d. ALTER TABLE nodes_new RENAME TO nodes
+
+     Ou, menos invasivo:
+
+  2. Adicione alias na camada de logica:
+     Em c:/Nexus-Memory/storage/logic.py, adicione:
+     @property
+     def origin(self):
+         return self._data.get("type")
+
+  3. Atualize todas as referencias em:
+     - core/middleware.py (get_implementations, lazy_load)
+     - storage/logic.py (GraphLogic)
+     - services/janitor.py (generate_and_persist_community_summaries)
+     - interface/mcp_server.py (respostas das tools)
+
+  4. Adicione uma NOTA de depreciacao na documentacao: "type sera
+     renomeado para origin na proxima major version"
+
+================================================================================
+8. WINGS SEM VALIDACAO
+================================================================================
+
+O que e:
+  Os valores de wing_name em reference_wings e primary_wing em
+  projects sao textos livres sem validacao. Atualmente os projetos
+  usam valores inconsistentes como "financas/quant", "marketing/vendas",
+  "automacao/rh" — sem ontologia ou hierarquia definida.
+
+Localizacao:
+  - c:/Nexus-Memory/storage/schema.py:55 (projects.primary_wing TEXT)
+  - c:/Nexus-Memory/storage/schema.py:94-98 (reference_wings.wing_name TEXT)
+  - c:/Nexus-Memory/core/project_index.py (resolve_scoped_uuids)
+
+Por que ocorre:
+  O campo wing foi projetado como livre e flexivel, mas sem uma
+  ontologia pre-definida, cada projeto acaba usando nomenclatura
+  propria, o que fragmenta a capacidade de agrupamento e descoberta.
+
+Impacto:
+  - Dificuldade de encontrar projetos similares por wing
+  - Busca all_wings=True pode nao encontrar relacoes esperadas
+  - Sem hierarquia, nao e possivel fazer grouping/unrolling
+    automatico de alas
+  - A feature de "find similar projects" fica limitada
+
+Como corrigir (passo a passo):
+
+  1. Crie uma ontologia de alas em c:/Nexus-Memory/core/wing_ontology.py:
+     WING_ONTOLOGY = {
+         "desenvolvimento": {
+             "sub_wings": ["frontend", "backend", "fullstack", "mobile",
+                           "devops", "seguranca"],
+             "aliases": ["dev", "engenharia", "software"]
+         },
+         "dados": {
+             "sub_wings": ["analise", "engenharia_de_dados", "ml_ai",
+                           "bi", "estatistica"],
+             "aliases": ["data", "machine_learning", "ai"]
+         },
+         "marketing": {
+             "sub_wings": ["vendas", "seo", "midia_paga", "email",
+                           "conteudo", "redes_sociais"],
+             "aliases": ["mkt", "growth", "digital"]
+         },
+         "financas": {
+             "sub_wings": ["quant", "contabilidade", "tesouraria",
+                           "risco", "compliance"],
+             "aliases": ["financeiro", "investimentos"]
+         },
+         "automacao": {
+             "sub_wings": ["rh", "processos", "infraestrutura", "rpa"],
+             "aliases": ["automation", "bpm"]
+         }
+     }
+
+  2. Adicione validacao no concierge_register:
+     Em interface/mcp_server.py, _handle_register(), normalize o wing:
+     - Se wing for alias, mapeie para o wing canonico
+     - Se wing nao existir na ontologia, tente fuzzy match
+     - Se nao encontrar, retorne erro com sugestoes
+
+  3. Adicione uma ferramenta concierge_list_wings:
+     - Retorna a ontologia completa
+     - Permite ao usuario explorar alas disponiveis
+
+  4. (Futuro) Adicione migracao automatica:
+     - Script que varre projects e reference_wings e tenta mapear
+       alas existentes para a ontologia canonica
+
+================================================================================
+9. SEM VERSIONAMENTO APPEND-ONLY
+================================================================================
+
+O que e:
+  O sistema usa valid_from_commit / valid_to_commit para invalidar
+  registros antigos (soft delete temporal), mas nao mantem versoes
+  anteriores do conteudo. Quando um fato e atualizado, o registro
+  antigo e marcado como invalido e um novo e criado — o historico
+  existe, mas recuperar "como era antes" exige joins complexos.
+
+Localizacao:
+  - c:/Nexus-Memory/storage/semantic_logic.py:53-70 (invalidate + insert)
+  - c:/Nexus-Memory/storage/logic.py: (valid_from/to nos calculos)
+  - c:/Nexus-Memory/core/memory_extractor.py:165-168 (UPDATE bi-temporal)
+
+Por que ocorre:
+  O design usa bi-temporal puro (t_valid, t_invalid) que e correto
+  para saber o que estava valido em determinada data. Porem, nao ha
+  uma tabela de versoes que permita "diff" entre versoes ou rollback
+  seletivo.
+
+Impacto:
+  - Impossivel ver "o que mudou" entre versoes de um fato
+  - Rollback requer reinserir o statement antigo manualmente
+  - Auditoria de mudancas depende de logs externos (commit_log)
+  - Perda de contexto semantico sobre a evolucao do conhecimento
+
+Como corrigir (passo a passo):
+
+  1. Crie uma tabela de versionamento:
+     CREATE TABLE node_versions (
+         version_id   INTEGER PRIMARY KEY AUTOINCREMENT,
+         node_id      INTEGER NOT NULL REFERENCES nodes(id),
+         version_num  INTEGER NOT NULL,
+         summary      TEXT,
+         content      TEXT,
+         created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+         commit_id    INTEGER REFERENCES commit_log(id),
+         change_reason TEXT,  -- opcional: "update", "correction", "enrichment"
+         UNIQUE(node_id, version_num)
+     );
+
+  2. No momento de atualizar um no (update_node), ao inves de
+     sobrescrever summary/content, faca:
+     a. Copie os valores atuais para node_versions
+     b. Incremente version_num
+     c. Atualize summary/content no node
+
+  3. Adicione ferramenta concierge_get_node_history(node_id):
+     Retorna todas as versoes do no ordenadas por version_num DESC
+
+  4. Adicione ferramenta concierge_rollback_node(node_id, version_num):
+     Reverte o no para uma versao anterior:
+     a. Copia versao atual para node_versions
+     b. Copia a versao desejada de volta para nodes
+     c. Cria commit no commit_log documentando o rollback
+
+================================================================================
+10. SEM COBERTURA DE TESTES VISIVEL
+================================================================================
+
+O que e:
+  O diretorio tests/ existe em c:/Nexus-Memory mas nao foi possivel
+  verificar a cobertura de testes durante a analise. Nao ha indicacao
+  de quantos testes existem, quais modulos cobrem, ou se rodam
+  automaticamente.
+
+Localizacao:
+  c:/Nexus-Memory/tests/ (diretorio existente)
+
+Por que ocorre:
+  Desconhecido — pode ter poucos testes, testes desatualizados,
+  ou simplesmente nao foram auditados.
+
+Impacto:
+  - Risco de regression nao detectado ao modificar codigo
+  - Dificuldade de fazer refactoring com seguranca
+  - Impossivel verificar se correcoes quebram funcionalidades
+    existentes
+  - Sem CI/CD, a qualidade depende de revisao manual
+
+Como corrigir (passo a passo):
+
+  1. Liste os testes existentes:
+     Get-ChildItem -Recurse -Filter "test_*.py" -Path c:/Nexus-Memory/tests
+
+  2. Meça cobertura atual:
+     pip install pytest-cov
+     cd c:/Nexus-Memory
+     pytest --cov=. tests/
+
+  3. Priorize testes para os componentes criticos:
+     - storage/logic.py (GraphLogic — formulas matematicas)
+     - core/hybrid_search.py (algoritmo de busca)
+     - core/memory_extractor.py (logica de decisoes NOOP)
+     - services/janitor.py (ciclo de manutencao)
+
+  4. Adicione pytest ao main.py como comando opcional:
+     python main.py --test
+
+  5. Configure CI (Github Actions ou similar) para rodar testes
+     automaticamente em cada push
+
+================================================================================
+11. BENCHMARKS PUBLICOS AUSENTES
+================================================================================
+
+O que e:
+  O Grafo Concierge nao possui resultados publicados nos benchmarks
+  padrao da industria (LongMemEval, BEAM, MemEval). Concorrentes como
+  Mem0, Zep e Hindsight publicam seus scores ativamente.
+
+Localizacao:
+  Nao ha — e uma ausencia, nao um bug.
+
+Por que ocorre:
+  Benchmarks exigem esforco dedicado de configuracao, execucao e
+  documentacao. Provavelmente nao foi priorizado durante o
+  desenvolvimento.
+
+Impacto:
+  - Impossivel comparacao objetiva com concorrentes
+  - Dificuldade de adocao: empresas querem ver numeros
+  - Desvantagem em conversas de vendas/adoção
+  - O Thompson Sampling e outros diferenciais nao tem validacao
+    independente
+
+Como corrigir (passo a passo):
+
+  1. Configure o LongMemEval (benchmark de memoria de longa duracao):
+     git clone https://github.com/.../LongMemEval
+     Siga as instrucoes para integrar o Grafo Concierge como backend
+
+  2. Configure o BEAM (benchmark de consistencia temporal):
+     Implemente o adapter para o formato BEAM
+
+  3. Execute os benchmarks e documente os resultados:
+     python run_benchmark.py --output results_longeval.json
+
+  4. Publique os resultados em:
+     - README.md do projeto
+     - Um arquivo docs/BENCHMARKS.md
+     - Um post tecnico detalhando a metodologia
+
+  5. Crie um script de benchmark continuo:
+     c:/Nexus-Memory/scripts/benchmark.py que roda semanalmente
+     e registra a evolucao dos scores
+
+================================================================================
+12. INFRAESTRUTURA PESADA
+================================================================================
+
+O que e:
+  O Grafo Concierge depende de 4 servicos/componentes externos:
+  Qdrant (servico standalone), ChromaDB (embedded), sentence-transformers
+  (modelo Python pesado ~90MB) e LLM (API externa).
+
+Localizacao:
+  - main.py:19-21 (env vars apontando para Qdrant/Chroma)
+  - core/vector_backend.py:20-28 (import defensivo do qdrant_client)
+  - storage/vector_store.py: (ChromaVectorStore + EmbeddingManager)
+
+Por que ocorre:
+  O design prioriza riqueza de recursos (busca hibrida, embeddings
+  semanticos, backup vetorial) sobre simplicidade de deploy.
+
+Impacto:
+  - Setup complexo: requer Qdrant rodando, ChromaDB, modelo de
+    embedding baixado
+  - Consumo de memoria: sentence-transformers carrega ~500MB em RAM
+  - Dependencia de rede: Qdrant precisa estar acessivel
+  - Nao adequado para ambientes edge, serverless ou com recursos
+    limitados
+
+Como corrigir (passo a passo):
+
+  1. Crie um modo "lightweight" (apenas SQLite):
+     Em c:/Nexus-Memory/core/config.py, adicione:
+     class ConciergeConfig:
+         mode: str = "full"  # "full" | "lightweight"
+
+     Em modo lightweight:
+     - Pule ChromaVectorStore
+     - Use apenas FTS5 para busca textual
+     - EmbeddingManager retorna None (sem embeddings)
+     - HybridSearchEngine usa apenas FTS5 (peso 1.0)
+
+  2. Edite main.py para ler GRAFO_MODE:
+     if os.environ.get("GRAFO_MODE", "full") == "lightweight":
+         vector_store = None  # ou um NoopVectorStore
+         embedder = NoopEmbeddingManager()
+
+  3. Implemente NoopVectorStore e NoopEmbeddingManager:
+     classes que aceitam chamadas mas nao fazem nada (design pattern
+     Null Object)
+
+  4. Documente os requisitos minimos para cada modo no README
+
+================================================================================
+13. NOS SEM "CONTENT" POPULADO
+================================================================================
+
+O que e:
+  A coluna "content" foi adicionada via migracao retroativa e pode
+  estar NULL para nos criados antes da migracao. O lazy load
+  (concierge_load) pode retornar nos sem conteudo.
+
+Localizacao:
+  - c:/Nexus-Memory/storage/schema.py:232-236 (migracao da coluna)
+    if "content" not in cols:
+        self._conn.execute("ALTER TABLE nodes ADD COLUMN content TEXT;")
+
+  - c:/Nexus-Memory/core/middleware.py:495
+    "content": node.get("content"),
+
+Por que ocorre:
+  A migracao adiciona a coluna mas nao preenche dados retroativos.
+  Nos criados antes da migracao tem content=NULL.
+
+Impacto:
+  - concierge_load e get_implementations retornam content=None
+  - A experiencia do usuario que confia em "content" para ver codigo
+    fica prejudicada
+  - Dados legados ficam invisiveis para tools que dependem de content
+
+Como corrigir (passo a passo):
+
+  1. Crie script de backfill:
+     python -c "
+     import sqlite3
+     conn = sqlite3.connect('c:/Nexus-Memory/data/concierge.db')
+     # Para nos com content NULL, copia summary para content
+     conn.execute('''
+         UPDATE nodes
+         SET content = summary
+         WHERE content IS NULL AND summary IS NOT NULL
+     ''')
+     # Para nos com ambos NULL, usa label
+     conn.execute('''
+         UPDATE nodes
+         SET content = label
+         WHERE content IS NULL AND summary IS NULL
+     ''')
+     conn.commit()
+     print('Backfill concluido')
+     "
+
+  2. Adicione no SchemaManager uma logica de backfill automatico:
+     Em apply_full_schema(), apos adicionar a coluna, execute:
+     self._conn.execute('''
+         UPDATE nodes SET content = COALESCE(summary, label)
+         WHERE content IS NULL
+     ''')
+
+  3. Verifique:
+     python -c "
+     import sqlite3
+     conn = sqlite3.connect('c:/Nexus-Memory/data/concierge.db')
+     nulls = conn.execute('SELECT COUNT(*) FROM nodes WHERE content IS NULL').fetchone()[0]
+     total = conn.execute('SELECT COUNT(*) FROM nodes').fetchone()[0]
+     print(f'{nulls}/{total} nos sem content')
+     "
+
+================================================================================
+14. JANITOR IDLE-LOCK BASEADO EM THREADING.EVENT()
+================================================================================
+
+O que e:
+  O Idle-Lock do Janitor usa threading.Event() para detectar se
+  mine() esta em andamento. Se a thread do mine travar, o Janitor
+  espera 30s e depois pula o ciclo, mas se o Event nunca for
+  liberado, o Janitor fica bloqueado indefinidamente.
+
+Localizacao:
+  c:/Nexus-Memory/services/janitor.py:141
+    self._mine_active = threading.Event()
+
+  c:/Nexus-Memory/services/janitor.py:179-196
+    def _wait_for_idle(self):
+        while self.is_system_active():
+            if time.monotonic() - start > IDLE_LOCK_TIMEOUT:
+                return False
+            time.sleep(0.5)
+
+Por que ocorre:
+  O Event e confiavel para sinalizacao simples, mas se o mine()
+  crashar apos chamar signal_mine_start() sem chamar signal_mine_end(),
+  o Event fica setado permanentemente e o Janitor nunca executa
+  manutencao.
+
+Impacto:
+  - Se mine() crashar: Janitor fica preso no Idle-Lock para sempre
+  - Manutencao automatica para de funcionar ate restart do servico
+  - Trajetorias stale nunca saem decaidas
+  - Vetores orfaos nunca sao limpos
+
+Como corrigir (passo a passo):
+
+  1. Substitua o Event por uma abordagem com timeout absoluto:
+     Em services/janitor.py, modifique:
+     self._mine_active = threading.Event()
+     self._mine_timestamp = 0.0  # timestamp da ultima sinalizacao
+
+     def signal_mine_start(self):
+         self._mine_active.set()
+         self._mine_timestamp = time.monotonic()
+         ...
+
+     def is_system_active(self):
+         if not self._mine_active.is_set():
+             return False
+         # Se passou mais de 5 minutos desde o start, considera orfao
+         if time.monotonic() - self._mine_timestamp > 300:
+             self._mine_active.clear()
+             logger.warning("Idle-Lock: mine() orfao detectado (>5min) — liberando lock")
+             return False
+         return True
+
+  2. Adicione um watchdog no background thread:
+     A cada ciclo do Janitor, verifique se o Idle-Lock esta preso
+     ha mais de 5 minutos. Se sim, libere automaticamente.
+
+  3. Loggue sempre que o Idle-Lock for liberado por timeout,
+     para monitoramento.
+
+================================================================================
+15. SEM VALIDACAO DE SCHEMA NAS TOOLS MCP
+================================================================================
+
+O que e:
+  As tools MCP aceitam parametros que sao validados apenas no banco
+  (CHECK constraints). Por exemplo, scope_type so sera validado quando
+  a query SQL rodar, nao na chamada da tool.
+
+Localizacao:
+  - interface/mcp_server.py:379-394 (store_fact aceita qualquer string)
+  - interface/mcp_server.py:404-421 (set_memory aceita qualquer scope_type)
+  - storage/semantic_logic.py:38-39 (validacao ocorre aqui, tarde demais)
+
+Por que ocorre:
+  As tools MCP delegam toda a logica para a Fachada Central, que
+  delega para o storage. A validacao so acontece na camada de storage,
+  depois que a requisicao ja foi processada pelo MCP.
+
+Impacto:
+  - Erro so aparece no log, nao como resposta clara da tool
+  - Usuario recebe erro generico em vez de dica de correcao
+  - Custo de processamento desperdicado com requisicoes invalidas
+  - Pior experiencia de uso
+
+Como corrigir (passo a passo):
+
+  1. Adicione validacao nas tools MCP antes de chamar a fachada:
+     Em interface/mcp_server.py, em cada tool, adicione:
+     VALID_SCOPE_TYPES = frozenset({"user", "session", "agent", "org"})
+
+     def _handle_store_fact(self, scope_type, scope_id, fact_statement):
+         if scope_type not in VALID_SCOPE_TYPES:
+             return {
+                 "success": False,
+                 "error": f"scope_type invalido: '{scope_type}'. "
+                          f"Aceitos: {sorted(VALID_SCOPE_TYPES)}"
+             }
+         if not scope_id or not scope_id.strip():
+             return {"success": False, "error": "scope_id nao pode ser vazio"}
+         if not fact_statement or not fact_statement.strip():
+             return {"success": False, "error": "fact_statement nao pode ser vazio"}
+         # ... chama a fachada
+
+  2. Centralize as validacoes:
+     Crie c:/Nexus-Memory/interface/validators.py com funcoes reutilizaveis:
+     validate_scope_type(scope_type) -> Optional[str] (None ou msg de erro)
+     validate_project_uuid(uuid) -> Optional[str]
+     validate_node_type(node_type) -> Optional[str]
+
+  3. Aplique validators em todas as tools MCP:
+     - store_fact
+     - set_memory
+     - get_memory
+     - register
+     - search
+     - commit
+
+  4. Adicione testes unitarios para cada validator
+
+================================================================================
+RESUMO EXECUTIVO — PRIORIDADES
+================================================================================
+
+  Prioridade | # | Problema                    | Esforco | Impacto
+  -----------|---|-----------------------------|---------|--------
+  CRITICA    | 1 | Chave de API exposta        | 15 min  | ALTO (seguranca)
+  CRITICA    | 5 | Dependencia critica de LLM  | 2 dias  | ALTO (disponibilidade)
+  ALTA       | 6 | Sem proveniencia            | 1 dia   | ALTO (auditabilidade)
+  ALTA       | 9 | Sem versionamento append    | 2 dias  | MEDIO (historico)
+  ALTA       | 14 | Janitor Idle-Lock frágil    | 2 horas | MEDIO (confiabilidade)
+  MEDIA      | 15 | Validacao nas tools MCP     | 4 horas | BAIXO (ux)
+  MEDIA      | 8  | Wings sem validacao        | 1 dia   | MEDIO (organizacao)
+  MEDIA      | 11 | Benchmarks ausentes         | 3 dias  | BAIXO (adoção)
+  BAIXA      | 2  | Semantic Facts vazio        | 2 horas | MEDIO (funcionalidade)
+  BAIXA      | 3  | Core Memory vazio           | 1 hora  | BAIXO (funcionalidade)
+  BAIXA      | 4  | Trajectories vazio          | 4 horas | BAIXO (funcionalidade)
+  BAIXA      | 7  | Coluna "type" ambigua       | 2 horas | BAIXO (manutencao)
+  BAIXA      | 10 | Cobertura de testes         | 3 dias  | BAIXO (qualidade)
+  BAIXA      | 12 | Infraestrutura pesada       | 2 dias  | BAIXO (portabilidade)
+  BAIXA      | 13 | Nos sem content             | 30 min  | BAIXO (preenchimento)
+
+================================================================================

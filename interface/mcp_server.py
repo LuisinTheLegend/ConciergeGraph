@@ -75,7 +75,8 @@ class GrafoConciergeServer:
         # Registra as tools
         self._register_tools()
 
-        logger.info("GrafoConciergeServer inicializado — 10 tools registradas.")
+        tool_count = len(self._mcp._tool_manager.list_tools())
+        logger.info("GrafoConciergeServer inicializado — %d tools registradas.", tool_count)
 
     @property
     def mcp(self) -> FastMCP:
@@ -1055,9 +1056,17 @@ class GrafoConciergeServer:
     def _handle_store_fact(
         self, scope_type: str, scope_id: str, fact_statement: str,
     ) -> dict:
-        """Handler do concierge_store_fact — delega à Fachada."""
+        """Handler do concierge_store_fact — delega à Fachada com validação fail-fast."""
         t0 = time.perf_counter()
         try:
+            valid_scopes = {"user", "session", "agent", "org"}
+            if scope_type not in valid_scopes:
+                raise ValueError(f"scope_type inválido '{scope_type}'. Deve ser um de: {valid_scopes}")
+            if not scope_id or not scope_id.strip():
+                raise ValueError("scope_id não pode ser vazio.")
+            if not fact_statement or not fact_statement.strip():
+                raise ValueError("fact_statement não pode ser vazio.")
+
             results = self._gc.store_fact(
                 scope_type=scope_type,
                 scope_id=scope_id,
@@ -1124,9 +1133,19 @@ class GrafoConciergeServer:
         block_label: str,
         content: str,
     ) -> dict:
-        """Handler do concierge_set_memory — delega à Façada."""
+        """Handler do concierge_set_memory — delega à Façada com validação fail-fast."""
         t0 = time.perf_counter()
         try:
+            valid_scopes = {"user", "session", "agent", "org"}
+            if scope_type not in valid_scopes:
+                raise ValueError(f"scope_type inválido '{scope_type}'. Deve ser um de: {valid_scopes}")
+            if not scope_id or not scope_id.strip():
+                raise ValueError("scope_id não pode ser vazio.")
+            if not block_label or not block_label.strip():
+                raise ValueError("block_label não pode ser vazio.")
+            if not content or not content.strip():
+                raise ValueError("content não pode ser vazio.")
+
             memory_id = self._gc.set_core_memory(
                 scope_type=scope_type,
                 scope_id=scope_id,
@@ -1167,9 +1186,15 @@ class GrafoConciergeServer:
         scope_id: str,
         block_label: Optional[str],
     ) -> dict:
-        """Handler do concierge_get_memory — delega à Façada."""
+        """Handler do concierge_get_memory — delega à Façada com validação fail-fast."""
         t0 = time.perf_counter()
         try:
+            valid_scopes = {"user", "session", "agent", "org"}
+            if scope_type not in valid_scopes:
+                raise ValueError(f"scope_type inválido '{scope_type}'. Deve ser um de: {valid_scopes}")
+            if not scope_id or not scope_id.strip():
+                raise ValueError("scope_id não pode ser vazio.")
+
             blocks = self._gc.get_core_memory_blocks(
                 scope_type=scope_type,
                 scope_id=scope_id,

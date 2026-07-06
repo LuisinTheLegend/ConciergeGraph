@@ -139,6 +139,7 @@ class JanitorService:
 
         # Idle-Lock: flag compartilhada para detectar mine() em andamento
         self._mine_active = threading.Event()
+        self._mine_timestamp = 0.0
 
         # Background thread control
         self._bg_thread: Optional[threading.Thread] = None
@@ -160,6 +161,7 @@ class JanitorService:
     def signal_mine_start(self) -> None:
         """Sinaliza que mine() está em andamento (Idle-Lock ativo)."""
         self._mine_active.set()
+        self._mine_timestamp = time.monotonic()
         logger.debug("Idle-Lock: mine() ativo — Janitor em espera.")
 
     def signal_mine_end(self) -> None:
@@ -170,7 +172,15 @@ class JanitorService:
     def is_system_active(self) -> bool:
         """Retorna True se houver atividade ativa no sistema (mine ativo ou fila ocupada)."""
         if self._mine_active.is_set():
-            return True
+            elapsed = time.monotonic() - getattr(self, "_mine_timestamp", 0.0)
+            if elapsed > 300.0:
+                logger.warning(
+                    "Idle-Lock: deadlock detectado! mine() ativo há %.1fs (> 300s). Forçando liberação da flag.",
+                    elapsed
+                )
+                self._mine_active.clear()
+            else:
+                return True
         # Verifica a fila de escrita via API pública (sem violar encapsulamento)
         if self._store and not self._store.is_write_queue_empty():
             return True
