@@ -180,6 +180,38 @@ class GitignoreParser:
         self._negations: list[str] = []
         self._dir_only_patterns: list[str] = []
 
+    def add_patterns(self, patterns: list[str]) -> None:
+        """Adiciona uma lista de padrões de ignore programaticamente.
+
+        Permite carregar padrões padrão de segurança (DEFAULT_IGNORE_PATTERNS)
+        sem depender de um arquivo no disco. Segue a mesma semântica do .gitignore.
+
+        Args:
+            patterns: Lista de padrões no formato .gitignore.
+        """
+        for raw in patterns:
+            stripped = raw.strip()
+            if not stripped or stripped.startswith("#"):
+                continue
+            if stripped.startswith("!"):
+                negation = stripped[1:].strip()
+                if negation:
+                    self._negations.append(negation)
+                continue
+            if stripped.endswith("/"):
+                self._dir_only_patterns.append(stripped.rstrip("/"))
+                self._patterns.append(stripped.rstrip("/"))
+                self._patterns.append(stripped.rstrip("/") + "/**")
+                continue
+            if stripped.startswith("/"):
+                stripped = stripped[1:]
+            self._patterns.append(stripped)
+
+        logger.debug(
+            "GitignoreParser.add_patterns: +%d entradas → %d padrões totais.",
+            len(patterns), len(self._patterns),
+        )
+
     def load(self, gitignore_path: str) -> None:
         """Carrega e parseia um arquivo .gitignore.
 
@@ -350,6 +382,32 @@ class ProjectCrawler:
         "target", "vendor", "bower_components",
     }
 
+    # Padrões de ARQUIVOS ignorados por padrão (segurança zero-config)
+    DEFAULT_IGNORE_PATTERNS: list[str] = [
+        # Segurança — Credenciais e Chaves
+        ".env", ".env.*",
+        "*.pem", "*.key", "*.cert", "*.der", "*.pfx", "*.p12",
+        "id_rsa", "id_dsa", "id_ed25519",
+        # Lock files — Ruído puro
+        "package-lock.json", "yarn.lock", "pnpm-lock.yaml",
+        "poetry.lock", "Cargo.lock", "composer.lock", "Gemfile.lock",
+        # Logs e Texto lixo
+        "*.log", "*.txt",
+        # Bancos de dados locais
+        "*.db", "*.sqlite", "*.sqlite3",
+        # Binários e Compilação
+        "*.exe", "*.dll", "*.so", "*.dylib", "*.bin", "*.o", "*.a",
+        "*.pyc", "*.pyo", "*.class", "*.wasm",
+        # Arquivos compactados
+        "*.zip", "*.tar", "*.tar.gz", "*.tgz", "*.rar", "*.7z", "*.bz2",
+        # Mídia e Imagens
+        "*.jpg", "*.jpeg", "*.png", "*.gif", "*.ico", "*.svg",
+        "*.mp3", "*.mp4", "*.wav", "*.avi", "*.mov", "*.webp",
+        "*.ttf", "*.woff", "*.woff2", "*.eot",
+        # Lixo de SO
+        ".DS_Store", "Thumbs.db", "desktop.ini",
+    ]
+
     # Tamanho máximo de arquivo para ingestão (10 MB)
     MAX_FILE_SIZE_BYTES: int = 10 * 1024 * 1024
 
@@ -416,16 +474,29 @@ class ProjectCrawler:
 
         logger.info("Crawl iniciado: %s (projeto: %s)", root, project_uuid)
 
-        # --- Carrega .gitignore da raiz do projeto ---
+        # --- Carrega padrões de ignore (3 camadas) ---
         self._gitignore = GitignoreParser()
+
+        # Camada 1: Padrões de segurança padrão (zero-config)
+        self._gitignore.add_patterns(self.DEFAULT_IGNORE_PATTERNS)
+        logger.info("Padrões de segurança padrão carregados: %d regras.", len(self.DEFAULT_IGNORE_PATTERNS))
+
+        # Camada 2: .gitignore do projeto
         gitignore_file = root / ".gitignore"
         if gitignore_file.is_file():
             self._gitignore.load(str(gitignore_file))
             logger.info(".gitignore encontrado e carregado: %s", gitignore_file)
 
+        # Camada 3: .conciergeignore (regras extras específicas do Grafo Concierge)
+        concierge_ignore_file = root / ".conciergeignore"
+        if concierge_ignore_file.is_file():
+            self._gitignore.load(str(concierge_ignore_file))
+            logger.info(".conciergeignore encontrado e carregado: %s", concierge_ignore_file)
+
         # --- Percorre recursivamente ---
         report = CrawlReport()
         current_hashes: set[str] = set()
+        current_files: set[str] = set()
 
         for dirpath, dirnames, filenames in os.walk(str(root), topdown=True):
             current_dir = Path(dirpath)
@@ -442,7 +513,7 @@ class ProjectCrawler:
                 relative_filepath = str(relative_dir / filename).replace("\\", "/")
 
                 # Pula arquivos ocultos (começam com .)
-                if filename.startswith(".") and filename != ".env":
+                if filename.startswith("."):
                     continue
 
                 # Verifica .gitignore
@@ -479,6 +550,7 @@ class ProjectCrawler:
                     continue
 
                 current_hashes.add(file_hash)
+                current_files.add(relative_filepath)
 
                 # --- Classifica ---
                 category = self.classify_file(filename)
@@ -509,7 +581,7 @@ class ProjectCrawler:
                 report.total_scanned += 1
 
         # --- Detecta nós órfãos para Garbage Collection ---
-        report.deleted_node_ids = self._detect_deleted_nodes(project_uuid, current_hashes)
+        report.deleted_node_ids = self._detect_deleted_nodes(project_uuid, current_files)
 
         logger.info(
             "Crawl concluído: %d escaneados, %d novos, %d inalterados, %d deletados (GC).",
@@ -593,21 +665,19 @@ class ProjectCrawler:
     def _detect_deleted_nodes(
         self,
         project_uuid: str,
-        current_hashes: set[str],
+        current_files: set[str],
     ) -> list[int]:
         """Detecta nós no SQLite cujos arquivos não existem mais no disco.
 
-        Compara os hashes dos arquivos atuais com os nós do tipo 'file'
-        do projeto no SQLite. Nós cujo file_hash não está em current_hashes
-        são marcados para Garbage Collection.
+        Compara os paths relativos dos nós do projeto com a lista de arquivos
+        existentes no disco. Nós que pertencem a arquivos que não estão mais
+        em current_files são marcados para Garbage Collection.
 
-        SEGURANÇA: Apenas nós com type='file' são considerados.
-        Nós de tipo 'directory', 'cluster' ou 'project' nunca são deletados
-        por esta rotina.
+        SEGURANÇA: Apenas nós que não sejam diretórios ou projetos são deletados.
 
         Args:
             project_uuid: UUID do projeto.
-            current_hashes: Conjunto de hashes dos arquivos que existem agora.
+            current_files: Conjunto de paths relativos dos arquivos existentes no disco.
 
         Returns:
             Lista de node_ids órfãos para remoção.
@@ -615,23 +685,26 @@ class ProjectCrawler:
         orphan_ids: list[int] = []
 
         try:
-            # Busca todos os nós do tipo 'file' com file_hash preenchido
+            # Busca todos os nós do projeto no SQLite
             all_nodes = self._store.get_nodes_by_project(project_uuid)
             for node in all_nodes:
                 # Apenas nós que não sejam diretórios ou projetos
                 if node.get("type") in ("directory", "cluster", "project"):
                     continue
 
-                node_hash = node.get("file_hash")
-                if not node_hash:
+                label = node.get("label", "")
+                if not label:
                     continue
 
-                # Se o hash não existe mais no filesystem → arquivo deletado
-                if node_hash not in current_hashes:
+                # O label é formatado como 'rel_path::symbol_name' ou 'rel_path'
+                rel_path = label.split("::")[0]
+
+                # Se o arquivo não existe mais no disco → nó órfão
+                if rel_path not in current_files:
                     orphan_ids.append(node["id"])
                     logger.debug(
-                        "Nó órfão detectado (GC): id=%d, label=%s, hash=%s",
-                        node["id"], node.get("label", "?"), node_hash[:16],
+                        "Nó órfão detectado (GC): id=%d, label=%s, arquivo deletado=%s",
+                        node["id"], label, rel_path,
                     )
 
         except Exception as e:
@@ -646,3 +719,4 @@ class ProjectCrawler:
             logger.debug("Garbage Collection: nenhum nó órfão detectado.")
 
         return orphan_ids
+

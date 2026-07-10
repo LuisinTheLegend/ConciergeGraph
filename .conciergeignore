@@ -1,0 +1,31 @@
+# ==============================================================================
+# GRAFO CONCIERGE — .conciergeignore
+# ==============================================================================
+# Este arquivo controla quais arquivos/diretórios serão IGNORADOS pelo Grafo 
+# Concierge na geração de memória semântica da IA, de forma independente do Git.
+#
+# Sintaxe compatível com glob/.gitignore.
+# ==============================================================================
+
+# 🧪 Pasta de Testes e Suítes de Validação
+# (Impede a IA de gastar tokens indexando fixtures e scripts de teste)
+tests/
+test_*.py
+*_test.py
+conftest.py
+
+# 🔒 Credenciais e Configurações de Exemplo
+.env.example
+*.example
+*.local
+
+# 📑 Relatórios Locais e Análises (Texto simples/Documentos)
+*.txt
+analise_*.txt
+*.pdf
+*.docx
+
+# 🛠️ Metadados de Repositório e Configurações Locais
+.gitignore
+.conciergeignore
+LICENSE

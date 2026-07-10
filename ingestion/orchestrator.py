@@ -168,50 +168,76 @@ class IngestionManager:
         # --- STEP 2: PARSE ---
         chunks: list[ParsedChunk] = []
         if crawl_report.new_files:
-            logger.info("[2/7] PARSE — Chunking semântico de %d arquivos...", len(crawl_report.new_files))
+            logger.info("[2/8] PARSE — Chunking semântico de %d arquivos...", len(crawl_report.new_files))
             chunks = self._step_parse(crawl_report.new_files, result)
-            logger.info("[2/7] PARSE concluído: %d chunks extraídos.", len(chunks))
+            logger.info("[2/8] PARSE concluído: %d chunks extraídos.", len(chunks))
+
+        # --- STEP 2.5: DELTA CACHE ---
+        cached_count = 0
+        if chunks:
+            logger.info("[2.5/8] DELTA CACHE — Verificando chunks inalterados...")
+            cached_count = self._detect_cached_chunks(chunks, project_uuid)
+            logger.info(
+                "[2.5/8] DELTA CACHE concluído: %d cacheados, %d novos para LLM.",
+                cached_count, len(chunks) - cached_count,
+            )
 
         # --- STEP 3: SUMMARIZE (L0) ---
+        uncached_chunks = [c for c in chunks if not c.cached]
         summaries: list[SummaryResult] = []
-        if chunks and self._summarizer:
-            logger.info("[3/7] SUMMARIZE — Geração de %d resumos L0...", len(chunks))
-            summaries = self._step_summarize(chunks, result)
+        if uncached_chunks and self._summarizer:
+            logger.info("[3/8] SUMMARIZE — Geração de %d resumos L0 (skip %d cacheados)...",
+                        len(uncached_chunks), cached_count)
+            summaries = self._step_summarize(uncached_chunks, result)
             result.summaries_generated = len(summaries)
-            logger.info("[3/7] SUMMARIZE concluído: %d resumos L0 gerados.", len(summaries))
+            logger.info("[3/8] SUMMARIZE concluído: %d resumos L0 gerados.", len(summaries))
         else:
-            logger.info("[3/7] SUMMARIZE — Ignorado (summarizer=%s, chunks=%d).",
-                        "OFF" if not self._summarizer else "ON", len(chunks))
+            logger.info("[3/8] SUMMARIZE — Ignorado (summarizer=%s, novos=%d).",
+                        "OFF" if not self._summarizer else "ON", len(uncached_chunks))
 
         # --- STEP 4: STORE SQLite ---
         if chunks:
-            logger.info("[4/7] STORE SQLite — Persistindo %d chunks...", len(chunks))
-            nodes_created = self._step_store_sqlite(chunks, summaries, project_uuid, auto_tag, result)
+            logger.info("[4/8] STORE SQLite — Persistindo %d chunks...", len(chunks))
+            nodes_created = self._step_store_sqlite(chunks, project_uuid, auto_tag, result)
             result.nodes_created = nodes_created
-            logger.info("[4/7] STORE SQLite concluído: %d nós criados.", nodes_created)
+            logger.info("[4/8] STORE SQLite concluído: %d nós criados.", nodes_created)
+
+        # Atualiza file_hash dos nós cacheados para evitar Garbage Collection
+        if cached_count > 0:
+            self._apply_cache_updates(chunks, project_uuid)
+
+        # Remove nós obsoletos de arquivos que foram modificados
+        if crawl_report.new_files:
+            for f in crawl_report.new_files:
+                try:
+                    self._store.cleanup_obsolete_nodes(project_uuid, f.relative_path, f.file_hash)
+                    logger.debug("Limpeza pós-ingestão: nós obsoletos de %s removidos.", f.relative_path)
+                except Exception as e:
+                    logger.warning("Falha na limpeza pós-ingestão de %s: %s", f.relative_path, e)
+
 
         # --- STEP 5: EMBED ---
         embed_items: list[dict] = []
         if chunks:
-            logger.info("[5/7] EMBED — Geração de embeddings para %d chunks...", len(chunks))
+            logger.info("[5/8] EMBED — Geração de embeddings...", len(chunks))
             embed_items = self._step_embed(chunks, project_uuid, result)
-            logger.info("[5/7] EMBED concluído: %d embeddings gerados.", len(embed_items))
+            logger.info("[5/8] EMBED concluído: %d embeddings gerados.", len(embed_items))
 
         # --- STEP 6: STORE Vector ---
         if embed_items:
-            logger.info("[6/7] STORE Vector — Batch insert de %d embeddings...", len(embed_items))
+            logger.info("[6/8] STORE Vector — Batch insert de %d embeddings...", len(embed_items))
             stored = self._step_store_vector(embed_items, result)
             result.embeddings_stored = stored
-            logger.info("[6/7] STORE Vector concluído: %d embeddings armazenados.", stored)
+            logger.info("[6/8] STORE Vector concluído: %d embeddings armazenados.", stored)
 
         # --- STEP 7: GARBAGE COLLECTION ---
         if crawl_report.deleted_node_ids:
-            logger.info("[7/7] GC — Removendo %d nós órfãos...", len(crawl_report.deleted_node_ids))
+            logger.info("[7/8] GC — Removendo %d nós órfãos...", len(crawl_report.deleted_node_ids))
             deleted = self._step_garbage_collection(crawl_report.deleted_node_ids, project_uuid, result)
             result.files_deleted = deleted
-            logger.info("[7/7] GC concluído: %d nós removidos.", deleted)
+            logger.info("[7/8] GC concluído: %d nós removidos.", deleted)
         else:
-            logger.info("[7/7] GC — Nenhum nó órfão detectado.")
+            logger.info("[7/8] GC — Nenhum nó órfão detectado.")
 
         # --- Consolidação de tags ---
         result.tags_applied = self._consolidate_tags(chunks)
@@ -248,6 +274,86 @@ class IngestionManager:
             logger.error(error_msg)
             result.errors.append(error_msg)
             return []
+
+    def _detect_cached_chunks(self, chunks: list[ParsedChunk], project_uuid: str) -> int:
+        """Etapa 2.5: Delta Cache — detecta chunks cujo conteúdo não mudou.
+
+        Compara cada chunk parsed com nós existentes no SQLite pelo label
+        (source_file::symbol_name). Se o conteúdo textual for idêntico,
+        marca o chunk como cached e copia summary/tags existentes.
+
+        Returns:
+            Número de chunks marcados como cached.
+        """
+        try:
+            existing_nodes = self._store.get_nodes_by_project(project_uuid)
+        except Exception as e:
+            logger.warning("Delta Cache: falha ao buscar nós existentes: %s", e)
+            return 0
+
+        if not existing_nodes:
+            return 0
+
+        # Monta mapa: label → {content, summary, tags, id, file_hash}
+        import json as _json
+        node_map: dict[str, dict] = {}
+        for node in existing_nodes:
+            if node.get("type") in ("directory", "cluster", "project"):
+                continue
+            label = node.get("label", "")
+            if not label:
+                continue
+
+            tags = node.get("tags", [])
+            if isinstance(tags, str):
+                try:
+                    tags = _json.loads(tags)
+                except Exception:
+                    tags = []
+
+            node_map[label] = {
+                "content": node.get("content", ""),
+                "summary": node.get("summary", ""),
+                "tags": tags if isinstance(tags, list) else [],
+                "id": node["id"],
+                "file_hash": node.get("file_hash", ""),
+            }
+
+        cached_count = 0
+        for chunk in chunks:
+            label = f"{chunk.source_file}::{chunk.symbol_name}"
+            existing = node_map.get(label)
+
+            if existing and existing["content"] and existing["content"] == chunk.content:
+                # Conteúdo idêntico — reutilizar resumo e tags
+                chunk.cached = True
+                chunk.node_id = existing["id"]
+                chunk.cached_summary = existing["summary"]
+                chunk.cached_tags = existing["tags"]
+                cached_count += 1
+                logger.debug("Delta Cache HIT: %s (node_id=%d)", label, existing["id"])
+
+        return cached_count
+
+    def _apply_cache_updates(self, chunks: list[ParsedChunk], project_uuid: str) -> None:
+        """Atualiza file_hash dos nós cacheados para o novo hash do arquivo.
+
+        Quando um arquivo muda de hash (o conteúdo do arquivo mudou) mas um chunk
+        específico permaneceu idêntico, precisamos atualizar o file_hash desse nó
+        para o novo hash, senão o Garbage Collector vai considerá-lo órfão.
+        """
+        updates: list[tuple[int, str]] = []
+        for chunk in chunks:
+            if chunk.cached and chunk.node_id is not None:
+                updates.append((chunk.node_id, chunk.file_hash))
+
+        if updates:
+            try:
+                updated = self._store.update_nodes_file_hash_bulk(updates)
+                logger.info("Delta Cache: %d nós com file_hash atualizado.", updated)
+            except Exception as e:
+                logger.error("Delta Cache: falha ao atualizar file_hash: %s", e)
+
 
     def generate_community_summary(self, nodes_block: str) -> Optional[dict]:
         """Gera um resumo de comunidade via LLM se o summarizer estiver configurado.
@@ -287,31 +393,134 @@ class IngestionManager:
 
 
     def _step_summarize(self, chunks: list[ParsedChunk], result: IngestionResult) -> list[SummaryResult]:
-        """Etapa 3: Geração de resumos L0."""
-        summaries: list[SummaryResult] = []
-        for chunk in chunks:
+        """Etapa 3: Geração de resumos L0 — async + grouping + fallback.
+
+        Pipeline de otimização:
+            1. Agrupa chunks pequenos (< 50 tokens) em prompts batched.
+            2. Envia chunks restantes via asyncio.gather com Semaphore.
+            3. Fallback para ThreadPoolExecutor se asyncio falhar.
+        """
+        import asyncio
+
+        SMALL_CHUNK_THRESHOLD = 50  # tokens
+        GROUP_SIZE = 5  # chunks por prompt agrupado
+        MAX_CONCURRENCY = 20  # semaphore limit
+
+        # --- Fase 1: Separar chunks pequenos para agrupamento ---
+        small_chunks: list[tuple[int, ParsedChunk]] = []
+        regular_chunks: list[tuple[int, ParsedChunk]] = []
+
+        for idx, chunk in enumerate(chunks):
+            if chunk.estimated_tokens < SMALL_CHUNK_THRESHOLD and chunk.estimated_tokens > 0:
+                small_chunks.append((idx, chunk))
+            else:
+                regular_chunks.append((idx, chunk))
+
+        results = [None] * len(chunks)
+
+        # --- Fase 2: Processar grupos pequenos (batching no prompt) ---
+        if small_chunks and self._summarizer:
+            logger.info("Grouping: %d chunks pequenos em grupos de %d.", len(small_chunks), GROUP_SIZE)
+            for batch_start in range(0, len(small_chunks), GROUP_SIZE):
+                batch = small_chunks[batch_start:batch_start + GROUP_SIZE]
+                batch_indices = [idx for idx, _ in batch]
+                batch_chunks = [chunk for _, chunk in batch]
+
+                try:
+                    grouped_results = self._summarizer.summarize_l0_grouped(batch_chunks, batch_indices)
+                    for orig_idx, summary in grouped_results:
+                        results[orig_idx] = summary
+                except Exception as e:
+                    logger.warning("Grouped summarization falhou, fallback individual: %s", e)
+
+                # Chunks não resolvidos pelo grupo → mover para regular
+                for idx, chunk in batch:
+                    if results[idx] is None:
+                        regular_chunks.append((idx, chunk))
+
+        # --- Fase 3: Processar chunks regulares via asyncio ---
+        if regular_chunks:
+            async def _run_async_summaries():
+                sem = asyncio.Semaphore(MAX_CONCURRENCY)
+
+                async def _bounded_summarize(idx: int, chunk: ParsedChunk):
+                    async with sem:
+                        try:
+                            s = await self._summarizer.summarize_l0_async(chunk)
+                            return idx, s, None
+                        except Exception as e:
+                            return idx, None, f"Async L0 falhou para {chunk.source_file}: {e}"
+
+                tasks = [_bounded_summarize(idx, chunk) for idx, chunk in regular_chunks]
+                return await asyncio.gather(*tasks)
+
+            try:
+                # Tenta usar loop existente ou criar novo
+                try:
+                    loop = asyncio.get_running_loop()
+                    # Já estamos dentro de um loop — usar to_thread para o bloco inteiro
+                    import concurrent.futures
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                        async_results = pool.submit(
+                            lambda: asyncio.run(_run_async_summaries())
+                        ).result()
+                except RuntimeError:
+                    # Nenhum loop rodando — criar um novo
+                    async_results = asyncio.run(_run_async_summaries())
+
+                for idx, summary, error_msg in async_results:
+                    if error_msg:
+                        logger.error(error_msg)
+                        result.errors.append(error_msg)
+                    if summary:
+                        results[idx] = summary
+
+            except Exception as e:
+                logger.warning("Async summarization falhou, fallback ThreadPool: %s", e)
+                # Fallback para ThreadPoolExecutor
+                self._step_summarize_threaded(regular_chunks, results, result)
+
+        return [r for r in results if r is not None]
+
+    def _step_summarize_threaded(
+        self,
+        indexed_chunks: list[tuple[int, ParsedChunk]],
+        results: list,
+        result: IngestionResult,
+    ) -> None:
+        """Fallback: sumarização via ThreadPoolExecutor (caso asyncio falhe)."""
+        from concurrent.futures import ThreadPoolExecutor
+
+        def process_chunk(index: int, chunk: ParsedChunk):
             try:
                 s = self._summarizer.summarize_l0(chunk)
-                summaries.append(s)
+                return index, s, None
             except Exception as e:
-                error_msg = f"Summarize L0 falhou para {chunk.source_file}: {e}"
-                logger.error(error_msg)
-                result.errors.append(error_msg)
-        return summaries
+                return index, None, f"Summarize L0 falhou para {chunk.source_file}: {e}"
+
+        with ThreadPoolExecutor(max_workers=16) as executor:
+            futures = [executor.submit(process_chunk, idx, chunk) for idx, chunk in indexed_chunks]
+            for future in futures:
+                idx, summary, error_msg = future.result()
+                if error_msg:
+                    logger.error(error_msg)
+                    result.errors.append(error_msg)
+                if summary:
+                    results[idx] = summary
 
 
     def _step_store_sqlite(
         self,
         chunks: list[ParsedChunk],
-        summaries: list[SummaryResult],
         project_uuid: str,
         auto_tag: bool,
         result: IngestionResult,
     ) -> int:
         """Etapa 4: Persistência no SQLite (nós + arestas) via Bulk Insert (WAL-friendly).
 
-        Transaction Safety: nós e arestas de diretórios e chamadas são inseridos em lote
-        dentro de transações dedicadas.
+        Separa nós já cacheados (mantendo seus IDs) dos novos nós, inserindo
+        apenas os novos no SQLite, enquanto mapeia e cria arestas estruturais e de chamadas
+        para TODOS os chunks (novos e cacheados).
         """
         if not chunks:
             return 0
@@ -353,13 +562,13 @@ class IngestionManager:
                 "status": "ACTIVE"
             })
 
-        # Adiciona chunks de código/doc
+        # Adiciona apenas chunks de código/doc novos (não cacheados)
+        new_chunks = [c for c in chunks if not c.cached]
         dir_offset = len(nodes_to_create)
         from ingestion.parser import ChunkType
-        for i, chunk in enumerate(chunks):
-            summary_text = None
-            if i < len(summaries):
-                summary_text = summaries[i].summary
+        
+        for chunk in new_chunks:
+            summary_text = chunk.cached_summary
             
             ntype = "FACT"
             if chunk.chunk_type in (ChunkType.CLASS, ChunkType.FUNCTION, ChunkType.METHOD, ChunkType.MODULE):
@@ -378,29 +587,33 @@ class IngestionManager:
                 "status": "ACTIVE"
             })
 
-        # Executa bulk insert de nós
-        try:
-            node_ids = self._store.create_nodes_and_edges_bulk(nodes_to_create, [])
-        except Exception as e:
-            error_msg = f"Bulk insert de nós falhou: {e}"
-            logger.error(error_msg)
-            result.errors.append(error_msg)
-            raise RuntimeError(error_msg) from e
+        # Executa bulk insert de nós (novos diretórios + novos chunks)
+        node_ids = []
+        if nodes_to_create:
+            try:
+                node_ids = self._store.create_nodes_and_edges_bulk(nodes_to_create, [])
+            except Exception as e:
+                error_msg = f"Bulk insert de nós falhou: {e}"
+                logger.error(error_msg)
+                result.errors.append(error_msg)
+                raise RuntimeError(error_msg) from e
 
-        # Atualiza caches com os novos IDs gerados
+        # Atualiza caches de diretórios com os novos IDs gerados
         for idx, d in enumerate(sorted(new_dirs)):
-            dir_node_cache[d] = node_ids[idx]
+            if idx < len(node_ids):
+                dir_node_cache[d] = node_ids[idx]
 
-        # Associa IDs aos chunks (offset pula os diretórios criados no início)
+        # Associa novos IDs aos chunks criados
         chunk_node_ids = node_ids[dir_offset:]
-        for i, chunk in enumerate(chunks):
-            chunk.node_id = chunk_node_ids[i]
+        for i, chunk in enumerate(new_chunks):
+            if i < len(chunk_node_ids):
+                chunk.node_id = chunk_node_ids[i]
 
-        # 2. RESOLVER MAPAS DE SÍMBOLOS PARA MAPEAMENTO DE ARESTAS
+        # 2. RESOLVER MAPAS DE SÍMBOLOS PARA MAPEAMENTO DE ARESTAS (novos + cacheados)
         project_symbol_map = {}
         global_symbol_map = {}
 
-        # Mapear nós pré-existentes
+        # Mapear nós pré-existentes no banco
         for n in existing_nodes:
             label = n["label"]
             nid = n["id"]
@@ -414,9 +627,11 @@ class IngestionManager:
                     global_symbol_map[sym] = []
                 global_symbol_map[sym].append(nid)
 
-        # Mapear novos nós inseridos
-        for i, chunk in enumerate(chunks):
-            nid = chunk_node_ids[i]
+        # Mapear todos os chunks (novos e cacheados) do lote atual
+        for chunk in chunks:
+            nid = chunk.node_id
+            if nid is None:
+                continue
             sf = chunk.source_file
             sym = chunk.symbol_name
             project_symbol_map[(sf, sym)] = nid
@@ -425,17 +640,19 @@ class IngestionManager:
                     global_symbol_map[sym] = []
                 global_symbol_map[sym].append(nid)
 
-        # 3. PREPARAR ARESTAS PARA CRIAÇÃO EM LOTE
+        # 3. PREPARAR ARESTAS PARA CRIAÇÃO EM LOTE (novos + cacheados)
         edges_to_create = []
         file_module_map = {}
 
-        # Mapear módulos (arquivos) de entrada do lote atual
-        for i, chunk in enumerate(chunks):
-            if chunk.chunk_type.value == "module":
-                file_module_map[chunk.source_file] = chunk_node_ids[i]
+        # Mapear módulos (arquivos) do lote atual
+        for chunk in chunks:
+            if chunk.chunk_type.value == "module" and chunk.node_id is not None:
+                file_module_map[chunk.source_file] = chunk.node_id
 
-        for i, chunk in enumerate(chunks):
-            chunk_node_id = chunk_node_ids[i]
+        for chunk in chunks:
+            chunk_node_id = chunk.node_id
+            if chunk_node_id is None:
+                continue
 
             # Arestas de estrutura: diretório -> arquivo, arquivo -> símbolo
             parent_dir = chunk.source_file.replace("\\", "/")
@@ -509,12 +726,16 @@ class IngestionManager:
             except Exception as e:
                 logger.warning("Falha ao persistir arestas em lote (não fatal): %s", e)
 
-        return len(chunks)
+        return len(new_chunks)
 
     def _step_embed(self, chunks: list[ParsedChunk], project_uuid: str, result: IngestionResult) -> list[dict]:
-        """Etapa 5: Geração de embeddings em batch."""
+        """Etapa 5: Geração de embeddings em batch (apenas para chunks novos)."""
+        new_chunks = [c for c in chunks if not c.cached]
+        if not new_chunks:
+            return []
+
         # Coleta textos para batch embedding
-        texts = [c.content for c in chunks]
+        texts = [c.content for c in new_chunks]
 
         try:
             embeddings = self._embedder.embed_batch(texts)
@@ -522,11 +743,11 @@ class IngestionManager:
             error_msg = f"Embed batch falhou: {e}"
             logger.error(error_msg)
             result.errors.append(error_msg)
-            embeddings = [None] * len(chunks)
+            embeddings = [None] * len(new_chunks)
 
         # Monta items para vector store
         items: list[dict] = []
-        for chunk, embedding in zip(chunks, embeddings):
+        for chunk, embedding in zip(new_chunks, embeddings):
             node_id = chunk.node_id
             if node_id is None:
                 continue

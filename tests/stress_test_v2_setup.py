@@ -196,7 +196,11 @@ def bootstrap():
     if not LLM_API_KEY:
         raise RuntimeError("GRAFO_LLM_API_KEY nao encontrada no .env. Teste requer LLM real.")
 
-    llm = LLMAdapter(model_name="gemini-2.0-flash", api_key=LLM_API_KEY)
+    llm = LLMAdapter(
+        model_name=os.environ.get("GRAFO_LLM_MODEL", "gemini-2.5-flash"),
+        api_key=LLM_API_KEY,
+        base_url=os.environ.get("GRAFO_LLM_BASE_URL", None) or None,
+    )
     summarizer = ZoomSummarizer(llm_adapter=llm, sqlite_store=store)
     manager = IngestionManager(sqlite_store=store, vector_store=vector, embedding_manager=embedder, summarizer=summarizer)
     gc = GrafoConcierge(sqlite_store=store, vector_store=vector, embedding_manager=embedder, ingestion_manager=manager)

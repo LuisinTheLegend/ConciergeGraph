@@ -70,6 +70,10 @@ class ParsedChunk:
     estimated_tokens: int = 0
     calls: list[str] = field(default_factory=list)
     node_id: Optional[int] = None
+    # Delta Cache fields — preenchidos pelo orchestrator._detect_cached_chunks
+    cached: bool = False
+    cached_summary: Optional[str] = None
+    cached_tags: Optional[list[str]] = None
 
 # ---------------------------------------------------------------------------
 # Regex patterns para JS/TS

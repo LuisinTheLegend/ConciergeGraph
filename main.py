@@ -49,6 +49,7 @@ CHROMA_COLLECTION = os.environ.get("GRAFO_CHROMA_COLLECTION", "grafo_concierge")
 EMBEDDING_MODEL = os.environ.get("GRAFO_EMBEDDING_MODEL", "all-MiniLM-L6-v2")
 LLM_MODEL = os.environ.get("GRAFO_LLM_MODEL", "gemini-2.0-flash")
 LLM_API_KEY = os.environ.get("GRAFO_LLM_API_KEY", "")
+LLM_BASE_URL = os.environ.get("GRAFO_LLM_BASE_URL", "")
 
 # Janitor
 JANITOR_INTERVAL = int(os.environ.get("GRAFO_JANITOR_INTERVAL", "300"))
@@ -131,6 +132,7 @@ def bootstrap():
     llm_adapter = LLMAdapter(
         model_name=LLM_MODEL,
         api_key=LLM_API_KEY or None,
+        base_url=LLM_BASE_URL or None,
     )
     summarizer = ZoomSummarizer(
         llm_adapter=llm_adapter,

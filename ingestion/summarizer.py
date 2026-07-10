@@ -46,9 +46,9 @@ logger = logging.getLogger("grafo-concierge.summarizer")
 # ---------------------------------------------------------------------------
 
 MAX_RETRY_LOOPS: int = 3
-MAX_L0_TOKENS: int = 150
-MAX_L1_TOKENS: int = 300
-MAX_L2_TOKENS: int = 300
+MAX_L0_TOKENS: int = 1000
+MAX_L1_TOKENS: int = 1500
+MAX_L2_TOKENS: int = 1500
 L2_RELEVANCE_THRESHOLD: float = 0.15
 
 # Tags que indicam alta prioridade (boost no score de relevância)
@@ -154,10 +154,12 @@ class LLMAdapter:
         self,
         model_name: str = "gemini-2.0-flash",
         api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
         call_fn: Optional[Callable[[str, int], str]] = None,
     ) -> None:
         self._model_name = model_name
         self._api_key = api_key
+        self._base_url = base_url
         self._call_fn = call_fn
         logger.info("LLMAdapter inicializado: model=%s, custom_fn=%s", model_name, call_fn is not None)
 
@@ -195,10 +197,23 @@ class LLMAdapter:
             logger.error("Falha ao chamar Gemini (%s): %s", self._model_name, e)
             raise RuntimeError(f"LLM call failed: {e}") from e
 
-        # Tentativa com OpenAI
+        # Tentativa com OpenAI / Provedor Compatível
         try:
             import openai
-            client = openai.OpenAI(api_key=self._api_key)
+            
+            # Auto-detecção de OpenRouter por chave se nenhuma base_url for informada
+            target_base_url = self._base_url
+            if not target_base_url and self._api_key and self._api_key.startswith("sk-or-"):
+                target_base_url = "https://openrouter.ai/api/v1"
+                
+            if target_base_url:
+                client = openai.OpenAI(
+                    api_key=self._api_key,
+                    base_url=target_base_url
+                )
+            else:
+                client = openai.OpenAI(api_key=self._api_key)
+                
             response = client.chat.completions.create(
                 model=self._model_name,
                 messages=[{"role": "user", "content": prompt}],
@@ -208,13 +223,61 @@ class LLMAdapter:
         except ImportError:
             pass
         except Exception as e:
-            logger.error("Falha ao chamar OpenAI (%s): %s", self._model_name, e)
+            logger.error("Falha ao chamar OpenAI/Provedor Compatível (%s): %s", self._model_name, e)
             raise RuntimeError(f"LLM call failed: {e}") from e
 
         raise RuntimeError(
             "Nenhum backend LLM disponível. Instale 'google-generativeai' ou 'openai', "
             "ou forneça uma call_fn customizada."
         )
+
+    async def generate_async(self, prompt: str, max_tokens: int = 300) -> str:
+        """Versão assíncrona de generate() para alto throughput.
+
+        Estratégia por backend:
+            - call_fn customizada / Gemini SDK: usa asyncio.to_thread (fallback seguro).
+            - OpenAI / provedores compatíveis: usa openai.AsyncOpenAI nativo.
+        """
+        import asyncio
+
+        # Modo customizado ou Gemini SDK — delegar para thread
+        if self._call_fn is not None:
+            return await asyncio.to_thread(self._call_fn, prompt, max_tokens)
+
+        # Tentativa com OpenAI / Provedor Compatível (nativo async)
+        try:
+            import openai
+
+            target_base_url = self._base_url
+            if not target_base_url and self._api_key and self._api_key.startswith("sk-or-"):
+                target_base_url = "https://openrouter.ai/api/v1"
+
+            if target_base_url:
+                client = openai.AsyncOpenAI(
+                    api_key=self._api_key,
+                    base_url=target_base_url,
+                )
+            else:
+                client = openai.AsyncOpenAI(api_key=self._api_key)
+
+            response = await client.chat.completions.create(
+                model=self._model_name,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=max_tokens,
+            )
+            return response.choices[0].message.content or ""
+        except ImportError:
+            pass
+        except Exception as e:
+            logger.error("Async: Falha ao chamar OpenAI/Provedor (%s): %s", self._model_name, e)
+            raise RuntimeError(f"Async LLM call failed: {e}") from e
+
+        # Fallback: Gemini SDK via to_thread
+        try:
+            return await asyncio.to_thread(self.generate, prompt, max_tokens)
+        except Exception as e:
+            raise RuntimeError(f"Async LLM fallback failed: {e}") from e
+
 
 
 # ---------------------------------------------------------------------------
@@ -330,6 +393,177 @@ class ZoomSummarizer:
                     relevance_score=0.5,
                 ))
         return results
+
+    async def summarize_l0_async(self, chunk: ParsedChunk) -> SummaryResult:
+        """Versão assíncrona de summarize_l0 para uso com asyncio.gather."""
+        prompt = _L0_PROMPT_TEMPLATE.format(
+            source_file=chunk.source_file,
+            chunk_type=chunk.chunk_type.value,
+            symbol_name=chunk.symbol_name,
+            armored_content=chunk.armored_content,
+        )
+
+        for attempt in range(1, MAX_RETRY_LOOPS + 1):
+            try:
+                raw_response = await self._llm.generate_async(prompt, max_tokens=MAX_L0_TOKENS)
+                parsed = self._extract_json_with_fallback(raw_response)
+
+                if parsed and "summary" in parsed:
+                    summary_text = parsed["summary"]
+                    tags = parsed.get("tags", [])
+                    if isinstance(tags, list):
+                        tags = [str(t).lower() for t in tags]
+                    else:
+                        tags = []
+
+                    return SummaryResult(
+                        level=ZoomLevel.L0,
+                        summary=summary_text,
+                        source_label=chunk.source_file,
+                        source_chunks=1,
+                        tokens_used=self._estimate_tokens(summary_text),
+                        model_used=self._llm.model_name,
+                        is_dumb_summary=False,
+                        detected_tags=sorted(set(chunk.detected_tags + tags)),
+                        relevance_score=1.0,
+                    )
+
+                logger.warning(
+                    "L0 async attempt %d/%d: JSON inválido para %s",
+                    attempt, MAX_RETRY_LOOPS, chunk.source_file,
+                )
+
+            except Exception as e:
+                logger.warning(
+                    "L0 async attempt %d/%d falhou para %s: %s",
+                    attempt, MAX_RETRY_LOOPS, chunk.source_file, e,
+                )
+
+        # Dumb Summary — último recurso
+        logger.error("L0 async: todas as tentativas falharam para %s — gerando Dumb Summary.", chunk.source_file)
+        dumb = self._generate_dumb_summary(chunk.content, MAX_L0_TOKENS)
+        return SummaryResult(
+            level=ZoomLevel.L0,
+            summary=dumb,
+            source_label=chunk.source_file,
+            source_chunks=1,
+            tokens_used=self._estimate_tokens(dumb),
+            model_used="dumb_fallback",
+            is_dumb_summary=True,
+            detected_tags=chunk.detected_tags,
+            relevance_score=0.5,
+        )
+
+    # ===================================================================
+    # L0 Grouped — Agrupamento de chunks pequenos em um único prompt
+    # ===================================================================
+
+    _L0_GROUPED_PROMPT = """You are a code analysis assistant. Summarize each of the following code chunks individually.
+Return ONLY a valid JSON array of objects. Each object must have:
+- "index": The chunk index number (integer, starting from the values given).
+- "summary": A concise description of what this code does (max 2 sentences).
+- "tags": A list of detected technologies, frameworks, or key concepts.
+
+Chunks:
+{chunks_block}
+
+Respond with ONLY the JSON array, no markdown fences, no extra text."""
+
+    def summarize_l0_grouped(
+        self,
+        chunks: list[ParsedChunk],
+        indices: list[int],
+    ) -> list[tuple[int, SummaryResult]]:
+        """Sumariza múltiplos chunks pequenos em uma única chamada ao LLM.
+
+        Otimização para funções getters/setters e chunks < 50 tokens,
+        reduzindo o número total de chamadas HTTP ao provedor.
+
+        Args:
+            chunks: Lista de ParsedChunks pequenos a agrupar.
+            indices: Índices originais de cada chunk na lista global.
+
+        Returns:
+            Lista de tuplas (índice_original, SummaryResult).
+        """
+        chunks_block = ""
+        for idx, chunk in zip(indices, chunks):
+            chunks_block += (
+                f"\n--- Chunk index={idx} file={chunk.source_file} "
+                f"type={chunk.chunk_type.value} symbol={chunk.symbol_name} ---\n"
+                f"{chunk.armored_content}\n"
+            )
+
+        prompt = self._L0_GROUPED_PROMPT.format(chunks_block=chunks_block)
+
+        # Estima tokens de resposta: ~200 tokens por chunk no grupo
+        estimated_response_tokens = min(len(chunks) * 200, 4000)
+
+        for attempt in range(1, MAX_RETRY_LOOPS + 1):
+            try:
+                raw_response = self._llm.generate(prompt, max_tokens=estimated_response_tokens)
+
+                # Tenta parsear como array JSON
+                parsed_array = None
+                try:
+                    parsed_array = json.loads(raw_response)
+                except json.JSONDecodeError:
+                    # Tenta extrair array de dentro de markdown fences
+                    import re
+                    array_match = re.search(r'\[.*\]', raw_response, re.DOTALL)
+                    if array_match:
+                        try:
+                            parsed_array = json.loads(array_match.group())
+                        except json.JSONDecodeError:
+                            pass
+
+                if isinstance(parsed_array, list) and len(parsed_array) > 0:
+                    results: list[tuple[int, SummaryResult]] = []
+                    for item in parsed_array:
+                        if not isinstance(item, dict) or "summary" not in item:
+                            continue
+                        item_idx = item.get("index", -1)
+                        if item_idx not in indices:
+                            continue
+
+                        chunk_pos = indices.index(item_idx)
+                        chunk = chunks[chunk_pos]
+                        tags = item.get("tags", [])
+                        if isinstance(tags, list):
+                            tags = [str(t).lower() for t in tags]
+                        else:
+                            tags = []
+
+                        results.append((item_idx, SummaryResult(
+                            level=ZoomLevel.L0,
+                            summary=item["summary"],
+                            source_label=chunk.source_file,
+                            source_chunks=1,
+                            tokens_used=self._estimate_tokens(item["summary"]),
+                            model_used=self._llm.model_name,
+                            is_dumb_summary=False,
+                            detected_tags=sorted(set(chunk.detected_tags + tags)),
+                            relevance_score=1.0,
+                        )))
+
+                    if results:
+                        logger.info("L0 grouped: %d/%d resumos extraídos com sucesso.", len(results), len(chunks))
+                        return results
+
+                logger.warning(
+                    "L0 grouped attempt %d/%d: resposta inválida (%d chunks).",
+                    attempt, MAX_RETRY_LOOPS, len(chunks),
+                )
+
+            except Exception as e:
+                logger.warning(
+                    "L0 grouped attempt %d/%d falhou: %s",
+                    attempt, MAX_RETRY_LOOPS, e,
+                )
+
+        # Fallback: retorna lista vazia, caller fará resumos individuais
+        logger.error("L0 grouped: todas as tentativas falharam para %d chunks.", len(chunks))
+        return []
 
     # ===================================================================
     # L1 — Resumo de cluster (pasta/módulo)

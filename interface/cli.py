@@ -60,6 +60,7 @@ def _bootstrap_concierge():
     chroma_collection = os.environ.get("GRAFO_CHROMA_COLLECTION", "grafo_concierge")
     llm_model = os.environ.get("GRAFO_LLM_MODEL", "gemini-2.0-flash")
     llm_api_key = os.environ.get("GRAFO_LLM_API_KEY", "")
+    llm_base_url = os.environ.get("GRAFO_LLM_BASE_URL", "")
 
     os.makedirs(os.path.dirname(db_path) or ".", exist_ok=True)
     os.makedirs(chroma_path, exist_ok=True)
@@ -72,7 +73,11 @@ def _bootstrap_concierge():
         embedding_manager=embedder,
     )
 
-    llm_adapter = LLMAdapter(model_name=llm_model, api_key=llm_api_key or None)
+    llm_adapter = LLMAdapter(
+        model_name=llm_model,
+        api_key=llm_api_key or None,
+        base_url=llm_base_url or None,
+    )
     summarizer = ZoomSummarizer(llm_adapter=llm_adapter, sqlite_store=store)
 
     ingestion_manager = IngestionManager(

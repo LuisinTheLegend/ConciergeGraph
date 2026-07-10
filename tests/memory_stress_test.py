@@ -41,7 +41,7 @@ TEST_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_stress_tes
 DB_PATH = os.path.join(TEST_DIR, "stress_test.db")
 CHROMA_PATH = os.path.join(TEST_DIR, "chroma")
 PROJECT_DIR = os.path.join(TEST_DIR, "fake_project")
-PROJECT_UUID = str(uuid.uuid4())
+PROJECT_UUID = "stress-test-project-uuid-static-12345"
 PROJECT_NAME = "stress-test-project"
 
 # Ficheiros de teste
@@ -279,8 +279,9 @@ def bootstrap():
     # --- Summarizer com LLM real ou fallback ---
     if LLM_API_KEY:
         llm = LLMAdapter(
-            model_name="gemini-2.0-flash",
+            model_name=os.environ.get("GRAFO_LLM_MODEL", "gemini-2.5-flash"),
             api_key=LLM_API_KEY,
+            base_url=os.environ.get("GRAFO_LLM_BASE_URL", None) or None,
         )
     else:
         # Fallback: retorna JSON simples para não bloquear o teste

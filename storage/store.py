@@ -293,6 +293,46 @@ class SqliteStore:
         now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
         self.update_node(node_id, last_commit_at=now)
 
+    def update_nodes_file_hash_bulk(self, updates: list[tuple[int, str]]) -> int:
+        """Atualiza file_hash de múltiplos nós em uma única transação.
+
+        Usado pelo Delta Cache para vincular nós cacheados ao novo hash do arquivo,
+        evitando que o Garbage Collection os marque como órfãos.
+
+        Args:
+            updates: Lista de tuplas (node_id, new_file_hash).
+
+        Returns:
+            Número de nós atualizados com sucesso.
+        """
+        if not updates:
+            return 0
+
+        def _do(conn, upd):
+            for node_id, new_hash in upd:
+                conn.execute(
+                    "UPDATE nodes SET file_hash = ? WHERE id = ?",
+                    (new_hash, node_id),
+                )
+        self._conn_mgr.write(_do, updates)
+        return len(updates)
+
+    def cleanup_obsolete_nodes(self, project_uuid: str, relative_path: str, current_file_hash: str) -> None:
+        """Remove nós órfãos de um arquivo modificado (chunks que deixaram de existir).
+
+        Ao modificar um arquivo, os chunks inalterados são cacheados e os novos são
+        inseridos (ambos com o novo file_hash). Os chunks antigos do mesmo arquivo
+        que não foram reaproveitados mantém o hash antigo e são removidos aqui.
+        """
+        def _do(conn):
+            prefix = f"{relative_path}::"
+            conn.execute(
+                "DELETE FROM nodes WHERE project_uuid = ? AND (label = ? OR label LIKE ?) AND (file_hash IS NULL OR file_hash != ?)",
+                (project_uuid, relative_path, prefix + "%", current_file_hash)
+            )
+        self._conn_mgr.write(_do)
+
+
     def create_nodes_and_edges_bulk(
         self,
         nodes_to_create: list[dict],
