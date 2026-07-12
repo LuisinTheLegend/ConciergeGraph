@@ -137,6 +137,10 @@ class EmbeddingManager:
         if self._model is not None:
             return
 
+        import os
+        if os.environ.get("GRAFO_LIGHTWEIGHT_MODE", "false").lower() == "true":
+            raise EmbeddingError("Modo lightweight ativo - modelo local desativado.")
+
         if self._tier == EmbeddingTier.FLASH:
             if not SENTENCE_TRANSFORMERS_AVAILABLE:
                 raise EmbeddingError(
@@ -271,9 +275,18 @@ class ChromaVectorStore(BaseVectorBackend):
         collection_name: str = "grafo_concierge",
         embedding_manager: Optional[EmbeddingManager] = None,
     ) -> None:
-        self._available = CHROMADB_AVAILABLE
         self._embedding_mgr = embedding_manager or EmbeddingManager()
         self._collection_name = collection_name
+
+        import os
+        if os.environ.get("GRAFO_LIGHTWEIGHT_MODE", "false").lower() == "true":
+            logger.info("ChromaVectorStore operando em modo NO-OP (Modo Lightweight ativo).")
+            self._available = False
+            self._client = None
+            self._collection = None
+            return
+
+        self._available = CHROMADB_AVAILABLE
 
         if not CHROMADB_AVAILABLE:
             logger.warning(

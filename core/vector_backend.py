@@ -66,6 +66,11 @@ class QdrantVectorStore(BaseVectorBackend):
         self._max_backoff = 60.0
         self._last_connect_attempt = 0.0
 
+        import os
+        if os.environ.get("GRAFO_LIGHTWEIGHT_MODE", "false").lower() == "true":
+            logger.info("QdrantVectorStore operando em modo NO-OP (Modo Lightweight ativo).")
+            return
+
         # Tenta a conexão inicial
         self._ensure_connected()
 

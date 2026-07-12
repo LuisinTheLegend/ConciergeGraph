@@ -139,6 +139,9 @@ class ConciergeConfig:
     embedding_dimensions: int = 384
     default_scope: str = "primary_wing"
 
+    # Modo Lightweight (salva RAM desativando busca vetorial e usando FTS5)
+    lightweight_mode: bool = False
+
     # Limites de resultados para buscas.
     search_top_k: int = 10
     fts_limit: int = 20
@@ -161,6 +164,12 @@ class ConciergeConfig:
             self, "recency_lambda",
             math.log(2) / self.recency_half_life_days
         )
+
+        import os
+        if not self.lightweight_mode:
+            env_val = os.environ.get("GRAFO_LIGHTWEIGHT_MODE", "false").lower() == "true"
+            if env_val:
+                object.__setattr__(self, "lightweight_mode", True)
 
 
 # ---------------------------------------------------------------------------
