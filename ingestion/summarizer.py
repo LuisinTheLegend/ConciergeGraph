@@ -235,14 +235,23 @@ class LLMAdapter:
         """Versão assíncrona de generate() para alto throughput.
 
         Estratégia por backend:
-            - call_fn customizada / Gemini SDK: usa asyncio.to_thread (fallback seguro).
+            - call_fn customizada: usa asyncio.to_thread (fallback seguro).
+            - Modelos Gemini nativos (sem base_url customizada): prioriza o Gemini SDK nativo.
             - OpenAI / provedores compatíveis: usa openai.AsyncOpenAI nativo.
         """
         import asyncio
 
-        # Modo customizado ou Gemini SDK — delegar para thread
+        # Modo customizado
         if self._call_fn is not None:
             return await asyncio.to_thread(self._call_fn, prompt, max_tokens)
+
+        # Se for modelo Gemini nativo e não tiver base_url externa customizada,
+        # prioriza o Gemini SDK nativo para evitar conflito com a biblioteca openai
+        if self._model_name.startswith("gemini-") and not self._base_url:
+            try:
+                return await asyncio.to_thread(self.generate, prompt, max_tokens)
+            except Exception as e:
+                logger.warning("Falha na tentativa inicial assíncrona com Gemini SDK: %s. Tentando OpenAI...", e)
 
         # Tentativa com OpenAI / Provedor Compatível (nativo async)
         try:
@@ -272,7 +281,7 @@ class LLMAdapter:
             logger.error("Async: Falha ao chamar OpenAI/Provedor (%s): %s", self._model_name, e)
             raise RuntimeError(f"Async LLM call failed: {e}") from e
 
-        # Fallback: Gemini SDK via to_thread
+        # Fallback geral
         try:
             return await asyncio.to_thread(self.generate, prompt, max_tokens)
         except Exception as e:
