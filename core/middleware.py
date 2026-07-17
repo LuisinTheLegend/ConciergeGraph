@@ -652,3 +652,73 @@ class GrafoConcierge:
             "update_fact_utility: fact_id=%d, was_useful=%s → %s atualizado.",
             fact_id, was_useful, "utility_alpha" if was_useful else "utility_beta",
         )
+
+    # ===================================================================
+    # ARSENAL MCP — Backend-6.1: Ciclo de Vida + Telemetria + Vetorial
+    # ===================================================================
+
+    def update_project(self, project_uuid: str, **fields: Any) -> None:
+        """Atualiza campos permitidos de um projeto (cadastro).
+
+        Args:
+            project_uuid: UUID do projeto.
+            **fields: Campos a atualizar (folder_name, primary_wing,
+                      privacy_level, summary).
+        """
+        self._store.update_project(project_uuid, **fields)
+        logger.info("update_project: %s → campos=%s", project_uuid, list(fields.keys()))
+
+    def add_reference_wing(self, project_uuid: str, wing_name: str) -> None:
+        """Associa uma Reference Wing ao projeto.
+
+        Args:
+            project_uuid: UUID do projeto.
+            wing_name: Nome da ala a associar.
+        """
+        self._store.add_reference_wing(project_uuid, wing_name)
+        logger.info("add_reference_wing: %s → wing=%s", project_uuid, wing_name)
+
+    def remove_reference_wing(self, project_uuid: str, wing_name: str) -> None:
+        """Remove uma Reference Wing do projeto.
+
+        Args:
+            project_uuid: UUID do projeto.
+            wing_name: Nome da ala a remover.
+        """
+        self._store.remove_reference_wing(project_uuid, wing_name)
+        logger.info("remove_reference_wing: %s → wing=%s", project_uuid, wing_name)
+
+    def get_trajectories(self, project_uuid: str) -> list[dict]:
+        """Recupera o histórico de trajetórias cognitivas do projeto.
+
+        Args:
+            project_uuid: UUID do projeto.
+
+        Returns:
+            Lista de dicts com as trajetórias registradas.
+        """
+        return self._store.get_trajectories(project_uuid)
+
+    def count_embeddings(self, project_uuid: Optional[str] = None) -> int:
+        """Retorna a contagem exata de vetores no ChromaDB.
+
+        Args:
+            project_uuid: Se informado, conta apenas deste projeto.
+
+        Returns:
+            Número total de embeddings armazenados.
+        """
+        return self._vector.count(project_uuid)
+
+    def reset_collection(self) -> bool:
+        """Destrói e recria a coleção de vetores (reparo emergencial).
+
+        CUIDADO: Operação destrutiva e irreversível. Exigirá re-ingestão.
+
+        Returns:
+            True se sucesso, False caso contrário.
+        """
+        result = self._vector.reset_collection()
+        if result:
+            logger.warning("reset_collection: coleção vetorial destruída e recriada.")
+        return result

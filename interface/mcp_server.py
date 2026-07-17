@@ -510,6 +510,137 @@ class GrafoConciergeServer:
             """
             return server._handle_get_full_topology(project_identifier)
 
+        # --- delete_project ---
+        @self._mcp.tool(
+            name="delete_project",
+            description=(
+                "Remove fisicamente um projeto e todos os registros atrelados, "
+                "incluindo nós, arestas, commits, trajetórias e embeddings associados."
+            ),
+        )
+        def delete_project(project_identifier: str) -> dict:
+            """Remove um projeto e todos os seus dados cascata.
+
+            Args:
+                project_identifier: UUID ou nome do diretório do projeto.
+            """
+            return server._handle_delete_project(project_identifier)
+
+        # --- update_project ---
+        @self._mcp.tool(
+            name="update_project",
+            description=(
+                "Atualiza campos cadastrais permitidos de um projeto "
+                "(folder_name, primary_wing, privacy_level, summary)."
+            ),
+        )
+        def update_project(
+            project_identifier: str,
+            folder_name: Optional[str] = None,
+            primary_wing: Optional[str] = None,
+            privacy_level: Optional[str] = None,
+            summary: Optional[str] = None,
+        ) -> dict:
+            """Atualiza o cadastro de um projeto.
+
+            Args:
+                project_identifier: UUID ou nome do diretório do projeto.
+                folder_name: Novo nome do diretório (opcional).
+                primary_wing: Nova ala primária do projeto (opcional).
+                privacy_level: Nível de privacidade (PUBLIC, INTERNAL, RESTRICTED) (opcional).
+                summary: Novo resumo descritivo do projeto (opcional).
+            """
+            return server._handle_update_project(
+                project_identifier, folder_name, primary_wing, privacy_level, summary
+            )
+
+        # --- add_reference_wing ---
+        @self._mcp.tool(
+            name="add_reference_wing",
+            description="Associa uma ala de referência (Reference Wing) recomendada a um projeto.",
+        )
+        def add_reference_wing(project_identifier: str, wing_name: str) -> dict:
+            """Associa uma ala recomendada ao projeto.
+
+            Args:
+                project_identifier: UUID ou nome do diretório do projeto.
+                wing_name: Nome da ala a associar.
+            """
+            return server._handle_add_reference_wing(project_identifier, wing_name)
+
+        # --- remove_reference_wing ---
+        @self._mcp.tool(
+            name="remove_reference_wing",
+            description="Remove uma ala de referência (Reference Wing) associada de um projeto.",
+        )
+        def remove_reference_wing(project_identifier: str, wing_name: str) -> dict:
+            """Remove uma ala associada do projeto.
+
+            Args:
+                project_identifier: UUID ou nome do diretório do projeto.
+                wing_name: Nome da ala a remover.
+            """
+            return server._handle_remove_reference_wing(project_identifier, wing_name)
+
+        # --- find_similar ---
+        @self._mcp.tool(
+            name="find_similar",
+            description="Busca outros projetos cadastrados que compartilham o mesmo domínio de especialização técnica.",
+        )
+        def find_similar(
+            project_identifier: str,
+            limit: int = 5,
+            include_references: bool = False,
+            all_wings: bool = False,
+        ) -> dict:
+            """Busca projetos similares na mesma ala técnica.
+
+            Args:
+                project_identifier: UUID ou nome do diretório do projeto âncora.
+                limit: Limite máximo de projetos retornados (default: 5).
+                include_references: Se True, inclui alas de referência na busca.
+                all_wings: Se True, busca em todas as alas indistintamente.
+            """
+            return server._handle_find_similar(project_identifier, limit, include_references, all_wings)
+
+        # --- get_trajectories ---
+        @self._mcp.tool(
+            name="get_trajectories",
+            description="Recupera o histórico detalhado de trajetórias cognitivas e passos de navegação anteriores do projeto.",
+        )
+        def get_trajectories(project_identifier: str) -> dict:
+            """Recupera histórico de trajetórias cognitivas.
+
+            Args:
+                project_identifier: UUID ou nome do diretório do projeto.
+            """
+            return server._handle_get_trajectories(project_identifier)
+
+        # --- count_embeddings ---
+        @self._mcp.tool(
+            name="count_embeddings",
+            description="Retorna a contagem exata de vetores (embeddings) armazenados na coleção vetorial.",
+        )
+        def count_embeddings(project_identifier: Optional[str] = None) -> dict:
+            """Conta vetores da coleção.
+
+            Args:
+                project_identifier: Se informado, filtra e conta apenas vetores desse projeto.
+            """
+            return server._handle_count_embeddings(project_identifier)
+
+        # --- reset_collection ---
+        @self._mcp.tool(
+            name="reset_collection",
+            description=(
+                "Destrói e recria a coleção física de vetores (reparo emergencial). "
+                "ATENÇÃO: Operação irreversível que elimina TODOS os vetores!"
+            ),
+        )
+        def reset_collection() -> dict:
+            """Destrói e recria a coleção de vetores."""
+            return server._handle_reset_collection()
+
     def _resolve_project_identifier(self, project_identifier: str) -> str:
         """Resolve project_identifier (UUID ou folder_name) para project_uuid.
         
@@ -1333,3 +1464,247 @@ class GrafoConciergeServer:
                 "edges": [],
                 "duration_seconds": round(elapsed, 3),
             }
+
+    # ===================================================================
+    # HANDLER: delete_project
+    # ===================================================================
+
+    def _handle_delete_project(self, project_identifier: str) -> dict:
+        """Handler do delete_project."""
+        t0 = time.perf_counter()
+        try:
+            project_uuid = self._resolve_project_identifier(project_identifier)
+            self._gc.delete_project(project_uuid)
+            elapsed = time.perf_counter() - t0
+            logger.info("delete_project OK: %s em %.3fs", project_uuid, elapsed)
+            return {
+                "success": True,
+                "project_uuid": project_uuid,
+                "duration_seconds": round(elapsed, 3),
+            }
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("delete_project FALHOU: %s — %s", project_identifier, e)
+            return {
+                "success": False,
+                "error": str(e),
+                "duration_seconds": round(elapsed, 3),
+            }
+
+    # ===================================================================
+    # HANDLER: update_project
+    # ===================================================================
+
+    def _handle_update_project(
+        self,
+        project_identifier: str,
+        folder_name: Optional[str] = None,
+        primary_wing: Optional[str] = None,
+        privacy_level: Optional[str] = None,
+        summary: Optional[str] = None,
+    ) -> dict:
+        """Handler do update_project."""
+        t0 = time.perf_counter()
+        try:
+            project_uuid = self._resolve_project_identifier(project_identifier)
+            fields = {}
+            if folder_name is not None:
+                fields["folder_name"] = folder_name
+            if primary_wing is not None:
+                fields["primary_wing"] = primary_wing
+            if privacy_level is not None:
+                fields["privacy_level"] = privacy_level
+            if summary is not None:
+                fields["summary"] = summary
+
+            self._gc.update_project(project_uuid, **fields)
+            elapsed = time.perf_counter() - t0
+            logger.info("update_project OK: %s com campos=%s em %.3fs", project_uuid, list(fields.keys()), elapsed)
+            return {
+                "success": True,
+                "project_uuid": project_uuid,
+                "updated_fields": list(fields.keys()),
+                "duration_seconds": round(elapsed, 3),
+            }
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("update_project FALHOU: %s — %s", project_identifier, e)
+            return {
+                "success": False,
+                "error": str(e),
+                "duration_seconds": round(elapsed, 3),
+            }
+
+    # ===================================================================
+    # HANDLER: add_reference_wing
+    # ===================================================================
+
+    def _handle_add_reference_wing(self, project_identifier: str, wing_name: str) -> dict:
+        """Handler do add_reference_wing."""
+        t0 = time.perf_counter()
+        try:
+            project_uuid = self._resolve_project_identifier(project_identifier)
+            self._gc.add_reference_wing(project_uuid, wing_name)
+            elapsed = time.perf_counter() - t0
+            logger.info("add_reference_wing OK: %s -> %s em %.3fs", project_uuid, wing_name, elapsed)
+            return {
+                "success": True,
+                "project_uuid": project_uuid,
+                "wing_name": wing_name,
+                "duration_seconds": round(elapsed, 3),
+            }
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("add_reference_wing FALHOU: %s — %s", project_identifier, e)
+            return {
+                "success": False,
+                "error": str(e),
+                "duration_seconds": round(elapsed, 3),
+            }
+
+    # ===================================================================
+    # HANDLER: remove_reference_wing
+    # ===================================================================
+
+    def _handle_remove_reference_wing(self, project_identifier: str, wing_name: str) -> dict:
+        """Handler do remove_reference_wing."""
+        t0 = time.perf_counter()
+        try:
+            project_uuid = self._resolve_project_identifier(project_identifier)
+            self._gc.remove_reference_wing(project_uuid, wing_name)
+            elapsed = time.perf_counter() - t0
+            logger.info("remove_reference_wing OK: %s -> %s em %.3fs", project_uuid, wing_name, elapsed)
+            return {
+                "success": True,
+                "project_uuid": project_uuid,
+                "wing_name": wing_name,
+                "duration_seconds": round(elapsed, 3),
+            }
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("remove_reference_wing FALHOU: %s — %s", project_identifier, e)
+            return {
+                "success": False,
+                "error": str(e),
+                "duration_seconds": round(elapsed, 3),
+            }
+
+    # ===================================================================
+    # HANDLER: find_similar
+    # ===================================================================
+
+    def _handle_find_similar(
+        self,
+        project_identifier: str,
+        limit: int = 5,
+        include_references: bool = False,
+        all_wings: bool = False,
+    ) -> dict:
+        """Handler do find_similar."""
+        t0 = time.perf_counter()
+        try:
+            project_uuid = self._resolve_project_identifier(project_identifier)
+            similar = self._gc.find_similar(
+                project_uuid=project_uuid,
+                limit=limit,
+                include_references=include_references,
+                all_wings=all_wings,
+            )
+            elapsed = time.perf_counter() - t0
+            logger.info("find_similar OK: %s (limit=%d) em %.3fs", project_uuid, limit, elapsed)
+            return {
+                "success": True,
+                "project_uuid": project_uuid,
+                "similar_projects": similar,
+                "duration_seconds": round(elapsed, 3),
+            }
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("find_similar FALHOU: %s — %s", project_identifier, e)
+            return {
+                "success": False,
+                "error": str(e),
+                "duration_seconds": round(elapsed, 3),
+            }
+
+    # ===================================================================
+    # HANDLER: get_trajectories
+    # ===================================================================
+
+    def _handle_get_trajectories(self, project_identifier: str) -> dict:
+        """Handler do get_trajectories."""
+        t0 = time.perf_counter()
+        try:
+            project_uuid = self._resolve_project_identifier(project_identifier)
+            trajectories = self._gc.get_trajectories(project_uuid)
+            elapsed = time.perf_counter() - t0
+            logger.info("get_trajectories OK: %s em %.3fs", project_uuid, elapsed)
+            return {
+                "success": True,
+                "project_uuid": project_uuid,
+                "trajectories": trajectories,
+                "duration_seconds": round(elapsed, 3),
+            }
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("get_trajectories FALHOU: %s — %s", project_identifier, e)
+            return {
+                "success": False,
+                "error": str(e),
+                "duration_seconds": round(elapsed, 3),
+            }
+
+    # ===================================================================
+    # HANDLER: count_embeddings
+    # ===================================================================
+
+    def _handle_count_embeddings(self, project_identifier: Optional[str] = None) -> dict:
+        """Handler do count_embeddings."""
+        t0 = time.perf_counter()
+        try:
+            project_uuid = None
+            if project_identifier:
+                project_uuid = self._resolve_project_identifier(project_identifier)
+
+            count = self._gc.count_embeddings(project_uuid)
+            elapsed = time.perf_counter() - t0
+            logger.info("count_embeddings OK: project=%s, count=%d em %.3fs", project_uuid or "ALL", count, elapsed)
+            return {
+                "success": True,
+                "project_uuid": project_uuid,
+                "count": count,
+                "duration_seconds": round(elapsed, 3),
+            }
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("count_embeddings FALHOU: %s — %s", project_identifier, e)
+            return {
+                "success": False,
+                "error": str(e),
+                "duration_seconds": round(elapsed, 3),
+            }
+
+    # ===================================================================
+    # HANDLER: reset_collection
+    # ===================================================================
+
+    def _handle_reset_collection(self) -> dict:
+        """Handler do reset_collection."""
+        t0 = time.perf_counter()
+        try:
+            success = self._gc.reset_collection()
+            elapsed = time.perf_counter() - t0
+            logger.info("reset_collection OK: %s em %.3fs", success, elapsed)
+            return {
+                "success": success,
+                "duration_seconds": round(elapsed, 3),
+            }
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("reset_collection FALHOU: %s", e)
+            return {
+                "success": False,
+                "error": str(e),
+                "duration_seconds": round(elapsed, 3),
+            }
+

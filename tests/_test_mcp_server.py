@@ -93,8 +93,12 @@ class MockVectorStore:
     def health_check(self):
         return True
 
-    def count(self):
+    def count(self, project_uuid=None):
         return len(self.stored)
+
+    def reset_collection(self):
+        self.stored = []
+        return True
 
 
 class MockIngestionManager:
@@ -410,6 +414,93 @@ assert alias_mine["project_uuid"] == project_uuid
 print("  [PASS] Resolução de Alias no mine OK")
 
 # ===================================================================
+print()
+print("=" * 60)
+print("TESTE 14: update_project e get_trajectories")
+print("=" * 60)
+update_res = server._handle_update_project(
+    project_identifier=project_uuid,
+    folder_name="mcp-test-updated",
+    primary_wing="frontend",
+    privacy_level="RESTRICTED",
+    summary="Updated test project description",
+)
+print(f"  update success: {update_res['success']}")
+assert update_res["success"] is True
+stored_proj = store.get_project(project_uuid)
+assert stored_proj["folder_name"] == "mcp-test-updated"
+assert stored_proj["primary_wing"] == "frontend"
+assert stored_proj["privacy_level"] == "RESTRICTED"
+assert stored_proj["summary"] == "Updated test project description"
+
+traj_res = server._handle_get_trajectories(project_uuid)
+print(f"  get_trajectories success: {traj_res['success']}")
+assert traj_res["success"] is True
+print("  [PASS] update_project e get_trajectories OK")
+
+# ===================================================================
+print()
+print("=" * 60)
+print("TESTE 15: add_reference_wing e remove_reference_wing")
+print("=" * 60)
+add_res = server._handle_add_reference_wing(project_uuid, "wing-security")
+print(f"  add wing success: {add_res['success']}")
+assert add_res["success"] is True
+wings = store.get_reference_wings(project_uuid)
+assert "wing-security" in wings
+
+remove_res = server._handle_remove_reference_wing(project_uuid, "wing-security")
+print(f"  remove wing success: {remove_res['success']}")
+assert remove_res["success"] is True
+wings = store.get_reference_wings(project_uuid)
+assert "wing-security" not in wings
+print("  [PASS] add_reference_wing e remove_reference_wing OK")
+
+# ===================================================================
+print()
+print("=" * 60)
+print("TESTE 16: find_similar")
+print("=" * 60)
+similar_res = server._handle_find_similar(project_uuid, limit=2)
+print(f"  success: {similar_res['success']}")
+assert similar_res["success"] is True
+print("  [PASS] find_similar OK")
+
+# ===================================================================
+print()
+print("=" * 60)
+print("TESTE 17: count_embeddings e reset_collection")
+print("=" * 60)
+count_res = server._handle_count_embeddings(project_uuid)
+print(f"  initial count: {count_res['count']}")
+assert count_res["success"] is True
+
+reset_res = server._handle_reset_collection()
+print(f"  reset success: {reset_res['success']}")
+assert reset_res["success"] is True
+
+count_res_2 = server._handle_count_embeddings()
+print(f"  after reset count: {count_res_2['count']}")
+assert count_res_2["success"] is True
+assert count_res_2["count"] == 0
+print("  [PASS] count_embeddings e reset_collection OK")
+
+# ===================================================================
+print()
+print("=" * 60)
+print("TESTE 18: delete_project")
+print("=" * 60)
+delete_res = server._handle_delete_project(project_uuid)
+print(f"  delete success: {delete_res['success']}")
+assert delete_res["success"] is True
+try:
+    store.get_project(project_uuid)
+    assert False, "Projeto deveria ter sido deletado da base de dados"
+except Exception:
+    pass
+print("  [PASS] delete_project OK")
+
+# ===================================================================
 # Cleanup
 # ===================================================================
 store.close()
@@ -420,5 +511,6 @@ except PermissionError:
 
 print()
 print("=" * 60)
-print("TODOS OS 13 TESTES PASSARAM — mcp_server.py v3.8.0 OPERACIONAL")
+print("TODOS OS 18 TESTES PASSARAM — mcp_server.py v3.8.0 OPERACIONAL")
 print("=" * 60)
+

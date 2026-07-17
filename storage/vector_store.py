@@ -627,6 +627,36 @@ class ChromaVectorStore(BaseVectorBackend):
             logger.error("Falha ao contar vetores: %s", e)
             return 0
 
+    def reset_collection(self) -> bool:
+        """Destrói e recria a coleção física de vetores (reparo emergencial).
+
+        CUIDADO: Esta operação apaga TODOS os embeddings irreversivelmente.
+        Após reset, será necessário re-ingerir os projetos para recriar vetores.
+
+        Returns:
+            True se a operação foi bem-sucedida, False caso contrário.
+        """
+        if not self._available or self._client is None:
+            logger.warning("reset_collection ignorado: ChromaDB indisponível.")
+            return False
+
+        try:
+            old_count = self._collection.count() if self._collection else 0
+            self._client.delete_collection(self._collection_name)
+            self._collection = self._client.get_or_create_collection(
+                name=self._collection_name,
+                metadata={"hnsw:space": "cosine"},
+            )
+            logger.info(
+                "reset_collection OK: coleção '%s' destruída e recriada "
+                "(%d embeddings eliminados).",
+                self._collection_name, old_count,
+            )
+            return True
+        except Exception as e:
+            logger.error("reset_collection FALHOU: %s", e)
+            return False
+
     # ===================================================================
     # MÉTODOS AUXILIARES INTERNOS
     # ===================================================================
