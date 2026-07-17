@@ -11,6 +11,8 @@ load_dotenv()
 # Imports das camadas sólidas
 from storage import SqliteStore, ChromaVectorStore, EmbeddingManager
 from ingestion import IngestionManager, ZoomSummarizer
+from ingestion.summarizer import LLMAdapter
+from core.middleware import GrafoConcierge
 from services import JanitorService
 
 # Configuração de Log
@@ -19,15 +21,24 @@ logger = logging.getLogger("brain-check")
 
 def run_diagnostic():
     PROJECT_UUID = "test-uuid-001"
-    TEST_FILE = Path("brain_sample.py")
     
     logger.info("🧪 [1/4] Inicializando Motores...")
     
     # Âncora dinâmica: tests/ → raiz do projeto
     _project_root = Path(__file__).parent.parent.resolve()
+    
+    TEST_DIR = _project_root / "_test_brain_tmp"
+    TEST_DIR.mkdir(exist_ok=True)
+    TEST_FILE = TEST_DIR / "brain_sample.py"
 
     # 1. SqliteStore (path ancorado na raiz do projeto)
     store = SqliteStore(str(_project_root / "data" / "concierge.db"))
+    
+    # Garante que o projeto de teste exista no banco de dados
+    try:
+        store.get_project(PROJECT_UUID)
+    except Exception:
+        store.create_project(PROJECT_UUID, "brain-check-temp", "teste")
     
     # 2. EmbeddingManager (v3.8.0 - inicializa com tier padrão 'flash')
     embedder = EmbeddingManager() 
@@ -36,11 +47,27 @@ def run_diagnostic():
     vector = ChromaVectorStore(persist_dir=str(_project_root / "data" / "chroma"), embedding_manager=embedder)
     
     # 4. ZoomSummarizer (inicializa com adapter interno padrão)
-    summarizer = ZoomSummarizer()
+    llm_model = os.environ.get("GRAFO_LLM_MODEL", "gemini-2.0-flash")
+    llm_api_key = os.environ.get("GRAFO_LLM_API_KEY", "")
+    llm_base_url = os.environ.get("GRAFO_LLM_BASE_URL", "")
+    llm_adapter = LLMAdapter(
+        model_name=llm_model,
+        api_key=llm_api_key or None,
+        base_url=llm_base_url or None,
+    )
+    summarizer = ZoomSummarizer(llm_adapter=llm_adapter, sqlite_store=store)
     
     # 5. Ingestion & Janitor
     manager = IngestionManager(store, vector, embedder, summarizer)
     janitor = JanitorService(store, vector, manager)
+
+    # Fachada Central GrafoConcierge
+    gc = GrafoConcierge(
+        sqlite_store=store,
+        vector_store=vector,
+        embedding_manager=embedder,
+        ingestion_manager=manager,
+    )
 
     # --- TESTE 2: PRECISÃO ---
     logger.info("🧪 [2/4] Testando Precisão e Ingestão...")
@@ -53,13 +80,24 @@ def security_protocol_alpha():
     TEST_FILE.write_text(content)
     
     # Ingestão do arquivo de teste
-    manager.mine(PROJECT_UUID, ".", auto_tag=True)
+    manager.mine(PROJECT_UUID, str(TEST_DIR), auto_tag=True)
     
     # Busca híbrida (Semântica + FTS5)
     query = "Como o sistema se protege contra injeção de prompts?"
-    results = vector.hybrid_search(query, PROJECT_UUID, limit=5)
+    results = gc.hybrid_search(query=query, project_uuid=PROJECT_UUID, top_k=5)
     
-    found = any("security_protocol_alpha" in str(r.get('metadata', '')) for r in results)
+    # Enriquece os resultados com dados do SQLite para verificação
+    enriched = []
+    for r in results:
+        try:
+            node = store.get_node(r["node_id"])
+            enriched.append(node)
+        except Exception:
+            pass
+
+    found = any("security_protocol_alpha" in str(node.get("label", "")) or 
+                "security_protocol_alpha" in str(node.get("summary", "")) 
+                for node in enriched)
     if found:
         logger.info("✅ PASS: O sistema localizou a lógica de segurança por conceito!")
     else:
@@ -80,15 +118,20 @@ def security_protocol_alpha():
         TEST_FILE.unlink() # Deleta o arquivo físico
     
     # Roda mine para detectar o delta e janitor para limpar
-    manager.mine(PROJECT_UUID, ".")
+    manager.mine(PROJECT_UUID, str(TEST_DIR))
     report = janitor.run_maintenance(PROJECT_UUID)
     
     # A busca agora deve retornar vazio para este símbolo
-    check = vector.hybrid_search("security_protocol_alpha", PROJECT_UUID)
+    check = gc.hybrid_search(query="security_protocol_alpha", project_uuid=PROJECT_UUID)
     if len(check) == 0:
-        logger.info(f"✅ PASS: Arquivo fantasma removido. Órfãos limpos: {report.orphans_removed}")
+        logger.info(f"✅ PASS: Arquivo fantasma removido. Órfãos limpos: {report.orphan_vectors_removed}")
     else:
         logger.error("❌ FAIL: O vetor ainda existe no ChromaDB após a exclusão.")
+        
+    try:
+        TEST_DIR.rmdir()
+    except Exception:
+        pass
 
     logger.info("\n" + "="*40 + "\nDIAGNÓSTICO v3.8.2 CONCLUÍDO\n" + "="*40)
 
