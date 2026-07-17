@@ -235,7 +235,10 @@ class FileParser:
             else:
                 return None
             parser = tree_sitter.Parser()
-            parser.set_language(lang)
+            try:
+                parser.set_language(lang)
+            except AttributeError:
+                parser.language = lang
             return parser
         except Exception as e:
             logger.warning("Erro ao carregar parser tree-sitter para %s: %s", ext, e)
