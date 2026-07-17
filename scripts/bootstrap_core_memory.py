@@ -8,18 +8,19 @@ padrão para o agente iniciar operacional e alinhado com as regras do projeto.
 
 import os
 import sys
+from pathlib import Path
 from dotenv import load_dotenv
 
 # Garante o carregamento dos módulos do Grafo Concierge inserindo o caminho raiz no sys.path
-ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.insert(0, ROOT_DIR)
+ROOT_DIR = Path(__file__).parent.parent.resolve()
+sys.path.insert(0, str(ROOT_DIR))
 
-load_dotenv(os.path.join(ROOT_DIR, ".env"))
+load_dotenv(str(ROOT_DIR / ".env"))
 
 from storage import SqliteStore
 
 # Definição do caminho do banco de dados (mesmo padrão do main.py)
-DB_PATH = os.environ.get("GRAFO_DB_PATH", os.path.join(ROOT_DIR, "data", "concierge.db"))
+DB_PATH = os.environ.get("GRAFO_DB_PATH", str(ROOT_DIR / "data" / "concierge.db"))
 
 DEFAULT_MEMORIES = [
     {

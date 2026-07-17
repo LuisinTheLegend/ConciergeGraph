@@ -35,14 +35,16 @@ import logging
 import os
 import signal
 import sys
+from pathlib import Path
 
 # ---------------------------------------------------------------------------
 # 1. CONFIGURAÇÃO — Constantes e variáveis de ambiente
 # ---------------------------------------------------------------------------
 
-# Paths
-DB_PATH = os.environ.get("GRAFO_DB_PATH", os.path.join("data", "concierge.db"))
-CHROMA_PATH = os.environ.get("GRAFO_CHROMA_PATH", os.path.join("data", "chroma"))
+# Paths — ancorados na raiz do projeto, nunca relativos ao CWD
+PROJECT_ROOT = Path(__file__).parent.resolve()
+DB_PATH = os.environ.get("GRAFO_DB_PATH", str(PROJECT_ROOT / "data" / "concierge.db"))
+CHROMA_PATH = os.environ.get("GRAFO_CHROMA_PATH", str(PROJECT_ROOT / "data" / "chroma"))
 CHROMA_COLLECTION = os.environ.get("GRAFO_CHROMA_COLLECTION", "grafo_concierge")
 
 # Modelos

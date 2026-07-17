@@ -32,6 +32,7 @@ import json
 import logging
 import os
 import sys
+from pathlib import Path
 from typing import Optional
 
 logger = logging.getLogger("grafo-concierge.cli")
@@ -55,8 +56,11 @@ def _bootstrap_concierge():
     from ingestion.summarizer import LLMAdapter
     from core.middleware import GrafoConcierge
 
-    db_path = os.environ.get("GRAFO_DB_PATH", os.path.join("data", "concierge.db"))
-    chroma_path = os.environ.get("GRAFO_CHROMA_PATH", os.path.join("data", "chroma"))
+    # Âncora dinâmica: interface/ → raiz do projeto
+    _project_root = Path(__file__).parent.parent.resolve()
+
+    db_path = os.environ.get("GRAFO_DB_PATH", str(_project_root / "data" / "concierge.db"))
+    chroma_path = os.environ.get("GRAFO_CHROMA_PATH", str(_project_root / "data" / "chroma"))
     chroma_collection = os.environ.get("GRAFO_CHROMA_COLLECTION", "grafo_concierge")
     llm_model = os.environ.get("GRAFO_LLM_MODEL", "gemini-2.0-flash")
     llm_api_key = os.environ.get("GRAFO_LLM_API_KEY", "")

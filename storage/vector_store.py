@@ -271,10 +271,12 @@ class ChromaVectorStore(BaseVectorBackend):
 
     def __init__(
         self,
-        persist_dir: str = "~/.grafo-concierge/chroma",
+        persist_dir: str | None = None,
         collection_name: str = "grafo_concierge",
         embedding_manager: Optional[EmbeddingManager] = None,
     ) -> None:
+        if persist_dir is None:
+            persist_dir = str(Path(__file__).parent.parent.resolve() / "data" / "chroma")
         self._embedding_mgr = embedding_manager or EmbeddingManager()
         self._collection_name = collection_name
 

@@ -499,7 +499,12 @@ class GrafoConcierge:
         """Consulta as arestas para retornar todas as chamadas ao símbolo."""
         return self._store.get_callers(symbol_id)
 
+    def get_full_topology(self, project_uuid: Optional[str] = None) -> dict[str, list[dict]]:
+        """Retorna a topologia completa (nós e arestas) de forma leve."""
+        return self._store.get_lightweight_topology(project_uuid)
+
     # ===================================================================
+
     # STORE FACT — Gravação de Fatos Semânticos via SemanticExtractor
     # ===================================================================
 

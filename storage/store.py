@@ -58,10 +58,12 @@ class SqliteStore:
     O usuário final só interage com esta classe.
 
     Args:
-        db_path: Caminho para o .db (default: ~/.grafo-concierge/concierge.db).
+        db_path: Caminho para o .db (default: <project_root>/data/concierge.db).
     """
 
-    def __init__(self, db_path: str = "~/.grafo-concierge/concierge.db", config: Optional["ConciergeConfig"] = None) -> None:
+    def __init__(self, db_path: str | None = None, config: Optional["ConciergeConfig"] = None) -> None:
+        if db_path is None:
+            db_path = str(Path(__file__).parent.parent.resolve() / "data" / "concierge.db")
         resolved = str(Path(db_path).expanduser().absolute())
         Path(resolved).parent.mkdir(parents=True, exist_ok=True)
 
@@ -252,6 +254,51 @@ class SqliteStore:
                     pass
             results.append(d)
         return results
+
+    def get_lightweight_topology(self, project_uuid: Optional[str] = None) -> dict[str, list[dict]]:
+        """Retorna a topologia completa e ultraleve (nós e arestas) do banco.
+
+        Evita carregar resumos de texto (summary) ou embeddings para otimização de banda.
+
+        Args:
+            project_uuid: UUID opcional para filtrar os nós e arestas daquele projeto.
+
+        Returns:
+            Dict com a estrutura:
+            {
+                "nodes": [{"node_id": int, "name": str, "node_type": str}],
+                "edges": [{"source": int, "target": int, "edge_type": str}]
+            }
+        """
+        if project_uuid:
+            nodes_sql = "SELECT id AS node_id, label AS name, node_type FROM nodes WHERE project_uuid = ? AND status = 'ACTIVE'"
+            nodes_params = [project_uuid]
+
+            edges_sql = """
+                SELECT e.source_id AS source, e.target_id AS target, e.relation_type AS edge_type
+                FROM edges e
+                JOIN nodes n1 ON e.source_id = n1.id
+                JOIN nodes n2 ON e.target_id = n2.id
+                WHERE n1.project_uuid = ? AND n2.project_uuid = ?
+                  AND n1.status = 'ACTIVE' AND n2.status = 'ACTIVE'
+            """
+            edges_params = [project_uuid, project_uuid]
+        else:
+            nodes_sql = "SELECT id AS node_id, label AS name, node_type FROM nodes WHERE status = 'ACTIVE'"
+            nodes_params = []
+
+            edges_sql = "SELECT source_id AS source, target_id AS target, relation_type AS edge_type FROM edges"
+            edges_params = []
+
+        with self._conn_mgr.read() as conn:
+            node_rows = conn.execute(nodes_sql, nodes_params).fetchall()
+            edge_rows = conn.execute(edges_sql, edges_params).fetchall()
+
+        return {
+            "nodes": [dict(r) for r in node_rows],
+            "edges": [dict(r) for r in edge_rows]
+        }
+
 
     def update_node(self, node_id: int, **fields: Any) -> None:
         """Atualiza campos permitidos de um nó (inclui campos temporais)."""

@@ -23,14 +23,17 @@ def run_diagnostic():
     
     logger.info("🧪 [1/4] Inicializando Motores...")
     
-    # 1. SqliteStore (usa path padrão se omitido, mas passamos para ser explícitos)
-    store = SqliteStore("data/concierge.db")
+    # Âncora dinâmica: tests/ → raiz do projeto
+    _project_root = Path(__file__).parent.parent.resolve()
+
+    # 1. SqliteStore (path ancorado na raiz do projeto)
+    store = SqliteStore(str(_project_root / "data" / "concierge.db"))
     
     # 2. EmbeddingManager (v3.8.0 - inicializa com tier padrão 'flash')
     embedder = EmbeddingManager() 
     
-    # 3. ChromaVectorStore (O parâmetro correto é persistence_path)
-    vector = ChromaVectorStore(persistence_path="data/chroma", embedding_manager=embedder)
+    # 3. ChromaVectorStore
+    vector = ChromaVectorStore(persist_dir=str(_project_root / "data" / "chroma"), embedding_manager=embedder)
     
     # 4. ZoomSummarizer (inicializa com adapter interno padrão)
     summarizer = ZoomSummarizer()

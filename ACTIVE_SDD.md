@@ -1,22 +1,18 @@
-### 🧭 ACTIVE BLUEPRINT: OPERATION LIGHTWEIGHT MODE (WAVE 6)
-#### ⚫ STATUS: CONCLUÍDO
+### 🧭 ACTIVE BLUEPRINT: PATCH ARQUITETURAL - ERRADICAÇÃO DE HARDCODES (MCP)
+#### ✅ STATUS DA FASE: CONCLUÍDO
 
-#### OBJETIVO TÉCNICO
-Implementar o "Modo Lightweight" (Versão 4.0) para permitir que o Grafo Concierge opere em hardwares com recursos estritamente limitados. O sistema deverá ser capaz de desativar completamente a inicialização da infraestrutura vetorial pesada e rotear todas as pesquisas de forma graciosa para o motor de busca textual do SQLite (FTS5).
+#### 🎯 OBJETIVO TÉCNICO
+Localizar e erradicar qualquer caminho absoluto (hardcoded) presente no código-fonte do Servidor MCP e nas configurações do Grafo Concierge. O sistema deve ser 100% portátil, descobrindo seus diretórios dinamicamente em tempo de execução.
 
-#### 🛠️ ESPECIFICAÇÕES DE CONTRATO (PATCHES DE ARQUITETURA)
+#### 🛠️ ESPECIFICAÇÕES DE CONTRATO (DÍVIDA TÉCNICA ZERO)
 
-**1. A Chave de Ignição (Toggle de Configuração)**
-*   **Arquivos Alvo:** `.env` (template) e carregador de configurações globais.
-*   **Ação:** Criar a variável de ambiente `GRAFO_LIGHTWEIGHT_MODE=false` (padrão).
-*   **Contrato:** Quando configurada para `true`, essa variável deve ser propagada para o ciclo de inicialização do sistema para alterar o comportamento da *engine*.
+**1. Varredura e Substituição Dinâmica**
+*   **Ação:** Inspecionar os arquivos de inicialização do servidor MCP (ex: `mcp_server.py`, `config.py` ou `main.py`) e identificar strings de caminhos estáticos (ex: `C:\...`).
+*   **Contrato:** Todos os caminhos de arquivos, bancos de dados SQLite ou diretórios de persistência DEVEM ser resolvidos usando a biblioteca nativa `pathlib`.
+*   **Padrão Exigido:** Utilizar `Path(__file__).parent.resolve()` (ou similar) para ancorar o caminho base dinamicamente, construindo os subdiretórios a partir dele.
 
-**2. Desligamento do Motor Vetorial (Economia de RAM)**
-*   **Arquivos Alvo:** Inicializador do `EmbeddingManager` e gerenciadores de banco de dados (`Qdrant`/`ChromaDB`).
-*   **Ação:** Impedir o carregamento da infraestrutura pesada na memória.
-*   **Contrato:** Se `GRAFO_LIGHTWEIGHT_MODE` for verdadeiro, o sistema deve ignorar (fazer bypass) a instanciação do modelo local `sentence-transformers` (poupando ~500MB de RAM) e não deve inicializar nem conectar aos clientes de banco de dados vetoriais.
+**2. Portabilidade Transparente**
+*   **Contrato:** O comportamento do servidor não pode ser alterado. Os bancos de dados e logs devem continuar sendo salvos nas mesmas pastas relativas de sempre, apenas a forma matemática de chegar até elas no código é que deve mudar.
 
-**3. Fallback Gracioso de Busca (Roteamento para FTS5)**
-*   **Arquivos Alvo:** `Orchestrator`, `ProbabilisticRetriever` (ou classe de busca) e Handlers do MCP Server (ferramentas de search).
-*   **Ação:** Redirecionar as requisições de busca vetorial para a busca textual.
-*   **Contrato:** Interceptar as chamadas de busca semântica. Se o modo *lightweight* estiver ativo (vetores indisponíveis), rotear as *queries* diretamente para o motor FTS5 (Full-Text Search) do SQLite. A API e a resposta do retriever devem manter o mesmo formato esperado pelo LLM, operando de forma transparente para o usuário final.
+**3. Validação de Inicialização**
+*   **Ação:** Após a refatoração, o servidor MCP deve conseguir inicializar perfeitamente e expor as 17 ferramentas sem erros de "File Not Found".

@@ -72,8 +72,24 @@ class GrafoConciergeServer:
         # Cria o servidor FastMCP
         self._mcp = FastMCP("Grafo Concierge", host=host, port=port)
 
+        # Habilita CORS no Starlette sse_app para conexões do Frontend (Next.js)
+        original_sse_app = self._mcp.sse_app
+        def custom_sse_app(*args, **kwargs):
+            app = original_sse_app(*args, **kwargs)
+            from starlette.middleware.cors import CORSMiddleware
+            app.add_middleware(
+                CORSMiddleware,
+                allow_origins=["*"],
+                allow_credentials=True,
+                allow_methods=["*"],
+                allow_headers=["*"],
+            )
+            return app
+        self._mcp.sse_app = custom_sse_app
+
         # Registra as tools
         self._register_tools()
+
 
         tool_count = len(self._mcp._tool_manager.list_tools())
         logger.info("GrafoConciergeServer inicializado — %d tools registradas.", tool_count)
@@ -470,6 +486,29 @@ class GrafoConciergeServer:
                 Dicionário com success, fact_id, was_useful e mensagem.
             """
             return server._handle_feedback(fact_id, was_useful)
+
+        # --- get_full_topology ---
+        @self._mcp.tool(
+            name="get_full_topology",
+            description=(
+                "Retorna a topologia completa de nós e arestas (grafo de chamadas, "
+                "símbolos, arquivos e dependências) de forma ultra enxuta. "
+                "Utilizada pelo Dashboard Web para visualizações 3D em tempo real. "
+                "Não inclui sumários de texto ou embeddings."
+            ),
+        )
+        def get_full_topology(
+            project_identifier: Optional[str] = None,
+        ) -> dict:
+            """Retorna a topologia completa de nós e arestas do banco.
+
+            Args:
+                project_identifier: UUID ou nome do projeto opcional para filtrar os dados.
+
+            Returns:
+                Dicionário contendo success, list de nodes e list de edges.
+            """
+            return server._handle_get_full_topology(project_identifier)
 
     def _resolve_project_identifier(self, project_identifier: str) -> str:
         """Resolve project_identifier (UUID ou folder_name) para project_uuid.
@@ -1254,5 +1293,43 @@ class GrafoConciergeServer:
                 "success": False,
                 "fact_id": fact_id,
                 "error": str(e),
+                "duration_seconds": round(elapsed, 3),
+            }
+
+    # ===================================================================
+    # HANDLER: get_full_topology
+    # ===================================================================
+
+    def _handle_get_full_topology(self, project_identifier: Optional[str] = None) -> dict:
+        """Handler do get_full_topology."""
+        t0 = time.perf_counter()
+        try:
+            project_uuid = None
+            if project_identifier:
+                project_uuid = self._resolve_project_identifier(project_identifier)
+
+            topology = self._gc.get_full_topology(project_uuid)
+            elapsed = time.perf_counter() - t0
+            logger.info(
+                "get_full_topology OK: project=%s, nodes=%d, edges=%d, %.3fs",
+                project_identifier or "ALL",
+                len(topology.get("nodes", [])),
+                len(topology.get("edges", [])),
+                elapsed,
+            )
+            return {
+                "success": True,
+                "nodes": topology.get("nodes", []),
+                "edges": topology.get("edges", []),
+                "duration_seconds": round(elapsed, 3),
+            }
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("get_full_topology FALHOU: %s", e)
+            return {
+                "success": False,
+                "error": str(e),
+                "nodes": [],
+                "edges": [],
                 "duration_seconds": round(elapsed, 3),
             }
