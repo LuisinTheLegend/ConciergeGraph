@@ -312,6 +312,8 @@ class JanitorService:
         logger.info("=" * 50)
 
         self._last_reports.append(report)
+        if len(self._last_reports) > 100:
+            self._last_reports.pop(0)
         return report
 
     # ===================================================================

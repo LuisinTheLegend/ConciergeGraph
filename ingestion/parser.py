@@ -199,30 +199,39 @@ class FileParser:
                     except Exception:
                         return capsule_or_ptr
 
+            def _create_language(raw_lang, name):
+                if isinstance(raw_lang, tree_sitter.Language):
+                    return raw_lang
+                try:
+                    # Tenta instanciar passando o objeto diretamente (API moderna)
+                    return tree_sitter.Language(raw_lang)
+                except TypeError:
+                    ptr = _get_lang_ptr(raw_lang)
+                    try:
+                        # Fallback passando o ponteiro
+                        return tree_sitter.Language(ptr)
+                    except TypeError:
+                        # Fallback clássico (<=0.21)
+                        return tree_sitter.Language(ptr, name)
+
             if ext == ".py":
                 import tree_sitter_python
-                raw_lang = tree_sitter_python.language()
-                lang = tree_sitter.Language(_get_lang_ptr(raw_lang), "python")
+                lang = _create_language(tree_sitter_python.language(), "python")
             elif ext in (".js", ".jsx", ".mjs", ".cjs"):
                 import tree_sitter_javascript
-                raw_lang = tree_sitter_javascript.language()
-                lang = tree_sitter.Language(_get_lang_ptr(raw_lang), "javascript")
+                lang = _create_language(tree_sitter_javascript.language(), "javascript")
             elif ext == ".ts":
                 import tree_sitter_typescript
-                raw_lang = tree_sitter_typescript.language_typescript()
-                lang = tree_sitter.Language(_get_lang_ptr(raw_lang), "typescript")
+                lang = _create_language(tree_sitter_typescript.language_typescript(), "typescript")
             elif ext == ".tsx":
                 import tree_sitter_typescript
-                raw_lang = tree_sitter_typescript.language_tsx()
-                lang = tree_sitter.Language(_get_lang_ptr(raw_lang), "tsx")
+                lang = _create_language(tree_sitter_typescript.language_tsx(), "tsx")
             elif ext == ".go":
                 import tree_sitter_go
-                raw_lang = tree_sitter_go.language()
-                lang = tree_sitter.Language(_get_lang_ptr(raw_lang), "go")
+                lang = _create_language(tree_sitter_go.language(), "go")
             elif ext == ".rs":
                 import tree_sitter_rust
-                raw_lang = tree_sitter_rust.language()
-                lang = tree_sitter.Language(_get_lang_ptr(raw_lang), "rust")
+                lang = _create_language(tree_sitter_rust.language(), "rust")
             else:
                 return None
             parser = tree_sitter.Parser()
