@@ -74,6 +74,55 @@ To start the MCP server and expose all cognitive memory and project lifecycle to
 python -m interface.mcp_server
 ```
 
+
+## 🔌 Model Context Protocol (MCP) Tools
+The Grafo Concierge server exposes a robust set of tools via MCP to allow AI Agents (like Claude in Cursor, Claude Desktop, or Copilot) to interact natively with the memory graph.
+
+### 🛠️ Tool Directory & Usage Patterns
+
+#### 1. Ingestion and Lifecycle Management
+* **`concierge_register`**: Registers a new project folder and defines its privacy policy (`PUBLIC`, `INTERNAL`, `RESTRICTED`).
+  * *CLI Usage*: `python -m interface.cli register --name <project_name> [--wing <wing>] [--privacy <level>]`
+  * *Agent Integration*: Natively called when the agent detects a new workspace directory to register.
+* **`concierge_mine`**: Ingests files, runs semantic & AST chunking, generates L0/L1/L2 summaries, calculates vector embeddings, and synchronizes SQLite with ChromaDB.
+  * *CLI Usage*: `python -m interface.cli mine --path <absolute_path> --name <project_name>`
+  * *Agent Integration*: Triggered after making code changes or to build the initial repository context.
+* **`delete_project`**: Completely purges a project and all its related nodes, edges, commits, and embeddings.
+  * *CLI Usage*: `python -m interface.cli delete --project <uuid_or_name>`
+* **`update_project`**: Updates project details such as name, primary wing, privacy, or summary.
+* **`concierge_list_projects`**: Lists all projects inside the memory database.
+  * *CLI Usage*: `python -m interface.cli projects`
+
+#### 2. Advanced Search & Retrieval
+* **`concierge_search`**: Hybrid Search v4 combining cosine similarity, FTS5 BM25, and graph centrality/recency signals to find relevant chunks.
+  * *CLI Usage*: `python -m interface.cli search --query "<text>" --project <uuid> [--top_k <k>]`
+  * *Agent Integration*: The main search tool used to find related files, context, and previous implementations.
+* **`search_symbols`**: Searches for class, function, or method signatures inside the FTS5 full-text index.
+* **`get_implementations`**: Returns the complete AST code block for a symbol ID on demand.
+* **`get_callers`**: Navigates graph dependency edges to return callers of a symbol.
+* **`find_similar`**: Searches other projects belonging to the same wing (domain of technical expertise).
+
+#### 3. Cognitive Context & Trajectories
+* **`concierge_wakeup`**: Reactivates consciousness by returning the Context Compass, Reference Wings, latest commits, and system statistics.
+  * *CLI Usage*: `python -m interface.cli wakeup --project <uuid>`
+  * *Agent Integration*: Executed at the beginning of a session to "wake up" the agent's memory of the codebase.
+* **`concierge_resume`**: Retrieves the Context Compass (L2 global summary) of the project.
+  * *CLI Usage*: `python -m interface.cli resume --project <uuid>`
+* **`concierge_load`**: On-demand node loader (Lazy Load) returning contents, tags, and active relationships.
+* **`get_trajectories`**: Retrieves the history of cognitive trajectories (bi-temporal navigation steps).
+
+#### 4. Episodic Memory & Preferences
+* **`concierge_store_fact`**: Evaluates and writes a semantic fact through the SemanticExtractor, making ADD/UPDATE/DELETE/NOOP decisions.
+* **`concierge_set_memory`**: Stores persistent user/session core memory blocks (e.g., preferred programming language, persona, style guides).
+* **`concierge_get_memory`**: Queries user/session core memory blocks.
+* **`concierge_feedback`**: Registers feedback on fact utility to feed Thompson Sampling (Bayesian learning).
+
+#### 5. System Utilities
+* **`get_full_topology`**: Returns node and edge connections in an ultra-lean format for the 3D Web Dashboard.
+* **`concierge_status`**: Provides system health, ChromaDB telemetry, and janitor maintenance logs.
+  * *CLI Usage*: `python -m interface.cli status`
+* **`reset_collection`**: Emergency repair tool to rebuild the physical vector store collection.
+
 ## 🧪 Test Suite & Continuous Integration (Absolute Solidity)
 The project features an exhaustive suite of integrated and unit tests with native auto-discovery configured in `pyproject.toml` and a CI pipeline via **GitHub Actions** (`ci.yml`).
 

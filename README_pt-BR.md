@@ -74,6 +74,55 @@ Para iniciar o servidor MCP e expor todas as ferramentas de memória cognitiva e
 python -m interface.mcp_server
 ```
 
+
+## 🔌 Ferramentas Model Context Protocol (MCP)
+O servidor do Grafo Concierge expõe um conjunto robusto de ferramentas via protocolo MCP para permitir que agentes de IA (como Claude no Cursor, Claude Desktop ou Copilot) interajam nativamente com o grafo de memória.
+
+### 🛠️ Diretório de Ferramentas e Padrões de Uso
+
+#### 1. Ingestão e Ciclo de Vida
+* **`concierge_register`**: Registra uma nova pasta de projeto e define sua política de privacidade (`PUBLIC`, `INTERNAL`, `RESTRICTED`).
+  * *Uso CLI*: `python -m interface.cli register --name <nome_do_projeto> [--wing <ala>] [--privacy <nivel>]`
+  * *Uso no Agente*: Chamado nativamente quando o agente detecta um novo workspace para indexação.
+* **`concierge_mine`**: Ingere arquivos, executa análise semântica e AST, gera resumos hierárquicos L0/L1/L2, calcula embeddings vetoriais e sincroniza o banco SQLite com o ChromaDB.
+  * *Uso CLI*: `python -m interface.cli mine --path <caminho_absoluto> --name <nome_do_projeto>`
+  * *Uso no Agente*: Disparado após alterações no código ou para construir a base inicial de contexto.
+* **`delete_project`**: Expurgamento físico de um projeto e todos os seus nós, arestas, commits e embeddings associados.
+  * *Uso CLI*: `python -m interface.cli delete --project <uuid_ou_nome>`
+* **`update_project`**: Atualiza metadados do projeto (nome da pasta, ala primária, nível de privacidade ou descrição).
+* **`concierge_list_projects`**: Lista todos os projetos cadastrados no banco de dados de memória.
+  * *Uso CLI*: `python -m interface.cli projects`
+
+#### 2. Busca e Recuperação Avançada
+* **`concierge_search`**: Busca Híbrida v4 combinando similaridade vetorial (cosseno), frequência FTS5 (BM25) e sinais de grafo (centralidade e recência temporal) para retornar os trechos de código ou fatos mais relevantes.
+  * *Uso CLI*: `python -m interface.cli search --query "<texto>" --project <uuid> [--top_k <k>]`
+  * *Uso no Agente*: Ferramenta principal de busca usada para localizar trechos de código, documentações e regras de negócio.
+* **`search_symbols`**: Busca assinaturas de classes, métodos e funções no índice de texto completo FTS5.
+* **`get_implementations`**: Carrega o bloco de código AST correspondente ao ID de um símbolo sob demanda.
+* **`get_callers`**: Navega pelas arestas de dependência do grafo para retornar quem chama um determinado símbolo.
+* **`find_similar`**: Busca outros projetos pertencentes à mesma ala técnica (domínio de especialização técnica).
+
+#### 3. Contexto Cognitivo e Trajetórias
+* **`concierge_wakeup`**: Reativa a consciência do agente retornando a Bússola de Contexto, Alas de Referência, commits recentes e estatísticas do sistema.
+  * *Uso CLI*: `python -m interface.cli wakeup --project <uuid>`
+  * *Uso no Agente*: Executado no início de uma sessão de trabalho para que o agente resgate a memória e contexto do projeto.
+* **`concierge_resume`**: Obtém a Bússola de Contexto (resumo global L2) do projeto.
+  * *Uso CLI*: `python -m interface.cli resume --project <uuid>`
+* **`concierge_load`**: Carregador de nós sob demanda (Lazy Load) contendo código completo, metadados e relações ativas.
+* **`get_trajectories`**: Recupera o histórico detalhado de trajetórias cognitivas (passos de navegação bi-temporal).
+
+#### 4. Memória Episódica e Preferências
+* **`concierge_store_fact`**: Avalia e insere um fato semântico via SemanticExtractor, tomando decisões de ADD/UPDATE/DELETE/NOOP.
+* **`concierge_set_memory`**: Armazena blocos persistentes de memória core do usuário/sessão (ex: linguagem preferida, persona, diretrizes de estilo).
+* **`concierge_get_memory`**: Consulta blocos de memória core gravados.
+* **`concierge_feedback`**: Registra feedback de utilidade sobre fatos semânticos para alimentar o Thompson Sampling (aprendizado bayesiano).
+
+#### 5. Utilitários do Sistema
+* **`get_full_topology`**: Retorna conexões de nós e arestas em formato leve para o Dashboard Web 3D.
+* **`concierge_status`**: Provê telemetria do ChromaDB, estatísticas de nós e logs do Janitor Service.
+  * *Uso CLI*: `python -m interface.cli status`
+* **`reset_collection`**: Ferramenta de emergência para reconstruir fisicamente a coleção de vetores.
+
 ## 🧪 Suíte de Testes & Integração Contínua (Absolute Solidity)
 O projeto conta com uma suíte exaustiva de testes integrados e unitários com descoberta automática nativa configurada em `pyproject.toml` e pipeline de CI via **GitHub Actions** (`ci.yml`).
 
