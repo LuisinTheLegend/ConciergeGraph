@@ -118,13 +118,24 @@ def bootstrap():
     from storage import EmbeddingManager, EmbeddingTier
     embedder = EmbeddingManager(tier=EmbeddingTier.FLASH)
 
-    logger.info("Inicializando ChromaVectorStore: path=%s, collection=%s", CHROMA_PATH, CHROMA_COLLECTION)
-    from storage import ChromaVectorStore
-    vector_store = ChromaVectorStore(
-        persist_dir=CHROMA_PATH,
-        collection_name=CHROMA_COLLECTION,
-        embedding_manager=embedder,
-    )
+    vector_backend = os.environ.get("GRAFO_VECTOR_BACKEND", "chroma").lower()
+    if vector_backend == "qdrant":
+        qdrant_url = os.environ.get("GRAFO_QDRANT_URL", "http://localhost:6333")
+        logger.info("Inicializando QdrantVectorStore: url=%s, collection=%s", qdrant_url, CHROMA_COLLECTION)
+        from core.vector_backend import QdrantVectorStore
+        vector_store = QdrantVectorStore(
+            url=qdrant_url,
+            collection_name=CHROMA_COLLECTION,
+            embedding_dimensions=embedder.dimensions,
+        )
+    else:
+        logger.info("Inicializando ChromaVectorStore: path=%s, collection=%s", CHROMA_PATH, CHROMA_COLLECTION)
+        from storage import ChromaVectorStore
+        vector_store = ChromaVectorStore(
+            persist_dir=CHROMA_PATH,
+            collection_name=CHROMA_COLLECTION,
+            embedding_manager=embedder,
+        )
 
     # ── INGESTÃO ─────────────────────────────────────────────────────
     logger.info("Inicializando ZoomSummarizer: model=%s", LLM_MODEL)
