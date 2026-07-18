@@ -1,15 +1,45 @@
-# 🧠 Grafo Concierge v3.8.2
-**The Long-Term Memory (LTM) Palace for AI Agents**
+# 🧠 Concierge Graph v3.8.2
+> **🇧🇷 [Leia este README em Português (README_pt-BR.md)](file:///c:/Nexus-Memory/GrafoConcierge/README_pt-BR.md)**
 
-Grafo Concierge is a local cognitive memory infrastructure designed to solve LLM "amnesia" in complex projects. Unlike simple RAG systems, it utilizes a robust architecture combining relational persistence, vector search, hierarchical synthesis, and an autonomous maintenance system.
+**The Long-Term Memory (LTM) Palace for AI Agents & Developer Environments**
 
-## 💡 The Problem We Solve (In Simple Terms)
-Imagine you are building a giant software project with the help of an Artificial Intelligence. Over time, the AI starts to "forget" how files connect or the rules you defined in the past, simply because its "short-term memory" (context window) has filled up.
+Concierge Graph is a high-performance, local cognitive memory infrastructure designed to solve LLM "amnesia" and context pollution in complex, large-scale codebases. Unlike traditional, simple RAG (Retrieval-Augmented Generation) systems, Concierge Graph utilizes a bi-temporal, hybrid database architecture combining relational SQL persistence, vector search, hierarchical context synthesis, and an autonomous self-healing maintenance system.
 
-**Grafo Concierge** acts as an **external and permanent brain** for the AI. It tracks your entire project, understands the connections between files, and always provides the AI with exactly the information it needs to work, without forgetting the past.
+---
 
-## 🚀 Colossal Performance (Benchmarks)
-Validated by the **Colossus Protocol**, the system demonstrated linear scalability and sub-second latency in Big Data environments.
+## 💡 The Core Problem We Solve
+
+When collaborating with AI agents on massive codebases, AI models inevitably start to "forget" file relations, historical decisions, or architecture rules once their short-term memory (context window) fills up.
+
+**Concierge Graph** acts as a **permanent external brain**. It:
+1. Indexes the entire codebase structure (classes, methods, modules) and documentation.
+2. Learns your habits, preferences, and architectural rules as explicit semantic facts.
+3. Serves as a single source of truth that feeds relevant, highly filtered context to any AI client.
+
+---
+
+## 🔌 Simultaneous Multi-Client Integration via MCP
+
+Concierge Graph is powered by the **Model Context Protocol (MCP)**. This allows you to run a single server instance and connect it **simultaneously** to multiple developer tools and environments:
+
+* 💻 **Cursor / Windsurf**: Let your IDE agent dynamically scan, search, and recall memory graph nodes as you write code.
+* 💬 **Claude Desktop**: Give your general desktop assistant full awareness of your projects and codebase topologies.
+* 🤖 **Autonomous Agents / Custom Scripts**: Plug in custom orchestration scripts (e.g., n8n, LangChain, or custom LLM routines) using standard JSON-RPC 2.0 endpoints over Server-Sent Events (SSE).
+
+---
+
+## 🌐 Pluggable Vector Backends (Local & Qdrant Cloud)
+
+The architecture supports pluggable database backends for vector storage, making it adaptable to any scalability requirement:
+
+1. **ChromaDB (Default - Local)**: Zero-configuration local database storing embeddings in the local `data/` directory.
+2. **Qdrant (Local & Cloud)**: Switch to Qdrant to offload embeddings processing. Supports **Qdrant Cloud** clusters for high availability, remote persistence, and multi-user configurations.
+
+---
+
+## 🚀 Performance Benchmarks (Colossus Protocol)
+
+Validated under the **Colossus Protocol**, the system demonstrates sub-second latency and linear scalability even at massive data volumes.
 
 | Metric | Result (20,000 nodes) |
 | --- | --- |
@@ -20,121 +50,122 @@ Validated by the **Colossus Protocol**, the system demonstrated linear scalabili
 | **Ingestion (ChromaDB)** | ~914 vectors/second |
 | **Maintenance (Janitor)** | 20,000 orphans cleaned in ~11s |
 
-### Understanding Terms and Metrics
-- **P50 (50th Percentile / Median):** Indicates that 50% of the searches returned results in this time or faster. It is the "typical" latency experienced by the user.
-- **P99 (99th Percentile):** Indicates that 99% of the searches were faster than this time. It represents the "worst-case scenario", proving the stability of the system under pressure.
-- **Nodes:** The fundamental units of memory in the Graph. A node is not just text: it can represent an architectural fact, a business rule, a code file, or a decision made, all interconnected.
-- **Zoom Gear (L0/L1/L2):** Our autonomous hierarchical context compression algorithm.
-  - **L0 (Micro):** Detailed summary of a single file or chunk ingested.
-  - **L1 (Meso):** Synthesis of multiple L0s, describing the purpose of an entire module or directory.
-  - **L2 (Macro - Compass):** Global architectural summary of the project. It is used to provide the perfect initial context to AI Agents without blowing the token limit (Context Window).
+---
 
+## 🏛️ Layered System Architecture
 
-## 🏛️ Architecture: Layer Division
-The system is divided into modular layers to ensure that memory is organized, audited, and long-lasting:
+Concierge Graph is built from the ground up to be modular, robust, and thread-safe:
 
-- **`core/` (The Nervous System):** Centralizes the Hybrid Search v4 logic (Vector + FTS5 + Graph Signals) and the central facade of the system.
-- **`storage/` (The Foundation):** Thread-safe atomic management of SQLite read connections and isolated serialized writes (WAL mode), plus vector persistence via ChromaDB.
-- **`ingestion/` (O Motor Apex):** Code extraction pipeline, intelligent crawling, compatible multi-language AST detection, and the Zoom Gear (L0/L1/L2).
-- **`agents/` (The Guardians):** AI agents dedicated to semantic Reranking and surgical auditing of commits, preventing context contamination.
-- **`services/` (The Maintenance):** The Janitor, an autonomous background service that handles temporal decay and history cleanup without memory leaks.
-- **`interface/` (O Portal):** Native MCP (Model Context Protocol) server extended for the complete lifecycle of projects, plus a CLI panel.
+* **`core/` (Nervous System)**: Orchestrates the **Hybrid Search Engine v4** (combining FTS5, cosine vector similarity, and graph centrality/recency signals) and the system's central facade.
+* **`storage/` (Retention Layer)**: Guarantees atomic, thread-safe access to the SQLite relational database (WAL mode, serialized write queue) and vector storage.
+* **`ingestion/` (Apex Ingestion Engine)**: Traverses directories (respecting `.gitignore`), parses source code files into semantic AST chunks (Python, JS/TS, Markdown), extracts metadata, and triggers the hierarchical **Zoom Gear**.
+* **`agents/` (Audit & Reranking)**: AI agents designed to rerank search results using LLM-as-a-judge and audit commit statements before they write to the cognitive ledger.
+* **`services/` (Autonomous Maintenance)**: Houses the **Background Janitor**, which runs in an isolated thread to handle temporal decay, reconcile SQLite ↔ Vector stores, prune orphan vectors, and rebuild search indexes.
+* **`interface/` (Operational Portal)**: Exposes the MCP server and CLI utility.
 
-## 🛠️ Hybrid Search v4 Technology
-Relevance is calculated using a weighted composition that prioritizes exact context and information recency:
+---
 
-1. **Vector Search (50%):** Deep semantic similarity via embeddings.
-2. **FTS5 Search (25%):** Exact keyword matching (normalized BM25).
-3. **Graph Signals (25%):** The higher value between temporal Recency and node Centrality (relational weight).
+## 🛠️ Hybrid Search v4 Formula
 
-Recency follows an exponential decay formula, ensuring that memory "ages" gracefully and makes room for new facts over time:
-$$W = W_0 \cdot e^{-\lambda t}$$
+Relevance scores are calculated by composing three distinct signals to return only highly relevant context:
 
-## 🔧 Installation and Usage
+$$\text{Score} = (0.50 \times \text{Vector Similarity}) + (0.25 \times \text{Normalized FTS5 BM25}) + (0.25 \times \max(\text{Recency}, \text{Centrality}))$$
 
-**Prerequisites:**
-- Python 3.10+
-- API Key (Google Gemini / OpenAI) for the Zoom Gear and Auditors.
+1. **Vector Similarity (50%)**: Deep semantic meaning of chunks.
+2. **FTS5 BM25 (25%)**: Token matching for precise symbol signatures.
+3. **Graph Signals (25%)**:
+   - **Centrality**: Relative connectivity of a node (in-degree normalized).
+   - **Recency**: Time-based exponential decay ensuring context ages gracefully:
+     $$W = W_0 \cdot e^{-\lambda t}$$
 
-**Configuration:**
+---
+
+## 🔌 Detailed MCP Tools & CLI Commands
+
+### 1. Ingestion and Lifecycle
+* **`concierge_register`**: Registers a new codebase workspace folder.
+  * *CLI command*: `python -m interface.cli register --name <project_name> [--wing <wing>] [--privacy <level>]`
+* **`concierge_mine`**: Traverses project, chunks files, generates summaries, embeds code, and stores data.
+  * *CLI command*: `python -m interface.cli mine --path <absolute_path> --name <project_name>`
+* **`delete_project`**: Completely purges a project and all associated relational/vector records.
+  * *CLI command*: `python -m interface.cli delete --project <uuid_or_name>`
+* **`update_project`**: Modifies registered details (name, wing, privacy levels, description).
+* **`concierge_list_projects`**: Lists all projects inside the local database.
+  * *CLI command*: `python -m interface.cli projects`
+
+### 2. Advanced Search
+* **`concierge_search`**: Runs the complete Hybrid Search v4 pipeline.
+  * *CLI command*: `python -m interface.cli search --query "<query>" --project <uuid_or_name> [--top_k <k>]`
+* **`search_symbols`**: Instantly searches class/function names in the FTS5 index.
+* **`get_implementations`**: Returns the complete raw code block for a given symbol ID.
+* **`get_callers`**: Lists all caller nodes that point to the specified symbol.
+* **`find_similar`**: Finds other workspaces registered under the same wing.
+
+### 3. Cognitive Context & Trajectories
+* **`concierge_wakeup`**: Resuscitates the agent's memory for a workspace by fetching the L2 Context Compass, Reference Wings, and recent commits.
+  * *CLI command*: `python -m interface.cli wakeup --project <uuid>`
+* **`concierge_resume`**: Retrieves the Context Compass (recursive macro summary) of the project.
+  * *CLI command*: `python -m interface.cli resume --project <uuid>`
+* **`concierge_load`**: On-demand node loader (Lazy Load) returning metadata, contents, and relationships.
+* **`get_trajectories`**: Retrieves the detailed bi-temporal history of navigation steps.
+
+### 4. Facts & Preferences
+* **`concierge_store_fact`**: Evaluates and records a semantic fact (preferences/rules) using bi-temporal invalidation.
+* **`concierge_set_memory`**: Stores user core memory blocks (e.g. `preferred_language`, `persona`).
+* **`concierge_get_memory`**: Retrieves saved core memory blocks.
+* **`concierge_feedback`**: Registers search feedback to optimize search weights (Bayesian Thompson Sampling).
+
+---
+
+## 🔧 Installation & Configuration
+
+### Prerequisites
+* Python 3.10+
+* Google Gemini or OpenAI API Key (required for LLM summarization and auditing).
+
+### Configuration Setup
 1. Clone the repository.
-2. Create a `.env` file in the root (securely ignored in `.gitignore`):
+2. Create a `.env` file in the root directory:
 ```env
-GRAFO_LLM_API_KEY=your_key_here
+# LLM Provider Configuration
+GRAFO_LLM_API_KEY=your_api_key_here
 GRAFO_LLM_MODEL=gemini-2.5-flash
+
+# Vector Backend (Chroma or Qdrant)
+GRAFO_VECTOR_BACKEND=chroma
+
+# (Optional) Qdrant Cloud Configuration
+# GRAFO_VECTOR_BACKEND=qdrant
+# QDRANT_URL=https://xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.us-east-1-0.aws.cloud.qdrant.io:6333
+# QDRANT_API_KEY=your_qdrant_cloud_api_key
 ```
+
 3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-**Execution:**
-To start the MCP server and expose all cognitive memory and project lifecycle tools to the LLM:
+### Running the MCP Server
+To boot the Model Context Protocol server:
 ```bash
 python -m interface.mcp_server
 ```
 
+---
 
-## 🔌 Model Context Protocol (MCP) Tools
-The Grafo Concierge server exposes a robust set of tools via MCP to allow AI Agents (like Claude in Cursor, Claude Desktop, or Copilot) to interact natively with the memory graph.
-
-### 🛠️ Tool Directory & Usage Patterns
-
-#### 1. Ingestion and Lifecycle Management
-* **`concierge_register`**: Registers a new project folder and defines its privacy policy (`PUBLIC`, `INTERNAL`, `RESTRICTED`).
-  * *CLI Usage*: `python -m interface.cli register --name <project_name> [--wing <wing>] [--privacy <level>]`
-  * *Agent Integration*: Natively called when the agent detects a new workspace directory to register.
-* **`concierge_mine`**: Ingests files, runs semantic & AST chunking, generates L0/L1/L2 summaries, calculates vector embeddings, and synchronizes SQLite with ChromaDB.
-  * *CLI Usage*: `python -m interface.cli mine --path <absolute_path> --name <project_name>`
-  * *Agent Integration*: Triggered after making code changes or to build the initial repository context.
-* **`delete_project`**: Completely purges a project and all its related nodes, edges, commits, and embeddings.
-  * *CLI Usage*: `python -m interface.cli delete --project <uuid_or_name>`
-* **`update_project`**: Updates project details such as name, primary wing, privacy, or summary.
-* **`concierge_list_projects`**: Lists all projects inside the memory database.
-  * *CLI Usage*: `python -m interface.cli projects`
-
-#### 2. Advanced Search & Retrieval
-* **`concierge_search`**: Hybrid Search v4 combining cosine similarity, FTS5 BM25, and graph centrality/recency signals to find relevant chunks.
-  * *CLI Usage*: `python -m interface.cli search --query "<text>" --project <uuid> [--top_k <k>]`
-  * *Agent Integration*: The main search tool used to find related files, context, and previous implementations.
-* **`search_symbols`**: Searches for class, function, or method signatures inside the FTS5 full-text index.
-* **`get_implementations`**: Returns the complete AST code block for a symbol ID on demand.
-* **`get_callers`**: Navigates graph dependency edges to return callers of a symbol.
-* **`find_similar`**: Searches other projects belonging to the same wing (domain of technical expertise).
-
-#### 3. Cognitive Context & Trajectories
-* **`concierge_wakeup`**: Reactivates consciousness by returning the Context Compass, Reference Wings, latest commits, and system statistics.
-  * *CLI Usage*: `python -m interface.cli wakeup --project <uuid>`
-  * *Agent Integration*: Executed at the beginning of a session to "wake up" the agent's memory of the codebase.
-* **`concierge_resume`**: Retrieves the Context Compass (L2 global summary) of the project.
-  * *CLI Usage*: `python -m interface.cli resume --project <uuid>`
-* **`concierge_load`**: On-demand node loader (Lazy Load) returning contents, tags, and active relationships.
-* **`get_trajectories`**: Retrieves the history of cognitive trajectories (bi-temporal navigation steps).
-
-#### 4. Episodic Memory & Preferences
-* **`concierge_store_fact`**: Evaluates and writes a semantic fact through the SemanticExtractor, making ADD/UPDATE/DELETE/NOOP decisions.
-* **`concierge_set_memory`**: Stores persistent user/session core memory blocks (e.g., preferred programming language, persona, style guides).
-* **`concierge_get_memory`**: Queries user/session core memory blocks.
-* **`concierge_feedback`**: Registers feedback on fact utility to feed Thompson Sampling (Bayesian learning).
-
-#### 5. System Utilities
-* **`get_full_topology`**: Returns node and edge connections in an ultra-lean format for the 3D Web Dashboard.
-* **`concierge_status`**: Provides system health, ChromaDB telemetry, and janitor maintenance logs.
-  * *CLI Usage*: `python -m interface.cli status`
-* **`reset_collection`**: Emergency repair tool to rebuild the physical vector store collection.
-
-## 🧪 Test Suite & Continuous Integration (Absolute Solidity)
-The project features an exhaustive suite of integrated and unit tests with native auto-discovery configured in `pyproject.toml` and a CI pipeline via **GitHub Actions** (`ci.yml`).
+## 🧪 Test Suite & Code Verification
 
 To run the automated test suite:
 ```bash
 python -m pytest
 ```
 
-To run the complete health diagnostic and local memory sanitization check:
+To run the complete health diagnostic checks on the memory systems:
 ```bash
-python tests/check_brain.py
+python -m tests.check_brain
 ```
+
+---
 
 ## 📄 License
 Distributed under the MIT license. See `LICENSE` for more information.
