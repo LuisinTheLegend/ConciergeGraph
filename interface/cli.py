@@ -71,11 +71,24 @@ def _bootstrap_concierge():
 
     store = SqliteStore(db_path)
     embedder = EmbeddingManager(tier=EmbeddingTier.FLASH)
-    vector_store = ChromaVectorStore(
-        persist_dir=chroma_path,
-        collection_name=chroma_collection,
-        embedding_manager=embedder,
-    )
+
+    vector_backend = os.environ.get("GRAFO_VECTOR_BACKEND", "chroma").lower()
+    if vector_backend == "qdrant":
+        qdrant_url = os.environ.get("GRAFO_QDRANT_URL", "http://localhost:6333")
+        qdrant_key = os.environ.get("GRAFO_QDRANT_API_KEY", "") or None
+        from core.vector_backend import QdrantVectorStore
+        vector_store = QdrantVectorStore(
+            url=qdrant_url,
+            api_key=qdrant_key,
+            collection_name=chroma_collection,
+            embedding_dimensions=embedder.dimensions,
+        )
+    else:
+        vector_store = ChromaVectorStore(
+            persist_dir=chroma_path,
+            collection_name=chroma_collection,
+            embedding_manager=embedder,
+        )
 
     llm_adapter = LLMAdapter(
         model_name=llm_model,
@@ -204,6 +217,42 @@ def cmd_projects(args, gc, store):
         )
 
 
+def cmd_sync_vector(args, gc, store):
+    """Sincroniza e reconcilia embeddings faltantes no vetor ativo de forma manual."""
+    from services.janitor import JanitorService, MaintenanceReport
+    
+    # Inicializa o JanitorService local
+    janitor = JanitorService(
+        sqlite_store=store,
+        vector_store=gc._vector,
+        ingestion_manager=gc._ingestion,
+    )
+    
+    projects_to_sync = []
+    if args.project:
+        projects_to_sync.append(args.project)
+    else:
+        all_projects = store.list_projects()
+        projects_to_sync = [p["uuid"] for p in all_projects]
+        
+    if not projects_to_sync:
+        print("Nenhum projeto registrado encontrado para sincronizar.")
+        return
+        
+    print(f"Iniciando reconciliação vetorial manual em lote para {len(projects_to_sync)} projetos...")
+    for p_uuid in projects_to_sync:
+        p_name = next((p["folder_name"] for p in store.list_projects() if p["uuid"] == p_uuid), p_uuid)
+        print(f"-> Sincronizando projeto: {p_name} ({p_uuid})...")
+        report = MaintenanceReport()
+        # Executa a reconciliação bidirecional (deleta órfãos e gera faltantes)
+        janitor._sync_vectors(p_uuid, report)
+        if report.errors:
+            print(f"   [ERRO] {report.errors[0]}")
+        else:
+            print(f"   [OK] Reconciliação vetorial concluída com sucesso.")
+    print("Reconciliação e sincronização finalizadas!")
+
+
 # ---------------------------------------------------------------------------
 # Parser de argumentos
 # ---------------------------------------------------------------------------
@@ -265,6 +314,10 @@ def build_parser() -> argparse.ArgumentParser:
     # --- projects ---
     subparsers.add_parser("projects", help="Lista todos os projetos")
 
+    # --- sync-vector ---
+    p_sync_vector = subparsers.add_parser("sync-vector", help="Sincroniza e reconcilia embeddings faltantes no vetor ativo de forma manual")
+    p_sync_vector.add_argument("--project", default=None, help="UUID de um projeto específico para sincronizar (opcional)")
+
     return parser
 
 
@@ -282,6 +335,7 @@ COMMAND_MAP = {
     "load": cmd_load,
     "status": cmd_status,
     "projects": cmd_projects,
+    "sync-vector": cmd_sync_vector,
 }
 
 
