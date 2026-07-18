@@ -1,4 +1,4 @@
-# 🧠 Grafo Concierge v3.8.0
+# 🧠 Grafo Concierge v3.8.2
 **O Palácio de Memórias de Longo Prazo (LTM) para Agentes de IA**
 
 O Grafo Concierge é uma infraestrutura de memória cognitiva local projetada para resolver a "amnésia" dos LLMs em projetos complexos. Diferente de sistemas de RAG simples, ele utiliza uma arquitetura robusta que combina persistência relacional, busca vetorial, síntese hierárquica e um sistema de manutenção autônomo.
@@ -30,21 +30,21 @@ Validado pelo **Colossus Protocol**, o sistema demonstrou escalabilidade linear 
   - **L2 (Macro - Bússola):** Visão arquitetural global do projeto. É usada para dar o contexto inicial perfeito aos Agentes de IA sem estourar o limite de tokens (Context Window).
 
 
-## 🏛️ Arquitetura: O Prédio de 10 Andares
+## 🏛️ Arquitetura: Divisão de Camadas
 O sistema é dividido em camadas modulares para garantir que a memória seja organizada, auditada e duradoura:
 
 - **`core/` (O Sistema Nervoso):** Centraliza a lógica de Busca Híbrida v4 (Vetorial + FTS5 + Sinais de Grafo) e a fachada central do sistema.
-- **`storage/` (A Fundação):** Gerenciamento atômico de banco de dados SQLite e persistência vetorial local via ChromaDB.
-- **`ingestion/` (O Motor Apex):** Pipeline de extração de código, crawling inteligente e a Engrenagem de Zoom (L0/L1/L2) para resumos hierárquicos.
+- **`storage/` (A Fundação):** Gerenciamento atômico thread-safe de conexões de leitura SQLite e escrita serializada isolada (WAL mode), além de persistência vetorial via ChromaDB.
+- **`ingestion/` (O Motor Apex):** Pipeline de extração de código, crawling inteligente, detecção de AST multilinguagem compatível e a Engrenagem de Zoom (L0/L1/L2).
 - **`agents/` (Os Guardiões):** Agentes de IA dedicados ao Reranking semântico e auditoria cirúrgica de commits, prevenindo contaminação de contexto.
-- **`services/` (A Manutenção):** O Janitor, um serviço de background autônomo que lida com o decaimento temporal da informação e a limpeza vetorial.
-- **`interface/` (O Portal):** Servidor nativo MCP (Model Context Protocol) para integração fluida com IDEs (Cursor/Claude) e painel CLI.
+- **`services/` (A Manutenção):** O Janitor, um serviço de background autônomo que lida com o decaimento temporal e o controle de histórico de manutenção livre de memory leaks.
+- **`interface/` (O Portal):** Servidor nativo MCP (Model Context Protocol) estendido para o ciclo de vida completo de projetos e painel CLI.
 
 ## 🛠️ Tecnologia de Busca Híbrida v4
 A relevância é calculada através de uma composição ponderada que prioriza o contexto exato e a recência da informação:
 
 1. **Busca Vetorial (50%):** Similaridade semântica profunda via embeddings.
-2. **Busca FTS5 (25%):** Correspondência exata de palavras-chave (BM25).
+2. **Busca FTS5 (25%):** Correspondência exata de palavras-chave (BM25 normalizado).
 3. **Sinais de Grafo (25%):** Maior valor entre a Recência temporal e a Centralidade do nó (peso relacional).
 
 A recência segue a fórmula de decaimento exponencial, garantindo que a memória "envelheça" graciosamente e dê espaço para novos fatos com o tempo:
@@ -58,10 +58,10 @@ $$W = W_0 \cdot e^{-\lambda t}$$
 
 **Configuração:**
 1. Clone o repositório.
-2. Crie um arquivo `.env` na raiz:
+2. Crie um arquivo `.env` na raiz (o arquivo está ignorado de forma segura no `.gitignore`):
 ```env
 GRAFO_LLM_API_KEY=sua_chave_aqui
-GRAFO_LLM_MODEL=gemini-2.0-flash
+GRAFO_LLM_MODEL=gemini-2.5-flash
 ```
 3. Instale as dependências:
 ```bash
@@ -69,24 +69,23 @@ pip install -r requirements.txt
 ```
 
 **Execução:**
-Para iniciar o servidor MCP e expor as ferramentas de memória:
+Para iniciar o servidor MCP e expor todas as ferramentas de memória cognitiva e ciclo de vida ao LLM:
 ```bash
 python -m interface.mcp_server
 ```
 
-## 🧪 Suíte de Testes (Absolute Solidity)
-O projeto conta com o **Stress Test v2**, uma suíte exaustiva cobrindo 8 dimensões de estresse, concorrência, integridade e isolamento (Strict Scoping).
+## 🧪 Suíte de Testes & Integração Contínua (Absolute Solidity)
+O projeto conta com uma suíte exaustiva de testes integrados e unitários com descoberta automática nativa configurada em `pyproject.toml` e pipeline de CI via **GitHub Actions** (`ci.yml`).
 
-Para rodar os exatos **262 testes automatizados** e os benchmarks:
+Para rodar os testes da suíte automatizada:
 ```bash
-# Validação Estrutural e de Agentes
-python tests/stress_test_v2_parte1.py
-python tests/stress_test_v2_parte2.py
-python tests/stress_test_v2_parte3.py
+python -m pytest
+```
 
-# Benchmark de Big Data
-python tests/colossus_benchmark.py
+Para rodar o diagnóstico completo de integridade e sanitização da memória local:
+```bash
+python tests/check_brain.py
 ```
 
 ## 📄 Licença
-Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.3
+Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
