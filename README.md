@@ -1,5 +1,7 @@
 # 🧠 Concierge Graph v3.8.2
-> **🇧🇷 [Leia este README em Português (README_pt-BR.md)](file:///c:/Nexus-Memory/GrafoConcierge/README.pt-BR.md)**
+> **🇧🇷 [Leia este README em Português (README_pt-BR.English · [Português (Brasil)](README.pt-BR.md)
+
+---
 
 **The Long-Term Memory (LTM) Palace for AI Agents & Developer Environments**
 
