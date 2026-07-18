@@ -1,7 +1,7 @@
-# 🧠 Concierge Graph v3.8.2
-> **🇧🇷 [Leia este README em Português (README_pt-BR.English · [Português (Brasil)](README.pt-BR.md)
-
+English · [Português (Brasil)](README.pt-BR.md)
 ---
+
+# 🧠 Concierge Graph v3.8.2
 
 **The Long-Term Memory (LTM) Palace for AI Agents & Developer Environments**
 
