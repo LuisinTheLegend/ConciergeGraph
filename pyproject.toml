@@ -1,15 +1,105 @@
 [build-system]
-requires = ["setuptools>=61.0.0"]
+requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
+# ──────────────────────────────────────────────────────────────
+# Project Metadata — PyPI Publication as "concierge-graph"
+# ──────────────────────────────────────────────────────────────
 [project]
-name = "grafo-concierge"
-version = "3.8.0"
-description = "Grafo Concierge - Cérebro de Memória Semântica"
+name = "concierge-graph"
+version = "3.8.2"
+description = "Long-Term Memory (LTM) Palace for AI Agents — hybrid search, semantic graphs, and MCP tools for Cursor, Claude Desktop, and autonomous agents."
 readme = "README.md"
-requires-python = ">=3.12"
-dependencies = []
+license = {file = "LICENSE"}
+requires-python = ">=3.10"
+authors = [
+    {name = "LuisinTheLegend"},
+]
+keywords = [
+    "mcp", "memory", "graph", "ai-agents", "rag",
+    "semantic-search", "vector-database", "llm",
+    "cursor", "claude-desktop", "embeddings",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "chromadb>=1.0",
+    "mcp>=1.0",
+    "sentence-transformers>=3.0",
+    "python-dotenv>=1.0",
+    "starlette>=0.36",
+    "sse-starlette>=2.0",
+    "uvicorn>=0.25",
+    "httpx>=0.25",
+    "pydantic>=2.0",
+    "rich>=13.0",
+    "tenacity>=8.0",
+    "pathspec>=0.11",
+]
 
+[project.optional-dependencies]
+qdrant = ["qdrant-client>=1.7"]
+dev = [
+    "pytest>=7.0",
+    "flake8>=6.0",
+    "mypy>=1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/LuisinTheLegend/GrafoConcierge"
+Repository = "https://github.com/LuisinTheLegend/GrafoConcierge"
+Issues = "https://github.com/LuisinTheLegend/GrafoConcierge/issues"
+
+# ──────────────────────────────────────────────────────────────
+# CLI Entry Points — Global Terminal Commands
+# ──────────────────────────────────────────────────────────────
+# After `pip install concierge-graph`:
+#   concierge mine --path .       (instead of python -m interface.cli mine)
+#   concierge search --query "x"  (instead of python -m interface.cli search)
+#   concierge-mcp                 (instead of python main.py)
+# ──────────────────────────────────────────────────────────────
+[project.scripts]
+concierge = "interface.cli:main"
+concierge-mcp = "main:main"
+
+# ──────────────────────────────────────────────────────────────
+# Setuptools — Package Discovery + Root Module
+# ──────────────────────────────────────────────────────────────
+[tool.setuptools]
+py-modules = ["main"]
+
+[tool.setuptools.packages.find]
+include = [
+    "core*",
+    "storage*",
+    "ingestion*",
+    "services*",
+    "interface*",
+    "agents*",
+    "scripts*",
+]
+exclude = [
+    "tests*",
+    "data*",
+    "docs*",
+    ".git*",
+]
+
+# ──────────────────────────────────────────────────────────────
+# Pytest Configuration
+# ──────────────────────────────────────────────────────────────
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
