@@ -738,3 +738,22 @@ class ChromaVectorStore(BaseVectorBackend):
         if len(conditions) == 1:
             return conditions[0]
         return {"$and": conditions}
+
+    def get_all_stored_node_ids(self) -> set[int]:
+        """Retorna todos os node_ids numéricos presentes na coleção do Chroma."""
+        if not self._available:
+            return set()
+        try:
+            id_data = self._collection.get(include=[])
+            ids = id_data.get("ids", [])
+            node_ids = set()
+            for doc_id in ids:
+                if doc_id.startswith("node_"):
+                    try:
+                        node_ids.add(int(doc_id.split("_")[1]))
+                    except (IndexError, ValueError):
+                        pass
+            return node_ids
+        except Exception as e:
+            logger.error("Erro ao obter node_ids salvos no Chroma: %s", e)
+            return set()

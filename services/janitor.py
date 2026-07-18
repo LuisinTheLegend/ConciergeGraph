@@ -345,22 +345,53 @@ class JanitorService:
     # ===================================================================
 
     def _sync_vectors(self, project_uuid: str, report: MaintenanceReport) -> int:
-        """Detecta e remove vetores órfãos no ChromaDB."""
+        """Detecta/remove vetores órfãos e auto-gera vetores faltantes no backend ativo."""
         try:
-            # Coleta IDs válidos do SQLite
+            # Coleta nós ativos com conteúdo do SQLite
             nodes = self._store.get_nodes_by_project(project_uuid, status="ACTIVE")
+            nodes_with_content = [n for n in nodes if n.get("content")]
             valid_ids: set[int] = {n["id"] for n in nodes}
 
-            # verify_sync retorna doc_ids órfãos
+            # 1. Remove vetores órfãos
             orphans = self._vector.verify_sync(valid_ids)
+            removed = 0
+            if orphans:
+                removed = self._vector.delete_batch(orphans)
+                logger.info("Sync: %d vetores órfãos removidos.", removed)
 
-            if not orphans:
-                logger.debug("Sync: nenhum vetor órfão detectado.")
-                return 0
+            # 2. Auto-gera e sincroniza embeddings faltantes (ex: migração Chroma ↔ Qdrant)
+            if hasattr(self._vector, "get_all_stored_node_ids") and self._ingestion and hasattr(self._ingestion, "_embedder"):
+                sqlite_ids = {n["id"] for n in nodes_with_content}
+                stored_ids = self._vector.get_all_stored_node_ids()
+                
+                missing_ids = sqlite_ids - stored_ids
+                if missing_ids:
+                    logger.info("Sync: %d nós do SQLite sem correspondência no vetor ativo. Auto-gerando embeddings...", len(missing_ids))
+                    
+                    items_to_store = []
+                    embedder = self._ingestion._embedder
+                    
+                    for n in nodes_with_content:
+                        if n["id"] in missing_ids:
+                            try:
+                                emb = embedder.embed(n["content"])
+                                items_to_store.append({
+                                    "doc_id": f"node_{n['id']}",
+                                    "embedding": emb,
+                                    "metadata": {
+                                        "node_id": n["id"],
+                                        "project_uuid": project_uuid,
+                                        "label": n.get("label", ""),
+                                        "node_type": n.get("type", "FACT")
+                                    }
+                                })
+                            except Exception as embed_err:
+                                logger.error("Falha ao gerar embedding para nó %d na auto-sincronização: %s", n["id"], embed_err)
+                    
+                    if items_to_store:
+                        stored_count = self._vector.store_embeddings_batch(items_to_store)
+                        logger.info("Sync: %d vetores faltantes auto-gerados e sincronizados com sucesso.", stored_count)
 
-            # Remove orphans em batch
-            removed = self._vector.delete_batch(orphans)
-            logger.info("Sync: %d vetores órfãos removidos.", removed)
             return removed
 
         except Exception as e:

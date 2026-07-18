@@ -230,3 +230,12 @@ class BaseVectorBackend(ABC):
             metadata: Dicionário de metadados a aplicar (merge ou replace).
         """
         ...
+
+    @abstractmethod
+    def get_all_stored_node_ids(self) -> set[int]:
+        """Retorna o conjunto de todos os node_ids numéricos presentes no backend vetorial.
+
+        Returns:
+            Conjunto contendo todos os node_ids numéricos armazenados.
+        """
+        ...

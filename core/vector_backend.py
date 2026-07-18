@@ -440,3 +440,30 @@ class QdrantVectorStore(BaseVectorBackend):
             )
         except Exception as e:
             logger.error("Falha ao atualizar metadados no Qdrant: %s", e)
+
+    def get_all_stored_node_ids(self) -> set[int]:
+        """Retorna todos os node_ids numéricos presentes na coleção do Qdrant."""
+        if not self._ensure_connected() or not self._client:
+            return set()
+        node_ids = set()
+        try:
+            offset = None
+            while True:
+                res, next_offset = self._client.scroll(
+                    collection_name=self._collection_name,
+                    limit=100,
+                    with_payload=True,
+                    offset=offset
+                )
+                for point in res:
+                    payload = point.payload or {}
+                    n_id = payload.get("node_id")
+                    if n_id is not None:
+                        node_ids.add(int(n_id))
+                if not next_offset:
+                    break
+                offset = next_offset
+            return node_ids
+        except Exception as e:
+            logger.error("Erro ao obter node_ids salvos no Qdrant: %s", e)
+            return set()
