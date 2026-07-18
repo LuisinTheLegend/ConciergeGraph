@@ -1,20 +1,20 @@
 """
-storage/base_backend.py — Grafo Concierge v3.8.0 (Absolute Solidity)
+storage/base_backend.py - Grafo Concierge v3.8.0 (Absolute Solidity)
 
-Interface abstrata para backends vetoriais plugáveis.
+Abstract interface for pluggable vector backends.
 
-Qualquer backend vetorial (ChromaDB, Qdrant, Pinecone) DEVE implementar
-esta interface para ser compatível com o Concierge Core.
+Any vector backend (ChromaDB, Qdrant, Pinecone) MUST implement
+this interface to be compatible with the Concierge Core.
 
-Contratos:
-    - store_embedding: Armazena um vetor + metadados. Metadata obrigatória: node_id, project_uuid.
-    - store_embeddings_batch: Inserção em lote para ingestão massiva (concierge mine).
-    - search: Busca por similaridade vetorial com pré-filtro por projeto.
-    - delete: Remove um vetor pelo doc_id.
-    - delete_batch: Remove múltiplos vetores.
-    - verify_sync: Reconciliation Loop — detecta vetores órfãos.
-    - health_check: Verifica se o backend está operacional.
-    - count: Retorna o total de vetores armazenados (com filtro opcional).
+Contracts:
+    - store_embedding: Stores a vector + metadata. Mandatory metadata: node_id, project_uuid.
+    - store_embeddings_batch: Batch insertion for massive ingestion (concierge mine).
+    - search: Vector similarity search with project pre-filtering.
+    - delete: Removes a vector by doc_id.
+    - delete_batch: Removes multiple vectors.
+    - verify_sync: Reconciliation Loop — detects orphan vectors.
+    - health_check: Checks if the backend is operational.
+    - count: Returns the total number of stored vectors (with optional filter).
 """
 
 from __future__ import annotations
@@ -25,36 +25,36 @@ from typing import Any, Optional
 
 
 # ---------------------------------------------------------------------------
-# Model Tiering — controla custo vs qualidade dos embeddings
+# Model Tiering — controls cost vs quality of embeddings
 # ---------------------------------------------------------------------------
 
 class EmbeddingTier(str, Enum):
-    """Tier de modelo de embedding para otimização de custo.
+    """Embedding model tier for cost optimization.
 
-    FLASH: Modelo leve, rápido e gratuito (all-MiniLM-L6-v2, 384 dims).
-           Ideal para ingestão massiva e projetos locais.
+    FLASH: Lightweight, fast and free model (all-MiniLM-L6-v2, 384 dims).
+           Ideal for massive ingestion and local projects.
 
-    ELITE: Modelo premium com maior precisão semântica
+    ELITE: Premium model with higher semantic accuracy
            (text-embedding-3-small, 1536 dims).
-           Ideal para buscas críticas em produção.
+           Ideal for critical production searches.
     """
     FLASH = "flash"
     ELITE = "elite"
 
 
 # ---------------------------------------------------------------------------
-# Resultado padronizado de busca vetorial
+# Standardized vector search result
 # ---------------------------------------------------------------------------
 
 class VectorSearchResult:
-    """Resultado individual de uma busca vetorial.
+    """Individual result of a vector search.
 
     Attributes:
-        doc_id: Identificador do documento no backend vetorial.
-        node_id: ID do nó correspondente no SQLite.
-        project_uuid: UUID do projeto ao qual o nó pertence.
-        score: Score de similaridade coseno [0.0, 1.0].
-        metadata: Metadados adicionais armazenados junto ao vetor.
+        doc_id: Document identifier in the vector backend.
+        node_id: ID of the corresponding node in SQLite.
+        project_uuid: UUID of the project to which the node belongs.
+        score: Cosine similarity score [0.0, 1.0].
+        metadata: Additional metadata stored along with the vector.
     """
 
     __slots__ = ("doc_id", "node_id", "project_uuid", "score", "metadata")
@@ -74,7 +74,7 @@ class VectorSearchResult:
         self.metadata = metadata or {}
 
     def to_dict(self) -> dict:
-        """Converte para dict compatível com o Hybrid Search pipeline."""
+        """Converts to a dict compatible with the Hybrid Search pipeline."""
         return {
             "doc_id": self.doc_id,
             "node_id": self.node_id,
@@ -85,17 +85,17 @@ class VectorSearchResult:
 
 
 # ---------------------------------------------------------------------------
-# BaseVectorBackend — Interface abstrata
+# BaseVectorBackend — Abstract interface
 # ---------------------------------------------------------------------------
 
 class BaseVectorBackend(ABC):
-    """Interface abstrata para backends vetoriais plugáveis.
+    """Abstract interface for pluggable vector backends.
 
-    Implementações concretas: ChromaBackend, QdrantBackend, PineconeBackend.
+    Concrete implementations: ChromaBackend, QdrantBackend, PineconeBackend.
 
-    Todos os métodos de armazenamento DEVEM incluir nos metadados:
-        - node_id (int): ID correspondente na tabela nodes do SQLite.
-        - project_uuid (str): UUID do projeto para Strict Scoping.
+    All storage methods MUST include in the metadata:
+        - node_id (int): Corresponding ID in the SQLite nodes table.
+        - project_uuid (str): Project UUID for Strict Scoping.
     """
 
     @abstractmethod
@@ -105,15 +105,15 @@ class BaseVectorBackend(ABC):
         embedding: list[float],
         metadata: dict,
     ) -> None:
-        """Armazena um embedding com metadados.
+        """Stores an embedding with metadata.
 
         Args:
-            doc_id: Identificador único do documento (formato: 'node_{node_id}').
-            embedding: Vetor de embedding (384 ou 1536 dimensões).
-            metadata: Dict contendo obrigatoriamente 'node_id' e 'project_uuid'.
+            doc_id: Unique document identifier (format: 'node_{node_id}').
+            embedding: Embedding vector (384 or 1536 dimensions).
+            metadata: Dict containing mandatory 'node_id' and 'project_uuid'.
 
         Raises:
-            ValueError: Se metadata não contém campos obrigatórios.
+            ValueError: If metadata does not contain mandatory fields.
         """
         ...
 
@@ -122,21 +122,21 @@ class BaseVectorBackend(ABC):
         self,
         items: list[dict],
     ) -> int:
-        """Armazena múltiplos embeddings em lote.
+        """Stores multiple embeddings in batch.
 
-        Cada item da lista DEVE conter:
+        Each item in the list MUST contain:
             - doc_id (str)
             - embedding (list[float])
-            - metadata (dict com node_id e project_uuid)
+            - metadata (dict with node_id and project_uuid)
 
         Args:
-            items: Lista de dicts com doc_id, embedding e metadata.
+            items: List of dicts with doc_id, embedding and metadata.
 
         Returns:
-            Número de embeddings armazenados com sucesso.
+            Number of successfully stored embeddings.
 
         Raises:
-            ValueError: Se algum item não contém campos obrigatórios.
+            ValueError: If any item does not contain mandatory fields.
         """
         ...
 
@@ -148,94 +148,94 @@ class BaseVectorBackend(ABC):
         top_k: int = 10,
         filters: Optional[dict] = None,
     ) -> list[VectorSearchResult]:
-        """Busca por similaridade vetorial com pré-filtro por projeto.
+        """Similarity search with project pre-filtering.
 
         Args:
-            query_embedding: Vetor da query (mesma dimensão dos vetores armazenados).
-            project_uuids: Lista de UUIDs para Strict Scoping.
-            top_k: Número máximo de resultados.
-            filters: Filtros adicionais (ex: {'node_type': 'FACT'}).
+            query_embedding: Query vector (same dimension as stored vectors).
+            project_uuids: List of UUIDs for Strict Scoping.
+            top_k: Maximum number of results.
+            filters: Additional filters (e.g. {'node_type': 'FACT'}).
 
         Returns:
-            Lista de VectorSearchResult ordenada por score DESC.
+            List of VectorSearchResult sorted by score DESC.
         """
         ...
 
     @abstractmethod
     def delete(self, doc_id: str) -> None:
-        """Remove um embedding pelo doc_id.
+        """Removes an embedding by doc_id.
 
         Args:
-            doc_id: Identificador do documento a remover.
+            doc_id: Identifier of the document to remove.
         """
         ...
 
     @abstractmethod
     def delete_batch(self, doc_ids: list[str]) -> int:
-        """Remove múltiplos embeddings.
+        """Removes multiple embeddings.
 
         Args:
-            doc_ids: Lista de identificadores a remover.
+            doc_ids: List of identifiers to remove.
 
         Returns:
-            Número de embeddings removidos com sucesso.
+            Number of successfully removed embeddings.
         """
         ...
 
     @abstractmethod
     def verify_sync(self, sqlite_node_ids: set[int]) -> list[str]:
-        """Reconciliation Loop — detecta vetores órfãos no backend.
+        """Reconciliation Loop — detects orphan vectors in the backend.
 
-        Compara os IDs existentes no backend vetorial com os IDs válidos
-        do SQLite. Retorna doc_ids que existem no vetor mas NÃO no SQLite.
+        Compares existing IDs in the vector backend with valid IDs
+        from SQLite. Returns doc_ids that exist in vector database but NOT in SQLite.
 
         Args:
-            sqlite_node_ids: Conjunto de node_ids válidos no SQLite.
+            sqlite_node_ids: Set of valid node_ids in SQLite.
 
         Returns:
-            Lista de doc_ids órfãos que devem ser deletados.
+            List of orphan doc_ids that should be deleted.
         """
         ...
 
     @abstractmethod
     def health_check(self) -> bool:
-        """Verifica se o backend está operacional.
+        """Checks if the backend is operational.
 
         Returns:
-            True se o backend está acessível e respondendo.
+            True if the backend is accessible and responding.
         """
         ...
 
     @abstractmethod
     def count(self, project_uuid: Optional[str] = None) -> int:
-        """Retorna o total de vetores armazenados.
+        """Returns the total number of stored vectors.
 
         Args:
-            project_uuid: Se informado, conta apenas vetores deste projeto.
+            project_uuid: If provided, counts only vectors from this project.
 
         Returns:
-            Contagem de vetores.
+            Vector count.
         """
         ...
 
     @abstractmethod
     def update_metadata(self, doc_id: str, metadata: dict) -> None:
-        """Atualiza os metadados de um vetor existente sem substituir o embedding.
+        """Updates the metadata of an existing vector without replacing the embedding.
 
-        Permite que o Janitor injete community_id e outros atributos sem
-        precisar acessar _collection diretamente.
+        Allows the Janitor to inject community_id and other attributes without
+        needing to access _collection directly.
 
         Args:
-            doc_id: Identificador do documento (ex: 'node_42').
-            metadata: Dicionário de metadados a aplicar (merge ou replace).
+            doc_id: Document identifier (e.g. 'node_42').
+            metadata: Metadata dictionary to apply (merge or replace).
         """
         ...
 
     @abstractmethod
     def get_all_stored_node_ids(self) -> set[int]:
-        """Retorna o conjunto de todos os node_ids numéricos presentes no backend vetorial.
+        """Returns the set of all numeric node_ids present in the vector backend.
 
         Returns:
-            Conjunto contendo todos os node_ids numéricos armazenados.
+            Set containing all stored numeric node_ids.
         """
         ...

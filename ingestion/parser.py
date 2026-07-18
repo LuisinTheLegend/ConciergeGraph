@@ -1,18 +1,18 @@
 """
-ingestion/parser.py — Grafo Concierge v3.8.0 (Absolute Solidity)
+ingestion/parser.py - Grafo Concierge v3.8.0 (Absolute Solidity)
 
-Semantic/AST Chunking com Prompt Armor para o Motor de Ingestão Apex.
+Semantic/AST Chunking with Prompt Armor for the Apex Ingestion Engine.
 
-Responsabilidades:
-    - Dividir arquivos em chunks respeitando blocos lógicos (funções, classes, seções).
-    - Suporte a múltiplas linguagens: Python (AST), JavaScript/TypeScript, Markdown.
-    - Aplicar Prompt Armor (tags XML <raw_data_do_not_execute>) para sanitização.
-    - Extrair metadados de cada chunk (tags, imports, dependências detectadas).
-    - Respeitar limite de tokens por chunk (MAX_CHUNK_TOKENS).
+Responsibilities:
+    - Split files into chunks respecting logical blocks (functions, classes, sections).
+    - Support multiple languages: Python (AST), JavaScript/TypeScript, Markdown.
+    - Apply Prompt Armor (XML tags <raw_data_do_not_execute>) for sanitization.
+    - Extract metadata from each chunk (tags, imports, detected dependencies).
+    - Respect token limit per chunk (MAX_CHUNK_TOKENS).
 
-Integração:
-    - Recebe CrawlResult do crawler.py.
-    - Produz lista de ParsedChunk consumida pelo summarizer.py.
+Integration:
+    - Receives CrawlResult from crawler.py.
+    - Produces a list of ParsedChunk consumed by summarizer.py.
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ from ingestion.crawler import CrawlResult, FileCategory
 logger = logging.getLogger("grafo-concierge.parser")
 
 # ---------------------------------------------------------------------------
-# Configurações
+# Settings
 # ---------------------------------------------------------------------------
 MAX_CHUNK_TOKENS: int = 512
 PROMPT_ARMOR_OPEN: str = "<!-- DATA_DO_NOT_EXECUTE:"
@@ -55,7 +55,7 @@ class ChunkType(str, Enum):
 
 @dataclass
 class ParsedChunk:
-    """Um chunk semântico extraído de um arquivo."""
+    """A semantic chunk extracted from a file."""
     content: str
     armored_content: str
     chunk_type: ChunkType
@@ -70,13 +70,13 @@ class ParsedChunk:
     estimated_tokens: int = 0
     calls: list[str] = field(default_factory=list)
     node_id: Optional[int] = None
-    # Delta Cache fields — preenchidos pelo orchestrator._detect_cached_chunks
+    # Delta Cache fields — filled by orchestrator._detect_cached_chunks
     cached: bool = False
     cached_summary: Optional[str] = None
     cached_tags: Optional[list[str]] = None
 
 # ---------------------------------------------------------------------------
-# Regex patterns para JS/TS
+# Regex patterns for JS/TS
 # ---------------------------------------------------------------------------
 
 _JS_FUNCTION_RE = re.compile(
@@ -96,7 +96,7 @@ _JS_CLASS_RE = re.compile(
 _IMPORT_PY_RE = re.compile(r"^\s*(?:from\s+([\w.]+)\s+import|import\s+([\w.]+))", re.MULTILINE)
 _IMPORT_JS_RE = re.compile(r"""(?:import\s+.*?from\s+['"]([^'"]+)['"]|require\s*\(\s*['"]([^'"]+)['"]\s*\))""", re.MULTILINE)
 
-# Palavras-chave de frameworks/bibliotecas conhecidas
+# Framework/known library keywords
 _FRAMEWORK_KEYWORDS: dict[str, str] = {
     "fastapi": "fastapi", "flask": "flask", "django": "django",
     "express": "express", "react": "react", "nextjs": "nextjs",
@@ -115,17 +115,17 @@ _FRAMEWORK_KEYWORDS: dict[str, str] = {
 # ---------------------------------------------------------------------------
 
 class FileParser:
-    """Motor de Semantic/AST Chunking com Prompt Armor.
+    """Semantic/AST Chunking engine with Prompt Armor.
 
-    Estratégia por tipo:
-        - Python (.py): ast stdlib — funções, classes, módulo.
-        - JS/TS (.js/.ts/.tsx/.jsx): Regex — funções, classes, módulo.
-        - Markdown (.md): Headers (#) — seções hierárquicas.
-        - Config (.json/.yaml/.toml): Bloco único ou split por tamanho.
-        - Outros: Chunking por tamanho fixo (fallback RAW).
+    Strategy by type:
+        - Python (.py): ast stdlib — functions, classes, module.
+        - JS/TS (.js/.ts/.tsx/.jsx): Regex — functions, classes, module.
+        - Markdown (.md): Headers (#) — hierarchical sections.
+        - Config (.json/.yaml/.toml): Single block or split by size.
+        - Others: Fixed size chunking (fallback RAW).
     """
 
-    # Extensões que usam cada parser
+    # Extensions using each parser
     _PYTHON_EXTS = {".py"}
     _JS_EXTS = {".js", ".ts", ".tsx", ".jsx", ".mjs", ".cjs"}
     _MD_EXTS = {".md", ".mdx", ".rst", ".adoc", ".txt"}
@@ -140,24 +140,24 @@ class FileParser:
         self._armor = enable_prompt_armor
 
     def parse(self, crawl_result: CrawlResult) -> list[ParsedChunk]:
-        """Processa um arquivo e retorna seus chunks semânticos."""
+        """Processes a file and returns its semantic chunks."""
         filepath = crawl_result.absolute_path
         file_hash = crawl_result.file_hash
         category = crawl_result.category
         ext = crawl_result.extension.lower()
 
-        # Leitura do conteúdo
+        # Reading the content
         try:
             with open(filepath, "r", encoding="utf-8", errors="replace") as f:
                 source = f.read()
         except (OSError, IOError) as e:
-            logger.warning("Erro ao ler %s: %s", filepath, e)
+            logger.warning("Error reading %s: %s", filepath, e)
             return []
 
         if not source.strip():
             return []
 
-        # Dispatch por extensão
+        # Dispatch by extension
         if ext in self._PYTHON_EXTS or ext in self._JS_EXTS or ext in {".go", ".rs"}:
             chunks = self._parse_with_tree_sitter(source, crawl_result.relative_path, file_hash, ext)
         elif ext in self._MD_EXTS:
@@ -167,7 +167,7 @@ class FileParser:
         else:
             chunks = self._parse_raw(source, crawl_result.relative_path, file_hash, category)
 
-        # Pós-processamento: atribui category, tags e armor
+        # Post-processing: assigns category, tags and armor
         for chunk in chunks:
             chunk.category = category
             if not chunk.detected_tags:
@@ -203,15 +203,15 @@ class FileParser:
                 if isinstance(raw_lang, tree_sitter.Language):
                     return raw_lang
                 try:
-                    # Tenta instanciar passando o objeto diretamente (API moderna)
+                    # Tries to instantiate passing the object directly (modern API)
                     return tree_sitter.Language(raw_lang)
                 except TypeError:
                     ptr = _get_lang_ptr(raw_lang)
                     try:
-                        # Fallback passando o ponteiro
+                        # Fallback passing the pointer
                         return tree_sitter.Language(ptr)
                     except TypeError:
-                        # Fallback clássico (<=0.21)
+                        # Classic fallback (<=0.21)
                         return tree_sitter.Language(ptr, name)
 
             if ext == ".py":
@@ -241,7 +241,7 @@ class FileParser:
                 parser.language = lang
             return parser
         except Exception as e:
-            logger.warning("Erro ao carregar parser tree-sitter para %s: %s", ext, e)
+            logger.warning("Error loading tree-sitter parser for %s: %s", ext, e)
             return None
 
     def _get_node_definition_type(self, node: Any, ext: str) -> Optional[tuple[str, str]]:
@@ -388,7 +388,7 @@ class FileParser:
             root = tree.root_node
             
             if root.has_error:
-                logger.warning("Erro de sintaxe (AST has_error) em %s (fallback RAW)", rel_path)
+                logger.warning("Syntax error (AST has_error) in %s (RAW fallback)", rel_path)
                 return self._parse_raw(source, rel_path, file_hash, FileCategory.CODE)
                 
             definitions = []
@@ -482,7 +482,7 @@ class FileParser:
                 chunks.append(chunk)
                 
         except Exception as e:
-            logger.warning("Erro ao processar AST com tree-sitter para %s (fallback native/RAW): %s", rel_path, e)
+            logger.warning("Error processing AST with tree-sitter for %s (native/RAW fallback): %s", rel_path, e)
             if ext == ".py":
                 return self._parse_python(source, rel_path, file_hash)
             elif ext in self._JS_EXTS:
@@ -492,14 +492,14 @@ class FileParser:
         return chunks
 
     def parse_batch(self, crawl_results: list[CrawlResult]) -> list[ParsedChunk]:
-        """Processa múltiplos arquivos com Semantic Fallback."""
+        """Processes multiple files with Semantic Fallback."""
         all_chunks: list[ParsedChunk] = []
         for cr in crawl_results:
             try:
                 chunks = self.parse(cr)
                 all_chunks.extend(chunks)
             except Exception as e:
-                logger.error("Fallback: falha ao parsear %s: %s", cr.relative_path, e)
+                logger.error("Fallback: failure parsing %s: %s", cr.relative_path, e)
         return all_chunks
 
     # ===================================================================
@@ -514,10 +514,10 @@ class FileParser:
         try:
             tree = ast.parse(source, filename=rel_path)
         except SyntaxError as e:
-            logger.warning("SyntaxError em %s (fallback RAW): %s", rel_path, e)
+            logger.warning("SyntaxError in %s (RAW fallback): %s", rel_path, e)
             return self._parse_raw(source, rel_path, file_hash, FileCategory.CODE)
 
-        # Coleta nós (funções, classes, métodos)
+        # Collect nodes (functions, classes, methods)
         nodes_to_process: list[tuple[ChunkType, str, int, int, ast.AST]] = []
 
         # Traverse AST child nodes
@@ -530,17 +530,17 @@ class FileParser:
                 start = node.lineno
                 end = node.end_lineno if hasattr(node, "end_lineno") and node.end_lineno else start
                 nodes_to_process.append((ChunkType.CLASS, node.name, start, end, node))
-                # Mapeia métodos internos da classe
+                # Maps internal methods of the class
                 for subnode in ast.iter_child_nodes(node):
                     if isinstance(subnode, (ast.FunctionDef, ast.AsyncFunctionDef)):
                         sub_start = subnode.lineno
                         sub_end = subnode.end_lineno if hasattr(subnode, "end_lineno") and subnode.end_lineno else sub_start
                         nodes_to_process.append((ChunkType.METHOD, f"{node.name}.{subnode.name}", sub_start, sub_end, subnode))
 
-        # Adiciona o módulo no final para corresponder ao comportamento do tree-sitter
+        # Adds the module at the end to match the behavior of tree-sitter
         nodes_to_process.append((ChunkType.MODULE, "<module>", 1, len(lines) if lines else 1, tree))
 
-        # Mapeia chamadas usando escopo de definição
+        # Maps calls using definition scope
         calls_map = {tree: set()}
 
         def traverse_ast(n, current_defn):
@@ -574,7 +574,7 @@ class FileParser:
             # Obtém chamadas específicas deste escopo
             calls = list(calls_map.get(ast_node, set()))
 
-            # Se excede max_tokens, subdivide (exceto module para simplificar)
+            # If it exceeds max_tokens, subdivides (except module to simplify)
             if tokens > self._max_tokens and ctype != ChunkType.MODULE:
                 sub_chunks = self._split_oversized(block_text, rel_path, file_hash, ctype, name, start, chunk_idx)
                 # Copia chamadas para sub-chunks
@@ -613,7 +613,7 @@ class FileParser:
         chunks: list[ParsedChunk] = []
         chunk_idx = 0
 
-        # Coleta posições de funções e classes
+        # Collects positions of functions and classes
         boundaries: list[tuple[int, str, ChunkType]] = []
 
         for m in _JS_CLASS_RE.finditer(source):
@@ -631,7 +631,7 @@ class FileParser:
         if not boundaries:
             return self._parse_raw(source, rel_path, file_hash, FileCategory.CODE)
 
-        # Bloco MODULE: imports no topo (antes do primeiro boundary)
+        # MODULE block: imports at the top (before the first boundary)
         first_boundary_line = boundaries[0][0]
         if first_boundary_line > 1:
             module_text = "".join(lines[:first_boundary_line - 1]).strip()
@@ -653,15 +653,15 @@ class FileParser:
                 ))
                 chunk_idx += 1
 
-        # Chunks para cada bloco detectado
+        # Chunks for each detected block
         for i, (line_no, name, ctype) in enumerate(boundaries):
-            # Determina fim do bloco: próximo boundary ou EOF
+            # Determines end of block: next boundary or EOF
             if i + 1 < len(boundaries):
                 end_line = boundaries[i + 1][0] - 1
             else:
                 end_line = total_lines
 
-            # Encontra o fim real do bloco via contagem de chaves
+            # Finds the actual end of the block via brace count
             block_lines = lines[line_no - 1:end_line]
             actual_end = self._find_block_end_braces(block_lines)
             if actual_end > 0:
@@ -699,7 +699,7 @@ class FileParser:
 
     @staticmethod
     def _find_block_end_braces(block_lines: list[str]) -> int:
-        """Encontra a linha onde as chaves { } se equilibram (1-indexed relativo)."""
+        """Finds the line where braces { } balance (1-indexed relative)."""
         depth = 0
         started = False
         for i, line in enumerate(block_lines, 1):
@@ -722,7 +722,7 @@ class FileParser:
         chunks: list[ParsedChunk] = []
         chunk_idx = 0
 
-        # Encontra headers
+        # Finds headers
         header_positions: list[tuple[int, str]] = []  # (line_no, header_text)
         for i, line in enumerate(lines, 1):
             stripped = line.strip()
@@ -730,7 +730,7 @@ class FileParser:
                 header_positions.append((i, stripped))
 
         if not header_positions:
-            # Sem headers — trata como bloco único
+            # No headers — treats as a single block
             armored = self._apply_prompt_armor(source)
             return [ParsedChunk(
                 content=source.strip(),
@@ -747,7 +747,7 @@ class FileParser:
                 estimated_tokens=self._estimate_tokens(source),
             )]
 
-        # Conteúdo antes do primeiro header
+        # Content before the first header
         if header_positions[0][0] > 1:
             pre_text = "".join(lines[:header_positions[0][0] - 1]).strip()
             if pre_text:
@@ -768,7 +768,7 @@ class FileParser:
                 ))
                 chunk_idx += 1
 
-        # Cada seção
+        # Each section
         for i, (line_no, header) in enumerate(header_positions):
             if i + 1 < len(header_positions):
                 end_line = header_positions[i + 1][0] - 1
@@ -779,7 +779,7 @@ class FileParser:
             if not section_text.strip():
                 continue
 
-            # Extrai nome da seção (remove #)
+            # Extracts section name (removes #)
             section_name = header.lstrip("#").strip()
 
             armored = self._apply_prompt_armor(section_text)
@@ -809,7 +809,7 @@ class FileParser:
         return chunks
 
     # ===================================================================
-    # CONFIG — Bloco único ou split
+    # CONFIG — Single block or split
     # ===================================================================
 
     def _parse_config(self, source: str, rel_path: str, file_hash: str) -> list[ParsedChunk]:
@@ -832,7 +832,7 @@ class FileParser:
                 estimated_tokens=tokens,
             )]
 
-        # Config grande — split por tamanho
+        # Large config — split by size
         return self._split_oversized(source, rel_path, file_hash, ChunkType.CONFIG, Path(rel_path).name, 1, 0)
 
     # ===================================================================
@@ -862,18 +862,18 @@ class FileParser:
         return self._split_oversized(source, rel_path, file_hash, ChunkType.RAW, Path(rel_path).name, 1, 0)
 
     # ===================================================================
-    # SPLIT OVERSIZED — subdivide chunks grandes
+    # SPLIT OVERSIZED — subdivides large chunks
     # ===================================================================
 
     def _split_oversized(
         self, text: str, rel_path: str, file_hash: str,
         chunk_type: ChunkType, base_name: str, base_line: int, start_idx: int,
     ) -> list[ParsedChunk]:
-        """Subdivide um bloco que excede max_chunk_tokens em sub-chunks."""
+        """Subdivides a block that exceeds max_chunk_tokens into sub-chunks."""
         lines = text.splitlines(keepends=True)
         chunks: list[ParsedChunk] = []
         chunk_idx = start_idx
-        max_chars = self._max_tokens * 4  # heurística inversa
+        max_chars = self._max_tokens * 4  # inverse heuristic
 
         current_lines: list[str] = []
         current_start = base_line
@@ -905,7 +905,7 @@ class FileParser:
                 current_lines = []
                 current_chars = 0
 
-        # Resto
+        # Rest
         if current_lines:
             block = "".join(current_lines).rstrip()
             if block.strip():
@@ -932,7 +932,7 @@ class FileParser:
     # ===================================================================
 
     def _apply_prompt_armor(self, content: str) -> str:
-        """Envolve conteúdo em tags XML de Prompt Armor (comentários XML estruturados com escape defensivo)."""
+        """Wraps content in Prompt Armor XML tags (structured XML comments with defensive escaping)."""
         if not self._armor:
             return content
         escaped_content = content.replace("-->", "-- >")
@@ -943,7 +943,7 @@ class FileParser:
     # ===================================================================
 
     def _estimate_tokens(self, text: str) -> int:
-        """Estima tokens: ~4 caracteres por token."""
+        """Estimates tokens: ~4 characters per token."""
         return max(1, len(text) // 4)
 
     # ===================================================================
@@ -951,30 +951,30 @@ class FileParser:
     # ===================================================================
 
     def _detect_tags(self, content: str, category: FileCategory) -> list[str]:
-        """Detecta tags automáticas baseado no conteúdo."""
+        """Detects automatic tags based on the content."""
         tags: set[str] = set()
 
         content_lower = content.lower()
 
         if category == FileCategory.CODE:
-            # Extrai imports Python
+            # Extracts Python imports
             for m in _IMPORT_PY_RE.finditer(content):
                 mod = (m.group(1) or m.group(2) or "").split(".")[0].lower()
                 if mod:
                     tags.add(mod)
-            # Extrai imports JS/TS
+            # Extracts JS/TS imports
             for m in _IMPORT_JS_RE.finditer(content):
                 mod = (m.group(1) or m.group(2) or "")
                 mod = mod.strip("./").split("/")[0].lower()
                 if mod and not mod.startswith("."):
                     tags.add(mod)
 
-        # Detecta frameworks conhecidos
+        # Detects known frameworks
         for keyword, tag in _FRAMEWORK_KEYWORDS.items():
             if keyword in content_lower:
                 tags.add(tag)
 
-        # Para docs: detecta palavras-chave técnicas
+        # For docs: detects technical keywords
         if category == FileCategory.DOC:
             doc_keywords = ["api", "auth", "database", "deploy", "migration", "security", "testing"]
             for kw in doc_keywords:

@@ -1,13 +1,13 @@
 """
 core/__init__.py — Grafo Concierge v3.8.0 (Absolute Solidity)
 
-Pacote core/ — Cérebro do Agente.
+core/ package — Agent Brain.
 
-Exporta a Fachada central (GrafoConcierge) e sub-módulos de inteligência:
-    - GrafoConcierge       → Fachada unificada para operações de memória
-    - ConciergeConfig      → Constantes e parâmetros centralizados
-    - ProjectIndex         → GPS de Conhecimento / Categorização por Alas
-    - HybridSearchEngine   → Motor de Busca Híbrida v4
+Exports the central Facade (GrafoConcierge) and intelligence submodules:
+    - GrafoConcierge       → Unified facade for memory operations
+    - ConciergeConfig      → Centralized constants and parameters
+    - ProjectIndex         → Knowledge GPS / Wing Categorization
+    - HybridSearchEngine   → Hybrid Search Engine v4
 """
 
 from core.config import ConciergeConfig

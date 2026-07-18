@@ -1,9 +1,9 @@
 """
 storage/semantic_logic.py — Grafo Concierge v3.8.0 (Absolute Solidity)
 
-Funções de mutação puras e de consulta para a tabela semantic_facts.
-Todas as funções operam recebendo a conexão sqlite3.Connection por parâmetro
-de forma a garantir o isolamento e evitar o Database is Locked (Single-Writer).
+Pure mutation and query functions for the semantic_facts table.
+All functions operate by receiving the sqlite3.Connection as a parameter
+in order to ensure isolation and prevent Database is Locked (Single-Writer).
 """
 
 from __future__ import annotations
@@ -20,27 +20,27 @@ def insert_semantic_fact(
     utility_alpha: float = 1.0,
     utility_beta: float = 1.0
 ) -> int:
-    """Insere um novo fato semântico ativo na tabela semantic_facts.
+    """Inserts a new active semantic fact into the semantic_facts table.
 
-    Valira escopos e parâmetros rigorosamente.
+    Strictly validates scopes and parameters.
 
     Args:
-        conn: Conexão SQLite ativa.
-        scope_type: Tipo de escopo (user, session, agent, org).
-        scope_id: Identificador único do escopo.
-        fact_statement: O texto da preferência ou fato extraído.
-        utility_alpha: Sucessos históricos do fato (default: 1.0).
-        utility_beta: Falhas históricas do fato (default: 1.0).
+        conn: Active SQLite connection.
+        scope_type: Scope type (user, session, agent, org).
+        scope_id: Unique identifier of the scope.
+        fact_statement: The text of the preference or extracted fact.
+        utility_alpha: Historical successes of the fact (default: 1.0).
+        utility_beta: Historical failures of the fact (default: 1.0).
 
     Returns:
-        O ID (rowid) do registro recém-inserido.
+        The ID (rowid) of the newly inserted record.
     """
     if scope_type not in ("user", "session", "agent", "org"):
-        raise ValueError(f"scope_type inválido: '{scope_type}'. Aceitos: user, session, agent, org")
+        raise ValueError(f"Invalid scope_type: '{scope_type}'. Accepted: user, session, agent, org")
     if not scope_id or not scope_id.strip():
-        raise ValueError("scope_id não pode ser vazio ou nulo")
+        raise ValueError("scope_id cannot be empty or null")
     if not fact_statement or not fact_statement.strip():
-        raise ValueError("fact_statement não pode ser vazio ou nulo")
+        raise ValueError("fact_statement cannot be empty or null")
 
     cursor = conn.execute(
         """INSERT INTO semantic_facts (scope_type, scope_id, fact_statement, utility_alpha, utility_beta)
@@ -51,16 +51,16 @@ def insert_semantic_fact(
 
 
 def invalidate_semantic_fact(conn: sqlite3.Connection, fact_id: int) -> None:
-    """Invalida um fato semântico definindo t_invalid para o timestamp atual.
+    """Invalidates a semantic fact by setting t_invalid to the current timestamp.
 
-    Representa a revogação temporal de um fato.
+    Represents the temporal revocation of a fact.
 
     Args:
-        conn: Conexão SQLite ativa.
-        fact_id: ID do fato semântico a ser invalidado.
+        conn: Active SQLite connection.
+        fact_id: ID of the semantic fact to be invalidated.
     """
     if not isinstance(fact_id, int):
-        raise ValueError("fact_id deve ser do tipo int")
+        raise ValueError("fact_id must be of type int")
 
     conn.execute(
         """UPDATE semantic_facts
@@ -71,22 +71,22 @@ def invalidate_semantic_fact(conn: sqlite3.Connection, fact_id: int) -> None:
 
 
 def get_active_semantic_facts(conn: sqlite3.Connection, scope_type: str, scope_id: str) -> list[dict[str, Any]]:
-    """Retorna todos os fatos semânticos atualmente ativos para um escopo.
+    """Returns all currently active semantic facts for a scope.
 
-    Um fato é considerado ativo se t_invalid for NULL.
+    A fact is considered active if t_invalid is NULL.
 
     Args:
-        conn: Conexão SQLite ativa.
-        scope_type: Tipo de escopo (user, session, agent, org).
-        scope_id: Identificador único do escopo.
+        conn: Active SQLite connection.
+        scope_type: Scope type (user, session, agent, org).
+        scope_id: Unique identifier of the scope.
 
     Returns:
-        Lista de dicionários contendo os dados dos fatos ativos.
+        List of dictionaries containing active facts data.
     """
     if scope_type not in ("user", "session", "agent", "org"):
-        raise ValueError(f"scope_type inválido: '{scope_type}'. Aceitos: user, session, agent, org")
+        raise ValueError(f"Invalid scope_type: '{scope_type}'. Accepted: user, session, agent, org")
     if not scope_id or not scope_id.strip():
-        raise ValueError("scope_id não pode ser vazio ou nulo")
+        raise ValueError("scope_id cannot be empty or null")
 
     cursor = conn.execute(
         """SELECT id, scope_type, scope_id, fact_statement, t_valid, t_invalid, utility_alpha, utility_beta, created_at
@@ -99,15 +99,15 @@ def get_active_semantic_facts(conn: sqlite3.Connection, scope_type: str, scope_i
 
 
 def update_memory_utility(conn: sqlite3.Connection, fact_id: int, was_useful: bool) -> None:
-    """Atualiza a utilidade Bayesiana de um fato (incrementa alpha em sucesso ou beta em falha).
+    """Updates the Bayesian utility of a fact (increments alpha on success or beta on failure).
 
     Args:
-        conn: Conexão SQLite ativa.
-        fact_id: ID do fato semântico.
-        was_useful: Booleano indicando se o fato foi útil (True) ou não (False).
+        conn: Active SQLite connection.
+        fact_id: ID of the semantic fact.
+        was_useful: Boolean indicating if the fact was useful (True) or not (False).
     """
     if not isinstance(fact_id, int):
-        raise ValueError("fact_id deve ser do tipo int")
+        raise ValueError("fact_id must be of type int")
 
     if was_useful:
         conn.execute(

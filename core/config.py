@@ -1,22 +1,22 @@
 """
 core/config.py — Grafo Concierge v3.8.0 (Absolute Solidity)
 
-Centralização de todas as constantes, pesos e parâmetros do sistema.
+Centralization of all constants, weights, and system parameters.
 
-Este módulo é a ÚNICA fonte de verdade para valores mágicos.
-Nenhum outro módulo deve definir constantes duplicadas.
-Os valores aqui refletem exatamente o que foi especificado na
-Architecture v3.8 e validado nos testes de estresse.
+This module is the SINGLE source of truth for magic values.
+No other module should define duplicate constants.
+The values here reflect exactly what was specified in
+Architecture v3.8 and validated in stress tests.
 
-Seções:
-    1. Busca Híbrida v4 — Pesos tri-sinal
-    2. Recência — Decaimento exponencial
-    3. Centralidade — Normalização de in-degree
-    4. FTS5 — Parâmetros BM25
-    5. Alas (Wings) — Palavras-chave para categorização automática
-    6. Ingestão — Limites e diretórios ignorados
-    7. Sumarização — Tokens por nível de Zoom Gear
-    8. Servidor MCP — Configurações de runtime
+Sections:
+    1. Hybrid Search v4 — Tri-signal weights
+    2. Recency — Exponential decay
+    3. Centrality — In-degree normalization
+    4. FTS5 — BM25 parameters
+    5. Wings — Keywords for automatic categorization
+    6. Ingestion — Limits and ignored directories
+    7. Summarization — Tokens per Zoom Gear level
+    8. MCP Server — Runtime configurations
 """
 
 from __future__ import annotations
@@ -28,51 +28,51 @@ from typing import Optional
 
 @dataclass(frozen=True)
 class ConciergeConfig:
-    """Configurações centralizadas do Grafo Concierge.
+    """Centralized configurations of Grafo Concierge.
 
-    frozen=True garante imutabilidade. Para sobrescrever valores,
-    crie uma nova instância passando os campos alterados.
+    frozen=True guarantees immutability. To override values,
+    create a new instance passing the modified fields.
 
-    Exemplo:
+    Example:
         config = ConciergeConfig(vector_backend="qdrant")
     """
 
     # =================================================================
-    # 1. BUSCA HÍBRIDA v4 — Pesos tri-sinal
+    # 1. HYBRID SEARCH v4 — Tri-signal weights
     # =================================================================
-    # score = (weight_vector × vetorial)
-    #       + (weight_fts5 × bm25_normalizado)
-    #       + (weight_recency_centrality × max(recência, centralidade))
+    # score = (weight_vector × vector)
+    #       + (weight_fts5 × normalized_bm25)
+    #       + (weight_recency_centrality × max(recency, centrality))
     weight_vector: float = 0.50
     weight_fts5: float = 0.25
     weight_recency_centrality: float = 0.25
 
     # =================================================================
-    # 2. RECÊNCIA — Decaimento exponencial
+    # 2. RECENCY — Exponential decay
     # =================================================================
-    # Meia-vida de 7 dias: score cai para 0.50 após 7 dias sem commit.
-    # Fórmula: max(e^(-λ × t), recency_min_score)
+    # Half-life of 7 days: score drops to 0.50 after 7 days without commit.
+    # Formula: max(e^(-λ × t), recency_min_score)
     # λ = ln(2) / half_life_days ≈ 0.09902
     recency_half_life_days: float = 7.0
     recency_lambda: float = field(default=0.0, init=False)
     recency_min_score: float = 0.01
 
     # =================================================================
-    # 3. CENTRALIDADE — Normalização de in-degree
+    # 3. CENTRALITY — In-degree normalization
     # =================================================================
     # min(in_degree / centrality_max_in_degree, 1.0)
-    # Um nó com 10+ dependentes é "Super-Nó" (score = 1.0).
+    # A node with 10+ dependents is a "Super-Node" (score = 1.0).
     centrality_max_in_degree: int = 10
 
     # =================================================================
-    # 4. FTS5 — Parâmetros BM25
+    # 4. FTS5 — BM25 Parameters
     # =================================================================
     bm25_k1: float = 1.5
     bm25_b: float = 0.75
     bm25_fields: tuple[str, ...] = ("label", "tags", "summary")
 
     # =================================================================
-    # 5. ALAS (WINGS) — Palavras-chave para categorização automática
+    # 5. WINGS — Keywords for automatic categorization
     # =================================================================
     wing_keywords: dict[str, list[str]] = field(default_factory=lambda: {
         "marketing/vendas": [
@@ -97,14 +97,14 @@ class ConciergeConfig:
         ],
     })
 
-    # Ala padrão quando nenhuma palavra-chave é detectada.
+    # Default wing when no keyword is detected.
     default_wing: str = "geral"
 
-    # Limite recomendado de alas — acima disso, avisa o usuário.
+    # Recommended limit of wings — warns user if exceeded.
     max_wings: int = 12
 
     # =================================================================
-    # 6. INGESTÃO — Limites e filtros
+    # 6. INGESTION — Limits and filters
     # =================================================================
     ignore_dirs: tuple[str, ...] = (
         ".git", "node_modules", ".next", "dist", "build",
@@ -112,7 +112,7 @@ class ConciergeConfig:
         ".venv", "env", ".env", ".tox", "eggs", "*.egg-info",
     )
 
-    # Extensões de arquivo suportadas para ingestão.
+    # Supported file extensions for ingestion.
     supported_extensions: tuple[str, ...] = (
         ".py", ".js", ".ts", ".jsx", ".tsx", ".java", ".go",
         ".rs", ".rb", ".php", ".cs", ".cpp", ".c", ".h",
@@ -120,46 +120,46 @@ class ConciergeConfig:
         ".json", ".xml", ".html", ".css", ".scss", ".sql",
     )
 
-    # Tamanho máximo de arquivo para ingestão (em bytes). Default: 1MB.
+    # Maximum file size for ingestion (in bytes). Default: 1MB.
     max_file_size_bytes: int = 1_048_576
 
     # =================================================================
-    # 7. SUMARIZAÇÃO — Tokens por nível (Zoom Gear)
+    # 7. SUMMARIZATION — Tokens per level (Zoom Gear)
     # =================================================================
-    max_l0_tokens: int = 150   # Chunk individual
-    max_l1_tokens: int = 300   # Cluster / Pasta
-    max_l2_tokens: int = 300   # Bússola do Projeto
-    l2_relevance_threshold: float = 0.15  # Amnésia Seletiva
+    max_l0_tokens: int = 150   # Individual chunk
+    max_l1_tokens: int = 300   # Cluster / Folder
+    max_l2_tokens: int = 300   # Project Compass
+    l2_relevance_threshold: float = 0.15  # Selective Amnesia
 
     # =================================================================
-    # 8. SERVIDOR MCP — Configurações de runtime
+    # 8. MCP SERVER — Runtime configurations
     # =================================================================
     vector_backend: str = "chroma"
     embedding_model: str = "all-MiniLM-L6-v2"
     embedding_dimensions: int = 384
     default_scope: str = "primary_wing"
 
-    # Modo Lightweight (salva RAM desativando busca vetorial e usando FTS5)
+    # Lightweight mode (saves RAM by disabling vector search and using FTS5)
     lightweight_mode: bool = False
 
-    # Limites de resultados para buscas.
+    # Result limits for searches.
     search_top_k: int = 10
     fts_limit: int = 20
 
-    # Resume: limite de tokens na Bússola.
+    # Resume: token limits in the Compass.
     max_resume_tokens: int = 300
     max_commit_tokens: int = 100
 
-    # Revisor Crítico: loops máximos de auditoria.
+    # Critical Revisor: maximum loops of auditing.
     max_revisor_loops: int = 3
 
-    # Janitor: intervalo padrão em segundos.
+    # Janitor: default interval in seconds.
     janitor_interval_seconds: int = 300
     janitor_stale_threshold_days: int = 30
 
     def __post_init__(self) -> None:
-        """Calcula campos derivados após a inicialização."""
-        # frozen=True exige object.__setattr__ para campos calculados.
+        """Calculates derived fields after initialization."""
+        # frozen=True requires object.__setattr__ for calculated fields.
         object.__setattr__(
             self, "recency_lambda",
             math.log(2) / self.recency_half_life_days
@@ -173,8 +173,8 @@ class ConciergeConfig:
 
 
 # ---------------------------------------------------------------------------
-# Instância global padrão — importar diretamente quando não for necessário
-# customizar valores.
+# Default global instance — import directly when customizing values is
+# not necessary.
 # ---------------------------------------------------------------------------
 
 DEFAULT_CONFIG = ConciergeConfig()

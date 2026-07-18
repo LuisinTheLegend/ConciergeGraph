@@ -1,26 +1,26 @@
 """
 interface/mcp_server.py — Grafo Concierge v3.8.0 (Absolute Solidity)
 
-Servidor MCP (Model Context Protocol) expondo as ferramentas do
-Grafo Concierge para agentes LLM via FastMCP.
+MCP (Model Context Protocol) server exposing Grafo Concierge tools
+to LLM agents via FastMCP.
 
-REFATORAÇÃO v3.8: Agora consome exclusivamente a Fachada Central
-(core.middleware.GrafoConcierge) em vez de instanciar dependências
-internas soltas. Toda lógica de negócio foi movida para core/.
+v3.8 REFACTOR: Now consumes exclusively the Central Facade
+(core.middleware.GrafoConcierge) instead of instantiating loose internal
+dependencies. All business logic has been moved to core/.
 
-Tools expostas (6 ferramentas — alinhadas com Architecture v3.8):
-    concierge_mine     → Ingestão de projeto (crawl → parse → store)
-    concierge_search   → Busca Híbrida v4 com Strict Scoping
-    concierge_commit   → Registro de alterações auditadas
-    concierge_wakeup   → Reativação de consciência (Bússola + Wings)
-    concierge_resume   → Bússola de Contexto (resumo conciso)
-    concierge_load     → Lazy Load de um nó sob demanda
-    concierge_status   → Saúde do sistema e estatísticas
+Tools exposed (6 tools — aligned with Architecture v3.8):
+    concierge_mine     → Project ingestion (crawl → parse → store)
+    concierge_search   → Hybrid Search v4 with Strict Scoping
+    concierge_commit   → Audited alterations registration
+    concierge_wakeup   → Consciousness reactivation (Compass + Wings)
+    concierge_resume   → Context Compass (concise summary)
+    concierge_load     → Lazy Load of a node on demand
+    concierge_status   → System health and statistics
 
-Arquitetura:
-    Este módulo é APENAS a ponte MCP ↔ Fachada Central.
-    Nenhuma lógica de negócio reside aqui. Toda operação é delegada
-    à classe GrafoConcierge (core/middleware.py).
+Architecture:
+    This module is ONLY the MCP bridge ↔ Central Facade.
+    No business logic resides here. All operations are delegated
+    to the GrafoConcierge class (core/middleware.py).
 """
 
 from __future__ import annotations
@@ -40,18 +40,18 @@ logger = logging.getLogger("grafo-concierge.mcp")
 
 
 # ---------------------------------------------------------------------------
-# GrafoConciergeServer — Encapsulamento do FastMCP + Fachada Central
+# GrafoConciergeServer — Encapsulation of FastMCP + Central Facade
 # ---------------------------------------------------------------------------
 
 class GrafoConciergeServer:
-    """Servidor MCP do Grafo Concierge.
+    """MCP Server of Grafo Concierge.
 
-    Encapsula o FastMCP e registra as tools com acesso à Fachada Central.
-    Cada tool é uma closure que delega à instância de GrafoConcierge.
+    Encapsulates FastMCP and registers tools with access to the Central Facade.
+    Each tool is a closure that delegates to the GrafoConcierge instance.
 
     Args:
-        concierge: Instância da Fachada Central GrafoConcierge.
-        janitor: Instância do JanitorService (manutenção autônoma).
+        concierge: Instance of the GrafoConcierge Central Facade.
+        janitor: Instance of JanitorService (autonomous maintenance).
     """
 
     def __init__(
@@ -62,17 +62,17 @@ class GrafoConciergeServer:
         self._gc = concierge
         self._janitor = janitor
 
-        # Ler variáveis de ambiente para host e port (se houver)
+        # Read environment variables for host and port (if any)
         host = os.environ.get("GRAFO_HOST", "127.0.0.1")
         try:
             port = int(os.environ.get("GRAFO_PORT", "8000"))
         except ValueError:
             port = 8000
 
-        # Cria o servidor FastMCP
+        # Creates the FastMCP server
         self._mcp = FastMCP("Grafo Concierge", host=host, port=port)
 
-        # Habilita CORS no Starlette sse_app para conexões do Frontend (Next.js)
+        # Enables CORS on Starlette sse_app for Frontend (Next.js) connections
         original_sse_app = self._mcp.sse_app
         def custom_sse_app(*args, **kwargs):
             app = original_sse_app(*args, **kwargs)
@@ -87,16 +87,16 @@ class GrafoConciergeServer:
             return app
         self._mcp.sse_app = custom_sse_app
 
-        # Registra as tools
+        # Registers the tools
         self._register_tools()
 
 
         tool_count = len(self._mcp._tool_manager.list_tools())
-        logger.info("GrafoConciergeServer inicializado — %d tools registradas.", tool_count)
+        logger.info("GrafoConciergeServer initialized — %d tools registered.", tool_count)
 
     @property
     def mcp(self) -> FastMCP:
-        """Acesso direto ao FastMCP (para run/mount)."""
+        """Direct access to FastMCP (for run/mount)."""
         return self._mcp
 
     # ===================================================================
@@ -104,7 +104,7 @@ class GrafoConciergeServer:
     # ===================================================================
 
     def _register_tools(self) -> None:
-        """Registra todas as tools MCP como closures com acesso a self."""
+        """Registers all MCP tools as closures with access to self."""
 
         server = self
 
@@ -112,7 +112,7 @@ class GrafoConciergeServer:
         @self._mcp.tool(
             name="concierge_register",
             description=(
-                "Registra um novo projeto e define Nível de Privacidade."
+                "Registers a new project and defines Privacy Level."
             ),
         )
         def concierge_register(
@@ -121,16 +121,16 @@ class GrafoConciergeServer:
             privacy_level: str = "PUBLIC",
             summary: Optional[str] = None,
         ) -> dict:
-            """Registra um novo projeto no Grafo Concierge.
+            """Registers a new project in Grafo Concierge.
 
             Args:
-                project_path: Caminho ou nome da pasta do projeto.
-                wing: Ala principal (Primary Wing). Padrão: "geral".
-                privacy_level: Nível de privacidade (PUBLIC, INTERNAL, RESTRICTED).
-                summary: Descrição opcional.
+                project_path: Path or directory name of the project.
+                wing: Main wing (Primary Wing). Default: "geral".
+                privacy_level: Privacy level (PUBLIC, INTERNAL, RESTRICTED).
+                summary: Optional description.
 
             Returns:
-                Dicionário com o UUID gerado e status.
+                Dictionary with the generated UUID and status.
             """
             return server._handle_register(project_path, wing, privacy_level, summary)
 
@@ -138,22 +138,22 @@ class GrafoConciergeServer:
         @self._mcp.tool(
             name="concierge_list_projects",
             description=(
-                "Retorna a lista de todos os projetos cadastrados no Grafo Concierge, "
-                "mapeando Nome do Projeto -> UUID e Data de Atualização."
+                "Returns the list of all registered projects in Grafo Concierge, "
+                "mapping Project Name -> UUID and Update Date."
             ),
         )
         def concierge_list_projects() -> dict:
-            """Retorna todas as correspondências Nome -> UUID dos projetos."""
+            """Returns all Name -> UUID matches of the projects."""
             return server._handle_list_projects()
 
         # --- concierge_mine ---
         @self._mcp.tool(
             name="concierge_mine",
             description=(
-                "Ingere um projeto do filesystem no Grafo de Memória. "
-                "Crawla o diretório, parseia arquivos (AST/Semantic), "
-                "gera resumos recursivos (L0/L1/L2), armazena embeddings "
-                "e sincroniza SQLite + Qdrant. Retorna relatório completo."
+                "Ingests a project from the filesystem into the Memory Graph. "
+                "Crawls the directory, parses files (AST/Semantic), "
+                "generates recursive summaries (L0/L1/L2), stores embeddings "
+                "and synchronizes SQLite + Qdrant. Returns complete report."
             ),
         )
         def concierge_mine(
@@ -161,15 +161,15 @@ class GrafoConciergeServer:
             project_identifier: str,
             auto_tag: bool = True,
         ) -> dict:
-            """Ingere um projeto no Grafo de Memória.
+            """Ingests a project in the Memory Graph.
 
             Args:
-                path: Caminho absoluto do diretório a ingerir.
-                project_identifier: Nome legível do projeto ou seu UUID.
-                auto_tag: Se True, extrai tags automaticamente dos arquivos.
+                path: Absolute path of the directory to ingest.
+                project_identifier: Readable name of the project or its UUID.
+                auto_tag: If True, extracts tags automatically from files.
 
             Returns:
-                Dicionário com relatório de ingestão (MCP-compatible).
+                Dictionary with ingestion report (MCP-compatible).
             """
             return server._handle_mine(path, project_identifier, auto_tag)
 
@@ -177,10 +177,10 @@ class GrafoConciergeServer:
         @self._mcp.tool(
             name="concierge_search",
             description=(
-                "Busca híbrida no Grafo de Memória combinando similaridade "
-                "vetorial (cosine), frequência (FTS5/BM25) e sinais de grafo "
-                "(recência, centralidade). Retorna os chunks mais relevantes "
-                "ranqueados por score híbrido."
+                "Hybrid search in the Memory Graph combining vector similarity "
+                "(cosine), frequency (FTS5/BM25) and graph signals "
+                "(recency, centrality). Returns the most relevant chunks "
+                "ranked by hybrid score."
             ),
         )
         def concierge_search(
@@ -191,19 +191,19 @@ class GrafoConciergeServer:
             include_references: bool = False,
             all_wings: bool = False,
         ) -> dict:
-            """Busca híbrida no Grafo de Memória.
+            """Hybrid search in the Memory Graph.
 
             Args:
-                query: Texto da consulta em linguagem natural.
-                project_identifier: UUID ou nome do projeto para Strict Scoping.
-                                   Opcional quando all_wings=True.
-                top_k: Número máximo de resultados (default: 10).
-                node_type: Filtro opcional de tipo de nó (FACT, SKILL, etc.).
-                include_references: Incluir Reference Wings no escopo.
-                all_wings: Buscar em todas as alas (ignora Strict Scoping).
+                query: Natural language query text.
+                project_identifier: UUID or name of the project for Strict Scoping.
+                                   Optional when all_wings=True.
+                top_k: Maximum number of results (default: 10).
+                node_type: Optional filter for node type (FACT, SKILL, etc.).
+                include_references: Include Reference Wings in scope.
+                all_wings: Search in all wings (ignores Strict Scoping).
 
             Returns:
-                Dicionário com resultados ranqueados e metadata.
+                Dictionary with ranked results and metadata.
             """
             return server._handle_search(
                 query, project_identifier, top_k, node_type,
@@ -214,9 +214,9 @@ class GrafoConciergeServer:
         @self._mcp.tool(
             name="concierge_commit",
             description=(
-                "Registra alterações consolidadas no Grafo de Memória. "
-                "Grava na tabela commit_log, atualiza recência dos nós "
-                "afetados e audita via Revisor Crítico."
+                "Registers consolidated changes in the Memory Graph. "
+                "Writes to the commit_log table, updates recency of affected "
+                "nodes, and audits via Critical Reviewer."
             ),
         )
         def concierge_commit(
@@ -226,17 +226,17 @@ class GrafoConciergeServer:
             updated_pointers: list[str],
             node_ids: Optional[list[int]] = None,
         ) -> dict:
-            """Registra um commit de memória auditado.
+            """Registers an audited memory commit.
 
             Args:
-                project_uuid: UUID do projeto.
-                phase: Fase atual (planning, build, done, review).
-                technical_changes: Descrição das mudanças técnicas.
-                updated_pointers: Lista de ponteiros atualizados.
-                node_ids: IDs dos nós afetados (atualiza recência).
+                project_uuid: UUID of the project.
+                phase: Current phase (planning, build, done, review).
+                technical_changes: Description of the technical changes.
+                updated_pointers: List of updated pointers.
+                node_ids: IDs of the affected nodes (updates recency).
 
             Returns:
-                Dicionário com ID do commit e status.
+                Dictionary with commit ID and status.
             """
             return server._handle_commit(
                 project_uuid, phase, technical_changes,
@@ -247,19 +247,19 @@ class GrafoConciergeServer:
         @self._mcp.tool(
             name="concierge_wakeup",
             description=(
-                "Reativa a consciência do agente para um projeto. "
-                "Retorna a Bússola de Contexto, Reference Wings, "
-                "últimos commits e estatísticas."
+                "Reactivates agent consciousness for a project. "
+                "Returns the Context Compass, Reference Wings, "
+                "latest commits and statistics."
             ),
         )
         def concierge_wakeup(project_uuid: str) -> dict:
-            """Reativação de consciência do agente.
+            """Agent consciousness reactivation.
 
             Args:
-                project_uuid: UUID do projeto.
+                project_uuid: UUID of the project.
 
             Returns:
-                Dicionário com Bússola, Wings, commits e stats.
+                Dictionary with Compass, Wings, commits and stats.
             """
             return server._handle_wakeup(project_uuid)
 
@@ -267,18 +267,18 @@ class GrafoConciergeServer:
         @self._mcp.tool(
             name="concierge_resume",
             description=(
-                "Retorna a Bússola de Contexto (resumo conciso) "
-                "do projeto. Ideal para injeção em system prompts."
+                "Returns the Context Compass (concise summary) "
+                "of the project. Ideal for system prompt injection."
             ),
         )
         def concierge_resume(project_uuid: str) -> dict:
-            """Bússola de Contexto do projeto.
+            """Context Compass of the project.
 
             Args:
-                project_uuid: UUID do projeto.
+                project_uuid: UUID of the project.
 
             Returns:
-                Dicionário com resumo e estatísticas básicas.
+                Dictionary with summary and basic statistics.
             """
             return server._handle_resume(project_uuid)
 
@@ -286,19 +286,18 @@ class GrafoConciergeServer:
         @self._mcp.tool(
             name="concierge_load",
             description=(
-                "Carrega os dados completos de um nó sob demanda "
-                "(Lazy Load). Retorna conteúdo, tags, arestas e "
-                "metadados do nó."
+                "Loads complete node data on demand (Lazy Load). "
+                "Returns content, tags, edges and node metadata."
             ),
         )
         def concierge_load(node_id: int) -> dict:
-            """Carrega um nó completo sob demanda.
+            """Loads a complete node on demand.
 
             Args:
-                node_id: ID do nó a carregar.
+                node_id: ID of the node to load.
 
             Returns:
-                Dicionário com todos os campos e arestas do nó.
+                Dictionary with all fields and edges of the node.
             """
             return server._handle_load(node_id)
 
@@ -306,22 +305,22 @@ class GrafoConciergeServer:
         @self._mcp.tool(
             name="concierge_status",
             description=(
-                "Retorna o status de saúde do Grafo Concierge: "
-                "estatísticas do projeto, saúde do Qdrant, último "
-                "relatório do Janitor e métricas do pipeline."
+                "Returns health status of Grafo Concierge: "
+                "project statistics, Qdrant health, latest Janitor "
+                "report and pipeline metrics."
             ),
         )
         def concierge_status(
             project_uuid: Optional[str] = None,
         ) -> dict:
-            """Status de saúde do sistema.
+            """System health status.
 
             Args:
-                project_uuid: UUID do projeto (opcional). Se omitido,
-                              retorna status global.
+                project_uuid: UUID of the project (optional). If omitted,
+                              returns global status.
 
             Returns:
-                Dicionário com métricas de saúde e estatísticas.
+                Dictionary with health metrics and statistics.
             """
             return server._handle_status(project_uuid)
 
@@ -329,22 +328,22 @@ class GrafoConciergeServer:
         @self._mcp.tool(
             name="search_symbols",
             description=(
-                "Realiza busca rápida de assinaturas de símbolos (classes/funções) "
-                "no índice FTS5 do Grafo Concierge."
+                "Performs fast search of symbol signatures (classes/functions) "
+                "in the FTS5 index of Grafo Concierge."
             ),
         )
         def search_symbols(
             query: str,
             project_uuid: Optional[str] = None,
         ) -> dict:
-            """Busca símbolos de código por nome no índice FTS5.
+            """Searches code symbols by name in the FTS5 index.
 
             Args:
-                query: Texto ou nome do símbolo a buscar.
-                project_uuid: UUID do projeto (opcional).
+                query: Text or symbol name to search.
+                project_uuid: UUID of the project (optional).
 
             Returns:
-                Dicionário com a lista de símbolos e seus detalhes.
+                Dictionary with list of symbols and details.
             """
             return server._handle_search_symbols(query, project_uuid)
 
@@ -352,17 +351,17 @@ class GrafoConciergeServer:
         @self._mcp.tool(
             name="get_implementations",
             description=(
-                "Retorna a implementação (bloco de código da AST) correspondente a um nó símbolo."
+                "Returns implementation (AST code block) corresponding to a symbol node."
             ),
         )
         def get_implementations(symbol_id: int) -> dict:
-            """Retorna a implementação de um nó símbolo.
+            """Returns the implementation of a symbol node.
 
             Args:
-                symbol_id: ID numérico do nó do símbolo.
+                symbol_id: Numeric ID of the symbol node.
 
             Returns:
-                Dicionário com a implementação (código) do símbolo.
+                Dictionary with the symbol implementation (code).
             """
             return server._handle_get_implementations(symbol_id)
 
@@ -370,17 +369,17 @@ class GrafoConciergeServer:
         @self._mcp.tool(
             name="get_callers",
             description=(
-                "Retorna todos os chamadores (callers) de um nó símbolo analisando as arestas do Grafo."
+                "Returns all callers of a symbol node by analyzing the Graph edges."
             ),
         )
         def get_callers(symbol_id: int) -> dict:
-            """Retorna chamadores de um símbolo.
+            """Returns callers of a symbol.
 
             Args:
-                symbol_id: ID numérico do nó do símbolo.
+                symbol_id: Numeric ID of the symbol node.
 
             Returns:
-                Dicionário com os callers e detalhes da relação.
+                Dictionary with callers and relationship details.
             """
             return server._handle_get_callers(symbol_id)
 
@@ -388,9 +387,9 @@ class GrafoConciergeServer:
         @self._mcp.tool(
             name="concierge_store_fact",
             description=(
-                "Grava um fato semântico no Grafo de Memória via SemanticExtractor. "
-                "O extrator avalia o fato contra os existentes no escopo e decide: "
-                "ADD, UPDATE, DELETE ou NOOP (bi-temporal)."
+                "Writes a semantic fact to the Memory Graph via SemanticExtractor. "
+                "Extractor evaluates fact against existing scope and decides: "
+                "ADD, UPDATE, DELETE or NOOP (bi-temporal)."
             ),
         )
         def concierge_store_fact(
@@ -398,15 +397,15 @@ class GrafoConciergeServer:
             scope_id: str,
             fact_statement: str,
         ) -> dict:
-            """Grava um fato semântico no grafo.
+            """Writes a semantic fact to the graph.
 
             Args:
-                scope_type: Tipo de escopo ('user', 'session', 'agent', 'org').
-                scope_id: Identificador único do escopo.
-                fact_statement: Texto do fato/preferência a gravar.
+                scope_type: Scope type ('user', 'session', 'agent', 'org').
+                scope_id: Unique identifier of scope.
+                fact_statement: Fact/preference text to write.
 
             Returns:
-                Dicionário com as decisões tomadas pelo SemanticExtractor.
+                Dictionary with decisions made by SemanticExtractor.
             """
             return server._handle_store_fact(scope_type, scope_id, fact_statement)
 
@@ -414,8 +413,8 @@ class GrafoConciergeServer:
         @self._mcp.tool(
             name="concierge_set_memory",
             description=(
-                "Grava ou atualiza um bloco de memória core persistente (user_core_memory). "
-                "Use para armazenar preferências, configurações e contexto permanente do usuário/sessão."
+                "Writes or updates a persistent core memory block (user_core_memory). "
+                "Use to store preferences, settings, and permanent context of the user/session."
             ),
         )
         def concierge_set_memory(
@@ -424,16 +423,16 @@ class GrafoConciergeServer:
             block_label: str,
             content: str,
         ) -> dict:
-            """Grava um bloco de memória core persistente.
+            """Writes a persistent core memory block.
 
             Args:
-                scope_type: Tipo de escopo ('user', 'session', 'agent', 'org').
-                scope_id: Identificador único do escopo.
-                block_label: Rótulo do bloco (ex: 'preferred_language', 'persona_name').
-                content: Conteúdo a armazenar no bloco.
+                scope_type: Scope type ('user', 'session', 'agent', 'org').
+                scope_id: Unique identifier of scope.
+                block_label: Block label (e.g. 'preferred_language', 'persona_name').
+                content: Content to store in the block.
 
             Returns:
-                Dicionário com success e memory_id do registro.
+                Dictionary with success and memory_id of the record.
             """
             return server._handle_set_memory(scope_type, scope_id, block_label, content)
 
@@ -441,9 +440,9 @@ class GrafoConciergeServer:
         @self._mcp.tool(
             name="concierge_get_memory",
             description=(
-                "Consulta blocos de memória core persistente. "
-                "Se block_label for informado, retorna apenas aquele bloco. "
-                "Se omitido, retorna todos os blocos do escopo."
+                "Queries persistent core memory blocks. "
+                "If block_label is provided, returns only that block. "
+                "If omitted, returns all blocks of the scope."
             ),
         )
         def concierge_get_memory(
@@ -451,15 +450,15 @@ class GrafoConciergeServer:
             scope_id: str,
             block_label: Optional[str] = None,
         ) -> dict:
-            """Consulta blocos de memória core.
+            """Queries core memory blocks.
 
             Args:
-                scope_type: Tipo de escopo ('user', 'session', 'agent', 'org').
-                scope_id: Identificador único do escopo.
-                block_label: Rótulo específico (opcional). Se ausente, retorna todos.
+                scope_type: Scope type ('user', 'session', 'agent', 'org').
+                scope_id: Unique identifier of scope.
+                block_label: Specific label (optional). If absent, returns all.
 
             Returns:
-                Dicionário com success e lista de blocks.
+                Dictionary with success and list of blocks.
             """
             return server._handle_get_memory(scope_type, scope_id, block_label)
 
@@ -467,23 +466,23 @@ class GrafoConciergeServer:
         @self._mcp.tool(
             name="concierge_feedback",
             description=(
-                "Registra feedback de utilidade sobre um fato semântico (semantic_fact). "
-                "Aciona o aprendizado Bayesiano: incrementa utility_alpha (sucesso) ou "
-                "utility_beta (falha), alimentando o Thompson Sampling da busca híbrida."
+                "Registers utility feedback on a semantic fact (semantic_fact). "
+                "Triggers Bayesian learning: increments utility_alpha (success) or "
+                "utility_beta (failure), feeding Thompson Sampling of hybrid search."
             ),
         )
         def concierge_feedback(
             fact_id: int,
             was_useful: bool,
         ) -> dict:
-            """Registra feedback de utilidade de um fato semântico.
+            """Registers utility feedback of a semantic fact.
 
             Args:
-                fact_id: ID do semantic_fact a avaliar (campo 'id' retornado por concierge_store_fact).
-                was_useful: True se o fato foi útil na resposta, False caso contrário.
+                fact_id: ID of the semantic_fact to evaluate (id field returned by concierge_store_fact).
+                was_useful: True if the fact was useful in the response, False otherwise.
 
             Returns:
-                Dicionário com success, fact_id, was_useful e mensagem.
+                Dictionary with success, fact_id, was_useful and message.
             """
             return server._handle_feedback(fact_id, was_useful)
 
@@ -491,22 +490,22 @@ class GrafoConciergeServer:
         @self._mcp.tool(
             name="get_full_topology",
             description=(
-                "Retorna a topologia completa de nós e arestas (grafo de chamadas, "
-                "símbolos, arquivos e dependências) de forma ultra enxuta. "
-                "Utilizada pelo Dashboard Web para visualizações 3D em tempo real. "
-                "Não inclui sumários de texto ou embeddings."
+                "Returns the complete topology of nodes and edges (call graph, "
+                "symbols, files and dependencies) in an ultra-lean way. "
+                "Used by the Web Dashboard for real-time 3D visualizations. "
+                "Does not include text summaries or embeddings."
             ),
         )
         def get_full_topology(
             project_identifier: Optional[str] = None,
         ) -> dict:
-            """Retorna a topologia completa de nós e arestas do banco.
+            """Returns the complete topology of nodes and edges in the database.
 
             Args:
-                project_identifier: UUID ou nome do projeto opcional para filtrar os dados.
+                project_identifier: Optional project UUID or name to filter the data.
 
             Returns:
-                Dicionário contendo success, list de nodes e list de edges.
+                Dictionary containing success, list of nodes and list of edges.
             """
             return server._handle_get_full_topology(project_identifier)
 
@@ -514,15 +513,15 @@ class GrafoConciergeServer:
         @self._mcp.tool(
             name="delete_project",
             description=(
-                "Remove fisicamente um projeto e todos os registros atrelados, "
-                "incluindo nós, arestas, commits, trajetórias e embeddings associados."
+                "Physically removes a project and all linked records, "
+                "including nodes, edges, commits, trajectories and associated embeddings."
             ),
         )
         def delete_project(project_identifier: str) -> dict:
-            """Remove um projeto e todos os seus dados cascata.
+            """Removes a project and all its cascading data.
 
             Args:
-                project_identifier: UUID ou nome do diretório do projeto.
+                project_identifier: UUID or directory name of the project.
             """
             return server._handle_delete_project(project_identifier)
 
@@ -530,7 +529,7 @@ class GrafoConciergeServer:
         @self._mcp.tool(
             name="update_project",
             description=(
-                "Atualiza campos cadastrais permitidos de um projeto "
+                "Updates permitted cadastral fields of a project "
                 "(folder_name, primary_wing, privacy_level, summary)."
             ),
         )
@@ -541,14 +540,14 @@ class GrafoConciergeServer:
             privacy_level: Optional[str] = None,
             summary: Optional[str] = None,
         ) -> dict:
-            """Atualiza o cadastro de um projeto.
+            """Updates a project registration.
 
             Args:
-                project_identifier: UUID ou nome do diretório do projeto.
-                folder_name: Novo nome do diretório (opcional).
-                primary_wing: Nova ala primária do projeto (opcional).
-                privacy_level: Nível de privacidade (PUBLIC, INTERNAL, RESTRICTED) (opcional).
-                summary: Novo resumo descritivo do projeto (opcional).
+                project_identifier: UUID or directory name of the project.
+                folder_name: New directory name (optional).
+                primary_wing: New primary wing of the project (optional).
+                privacy_level: Privacy level (PUBLIC, INTERNAL, RESTRICTED) (optional).
+                summary: New descriptive summary of the project (optional).
             """
             return server._handle_update_project(
                 project_identifier, folder_name, primary_wing, privacy_level, summary
@@ -557,35 +556,35 @@ class GrafoConciergeServer:
         # --- add_reference_wing ---
         @self._mcp.tool(
             name="add_reference_wing",
-            description="Associa uma ala de referência (Reference Wing) recomendada a um projeto.",
+            description="Associates a recommended reference wing (Reference Wing) with a project.",
         )
         def add_reference_wing(project_identifier: str, wing_name: str) -> dict:
-            """Associa uma ala recomendada ao projeto.
+            """Associates a recommended wing with the project.
 
             Args:
-                project_identifier: UUID ou nome do diretório do projeto.
-                wing_name: Nome da ala a associar.
+                project_identifier: UUID or directory name of the project.
+                wing_name: Name of the wing to associate.
             """
             return server._handle_add_reference_wing(project_identifier, wing_name)
 
         # --- remove_reference_wing ---
         @self._mcp.tool(
             name="remove_reference_wing",
-            description="Remove uma ala de referência (Reference Wing) associada de um projeto.",
+            description="Removes an associated reference wing (Reference Wing) from a project.",
         )
         def remove_reference_wing(project_identifier: str, wing_name: str) -> dict:
-            """Remove uma ala associada do projeto.
+            """Removes an associated wing from the project.
 
             Args:
-                project_identifier: UUID ou nome do diretório do projeto.
-                wing_name: Nome da ala a remover.
+                project_identifier: UUID or directory name of the project.
+                wing_name: Name of the wing to remove.
             """
             return server._handle_remove_reference_wing(project_identifier, wing_name)
 
         # --- find_similar ---
         @self._mcp.tool(
             name="find_similar",
-            description="Busca outros projetos cadastrados que compartilham o mesmo domínio de especialização técnica.",
+            description="Searches other registered projects that share the same domain of technical expertise.",
         )
         def find_similar(
             project_identifier: str,
@@ -593,39 +592,39 @@ class GrafoConciergeServer:
             include_references: bool = False,
             all_wings: bool = False,
         ) -> dict:
-            """Busca projetos similares na mesma ala técnica.
+            """Searches similar projects in the same technical wing.
 
             Args:
-                project_identifier: UUID ou nome do diretório do projeto âncora.
-                limit: Limite máximo de projetos retornados (default: 5).
-                include_references: Se True, inclui alas de referência na busca.
-                all_wings: Se True, busca em todas as alas indistintamente.
+                project_identifier: UUID or directory name of the anchor project.
+                limit: Maximum limit of projects returned (default: 5).
+                include_references: If True, includes reference wings in search.
+                all_wings: If True, searches in all wings indistinctly.
             """
             return server._handle_find_similar(project_identifier, limit, include_references, all_wings)
 
         # --- get_trajectories ---
         @self._mcp.tool(
             name="get_trajectories",
-            description="Recupera o histórico detalhado de trajetórias cognitivas e passos de navegação anteriores do projeto.",
+            description="Retrieves the detailed history of cognitive trajectories and previous navigation steps of the project.",
         )
         def get_trajectories(project_identifier: str) -> dict:
-            """Recupera histórico de trajetórias cognitivas.
+            """Retrieves history of cognitive trajectories.
 
             Args:
-                project_identifier: UUID ou nome do diretório do projeto.
+                project_identifier: UUID or directory name of the project.
             """
             return server._handle_get_trajectories(project_identifier)
 
         # --- count_embeddings ---
         @self._mcp.tool(
             name="count_embeddings",
-            description="Retorna a contagem exata de vetores (embeddings) armazenados na coleção vetorial.",
+            description="Returns the exact count of vectors (embeddings) stored in the vector collection.",
         )
         def count_embeddings(project_identifier: Optional[str] = None) -> dict:
-            """Conta vetores da coleção.
+            """Counts collection vectors.
 
             Args:
-                project_identifier: Se informado, filtra e conta apenas vetores desse projeto.
+                project_identifier: If provided, filters and counts only vectors of this project.
             """
             return server._handle_count_embeddings(project_identifier)
 
@@ -633,18 +632,18 @@ class GrafoConciergeServer:
         @self._mcp.tool(
             name="reset_collection",
             description=(
-                "Destrói e recria a coleção física de vetores (reparo emergencial). "
-                "ATENÇÃO: Operação irreversível que elimina TODOS os vetores!"
+                "Destroys and recreates the physical vector collection (emergency repair). "
+                "WARNING: Irreversible operation that deletes ALL vectors!"
             ),
         )
         def reset_collection() -> dict:
-            """Destrói e recria a coleção de vetores."""
+            """Destroys and recreates the collection of vectors."""
             return server._handle_reset_collection()
 
     def _resolve_project_identifier(self, project_identifier: str) -> str:
-        """Resolve project_identifier (UUID ou folder_name) para project_uuid.
+        """Resolves project_identifier (UUID or folder_name) to project_uuid.
         
-        Levanta ValueError se o nome não for encontrado no banco de dados.
+        Raises ValueError if the name is not found in the database.
         """
         import uuid
         try:
@@ -667,7 +666,7 @@ class GrafoConciergeServer:
     # ===================================================================
 
     def _handle_list_projects(self) -> dict:
-        """Handler do concierge_list_projects."""
+        """Handler for concierge_list_projects."""
         t0 = time.perf_counter()
         try:
             projects = self._gc.store.list_projects()
@@ -685,7 +684,7 @@ class GrafoConciergeServer:
             }
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("concierge_list_projects FALHOU: %s", e)
+            logger.error("concierge_list_projects FAILED: %s", e)
             return {
                 "success": False,
                 "error": str(e),
@@ -700,7 +699,7 @@ class GrafoConciergeServer:
     def _handle_register(
         self, project_path: str, wing: str, privacy_level: str, summary: Optional[str]
     ) -> dict:
-        """Handler do concierge_register — delega à Fachada."""
+        """Handler for concierge_register — delegates to Facade."""
         t0 = time.perf_counter()
 
         try:
@@ -710,7 +709,7 @@ class GrafoConciergeServer:
                 folder_name=folder_name,
                 wing=wing,
                 privacy_level=privacy_level,
-                summary=summary or f"Projeto registrado via MCP: {folder_name}",
+                summary=summary or f"Project registered via MCP: {folder_name}",
             )
 
             elapsed = time.perf_counter() - t0
@@ -730,7 +729,7 @@ class GrafoConciergeServer:
 
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("concierge_register FALHOU: %s", e)
+            logger.error("concierge_register FAILED: %s", e)
             return {
                 "success": False,
                 "error": str(e),
@@ -744,7 +743,7 @@ class GrafoConciergeServer:
     def _handle_mine(
         self, path: str, project_identifier: str, auto_tag: bool,
     ) -> dict:
-        """Handler do concierge_mine — delega à Fachada."""
+        """Handler for concierge_mine — delegates to Facade."""
         t0 = time.perf_counter()
 
         try:
@@ -763,10 +762,10 @@ class GrafoConciergeServer:
                     project_name = project["folder_name"]
                 except Exception:
                     project_name = os.path.basename(path.rstrip(r"\/")) or project_uuid
-                    # Registra caso não exista
+                    # Registers if it does not exist
                     self._gc.register_project(
                         folder_name=project_name,
-                        summary=f"Projeto ingerido de: {path}",
+                        summary=f"Project ingested from: {path}",
                     )
             else:
                 try:
@@ -779,7 +778,7 @@ class GrafoConciergeServer:
                         "Please list available projects using concierge_list_projects."
                     )
 
-            # Sinaliza Idle-Lock para o Janitor
+            # Signals Idle-Lock for the Janitor
             if self._janitor:
                 self._janitor.signal_mine_start()
 
@@ -797,7 +796,7 @@ class GrafoConciergeServer:
             result["success"] = True
 
             logger.info(
-                "concierge_mine OK: %s → %d arquivos, %d nós, %.2fs",
+                "concierge_mine OK: %s → %d files, %d nodes, %.2fs",
                 project_name, result.get("files_processed", 0),
                 result.get("nodes_created", 0), elapsed,
             )
@@ -805,7 +804,7 @@ class GrafoConciergeServer:
 
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("concierge_mine FALHOU: %s — %s", project_identifier, e)
+            logger.error("concierge_mine FAILED: %s — %s", project_identifier, e)
             return {
                 "success": False,
                 "error": str(e),
@@ -828,7 +827,7 @@ class GrafoConciergeServer:
         include_references: bool,
         all_wings: bool,
     ) -> dict:
-        """Handler do concierge_search — delega à Fachada."""
+        """Handler for concierge_search — delegates to Facade."""
         t0 = time.perf_counter()
 
         logger.info(
@@ -843,7 +842,7 @@ class GrafoConciergeServer:
             if all_wings and not project_identifier:
                 project_uuid = ""
             else:
-                # Resolução transparente do project_identifier
+                # Transparent resolution of project_identifier
                 project_uuid = self._resolve_project_identifier(project_identifier)
 
             results = self._gc.hybrid_search(
@@ -855,7 +854,7 @@ class GrafoConciergeServer:
                 node_type=node_type,
             )
 
-            # Enriquece com dados do nó para resposta MCP
+            # Enriches with node data for MCP response
             enriched = []
             for item in results:
                 try:
@@ -875,12 +874,12 @@ class GrafoConciergeServer:
                         "is_super_node": item.get("is_super_node", False),
                     })
                 except Exception:
-                    logger.debug("Nó %d não encontrado no enriquecimento.", item.get("node_id"))
+                    logger.debug("Node %d not found in enrichment.", item.get("node_id"))
 
             elapsed = time.perf_counter() - t0
 
             logger.info(
-                "concierge_search OK: query='%.40s' → %d resultados, %.3fs",
+                "concierge_search OK: query='%.40s' → %d results, %.3fs",
                 query, len(enriched), elapsed,
             )
 
@@ -895,7 +894,7 @@ class GrafoConciergeServer:
 
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("concierge_search FALHOU: %s", e)
+            logger.error("concierge_search FAILED: %s", e)
             return {
                 "success": False,
                 "error": str(e),
@@ -917,7 +916,7 @@ class GrafoConciergeServer:
         updated_pointers: list[str],
         node_ids: Optional[list[int]],
     ) -> dict:
-        """Handler do concierge_commit — delega à Fachada."""
+        """Handler for concierge_commit — delegates to Facade."""
         t0 = time.perf_counter()
 
         try:
@@ -932,7 +931,7 @@ class GrafoConciergeServer:
             elapsed = time.perf_counter() - t0
 
             logger.info(
-                "concierge_commit OK: id=%d, projeto=%s, fase='%s', %.3fs",
+                "concierge_commit OK: id=%d, project=%s, phase='%s', %.3fs",
                 commit_id, project_uuid, phase, elapsed,
             )
 
@@ -946,7 +945,7 @@ class GrafoConciergeServer:
 
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("concierge_commit FALHOU: %s", e)
+            logger.error("concierge_commit FAILED: %s", e)
             return {
                 "success": False,
                 "error": str(e),
@@ -959,7 +958,7 @@ class GrafoConciergeServer:
     # ===================================================================
 
     def _handle_wakeup(self, project_uuid: str) -> dict:
-        """Handler do concierge_wakeup — delega à Fachada."""
+        """Handler for concierge_wakeup — delegates to Facade."""
         t0 = time.perf_counter()
 
         try:
@@ -970,13 +969,13 @@ class GrafoConciergeServer:
             result["duration_seconds"] = round(elapsed, 3)
 
             logger.info(
-                "concierge_wakeup OK: projeto=%s, %.3fs", project_uuid, elapsed,
+                "concierge_wakeup OK: project=%s, %.3fs", project_uuid, elapsed,
             )
             return result
 
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("concierge_wakeup FALHOU: %s", e)
+            logger.error("concierge_wakeup FAILED: %s", e)
             return {
                 "success": False,
                 "error": str(e),
@@ -989,7 +988,7 @@ class GrafoConciergeServer:
     # ===================================================================
 
     def _handle_resume(self, project_uuid: str) -> dict:
-        """Handler do concierge_resume — delega à Fachada."""
+        """Handler for concierge_resume — delegates to Facade."""
         t0 = time.perf_counter()
 
         try:
@@ -999,7 +998,7 @@ class GrafoConciergeServer:
             elapsed = time.perf_counter() - t0
 
             logger.info(
-                "concierge_resume OK: projeto=%s, %.3fs", project_uuid, elapsed,
+                "concierge_resume OK: project=%s, %.3fs", project_uuid, elapsed,
             )
 
             return {
@@ -1014,7 +1013,7 @@ class GrafoConciergeServer:
 
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("concierge_resume FALHOU: %s", e)
+            logger.error("concierge_resume FAILED: %s", e)
             return {
                 "success": False,
                 "error": str(e),
@@ -1027,7 +1026,7 @@ class GrafoConciergeServer:
     # ===================================================================
 
     def _handle_load(self, node_id: int) -> dict:
-        """Handler do concierge_load — delega à Fachada."""
+        """Handler for concierge_load — delegates to Facade."""
         t0 = time.perf_counter()
 
         try:
@@ -1046,7 +1045,7 @@ class GrafoConciergeServer:
 
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("concierge_load FALHOU: %s", e)
+            logger.error("concierge_load FAILED: %s", e)
             return {
                 "success": False,
                 "error": str(e),
@@ -1059,7 +1058,7 @@ class GrafoConciergeServer:
     # ===================================================================
 
     def _handle_status(self, project_uuid: Optional[str]) -> dict:
-        """Handler do concierge_status — delega à Fachada + componentes."""
+        """Handler for concierge_status — delegates to Facade + components."""
         t0 = time.perf_counter()
 
         try:
@@ -1095,7 +1094,7 @@ class GrafoConciergeServer:
             else:
                 status["components"]["janitor"] = {"status": "not_configured"}
 
-            # --- Project Stats (se UUID fornecido) ---
+            # --- Project Stats (if UUID provided) ---
             if project_uuid:
                 try:
                     project_status = self._gc.status(project_uuid)
@@ -1109,12 +1108,12 @@ class GrafoConciergeServer:
             elapsed = time.perf_counter() - t0
             status["duration_seconds"] = round(elapsed, 3)
 
-            logger.info("concierge_status OK em %.3fs", elapsed)
+            logger.info("concierge_status OK in %.3fs", elapsed)
             return status
 
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("concierge_status FALHOU: %s", e)
+            logger.error("concierge_status FAILED: %s", e)
             return {
                 "success": False,
                 "error": str(e),
@@ -1126,7 +1125,7 @@ class GrafoConciergeServer:
     # ===================================================================
 
     def _handle_search_symbols(self, query: str, project_uuid: Optional[str] = None) -> dict:
-        """Handler do search_symbols."""
+        """Handler for search_symbols."""
         t0 = time.perf_counter()
         try:
             results = self._gc.store.fts_search(query, project_uuid=project_uuid)
@@ -1147,7 +1146,7 @@ class GrafoConciergeServer:
             }
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("search_symbols FALHOU: %s", e)
+            logger.error("search_symbols FAILED: %s", e)
             return {
                 "success": False,
                 "error": str(e),
@@ -1159,7 +1158,7 @@ class GrafoConciergeServer:
     # ===================================================================
 
     def _handle_get_implementations(self, symbol_id: int) -> dict:
-        """Handler do get_implementations — delega à Fachada Central."""
+        """Handler for get_implementations — delegates to Central Facade."""
         t0 = time.perf_counter()
         try:
             impl = self._gc.get_implementations(symbol_id)
@@ -1175,7 +1174,7 @@ class GrafoConciergeServer:
             }
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("get_implementations FALHOU: %s", e)
+            logger.error("get_implementations FAILED: %s", e)
             return {
                 "success": False,
                 "error": str(e),
@@ -1187,7 +1186,7 @@ class GrafoConciergeServer:
     # ===================================================================
 
     def _handle_get_callers(self, symbol_id: int) -> dict:
-        """Handler do get_callers."""
+        """Handler for get_callers."""
         t0 = time.perf_counter()
         try:
             edges = self._gc.store.get_edges_to(symbol_id)
@@ -1212,7 +1211,7 @@ class GrafoConciergeServer:
             }
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("get_callers FALHOU: %s", e)
+            logger.error("get_callers FAILED: %s", e)
             return {
                 "success": False,
                 "error": str(e),
@@ -1226,16 +1225,16 @@ class GrafoConciergeServer:
     def _handle_store_fact(
         self, scope_type: str, scope_id: str, fact_statement: str,
     ) -> dict:
-        """Handler do concierge_store_fact — delega à Fachada com validação fail-fast."""
+        """Handler for concierge_store_fact — delegates to Facade with fail-fast validation."""
         t0 = time.perf_counter()
         try:
             valid_scopes = {"user", "session", "agent", "org"}
             if scope_type not in valid_scopes:
-                raise ValueError(f"scope_type inválido '{scope_type}'. Deve ser um de: {valid_scopes}")
+                raise ValueError(f"Invalid scope_type '{scope_type}'. Must be one of: {valid_scopes}")
             if not scope_id or not scope_id.strip():
-                raise ValueError("scope_id não pode ser vazio.")
+                raise ValueError("scope_id cannot be empty.")
             if not fact_statement or not fact_statement.strip():
-                raise ValueError("fact_statement não pode ser vazio.")
+                raise ValueError("fact_statement cannot be empty.")
 
             results = self._gc.store_fact(
                 scope_type=scope_type,
@@ -1245,7 +1244,7 @@ class GrafoConciergeServer:
             elapsed = time.perf_counter() - t0
 
             logger.info(
-                "concierge_store_fact OK: scope=%s/%s, decisões=%d, %.3fs",
+                "concierge_store_fact OK: scope=%s/%s, decisions=%d, %.3fs",
                 scope_type, scope_id, len(results), elapsed,
             )
 
@@ -1259,7 +1258,7 @@ class GrafoConciergeServer:
 
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("concierge_store_fact FALHOU: %s", e)
+            logger.error("concierge_store_fact FAILED: %s", e)
             return {
                 "success": False,
                 "error": str(e),
@@ -1269,17 +1268,17 @@ class GrafoConciergeServer:
             }
 
     # ===================================================================
-    # RUN — Inicialização do servidor
+    # RUN — Server initialization
     # ===================================================================
 
     def run(self, transport: str = "stdio") -> None:
-        """Inicia o servidor MCP.
+        """Starts the MCP server.
 
         Args:
-            transport: Tipo de transporte ('stdio' ou 'sse').
+            transport: Transport type ('stdio' or 'sse').
         """
         import asyncio
-        logger.info("Iniciando Grafo Concierge MCP Server (transport=%s)...", transport)
+        logger.info("Starting Grafo Concierge MCP Server (transport=%s)...", transport)
 
         async def _run_server():
             if transport == "sse":
@@ -1290,7 +1289,7 @@ class GrafoConciergeServer:
         try:
             asyncio.run(_run_server())
         except KeyboardInterrupt:
-            logger.info("Servidor parado por interrupção do usuário.")
+            logger.info("Server stopped by user interrupt.")
 
     # ===================================================================
     # HANDLER: concierge_set_memory
@@ -1303,18 +1302,18 @@ class GrafoConciergeServer:
         block_label: str,
         content: str,
     ) -> dict:
-        """Handler do concierge_set_memory — delega à Façada com validação fail-fast."""
+        """Handler for concierge_set_memory — delegates to Facade with fail-fast validation."""
         t0 = time.perf_counter()
         try:
             valid_scopes = {"user", "session", "agent", "org"}
             if scope_type not in valid_scopes:
-                raise ValueError(f"scope_type inválido '{scope_type}'. Deve ser um de: {valid_scopes}")
+                raise ValueError(f"Invalid scope_type '{scope_type}'. Must be one of: {valid_scopes}")
             if not scope_id or not scope_id.strip():
-                raise ValueError("scope_id não pode ser vazio.")
+                raise ValueError("scope_id cannot be empty.")
             if not block_label or not block_label.strip():
-                raise ValueError("block_label não pode ser vazio.")
+                raise ValueError("block_label cannot be empty.")
             if not content or not content.strip():
-                raise ValueError("content não pode ser vazio.")
+                raise ValueError("content cannot be empty.")
 
             memory_id = self._gc.set_core_memory(
                 scope_type=scope_type,
@@ -1337,7 +1336,7 @@ class GrafoConciergeServer:
             }
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("concierge_set_memory FALHOU: %s", e)
+            logger.error("concierge_set_memory FAILED: %s", e)
             return {
                 "success": False,
                 "error": str(e),
@@ -1356,14 +1355,14 @@ class GrafoConciergeServer:
         scope_id: str,
         block_label: Optional[str],
     ) -> dict:
-        """Handler do concierge_get_memory — delega à Façada com validação fail-fast."""
+        """Handler for concierge_get_memory — delegates to Facade with fail-fast validation."""
         t0 = time.perf_counter()
         try:
             valid_scopes = {"user", "session", "agent", "org"}
             if scope_type not in valid_scopes:
-                raise ValueError(f"scope_type inválido '{scope_type}'. Deve ser um de: {valid_scopes}")
+                raise ValueError(f"Invalid scope_type '{scope_type}'. Must be one of: {valid_scopes}")
             if not scope_id or not scope_id.strip():
-                raise ValueError("scope_id não pode ser vazio.")
+                raise ValueError("scope_id cannot be empty.")
 
             blocks = self._gc.get_core_memory_blocks(
                 scope_type=scope_type,
@@ -1372,7 +1371,7 @@ class GrafoConciergeServer:
             )
             elapsed = time.perf_counter() - t0
             logger.info(
-                "concierge_get_memory OK: scope=%s/%s, label=%s, blocos=%d, %.3fs",
+                "concierge_get_memory OK: scope=%s/%s, label=%s, blocks=%d, %.3fs",
                 scope_type, scope_id, block_label or '*', len(blocks), elapsed,
             )
             return {
@@ -1385,7 +1384,7 @@ class GrafoConciergeServer:
             }
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("concierge_get_memory FALHOU: %s", e)
+            logger.error("concierge_get_memory FAILED: %s", e)
             return {
                 "success": False,
                 "error": str(e),
@@ -1399,7 +1398,7 @@ class GrafoConciergeServer:
     # ===================================================================
 
     def _handle_feedback(self, fact_id: int, was_useful: bool) -> dict:
-        """Handler do concierge_feedback — aciona o aprendizado Bayesiano."""
+        """Handler for concierge_feedback — triggers Bayesian learning."""
         t0 = time.perf_counter()
         try:
             self._gc.update_fact_utility(fact_id=fact_id, was_useful=was_useful)
@@ -1419,7 +1418,12 @@ class GrafoConciergeServer:
             }
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("concierge_feedback FALHOU: %s", e)
+                "message": f"{updated_field} incremented for fact {fact_id}.",
+                "duration_seconds": round(elapsed, 3),
+            }
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("concierge_feedback FAILED: %s", e)
             return {
                 "success": False,
                 "fact_id": fact_id,
@@ -1432,7 +1436,7 @@ class GrafoConciergeServer:
     # ===================================================================
 
     def _handle_get_full_topology(self, project_identifier: Optional[str] = None) -> dict:
-        """Handler do get_full_topology."""
+        """Handler for get_full_topology."""
         t0 = time.perf_counter()
         try:
             project_uuid = None
@@ -1456,7 +1460,7 @@ class GrafoConciergeServer:
             }
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("get_full_topology FALHOU: %s", e)
+            logger.error("get_full_topology FAILED: %s", e)
             return {
                 "success": False,
                 "error": str(e),
@@ -1470,13 +1474,13 @@ class GrafoConciergeServer:
     # ===================================================================
 
     def _handle_delete_project(self, project_identifier: str) -> dict:
-        """Handler do delete_project."""
+        """Handler for delete_project."""
         t0 = time.perf_counter()
         try:
             project_uuid = self._resolve_project_identifier(project_identifier)
             self._gc.delete_project(project_uuid)
             elapsed = time.perf_counter() - t0
-            logger.info("delete_project OK: %s em %.3fs", project_uuid, elapsed)
+            logger.info("delete_project OK: %s in %.3fs", project_uuid, elapsed)
             return {
                 "success": True,
                 "project_uuid": project_uuid,
@@ -1484,7 +1488,7 @@ class GrafoConciergeServer:
             }
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("delete_project FALHOU: %s — %s", project_identifier, e)
+            logger.error("delete_project FAILED: %s — %s", project_identifier, e)
             return {
                 "success": False,
                 "error": str(e),
@@ -1503,7 +1507,7 @@ class GrafoConciergeServer:
         privacy_level: Optional[str] = None,
         summary: Optional[str] = None,
     ) -> dict:
-        """Handler do update_project."""
+        """Handler for update_project."""
         t0 = time.perf_counter()
         try:
             project_uuid = self._resolve_project_identifier(project_identifier)
@@ -1519,7 +1523,7 @@ class GrafoConciergeServer:
 
             self._gc.update_project(project_uuid, **fields)
             elapsed = time.perf_counter() - t0
-            logger.info("update_project OK: %s com campos=%s em %.3fs", project_uuid, list(fields.keys()), elapsed)
+            logger.info("update_project OK: %s with fields=%s in %.3fs", project_uuid, list(fields.keys()), elapsed)
             return {
                 "success": True,
                 "project_uuid": project_uuid,
@@ -1528,7 +1532,7 @@ class GrafoConciergeServer:
             }
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("update_project FALHOU: %s — %s", project_identifier, e)
+            logger.error("update_project FAILED: %s — %s", project_identifier, e)
             return {
                 "success": False,
                 "error": str(e),
@@ -1540,13 +1544,13 @@ class GrafoConciergeServer:
     # ===================================================================
 
     def _handle_add_reference_wing(self, project_identifier: str, wing_name: str) -> dict:
-        """Handler do add_reference_wing."""
+        """Handler for add_reference_wing."""
         t0 = time.perf_counter()
         try:
             project_uuid = self._resolve_project_identifier(project_identifier)
             self._gc.add_reference_wing(project_uuid, wing_name)
             elapsed = time.perf_counter() - t0
-            logger.info("add_reference_wing OK: %s -> %s em %.3fs", project_uuid, wing_name, elapsed)
+            logger.info("add_reference_wing OK: %s -> %s in %.3fs", project_uuid, wing_name, elapsed)
             return {
                 "success": True,
                 "project_uuid": project_uuid,
@@ -1555,7 +1559,7 @@ class GrafoConciergeServer:
             }
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("add_reference_wing FALHOU: %s — %s", project_identifier, e)
+            logger.error("add_reference_wing FAILED: %s — %s", project_identifier, e)
             return {
                 "success": False,
                 "error": str(e),
@@ -1567,13 +1571,13 @@ class GrafoConciergeServer:
     # ===================================================================
 
     def _handle_remove_reference_wing(self, project_identifier: str, wing_name: str) -> dict:
-        """Handler do remove_reference_wing."""
+        """Handler for remove_reference_wing."""
         t0 = time.perf_counter()
         try:
             project_uuid = self._resolve_project_identifier(project_identifier)
             self._gc.remove_reference_wing(project_uuid, wing_name)
             elapsed = time.perf_counter() - t0
-            logger.info("remove_reference_wing OK: %s -> %s em %.3fs", project_uuid, wing_name, elapsed)
+            logger.info("remove_reference_wing OK: %s -> %s in %.3fs", project_uuid, wing_name, elapsed)
             return {
                 "success": True,
                 "project_uuid": project_uuid,
@@ -1582,7 +1586,7 @@ class GrafoConciergeServer:
             }
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("remove_reference_wing FALHOU: %s — %s", project_identifier, e)
+            logger.error("remove_reference_wing FAILED: %s — %s", project_identifier, e)
             return {
                 "success": False,
                 "error": str(e),
@@ -1600,7 +1604,7 @@ class GrafoConciergeServer:
         include_references: bool = False,
         all_wings: bool = False,
     ) -> dict:
-        """Handler do find_similar."""
+        """Handler for find_similar."""
         t0 = time.perf_counter()
         try:
             project_uuid = self._resolve_project_identifier(project_identifier)
@@ -1611,7 +1615,7 @@ class GrafoConciergeServer:
                 all_wings=all_wings,
             )
             elapsed = time.perf_counter() - t0
-            logger.info("find_similar OK: %s (limit=%d) em %.3fs", project_uuid, limit, elapsed)
+            logger.info("find_similar OK: %s (limit=%d) in %.3fs", project_uuid, limit, elapsed)
             return {
                 "success": True,
                 "project_uuid": project_uuid,
@@ -1620,7 +1624,7 @@ class GrafoConciergeServer:
             }
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("find_similar FALHOU: %s — %s", project_identifier, e)
+            logger.error("find_similar FAILED: %s — %s", project_identifier, e)
             return {
                 "success": False,
                 "error": str(e),
@@ -1632,13 +1636,13 @@ class GrafoConciergeServer:
     # ===================================================================
 
     def _handle_get_trajectories(self, project_identifier: str) -> dict:
-        """Handler do get_trajectories."""
+        """Handler for get_trajectories."""
         t0 = time.perf_counter()
         try:
             project_uuid = self._resolve_project_identifier(project_identifier)
             trajectories = self._gc.get_trajectories(project_uuid)
             elapsed = time.perf_counter() - t0
-            logger.info("get_trajectories OK: %s em %.3fs", project_uuid, elapsed)
+            logger.info("get_trajectories OK: %s in %.3fs", project_uuid, elapsed)
             return {
                 "success": True,
                 "project_uuid": project_uuid,
@@ -1647,7 +1651,7 @@ class GrafoConciergeServer:
             }
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("get_trajectories FALHOU: %s — %s", project_identifier, e)
+            logger.error("get_trajectories FAILED: %s — %s", project_identifier, e)
             return {
                 "success": False,
                 "error": str(e),
@@ -1659,7 +1663,7 @@ class GrafoConciergeServer:
     # ===================================================================
 
     def _handle_count_embeddings(self, project_identifier: Optional[str] = None) -> dict:
-        """Handler do count_embeddings."""
+        """Handler for count_embeddings."""
         t0 = time.perf_counter()
         try:
             project_uuid = None
@@ -1668,7 +1672,7 @@ class GrafoConciergeServer:
 
             count = self._gc.count_embeddings(project_uuid)
             elapsed = time.perf_counter() - t0
-            logger.info("count_embeddings OK: project=%s, count=%d em %.3fs", project_uuid or "ALL", count, elapsed)
+            logger.info("count_embeddings OK: project=%s, count=%d in %.3fs", project_uuid or "ALL", count, elapsed)
             return {
                 "success": True,
                 "project_uuid": project_uuid,
@@ -1677,7 +1681,7 @@ class GrafoConciergeServer:
             }
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("count_embeddings FALHOU: %s — %s", project_identifier, e)
+            logger.error("count_embeddings FAILED: %s — %s", project_identifier, e)
             return {
                 "success": False,
                 "error": str(e),
@@ -1689,22 +1693,21 @@ class GrafoConciergeServer:
     # ===================================================================
 
     def _handle_reset_collection(self) -> dict:
-        """Handler do reset_collection."""
+        """Handler for reset_collection."""
         t0 = time.perf_counter()
         try:
             success = self._gc.reset_collection()
             elapsed = time.perf_counter() - t0
-            logger.info("reset_collection OK: %s em %.3fs", success, elapsed)
+            logger.info("reset_collection OK: %s in %.3fs", success, elapsed)
             return {
                 "success": success,
                 "duration_seconds": round(elapsed, 3),
             }
         except Exception as e:
             elapsed = time.perf_counter() - t0
-            logger.error("reset_collection FALHOU: %s", e)
+            logger.error("reset_collection FAILED: %s", e)
             return {
                 "success": False,
                 "error": str(e),
                 "duration_seconds": round(elapsed, 3),
             }
-

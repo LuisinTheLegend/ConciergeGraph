@@ -1,27 +1,27 @@
 """
-services/janitor.py — Grafo Concierge v3.8.0 (Absolute Solidity)
+services/janitor.py - Grafo Concierge v3.8.0 (Absolute Solidity)
 
-Background Janitor — Manutenção autônoma do Grafo de Memória.
+Background Janitor — Autonomous maintenance of the Memory Graph.
 
-Responsabilidades:
-    - Decaimento de Trajetórias: Marca trajetórias episódicas stale (>30d)
-      como DECAYED para evitar poluição de contexto.
-    - Sincronização Atômica: Reconcilia SQLite ↔ ChromaDB via verify_sync,
-      removendo vetores órfãos que ficaram após GC parcial.
-    - Auto-Zoom: Detecta quando >N mudanças ocorreram desde o último L2
-      e dispara automaticamente o generate_project_context (L1/L2).
-    - Limpeza de Nós Inativos: Marca nós sem acesso há >60d como ARCHIVED.
-    - FTS Rebuild: Reconstrói o índice Full-Text Search após manutenção pesada.
+Responsibilities:
+    - Trajectories Decay: Marks stale episodic trajectories (>30d)
+      as DECAYED to prevent context pollution.
+    - Atomic Sync: Reconciles SQLite ↔ ChromaDB via verify_sync,
+      removing orphan vectors left behind after partial GC.
+    - Auto-Zoom: Detects when >N changes occurred since the last L2
+      and automatically triggers generate_project_context (L1/L2).
+    - Inactive Nodes Cleanup: Marks nodes with no access for >60d as ARCHIVED.
+    - FTS Rebuild: Rebuilds Full-Text Search index after heavy maintenance.
 
 Thread Safety:
-    O Janitor opera exclusivamente via SqliteStore (que já usa
-    SerializedWriteQueue com thread-safe write() e contextmanager read()).
-    Pode rodar em thread separada sem risco de contention.
+    The Janitor operates exclusively via SqliteStore (which already uses
+    SerializedWriteQueue with thread-safe write() and contextmanager read()).
+    It can run in a separate thread without contention risk.
 
 Idle-Lock:
-    O Janitor verifica se há operações de mine() em andamento antes de
-    executar tarefas destrutivas (GC, decay). Se detectar atividade,
-    adia a execução (backoff).
+    The Janitor checks if there are mine() operations in progress before
+    executing destructive tasks (GC, decay). If it detects activity,
+    it postpones the execution (backoff).
 """
 
 from __future__ import annotations
@@ -40,32 +40,32 @@ logger = logging.getLogger("grafo-concierge.janitor")
 
 
 # ---------------------------------------------------------------------------
-# Configurações do Background Janitor
+# Background Janitor Settings
 # ---------------------------------------------------------------------------
 
-# Decaimento de trajetórias
+# Trajectories decay
 STALE_TRAJECTORY_DAYS: int = 30
 
-# Auto-Zoom: número mínimo de nós novos para disparar L1/L2
+# Auto-Zoom: minimum number of new nodes to trigger L1/L2
 AUTO_ZOOM_THRESHOLD: int = 10
 
-# Nós inativos: dias sem acesso para marcar como ARCHIVED
+# Inactive nodes: days without access to mark as ARCHIVED
 INACTIVE_NODE_DAYS: int = 60
 
-# Intervalo entre ciclos do Janitor (em segundos)
-DEFAULT_INTERVAL_SECONDS: int = 300  # 5 minutos
+# Interval between Janitor cycles (in seconds)
+DEFAULT_INTERVAL_SECONDS: int = 300  # 5 minutes
 
-# Idle-Lock: tempo máximo de espera (em segundos)
+# Idle-Lock: maximum waiting time (in seconds)
 IDLE_LOCK_TIMEOUT: int = 30
 
 
 # ---------------------------------------------------------------------------
-# MaintenanceReport — relatório de uma execução do Janitor
+# MaintenanceReport — report of a Janitor execution
 # ---------------------------------------------------------------------------
 
 @dataclass
 class MaintenanceReport:
-    """Relatório de uma rodada de manutenção."""
+    """Report of a maintenance round."""
     timestamp: str = ""
     project_uuid: str = ""
     trajectories_decayed: int = 0
@@ -101,20 +101,20 @@ class MaintenanceReport:
 
 
 # ---------------------------------------------------------------------------
-# JanitorService — Motor de Manutenção Autônoma
+# JanitorService — Autonomous Maintenance Engine
 # ---------------------------------------------------------------------------
 
 class JanitorService:
-    """Background Janitor — manutenção autônoma do grafo.
+    """Background Janitor — autonomous maintenance of the graph.
 
-    Thread Safety garantida pela SerializedWriteQueue do SqliteStore.
-    Todas as escritas são enfileiradas atomicamente.
+    Thread Safety guaranteed by SerializedWriteQueue of SqliteStore.
+    All writes are queued atomically.
 
-    Uso:
+    Usage:
         janitor = JanitorService(store, vector_store, ingestion_manager)
-        # Execução manual (single-shot):
+        # Manual execution (single-shot):
         report = janitor.run_maintenance(project_uuid)
-        # Execução contínua (background thread):
+        # Continuous execution (background thread):
         janitor.start_background(project_uuid, interval=300)
         janitor.stop_background()
     """
@@ -137,7 +137,7 @@ class JanitorService:
         self._inactive_days = inactive_days
         self._super_node_threshold = super_node_threshold
 
-        # Idle-Lock: flag compartilhada para detectar mine() em andamento
+        # Idle-Lock: shared flag to detect mine() in progress
         self._mine_active = threading.Event()
         self._mine_timestamp = 0.0
 
@@ -146,81 +146,81 @@ class JanitorService:
         self._stop_event = threading.Event()
         self._last_reports: list[MaintenanceReport] = []
 
-        # Vector payloads em testes ou mock vector stores
+        # Vector payloads in tests or mock vector stores
         self.vector_payloads: dict[int, dict[str, Any]] = {}
 
         logger.info(
-            "JanitorService inicializado: stale=%dd, zoom_threshold=%d, inactive=%dd, super_node_threshold=%d",
+            "JanitorService initialized: stale=%dd, zoom_threshold=%d, inactive=%dd, super_node_threshold=%d",
             stale_days, auto_zoom_threshold, inactive_days, super_node_threshold,
         )
 
     # ===================================================================
-    # Idle-Lock API — chamado pelo IngestionManager
+    # Idle-Lock API — called by IngestionManager
     # ===================================================================
 
     def signal_mine_start(self) -> None:
-        """Sinaliza que mine() está em andamento (Idle-Lock ativo)."""
+        """Signals that mine() is in progress (Idle-Lock active)."""
         self._mine_active.set()
         self._mine_timestamp = time.monotonic()
-        logger.debug("Idle-Lock: mine() ativo — Janitor em espera.")
+        logger.debug("Idle-Lock: mine() active — Janitor waiting.")
 
     def signal_mine_end(self) -> None:
-        """Sinaliza que mine() terminou (Idle-Lock liberado)."""
+        """Signals that mine() has finished (Idle-Lock released)."""
         self._mine_active.clear()
-        logger.debug("Idle-Lock: mine() finalizado — Janitor liberado.")
+        logger.debug("Idle-Lock: mine() finished — Janitor released.")
 
     def is_system_active(self) -> bool:
-        """Retorna True se houver atividade ativa no sistema (mine ativo ou fila ocupada)."""
+        """Returns True if there is active activity in the system (mine active or queue busy)."""
         if self._mine_active.is_set():
             elapsed = time.monotonic() - getattr(self, "_mine_timestamp", 0.0)
             if elapsed > 300.0:
                 logger.warning(
-                    "Idle-Lock: deadlock detectado! mine() ativo há %.1fs (> 300s). Forçando liberação da flag.",
+                    "Idle-Lock: deadlock detected! mine() active for %.1fs (> 300s). Forcing flag release.",
                     elapsed
                 )
                 self._mine_active.clear()
             else:
                 return True
-        # Verifica a fila de escrita via API pública (sem violar encapsulamento)
+        # Verifies write queue via public API (without violating encapsulation)
         if self._store and not self._store.is_write_queue_empty():
             return True
         return False
 
     def _wait_for_idle(self) -> bool:
-        """Espera até que mine() termine ou timeout expire.
+        """Waits until mine() finishes or timeout expires.
 
         Returns:
-            True se o sistema ficou idle, False se timeout.
+            True if system became idle, False if timeout.
         """
         if not self.is_system_active():
             return True
 
-        logger.info("Idle-Lock: aguardando sistema ficar ocioso (timeout=%ds)...", IDLE_LOCK_TIMEOUT)
+        logger.info("Idle-Lock: waiting for system to become idle (timeout=%ds)...", IDLE_LOCK_TIMEOUT)
         start = time.monotonic()
         while self.is_system_active():
             if time.monotonic() - start > IDLE_LOCK_TIMEOUT:
-                logger.warning("Idle-Lock: timeout — manutenção adiada.")
+                logger.warning("Idle-Lock: timeout — maintenance postponed.")
                 return False
             time.sleep(0.5)
 
         return True
 
     # ===================================================================
-    # RUN MAINTENANCE — Execução single-shot
+    # RUN MAINTENANCE — Single-shot execution
     # ===================================================================
 
     def run_maintenance(self, project_uuid: str) -> MaintenanceReport:
-        """Executa uma rodada completa de manutenção para um projeto.
+        """Executes a full maintenance round for a project.
 
-        Fluxo:
-            1. Idle-Lock check: adia se mine() ativo ou fila com tarefas.
-            2. Decaimento de trajetórias stale.
-            3. Sincronização SQLite ↔ ChromaDB (vetores órfãos).
-            4. Arquivamento de nós inativos.
-            5. Detecção de Comunidades (WITH RECURSIVE na tabela edges com FTS5).
-            6. Sumarização das Comunidades e injeção vetorial.
-            7. Auto-Zoom (L1/L2) se threshold atingido.
-            8. FTS Rebuild se houve mudanças significativas.
+        Flow:
+            1. Idle-Lock check: postpones if mine() active or queue has tasks.
+            2. Decay of stale trajectories.
+            3. SQLite ↔ ChromaDB sync (orphan vectors).
+            4. Archiving of inactive nodes.
+            5. Community Detection (WITH RECURSIVE on edges table with FTS5).
+            6. Synthesis/summarization of Communities and vector injection.
+            7. Auto-Zoom (L1/L2) if threshold reached.
+            8. FTS Rebuild if significant changes occurred.
         """
         t0 = time.perf_counter()
         report = MaintenanceReport(
@@ -229,38 +229,38 @@ class JanitorService:
         )
 
         logger.info("=" * 50)
-        logger.info("JANITOR: manutenção iniciada para %s", project_uuid)
+        logger.info("JANITOR: maintenance started for %s", project_uuid)
         logger.info("=" * 50)
 
         # --- Idle-Lock ---
         if not self._wait_for_idle():
             report.skipped_idle_lock = True
             report.duration_seconds = time.perf_counter() - t0
-            logger.info("JANITOR: manutenção adiada (Idle-Lock).")
+            logger.info("JANITOR: maintenance postponed (Idle-Lock).")
             return report
 
-        # --- STEP 1: Decaimento de trajetórias ---
+        # --- STEP 1: Trajectory decay ---
         if self.is_system_active():
             report.skipped_idle_lock = True
             report.duration_seconds = time.perf_counter() - t0
             return report
         report.trajectories_decayed = self._decay_trajectories(project_uuid, report)
 
-        # --- STEP 2: Sincronização atômica (vetores órfãos) ---
+        # --- STEP 2: Atomic sync (orphan vectors) ---
         if self.is_system_active():
             report.skipped_idle_lock = True
             report.duration_seconds = time.perf_counter() - t0
             return report
         report.orphan_vectors_removed = self._sync_vectors(project_uuid, report)
 
-        # --- STEP 3: Arquivamento de nós inativos ---
+        # --- STEP 3: Inactive nodes archiving ---
         if self.is_system_active():
             report.skipped_idle_lock = True
             report.duration_seconds = time.perf_counter() - t0
             return report
         report.inactive_nodes_archived = self._archive_inactive_nodes(project_uuid, report)
 
-        # --- STEP 4: Detecção de Comunidades (GraphRAG) ---
+        # --- STEP 4: Community Detection (GraphRAG) ---
         if self.is_system_active():
             report.skipped_idle_lock = True
             report.duration_seconds = time.perf_counter() - t0
@@ -268,7 +268,7 @@ class JanitorService:
         communities = self.detect_communities(project_uuid)
         report.communities_detected = len(communities)
 
-        # --- STEP 5: Sumarização e Injeção ---
+        # --- STEP 5: Summarization and Injection ---
         if communities:
             if self.is_system_active():
                 report.skipped_idle_lock = True
@@ -284,7 +284,7 @@ class JanitorService:
             return report
         self._auto_zoom(project_uuid, report)
 
-        # --- STEP 7: FTS Rebuild (se houve mudanças) ---
+        # --- STEP 7: FTS Rebuild (if changes occurred) ---
         if self.is_system_active():
             report.skipped_idle_lock = True
             report.duration_seconds = time.perf_counter() - t0
@@ -300,7 +300,7 @@ class JanitorService:
 
         logger.info("=" * 50)
         logger.info(
-            "JANITOR concluído em %.2fs: decayed=%d, orphans=%d, archived=%d, communities=%d, summaries=%d, zoom=%s",
+            "JANITOR completed in %.2fs: decayed=%d, orphans=%d, archived=%d, communities=%d, summaries=%d, zoom=%s",
             report.duration_seconds,
             report.trajectories_decayed,
             report.orphan_vectors_removed,
@@ -317,56 +317,56 @@ class JanitorService:
         return report
 
     # ===================================================================
-    # STEP 1: Decaimento de Trajetórias
+    # STEP 1: Trajectory Decay
     # ===================================================================
 
     def _decay_trajectories(self, project_uuid: str, report: MaintenanceReport) -> int:
-        """Marca trajetórias stale como DECAYED."""
+        """Marks stale trajectories as DECAYED."""
         try:
             decayed = self._store.bulk_decay_stale_trajectories(
                 project_uuid, stale_threshold_days=self._stale_days,
             )
             if decayed > 0:
                 logger.info(
-                    "Decaimento: %d trajetórias marcadas como DECAYED (>%dd).",
+                    "Decay: %d trajectories marked as DECAYED (>%dd).",
                     decayed, self._stale_days,
                 )
             else:
-                logger.debug("Decaimento: nenhuma trajetória stale detectada.")
+                logger.debug("Decay: no stale trajectory detected.")
             return decayed
         except Exception as e:
-            error_msg = f"Decaimento falhou: {e}"
+            error_msg = f"Decay failed: {e}"
             logger.error(error_msg)
             report.errors.append(error_msg)
             return 0
 
     # ===================================================================
-    # STEP 2: Sincronização Atômica (Reconciliation Loop)
+    # STEP 2: Atomic Sync (Reconciliation Loop)
     # ===================================================================
 
     def _sync_vectors(self, project_uuid: str, report: MaintenanceReport) -> int:
-        """Detecta/remove vetores órfãos e auto-gera vetores faltantes no backend ativo."""
+        """Detects/removes orphan vectors and auto-generates missing vectors on the active backend."""
         try:
-            # Coleta nós ativos com conteúdo do SQLite
+            # Collect active nodes with content from SQLite
             nodes = self._store.get_nodes_by_project(project_uuid, status="ACTIVE")
             nodes_with_content = [n for n in nodes if n.get("content")]
             valid_ids: set[int] = {n["id"] for n in nodes}
 
-            # 1. Remove vetores órfãos
+            # 1. Remove orphan vectors
             orphans = self._vector.verify_sync(valid_ids)
             removed = 0
             if orphans:
                 removed = self._vector.delete_batch(orphans)
-                logger.info("Sync: %d vetores órfãos removidos.", removed)
+                logger.info("Sync: %d orphan vectors removed.", removed)
 
-            # 2. Auto-gera e sincroniza embeddings faltantes (ex: migração Chroma ↔ Qdrant)
+            # 2. Auto-generates and syncs missing embeddings (e.g. Chroma ↔ Qdrant migration)
             if hasattr(self._vector, "get_all_stored_node_ids") and self._ingestion and hasattr(self._ingestion, "_embedder"):
                 sqlite_ids = {n["id"] for n in nodes_with_content}
                 stored_ids = self._vector.get_all_stored_node_ids()
                 
                 missing_ids = sqlite_ids - stored_ids
                 if missing_ids:
-                    logger.info("Sync: %d nós do SQLite sem correspondência no vetor ativo. Auto-gerando embeddings...", len(missing_ids))
+                    logger.info("Sync: %d SQLite nodes without match in active vector database. Auto-generating embeddings...", len(missing_ids))
                     
                     items_to_store = []
                     embedder = self._ingestion._embedder
@@ -386,26 +386,26 @@ class JanitorService:
                                     }
                                 })
                             except Exception as embed_err:
-                                logger.error("Falha ao gerar embedding para nó %d na auto-sincronização: %s", n["id"], embed_err)
+                                logger.error("Failed to generate embedding for node %d in auto-sync: %s", n["id"], embed_err)
                     
                     if items_to_store:
                         stored_count = self._vector.store_embeddings_batch(items_to_store)
-                        logger.info("Sync: %d vetores faltantes auto-gerados e sincronizados com sucesso.", stored_count)
+                        logger.info("Sync: %d missing vectors auto-generated and synchronized successfully.", stored_count)
 
             return removed
 
         except Exception as e:
-            error_msg = f"Sync vetorial falhou: {e}"
+            error_msg = f"Vector sync failed: {e}"
             logger.error(error_msg)
             report.errors.append(error_msg)
             return 0
 
     # ===================================================================
-    # STEP 3: Arquivamento de Nós Inativos
+    # STEP 3: Inactive Nodes Archiving
     # ===================================================================
 
     def _archive_inactive_nodes(self, project_uuid: str, report: MaintenanceReport) -> int:
-        """Marca nós sem acesso recente como ARCHIVED."""
+        """Marks nodes without recent access as ARCHIVED."""
         try:
             nodes = self._store.get_nodes_by_project(project_uuid, status="ACTIVE")
             threshold = datetime.utcnow() - timedelta(days=self._inactive_days)
@@ -413,31 +413,31 @@ class JanitorService:
             archived = 0
 
             for node in nodes:
-                # Usa last_accessed se disponível, senão updated_at
+                # Uses last_accessed if available, otherwise updated_at
                 last_access = node.get("last_accessed") or node.get("updated_at") or node.get("created_at")
                 if not last_access:
                     continue
 
-                # Normaliza para string comparável
+                # Normalizes to comparable string
                 if isinstance(last_access, str) and last_access < threshold_str:
                     try:
                         self._store.update_node(node["id"], status="ARCHIVED")
                         archived += 1
                     except Exception as e:
-                        logger.debug("Falha ao arquivar nó %d: %s", node["id"], e)
+                        logger.debug("Failed to archive node %d: %s", node["id"], e)
 
             if archived > 0:
                 logger.info(
-                    "Arquivo: %d nós marcados como ARCHIVED (inativo >%dd).",
+                    "Archive: %d nodes marked as ARCHIVED (inactive >%dd).",
                     archived, self._inactive_days,
                 )
             else:
-                logger.debug("Arquivo: nenhum nó inativo detectado.")
+                logger.debug("Archive: no inactive node detected.")
 
             return archived
 
         except Exception as e:
-            error_msg = f"Arquivamento de nós falhou: {e}"
+            error_msg = f"Archiving of nodes failed: {e}"
             logger.error(error_msg)
             report.errors.append(error_msg)
             return 0
@@ -447,25 +447,25 @@ class JanitorService:
     # ===================================================================
 
     def _auto_zoom(self, project_uuid: str, report: MaintenanceReport) -> None:
-        """Verifica se há mudanças suficientes para disparar Zoom Gear."""
+        """Checks if there are enough changes to trigger Zoom Gear."""
         if not self._ingestion:
-            logger.debug("Auto-Zoom: IngestionManager não configurado — ignorado.")
+            logger.debug("Auto-Zoom: IngestionManager not configured — ignored.")
             return
 
         try:
-            # Conta nós ativos — proxy para atividade recente
+            # Count active nodes — proxy for recent activity
             nodes = self._store.get_nodes_by_project(project_uuid, status="ACTIVE")
             recent_count = len(nodes)
 
             if recent_count < self._zoom_threshold:
                 logger.debug(
-                    "Auto-Zoom: %d mudanças recentes < threshold %d — ignorado.",
+                    "Auto-Zoom: %d recent changes < threshold %d — ignored.",
                     recent_count, self._zoom_threshold,
                 )
                 return
 
             logger.info(
-                "Auto-Zoom: %d mudanças recentes >= threshold %d — disparando Zoom Gear...",
+                "Auto-Zoom: %d recent changes >= threshold %d — triggering Zoom Gear...",
                 recent_count, self._zoom_threshold,
             )
 
@@ -475,12 +475,12 @@ class JanitorService:
             report.zoom_l2_summary = zoom_result.get("l2_summary", "")
 
             logger.info(
-                "Auto-Zoom: %d L1 gerados, Bússola L2 = %.60s...",
+                "Auto-Zoom: %d L1s generated, L2 Compass = %.60s...",
                 report.zoom_l1_count, report.zoom_l2_summary,
             )
 
         except Exception as e:
-            error_msg = f"Auto-Zoom falhou: {e}"
+            error_msg = f"Auto-Zoom failed: {e}"
             logger.error(error_msg)
             report.errors.append(error_msg)
 
@@ -489,27 +489,27 @@ class JanitorService:
     # ===================================================================
 
     def _fts_rebuild(self, report: MaintenanceReport) -> None:
-        """Reconstrói o índice FTS5 após mudanças significativas."""
+        """Rebuilds the FTS5 index after significant changes."""
         try:
             self._store.fts_rebuild()
             report.fts_rebuilt = True
-            logger.info("FTS Rebuild: índice reconstruído com sucesso.")
+            logger.info("FTS Rebuild: index rebuilt successfully.")
         except Exception as e:
-            error_msg = f"FTS Rebuild falhou: {e}"
+            error_msg = f"FTS Rebuild failed: {e}"
             logger.error(error_msg)
             report.errors.append(error_msg)
 
     # ===================================================================
-    # STEP 4 & 5: Detecção de Comunidades e Sumarização (GraphRAG)
+    # STEP 4 & 5: Community Detection and Summarization (GraphRAG)
     # ===================================================================
 
     def detect_communities(self, project_uuid: str) -> dict[int, list[int]]:
-        """Detecta comunidades no grafo usando WITH RECURSIVE e FTS5.
-        Retorna um dicionário mapeando o ID do super-nó para a lista de IDs dos nós pertencentes à comunidade.
+        """Detects communities in the graph using WITH RECURSIVE and FTS5.
+        Returns a dictionary mapping the super-node ID to the list of node IDs belonging to the community.
         """
         communities: dict[int, list[int]] = {}
         try:
-            # 1. Encontra os super-nós (in_degree >= self._super_node_threshold)
+            # 1. Finds super-nodes (in_degree >= self._super_node_threshold)
             super_nodes_rows = self._store.execute_read_sql(
                 """
                 SELECT n.id
@@ -523,10 +523,10 @@ class JanitorService:
             )
             
             super_node_ids = [row["id"] for row in super_nodes_rows]
-            logger.info("Janitor detectou %d super-nós (threshold=%d) no projeto %s.",
+            logger.info("Janitor detected %d super-nodes (threshold=%d) in project %s.",
                         len(super_node_ids), self._super_node_threshold, project_uuid)
             
-            # 2. Para cada super-nó, busca recursivamente a comunidade associada
+            # 2. For each super-node, recursively searches the associated community
             for sn_id in super_node_ids:
                 community_rows = self._store.execute_read_sql(
                     """
@@ -552,7 +552,7 @@ class JanitorService:
                 communities[sn_id] = [row["id"] for row in community_rows]
                     
         except Exception as e:
-            logger.error("Falha na detecção de comunidades: %s", e)
+            logger.error("Failed community detection: %s", e)
             
         return communities
 
@@ -561,18 +561,17 @@ class JanitorService:
         project_uuid: str,
         communities: dict[int, list[int]],
     ) -> list[dict[str, Any]]:
-        """Gera resumos para as comunidades detectadas, salva como nós INSIGHT e atualiza o Qdrant."""
-        from typing import Any
+        """Generates summaries for the detected communities, saves as INSIGHT nodes and updates Qdrant."""
         import json
         
         summaries: list[dict[str, Any]] = []
         for community_id, node_ids in communities.items():
-            # Proteção de Concorrência (Idle-Lock): suspende se o sistema ficar ativo
+            # Concurrency Protection (Idle-Lock): suspends if the system becomes active
             if self.is_system_active():
-                logger.warning("Janitor: suspensão de comunidade ativada devido a atividade no barramento.")
+                logger.warning("Janitor: community suspension activated due to bus activity.")
                 break
                 
-            # Busca os detalhes dos nós na comunidade
+            # Fetches node details in the community
             node_details = []
             try:
                 placeholders = ",".join("?" for _ in node_ids)
@@ -581,7 +580,7 @@ class JanitorService:
                     tuple(node_ids)
                 )
             except Exception as e:
-                logger.error("Falha ao carregar detalhes dos nós da comunidade %d: %s", community_id, e)
+                logger.error("Failed to load details of community nodes %d: %s", community_id, e)
                 continue
 
             if not node_details:
@@ -603,7 +602,7 @@ class JanitorService:
                     except Exception:
                         pass
             
-            # Delega ao IngestionManager que encapsula o acesso ao LLM
+            # Delegates to IngestionManager which encapsulates access to LLM
             if self._ingestion:
                 result = self._ingestion.generate_community_summary(nodes_block)
                 if result:
@@ -619,7 +618,7 @@ class JanitorService:
                     labels_str += f" and {len(node_details) - 5} more"
                 summary_text = f"Logical community anchored by super-node {community_id}, containing nodes: {labels_str}."
 
-            # Salva o INSIGHT no SQLite
+            # Saves the INSIGHT to SQLite
             try:
                 insight_node_id = self._store.create_node(
                     project_uuid=project_uuid,
@@ -630,7 +629,7 @@ class JanitorService:
                     tags=sorted(list(set(tags))),
                 )
                 
-                # Cria a aresta conectando o INSIGHT ao super-nó
+                # Creates the edge connecting the INSIGHT to the super-node
                 self._store.create_edge(
                     source_id=insight_node_id,
                     target_id=community_id,
@@ -638,7 +637,7 @@ class JanitorService:
                     weight=1.0,
                 )
                 
-                # Injeta os IDs de comunidade de forma direta nos metadados vetoriais
+                # Injects community IDs directly into vector metadata
                 for nid in node_ids:
                     self._update_vector_metadata(nid, project_uuid, community_id)
                     
@@ -650,28 +649,28 @@ class JanitorService:
                 })
                 
             except Exception as e:
-                logger.error("Falha ao salvar INSIGHT da comunidade %d no SQLite: %s", community_id, e)
+                logger.error("Failed to save community INSIGHT %d in SQLite: %s", community_id, e)
 
         return summaries
 
     def _update_vector_metadata(self, node_id: int, project_uuid: str, community_id: int) -> None:
-        """Atualiza a metadata no vector store injetando o community_id."""
+        """Updates metadata in the vector store injecting the community_id."""
         metadata = {
             "node_id": node_id,
             "project_uuid": project_uuid,
             "community_id": community_id,
         }
 
-        # 1. Armazena no cache local do Janitor (útil para testes/mocks)
+        # 1. Stores in Janitor's local cache (useful for tests/mocks)
         self.vector_payloads[node_id] = metadata
 
-        # 2. Atualiza via API pública (sem acessar _collection diretamente)
+        # 2. Updates via public API (without accessing _collection directly)
         if self._vector:
             doc_id = f"node_{node_id}"
             self._vector.update_metadata(doc_id, metadata)
 
     # ===================================================================
-    # BACKGROUND THREAD — Execução contínua
+    # BACKGROUND THREAD — Continuous execution
     # ===================================================================
 
     def start_background(
@@ -679,29 +678,29 @@ class JanitorService:
         project_uuid: str,
         interval: int = DEFAULT_INTERVAL_SECONDS,
     ) -> None:
-        """Inicia o Janitor em background thread.
+        """Starts Janitor in background thread.
 
-        A thread executa run_maintenance() a cada `interval` segundos.
-        Thread-safe: usa SerializedWriteQueue do SqliteStore.
+        The thread runs run_maintenance() every `interval` seconds.
+        Thread-safe: uses SerializedWriteQueue of SqliteStore.
         """
         if self._bg_thread and self._bg_thread.is_alive():
-            logger.warning("Janitor background já está rodando.")
+            logger.warning("Janitor background is already running.")
             return
 
         self._stop_event.clear()
 
         def _loop():
-            logger.info("Janitor background iniciado (interval=%ds).", interval)
+            logger.info("Janitor background started (interval=%ds).", interval)
             while not self._stop_event.is_set():
                 try:
                     self.run_maintenance(project_uuid)
                 except Exception as e:
-                    logger.error("Janitor background — erro não tratado: %s", e)
+                    logger.error("Janitor background — unhandled error: %s", e)
 
-                # Sleep interruptível
+                # Interruptible sleep
                 self._stop_event.wait(timeout=interval)
 
-            logger.info("Janitor background encerrado.")
+            logger.info("Janitor background stopped.")
 
         self._bg_thread = threading.Thread(
             target=_loop,
@@ -712,41 +711,41 @@ class JanitorService:
         logger.info("Janitor background thread started: name=%s", self._bg_thread.name)
 
     def stop_background(self, timeout: float = 10.0) -> None:
-        """Para a background thread do Janitor."""
+        """Stops the Janitor background thread."""
         if not self._bg_thread or not self._bg_thread.is_alive():
-            logger.debug("Janitor background não está rodando.")
+            logger.debug("Janitor background is not running.")
             return
 
-        logger.info("Parando Janitor background...")
+        logger.info("Stopping Janitor background...")
         self._stop_event.set()
         self._bg_thread.join(timeout=timeout)
 
         if self._bg_thread.is_alive():
-            logger.warning("Janitor background não parou dentro do timeout de %.1fs.", timeout)
+            logger.warning("Janitor background did not stop within timeout of %.1fs.", timeout)
         else:
-            logger.info("Janitor background parado com sucesso.")
+            logger.info("Janitor background stopped successfully.")
 
     @property
     def is_running(self) -> bool:
-        """Verifica se a background thread está ativa."""
+        """Checks if the background thread is active."""
         return self._bg_thread is not None and self._bg_thread.is_alive()
 
     @property
     def last_reports(self) -> list[MaintenanceReport]:
-        """Histórico de relatórios de manutenção (últimos)."""
+        """Maintenance reports history (latest)."""
         return list(self._last_reports)
 
     # ===================================================================
-    # FULL MAINTENANCE — todos os projetos
+    # FULL MAINTENANCE — all projects
     # ===================================================================
 
     def run_all_projects(self) -> list[MaintenanceReport]:
-        """Executa manutenção em TODOS os projetos registrados."""
+        """Executes maintenance on ALL registered projects."""
         reports: list[MaintenanceReport] = []
         try:
             projects = self._store.list_projects()
         except Exception as e:
-            logger.error("Falha ao listar projetos para manutenção global: %s", e)
+            logger.error("Failed to list projects for global maintenance: %s", e)
             return reports
 
         for project in projects:
@@ -757,7 +756,7 @@ class JanitorService:
                 report = self.run_maintenance(puuid)
                 reports.append(report)
             except Exception as e:
-                logger.error("Manutenção falhou para projeto %s: %s", puuid, e)
+                logger.error("Maintenance failed for project %s: %s", puuid, e)
 
-        logger.info("Manutenção global: %d projetos processados.", len(reports))
+        logger.info("Global maintenance: %d projects processed.", len(reports))
         return reports

@@ -1,32 +1,32 @@
 """
 core/hybrid_search.py — Grafo Concierge v3.8.0 (Absolute Solidity)
 
-Motor de Busca Híbrida v4 — Orquestração completa do pipeline de busca.
+Hybrid Search Engine v4 — Complete orchestration of the search pipeline.
 
-Este módulo é o coração da recuperação de memória. Ele orquestra os três
-sinais de relevância e combina-os na fórmula ponderada oficial:
+This module is the heart of memory retrieval. It orchestrates the three
+relevance signals and combines them in the official weighted formula:
 
-    score = (0.50 × vetorial)
-          + (0.25 × fts5_normalizado)
-          + (0.25 × max(recência, centralidade))
+    score = (0.50 × vector)
+          + (0.25 × normalized_fts5)
+          + (0.25 × max(recency, centrality))
 
-Fluxo do pipeline:
-    1. STRICT SCOPING — ProjectIndex resolve quais project_uuids estão
-       no escopo (Primary Wing, +References, ou All Wings).
-    2. EMBEDDING — EmbeddingManager gera o vetor da query.
-    3. BUSCA VETORIAL — ChromaVectorStore.search() retorna candidatos
-       com scores de similaridade coseno.
-    4. BUSCA FTS5 — SqliteStore.fts_search() retorna candidatos com
-       scores BM25 normalizados.
-    5. MERGE — Une os dois conjuntos de candidatos por node_id.
-    6. SCORE HÍBRIDO — GraphLogic.hybrid_search_score_batch() calcula
-       o score final ponderado.
-    7. SORT — Retorna ordenado por score_final DESC.
+Pipeline flow:
+    1. STRICT SCOPING — ProjectIndex resolves which project_uuids are
+       in scope (Primary Wing, +References, or All Wings).
+    2. EMBEDDING — EmbeddingManager generates the query vector.
+    3. VECTOR SEARCH — ChromaVectorStore.search() returns candidates
+       with cosine similarity scores.
+    4. FTS5 SEARCH — SqliteStore.fts_search() returns candidates with
+       normalized BM25 scores.
+    5. MERGE — Merges both candidate sets by node_id.
+    6. HYBRID SCORE — GraphLogic.hybrid_search_score_batch() calculates
+       the final weighted score.
+    7. SORT — Returns sorted by final_score DESC.
 
-Integração:
+Usage & Integration:
     - core.project_index.ProjectIndex → Strict Scoping
-    - storage.vector_store.ChromaVectorStore → Busca vetorial
-    - storage.vector_store.EmbeddingManager → Geração de embeddings
+    - storage.vector_store.ChromaVectorStore → Vector search
+    - storage.vector_store.EmbeddingManager → Embedding generation
     - storage.store.SqliteStore → FTS5 + Hybrid Score Batch
 """
 
@@ -44,17 +44,17 @@ logger = logging.getLogger("grafo-concierge.hybrid-search")
 
 
 class HybridSearchEngine:
-    """Motor de Busca Híbrida v4 — pipeline completo.
+    """Hybrid Search Engine v4 — complete pipeline.
 
-    Combina busca vetorial, FTS5 e Max(Recência, Centralidade)
-    em um único fluxo otimizado.
+    Combines vector search, FTS5, and Max(Recency, Centrality)
+    into a single optimized flow.
 
     Args:
-        sqlite_store: Fachada SQLite para FTS5 e score batch.
-        vector_store: Backend vetorial para similaridade coseno.
-        embedding_manager: Gerador de embeddings da query.
-        project_index: GPS de Conhecimento para Strict Scoping.
-        config: Parâmetros do sistema.
+        sqlite_store: SQLite facade for FTS5 and score batch.
+        vector_store: Vector backend for cosine similarity.
+        embedding_manager: Query embedding generator.
+        project_index: Knowledge GPS for Strict Scoping.
+        config: System parameters.
     """
 
     def __init__(
@@ -72,7 +72,7 @@ class HybridSearchEngine:
         self._config = config
 
     # ===================================================================
-    # SEARCH — Entry Point principal
+    # SEARCH — Main Entry Point
     # ===================================================================
 
     def search(
@@ -85,31 +85,31 @@ class HybridSearchEngine:
         node_type: Optional[str] = None,
         enable_probabilistic: bool = False,
     ) -> list[dict]:
-        """Executa a Busca Híbrida v4 completa.
+        """Executes the complete Hybrid Search v4.
 
-        Este método implementa o pipeline de 7 etapas descrito na
+        This method implements the 8-step pipeline described in
         Architecture v3.8.
 
         Args:
-            query: Texto de busca (linguagem natural ou técnica).
-            project_uuid: UUID do projeto âncora.
-            top_k: Máximo de resultados finais (default: config.search_top_k).
-            include_references: Incluir Reference Wings no escopo.
-            all_wings: Buscar em todas as alas (ignora Strict Scoping).
-            node_type: Filtro cirúrgico (FACT, SKILL, INSIGHT, etc.).
+            query: Search text (natural or technical language).
+            project_uuid: Anchor project UUID.
+            top_k: Maximum final results (default: config.search_top_k).
+            include_references: Include Reference Wings in scope.
+            all_wings: Search in all wings (ignores Strict Scoping).
+            node_type: Surgical filter (FACT, SKILL, INSIGHT, etc.).
 
         Returns:
-            Lista de dicts com score_final e breakdown completo,
-            ordenada por relevância (DESC).
-            Cada dict contém:
+            List of dicts with final_score and complete breakdown,
+            sorted by relevance (DESC).
+            Each dict contains:
             {
                 "node_id": int,
                 "score_final": float,
                 "score_breakdown": {
-                    "vetorial": float,
-                    "frequencia": float,
-                    "recencia": float,
-                    "centralidade": float,
+                    "vector": float,
+                    "frequency": float,
+                    "recency": float,
+                    "centrality": float,
                 },
                 "is_super_node": bool,
             }
@@ -118,7 +118,7 @@ class HybridSearchEngine:
             top_k = self._config.search_top_k
 
         logger.info(
-            "Hybrid Search v4: query='%.50s...', projeto=%s, top_k=%d, "
+            "Hybrid Search v4: query='%.50s...', project=%s, top_k=%d, "
             "refs=%s, all_wings=%s, node_type=%s",
             query, project_uuid, top_k,
             include_references, all_wings, node_type,
@@ -132,35 +132,35 @@ class HybridSearchEngine:
         )
 
         if not scoped_uuids:
-            logger.warning("Strict Scoping retornou 0 projetos — busca vazia.")
+            logger.warning("Strict Scoping returned 0 projects — empty search.")
             return []
 
-        logger.debug("Strict Scoping: %d projetos no escopo.", len(scoped_uuids))
+        logger.debug("Strict Scoping: %d projects in scope.", len(scoped_uuids))
 
-        # --- STEP 2: EMBEDDING da query ---
+        # --- STEP 2: QUERY EMBEDDING ---
         query_embedding = self._embedder.embed(query)
         if query_embedding is None:
-            logger.error("Semantic Fallback: embedding da query falhou. Retornando FTS-only.")
+            logger.error("Semantic Fallback: query embedding failed. Returning FTS-only.")
             return self._fts_only_fallback(query, project_uuid, node_type, top_k)
 
-        # --- STEP 3: BUSCA VETORIAL ---
+        # --- STEP 3: VECTOR SEARCH ---
         vector_results = self._vector.search(
             query_embedding=query_embedding,
             project_uuids=scoped_uuids,
-            top_k=top_k * 3,  # Busca 3x para ter candidatos suficientes
+            top_k=top_k * 3,  # Searches 3x to have enough candidates
             filters={"node_type": node_type} if node_type else None,
         )
 
-        logger.debug("Busca vetorial retornou %d candidatos.", len(vector_results))
+        logger.debug("Vector search returned %d candidates.", len(vector_results))
 
-        # Monta dict de scores vetoriais por node_id
-        # GROUP BY node_id, MAX(score) — como especificado na Architecture
+        # Build dict of vector scores by node_id
+        # GROUP BY node_id, MAX(score) — as specified in Architecture
         vector_scores: dict[int, float] = {}
         for vr in vector_results:
             if vr.node_id not in vector_scores or vr.score > vector_scores[vr.node_id]:
                 vector_scores[vr.node_id] = vr.score
 
-        # --- STEP 4: BUSCA FTS5 ---
+        # --- STEP 4: FTS5 SEARCH ---
         fts_results = self._store.fts_search(
             query=query,
             project_uuid=project_uuid,
@@ -168,20 +168,20 @@ class HybridSearchEngine:
             limit=self._config.fts_limit,
         )
 
-        logger.debug("Busca FTS5 retornou %d candidatos.", len(fts_results))
+        logger.debug("FTS5 search returned %d candidates.", len(fts_results))
 
-        # Monta dict de scores FTS por node_id
+        # Build dict of FTS scores by node_id
         fts_scores: dict[int, float] = {}
         for fr in fts_results:
             node_id = fr.get("id")
             if node_id is not None:
                 fts_scores[node_id] = fr.get("bm25_score", 0.0)
 
-        # --- STEP 5: MERGE — Une candidatos dos dois sinais ---
+        # --- STEP 5: MERGE — Combine candidates from both signals ---
         all_node_ids = set(vector_scores.keys()) | set(fts_scores.keys())
 
         if not all_node_ids:
-            logger.info("Nenhum candidato encontrado nos dois sinais.")
+            logger.info("No candidates found in both signals.")
             return []
 
         candidates: list[dict] = []
@@ -192,42 +192,42 @@ class HybridSearchEngine:
                 "fts_score": fts_scores.get(node_id, 0.0),
             })
 
-        logger.debug("Merge: %d candidatos únicos por node_id.", len(candidates))
+        logger.debug("Merge: %d unique candidates by node_id.", len(candidates))
 
-        # --- STEP 6: SCORE HÍBRIDO ---
+        # --- STEP 6: HYBRID SCORE ---
         scored_results = self._store.hybrid_search_score_batch(candidates)
 
-        # --- STEP 7: THOMPSON SAMPLING (opcional) ---
+        # --- STEP 7: THOMPSON SAMPLING (optional) ---
         if enable_probabilistic:
             scored_results = self._apply_thompson_sampling(scored_results)
 
-        # --- STEP 8: SORT e TRUNCATE ---
+        # --- STEP 8: SORT and TRUNCATE ---
         scored_results.sort(key=lambda x: x.get("score_final", 0), reverse=True)
         final = scored_results[:top_k]
 
         logger.info(
-            "Hybrid Search v4 concluída: %d candidatos → %d resultados finais.",
+            "Hybrid Search v4 complete: %d candidates → %d final results.",
             len(candidates), len(final),
         )
         return final
 
     # ===================================================================
-    # THOMPSON SAMPLING — Multiplicador probabilístico (SA-CTS)
+    # THOMPSON SAMPLING — Probabilistic multiplier (SA-CTS)
     # ===================================================================
 
     def _apply_thompson_sampling(self, results: list[dict]) -> list[dict]:
-        """Aplica multiplicador probabilístico Thompson ao score_final.
+        """Applies Thompson sampling probabilistic multiplier to score_final.
 
-        Para cada candidato, obtém utility_alpha e utility_beta dos
-        metadados do nó e sorteia um multiplicador via Distribuição Beta.
-        O score_final é multiplicado por esse fator, balanceando
-        exploração (nós pouco acessados) e explotação (nós comprovados).
+        For each candidate, gets utility_alpha and utility_beta from
+        node metadata and samples a multiplier via Beta Distribution.
+        The score_final is multiplied by this factor, balancing
+        exploration (rarely accessed nodes) and exploitation (proven nodes).
 
         Args:
-            results: Lista de dicts com score_final e score_breakdown.
+            results: List of dicts with score_final and score_breakdown.
 
         Returns:
-            Mesma lista com score_final ajustado pelo Thompson multiplier.
+            Same list with score_final adjusted by Thompson multiplier.
         """
         from core.probabilistic_retriever import ThompsonRetriever
 
@@ -256,12 +256,12 @@ class HybridSearchEngine:
         node_type: Optional[str],
         top_k: int,
     ) -> list[dict]:
-        """Fallback: retorna resultados apenas do FTS5.
+        """Fallback: returns results from FTS5 only.
 
-        Usado quando o embedding da query falha (Semantic Fallback).
-        Os resultados não terão score vetorial, apenas BM25 + recência/centralidade.
+        Used when query embedding fails (Semantic Fallback).
+        The results will have no vector score, only BM25 + recency/centrality.
         """
-        logger.warning("FTS-only fallback ativado — resultados sem componente vetorial.")
+        logger.warning("FTS-only fallback active — results without vector component.")
 
         fts_results = self._store.fts_search(
             query=query,
@@ -276,7 +276,7 @@ class HybridSearchEngine:
         candidates = [
             {
                 "node_id": fr["id"],
-                "vector_score": 0.0,  # Sem componente vetorial
+                "vector_score": 0.0,  # No vector component
                 "fts_score": fr.get("bm25_score", 0.0),
             }
             for fr in fts_results

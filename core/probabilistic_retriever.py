@@ -1,8 +1,8 @@
 """
-core/probabilistic_retriever.py — Grafo Concierge v3.8.0 (Absolute Solidity)
+core/probabilistic_retriever.py - Grafo Concierge v3.8.0 (Absolute Solidity)
 
-Motor de Recuperação Probabilística (SA-CTS - Padrão U-Mem) com Amostragem de Thompson.
-Equilibra exploração e explotação com base nas métricas de utilidade (utility_alpha, utility_beta).
+Probabilistic Retrieval Engine (SA-CTS - U-Mem Pattern) with Thompson Sampling.
+Balances exploration and exploitation based on utility metrics (utility_alpha, utility_beta).
 """
 
 from __future__ import annotations
@@ -15,25 +15,25 @@ logger = logging.getLogger("grafo-concierge.probabilistic-retriever")
 
 
 class ThompsonRetriever:
-    """Implementa a recuperação probabilística baseada em Thompson Sampling (SA-CTS).
+    """Implements probabilistic retrieval based on Thompson Sampling (SA-CTS).
 
-    Combina similaridade vetorial com a utilidade histórica (parâmetros Beta)
-    armazenados nos metadados do vetor no Qdrant para balancear exploração/explotação.
+    Combines vector similarity with historical utility (Beta parameters)
+    stored in the vector metadata in Qdrant to balance exploration/exploitation.
     """
 
     def __init__(self, vector_search_fn: Callable[[str, int], list[Any]]) -> None:
-        """Inicializa o ThompsonRetriever.
+        """Initializes the ThompsonRetriever.
 
         Args:
-            vector_search_fn: Função de busca vetorial que retorna uma lista de candidatos
-                              (VectorSearchResult ou dicionários equivalentes), cada um com
-                              metadados contendo utility_alpha e utility_beta.
+            vector_search_fn: Vector search function that returns a list of candidates
+                              (VectorSearchResult or equivalent dictionaries), each with
+                              metadata containing utility_alpha and utility_beta.
         """
         self.vector_search_fn = vector_search_fn
 
     @staticmethod
     def sample_multiplier(alpha: float, beta: float) -> float:
-        """Sorteia um multiplicador probabilístico usando a Distribuição Beta do numpy."""
+        """Samples a probabilistic multiplier using numpy's Beta Distribution."""
         return float(np.random.beta(alpha, beta))
 
     def retrieve(
@@ -42,15 +42,15 @@ class ThompsonRetriever:
         limit: int = 5,
         top_k: int = 3
     ) -> list[dict[str, Any]]:
-        """Recupera fatos semânticos aplicando Thompson Sampling.
+        """Retrieves semantic facts applying Thompson Sampling.
 
-        Etapas:
-            1. Executa a busca vetorial padrão (similaridade semântica).
-            2. Para cada candidato retornado, extrai utility_alpha e utility_beta do metadado.
-            3. Sorteia multiplicador probabilístico usando a Distribuição Beta:
+        Steps:
+            1. Runs default vector search (semantic similarity).
+            2. For each returned candidate, extracts utility_alpha and utility_beta from metadata.
+            3. Samples probabilistic multiplier using Beta Distribution:
                thompson_multiplier = ThompsonRetriever.sample_multiplier(alpha, beta)
-            4. O score final do candidato será: similaridade_vetorial * thompson_multiplier.
-            5. Retorna as top_k memórias baseadas no score final.
+            4. The candidate's final score will be: vector_similarity * thompson_multiplier.
+            5. Returns top_k memories based on final score.
         """
         candidates = self.vector_search_fn(query, limit)
         if not candidates:
@@ -58,7 +58,7 @@ class ThompsonRetriever:
 
         results = []
         for cand in candidates:
-            # Identificação do formato do candidato (VectorSearchResult ou dict)
+            # Candidate format identification (VectorSearchResult or dict)
             if hasattr(cand, "metadata"):
                 metadata = cand.metadata or {}
                 similarity = cand.score
@@ -75,11 +75,11 @@ class ThompsonRetriever:
                 doc_id = None
                 node_id = None
 
-            # Obtém alpha e beta diretamente dos metadados (default 1.0)
+            # Get alpha and beta directly from metadata (default 1.0)
             alpha = float(metadata.get("utility_alpha", 1.0))
             beta = float(metadata.get("utility_beta", 1.0))
 
-            # Realiza sorteio com a Distribuição Beta do numpy
+            # Perform sampling with numpy Beta Distribution
             thompson_multiplier = ThompsonRetriever.sample_multiplier(alpha, beta)
             final_score = similarity * thompson_multiplier
 
@@ -94,6 +94,6 @@ class ThompsonRetriever:
                 "metadata": metadata
             })
 
-        # Ordena desc pelo score final e seleciona top_k
+        # Sort descending by final score and select top_k
         results.sort(key=lambda x: x["score"], reverse=True)
         return results[:top_k]

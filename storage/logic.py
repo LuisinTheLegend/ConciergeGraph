@@ -1,17 +1,17 @@
 """
-storage/logic.py — Grafo Concierge v3.8.0 (Absolute Solidity)
+storage/logic.py - Grafo Concierge v3.8.0 (Absolute Solidity)
 
-Núcleo de Inteligência do Grafo — Algoritmos Apex.
+Graph Intelligence Core — Apex Algorithms.
 
-Três pilares:
-    1. Decaimento de Trajetórias (Version-Binding)
-    2. Centralidade de Nós (in-degree normalizado + detecção de Super-Nós)
-    3. Busca Híbrida Ponderada (FTS5 BM25 + Vetorial + Max(Recência, Centralidade))
+Three pillars:
+    1. Trajectories Decay (Version-Binding)
+    2. Node Centrality (normalized in-degree + Super-Node detection)
+    3. Weighted Hybrid Search (FTS5 BM25 + Vector + Max(Recency, Centrality))
 
-Fórmulas de referência (Architecture v3.8):
-    - Centralidade:  min(in_degree / 10, 1.0)
-    - Recência:      max(e^(-λ × t), 0.01)  onde λ = ln(2)/7 ≈ 0.0990
-    - Score Final:   0.50×vetorial + 0.25×fts5 + 0.25×max(recência, centralidade)
+Reference formulas (Architecture v3.8):
+    - Centrality:  min(in_degree / 10, 1.0)
+    - Recency:      max(e^(-λ × t), 0.01)  where λ = ln(2)/7 ≈ 0.0990
+    - Final Score:   0.50×vector + 0.25×fts5 + 0.25×max(recency, centrality)
 """
 
 from __future__ import annotations
@@ -30,58 +30,58 @@ logger = logging.getLogger("grafo-concierge.logic")
 
 
 # ---------------------------------------------------------------------------
-# Exceções específicas do módulo de inteligência
+# Specific exceptions for the intelligence module
 # ---------------------------------------------------------------------------
 
 class TrajectoryNotFoundError(Exception):
-    """Trajetória com o ID fornecido não existe no banco."""
+    """Trajectory with the provided ID does not exist in the database."""
 
 
 class InvalidTransitionError(Exception):
-    """Transição de status ilegal (ex: ARCHIVED → ACTIVE)."""
+    """Illegal status transition (e.g. ARCHIVED → ACTIVE)."""
 
 
 # ---------------------------------------------------------------------------
-# GraphLogic — motor de inteligência do Grafo Concierge
+# GraphLogic — Grafo Concierge intelligence engine
 # ---------------------------------------------------------------------------
 
 class GraphLogic:
-    """Motor de inteligência sobre o grafo persistido no SQLite.
+    """Intelligence engine over the graph persisted in SQLite.
 
-    Depende de um ConnectionManager (connection.py) para acesso ao banco.
-    Leituras via conn_manager.read(), escritas via conn_manager.write().
+    Depends on a ConnectionManager (connection.py) for database access.
+    Reads via conn_manager.read(), writes via conn_manager.write().
 
     Args:
-        conn_manager: Instância de ConnectionManager.
+        conn_manager: Instance of ConnectionManager.
     """
 
-    # --- Constantes de Recência (Decaimento Exponencial) ---
-    # Meia-vida de 7 dias: após 7 dias sem commit, score cai para 0.50.
+    # --- Recency Constants (Exponential Decay) ---
+    # Half-life of 7 days: after 7 days without commit, score drops to 0.50.
     RECENCY_HALF_LIFE_DAYS: float = 7.0
     RECENCY_LAMBDA: float = math.log(2) / 7.0  # ≈ 0.09902
-    RECENCY_MIN_SCORE: float = 0.01             # Nós antigos nunca zeram
+    RECENCY_MIN_SCORE: float = 0.01             # Old nodes never reach zero
 
-    # --- Constantes de Centralidade ---
-    # Um nó com 10+ dependentes é considerado "Super-Nó" (score = 1.0).
+    # --- Centrality Constants ---
+    # A node with 10+ dependents is considered a "Super-Node" (score = 1.0).
     CENTRALITY_MAX_IN_DEGREE: int = 10
 
-    # --- Pesos da Busca Híbrida v4 ---
+    # --- Hybrid Search Weights v4 ---
     WEIGHT_VECTOR: float = 0.50
     WEIGHT_FTS5: float = 0.25
     WEIGHT_RECENCY_CENTRALITY: float = 0.25
 
-    # --- Transições de status válidas para Trajetórias ---
-    # Cada chave mapeia para os estados que pode transicionar.
+    # --- Valid status transitions for Trajectories ---
+    # Each key maps to the states it can transition to.
     _VALID_TRANSITIONS: dict[str, frozenset[str]] = {
         "ACTIVE":   frozenset({"STALE", "ARCHIVED"}),
         "STALE":    frozenset({"ACTIVE", "ARCHIVED"}),
-        "ARCHIVED": frozenset(),  # Estado terminal — sem retorno
+        "ARCHIVED": frozenset(),  # Terminal state — no return
     }
 
     def __init__(self, conn_manager: Any, config: Optional["ConciergeConfig"] = None) -> None:
         self._conn = conn_manager
 
-        # Se config fornecido, sobrescreve constantes de classe com valores do usuário
+        # If config provided, overrides class constants with user values
         if config is not None:
             self.WEIGHT_VECTOR = config.weight_vector
             self.WEIGHT_FTS5 = config.weight_fts5
@@ -92,37 +92,37 @@ class GraphLogic:
             self.RECENCY_MIN_SCORE = config.recency_min_score
 
     # ===================================================================
-    # 1. DECAIMENTO DE TRAJETÓRIAS (Version-Binding)
+    # 1. TRAJECTORIES DECAY (Version-Binding)
     # ===================================================================
 
     def decay_trajectory(self, trajectory_id: int, new_status: str) -> bool:
-        """Altera o status de uma trajetória episódica com validação de transição.
+        """Changes status of an episodic trajectory with transition validation.
 
-        Regras de transição (máquina de estados):
+        Transition rules (state machine):
             ACTIVE  → STALE, ARCHIVED
-            STALE   → ACTIVE, ARCHIVED  (re-ativação permitida)
-            ARCHIVED → (terminal, nenhuma transição permitida)
+            STALE   → ACTIVE, ARCHIVED  (re-activation allowed)
+            ARCHIVED → (terminal, no transition allowed)
 
         Args:
-            trajectory_id: ID na tabela trajectories.
-            new_status: Status destino (ACTIVE, STALE ou ARCHIVED).
+            trajectory_id: ID in trajectories table.
+            new_status: Target status (ACTIVE, STALE or ARCHIVED).
 
         Returns:
-            True se a transição foi aplicada.
+            True if the transition was applied.
 
         Raises:
-            ValueError: Se new_status não é um status válido.
-            TrajectoryNotFoundError: Se trajectory_id não existe.
-            InvalidTransitionError: Se a transição é ilegal.
+            ValueError: If new_status is not a valid status.
+            TrajectoryNotFoundError: If trajectory_id does not exist.
+            InvalidTransitionError: If the transition is illegal.
         """
-        # Validação 1: status destino é reconhecido?
+        # Validation 1: is destination status recognized?
         if new_status not in VALID_STATUSES:
             raise ValueError(
-                f"Status inválido: '{new_status}'. "
-                f"Valores aceitos: {sorted(VALID_STATUSES)}"
+                f"Invalid status: '{new_status}'. "
+                f"Accepted values: {sorted(VALID_STATUSES)}"
             )
 
-        # Leitura do status atual
+        # Reading current status
         with self._conn.read() as conn:
             row = conn.execute(
                 "SELECT id, status FROM trajectories WHERE id = ?",
@@ -131,20 +131,20 @@ class GraphLogic:
 
         if row is None:
             raise TrajectoryNotFoundError(
-                f"Trajetória ID={trajectory_id} não encontrada."
+                f"Trajectory ID={trajectory_id} not found."
             )
 
         current_status = row["status"]
 
-        # Validação 2: a transição é legal?
+        # Validation 2: is transition legal?
         allowed = self._VALID_TRANSITIONS.get(current_status, frozenset())
         if new_status not in allowed:
             raise InvalidTransitionError(
-                f"Transição ilegal: {current_status} → {new_status}. "
-                f"Transições permitidas de '{current_status}': {sorted(allowed) or 'nenhuma (terminal)'}"
+                f"Illegal transition: {current_status} → {new_status}. "
+                f"Allowed transitions from '{current_status}': {sorted(allowed) or 'none (terminal)'}"
             )
 
-        # Escrita serializada
+        # Serialized write
         def _do(conn: Any, tid: int, status: str) -> bool:
             conn.execute(
                 "UPDATE trajectories SET status = ? WHERE id = ?",
@@ -154,23 +154,23 @@ class GraphLogic:
 
         result = self._conn.write(_do, trajectory_id, new_status)
         logger.info(
-            "Trajetória ID=%d: %s → %s", trajectory_id, current_status, new_status
+            "Trajectory ID=%d: %s → %s", trajectory_id, current_status, new_status
         )
         return result
 
     def bulk_decay_stale_trajectories(
         self, project_uuid: str, stale_threshold_days: int = 30
     ) -> int:
-        """Marca como STALE todas as trajetórias ACTIVE mais velhas que o threshold.
+        """Marks as STALE all ACTIVE trajectories older than the threshold.
 
-        Usado pelo Background Janitor no Reconciliation Loop.
+        Used by Background Janitor in the Reconciliation Loop.
 
         Args:
-            project_uuid: UUID do projeto alvo.
-            stale_threshold_days: Dias desde created_at para considerar stale.
+            project_uuid: Target project UUID.
+            stale_threshold_days: Days since created_at to consider stale.
 
         Returns:
-            Número de trajetórias afetadas.
+            Number of affected trajectories.
         """
         def _do(conn: Any, pu: str, days: int) -> int:
             cursor = conn.execute(
@@ -186,29 +186,29 @@ class GraphLogic:
         affected = self._conn.write(_do, project_uuid, stale_threshold_days)
         if affected > 0:
             logger.info(
-                "Bulk decay: %d trajetórias marcadas STALE no projeto %s (threshold=%d dias)",
+                "Bulk decay: %d trajectories marked STALE in project %s (threshold=%d days)",
                 affected, project_uuid, stale_threshold_days
             )
         return affected
 
     # ===================================================================
-    # 2. CENTRALIDADE (in-degree normalizado + Super-Nós)
+    # 2. CENTRALITY (normalized in-degree + Super-Nodes)
     # ===================================================================
 
     def compute_centrality(self, node_id: int) -> float:
-        """Calcula a centralidade normalizada de um nó.
+        """Calculates normalized centrality of a node.
 
-        Fórmula: min(in_degree / CENTRALITY_MAX_IN_DEGREE, 1.0)
+        Formula: min(in_degree / CENTRALITY_MAX_IN_DEGREE, 1.0)
 
-        Um nó com in_degree >= 10 é um "Super-Nó": código core estável
-        que muitos arquivos dependem. Recebe centralidade máxima (1.0),
-        protegendo-o contra penalização por recência baixa no Hybrid Search.
+        A node with in_degree >= 10 is a "Super-Node": stable core code
+        that many files depend on. Receives maximum centrality (1.0),
+        protecting it against low recency penalty in Hybrid Search.
 
         Args:
-            node_id: ID do nó na tabela nodes.
+            node_id: Node ID in nodes table.
 
         Returns:
-            Float no intervalo [0.0, 1.0].
+            Float in interval [0.0, 1.0].
         """
         with self._conn.read() as conn:
             row = conn.execute(
@@ -220,26 +220,26 @@ class GraphLogic:
         centrality = min(in_degree / self.CENTRALITY_MAX_IN_DEGREE, 1.0)
 
         logger.debug(
-            "Centralidade nó ID=%d: in_degree=%d, score=%.4f%s",
+            "Centrality node ID=%d: in_degree=%d, score=%.4f%s",
             node_id, in_degree, centrality,
-            " [SUPER-NÓ]" if centrality >= 1.0 else ""
+            " [SUPER-NODE]" if centrality >= 1.0 else ""
         )
         return centrality
 
     def compute_centrality_batch(self, node_ids: list[int]) -> dict[int, float]:
-        """Calcula centralidade para múltiplos nós em uma única query SQL.
+        """Calculates centrality for multiple nodes in a single SQL query.
 
         Args:
-            node_ids: Lista de IDs de nós.
+            node_ids: List of node IDs.
 
         Returns:
-            Dict mapeando node_id → centralidade normalizada [0.0, 1.0].
-            Nós sem arestas de entrada retornam 0.0.
+            Dict mapping node_id → normalized centrality [0.0, 1.0].
+            Nodes without incoming edges return 0.0.
         """
         if not node_ids:
             return {}
 
-        # Inicializa todos com 0.0 (caso não tenham arestas)
+        # Initializes all with 0.0 (in case they have no edges)
         result: dict[int, float] = {nid: 0.0 for nid in node_ids}
 
         placeholders = ",".join("?" for _ in node_ids)
@@ -258,29 +258,29 @@ class GraphLogic:
 
         super_nodes = [nid for nid, score in result.items() if score >= 1.0]
         if super_nodes:
-            logger.debug("Super-Nós detectados (batch): %s", super_nodes)
+            logger.debug("Super-Nodes detected (batch): %s", super_nodes)
 
         return result
 
     # ===================================================================
-    # 3. SCORE DE RECÊNCIA (Decaimento Exponencial)
+    # 3. RECENCY SCORE (Exponential Decay)
     # ===================================================================
 
     def compute_recency_score(self, node_id: int) -> float:
-        """Calcula o score de recência via decaimento exponencial.
+        """Calculates recency score via exponential decay.
 
-        Fórmula: max(e^(-λ × t), RECENCY_MIN_SCORE)
-        Onde:
+        Formula: max(e^(-λ × t), RECENCY_MIN_SCORE)
+        Where:
             λ = ln(2) / 7 ≈ 0.09902
-            t = dias desde nodes.last_commit_at
+            t = days since nodes.last_commit_at
 
-        Se last_commit_at for NULL, retorna RECENCY_MIN_SCORE (0.01).
+        If last_commit_at is NULL, returns RECENCY_MIN_SCORE (0.01).
 
         Args:
-            node_id: ID do nó.
+            node_id: Node ID.
 
         Returns:
-            Float no intervalo [0.01, 1.0].
+            Float in interval [0.01, 1.0].
         """
         with self._conn.read() as conn:
             row = conn.execute(
@@ -294,13 +294,13 @@ class GraphLogic:
         return self._calculate_decay(row["last_commit_at"])
 
     def compute_recency_batch(self, node_ids: list[int]) -> dict[int, float]:
-        """Calcula recência em batch para múltiplos nós.
+        """Calculates recency in batch for multiple nodes.
 
         Args:
-            node_ids: Lista de IDs de nós.
+            node_ids: List of node IDs.
 
         Returns:
-            Dict mapeando node_id → score de recência [0.01, 1.0].
+            Dict mapping node_id → recency score [0.01, 1.0].
         """
         if not node_ids:
             return {}
@@ -320,7 +320,7 @@ class GraphLogic:
             else:
                 result[row["id"]] = self._calculate_decay(row["last_commit_at"])
 
-        # Garante que nós não encontrados retornem score mínimo
+        # Ensures not found nodes return minimum score
         for nid in node_ids:
             if nid not in result:
                 result[nid] = self.RECENCY_MIN_SCORE
@@ -328,28 +328,28 @@ class GraphLogic:
         return result
 
     def _calculate_decay(self, last_commit_at: str) -> float:
-        """Aplica a fórmula de decaimento exponencial.
+        """Applies exponential decay formula.
 
         Args:
-            last_commit_at: Timestamp ISO do último commit (ex: '2026-05-01 12:00:00').
+            last_commit_at: ISO timestamp of last commit (e.g. '2026-05-01 12:00:00').
 
         Returns:
-            Score no intervalo [RECENCY_MIN_SCORE, 1.0].
+            Score in interval [RECENCY_MIN_SCORE, 1.0].
         """
         try:
             commit_dt = datetime.fromisoformat(last_commit_at)
             now = datetime.utcnow()
             delta_days = max((now - commit_dt).total_seconds() / 86400, 0.0)
         except (ValueError, TypeError):
-            logger.warning("last_commit_at inválido: '%s'. Usando score mínimo.", last_commit_at)
+            logger.warning("invalid last_commit_at: '%s'. Using minimum score.", last_commit_at)
             return self.RECENCY_MIN_SCORE
 
-        # e^(-λ × t) com floor em MIN_SCORE
+        # e^(-λ × t) with floor at MIN_SCORE
         score = math.exp(-self.RECENCY_LAMBDA * delta_days)
         return max(score, self.RECENCY_MIN_SCORE)
 
     # ===================================================================
-    # 4. FTS5 — Busca textual com BM25 normalizado
+    # 4. FTS5 — Text search with normalized BM25
     # ===================================================================
 
     def fts_search(
@@ -359,26 +359,26 @@ class GraphLogic:
         node_type: Optional[str] = None,
         limit: int = 20,
     ) -> list[dict]:
-        """Busca textual via FTS5 com BM25 normalizado para [0, 1].
+        """Text search via FTS5 with BM25 normalized to [0, 1].
 
-        O SQLite retorna bm25() como valor negativo (mais negativo = mais relevante).
-        Normalizamos para [0, 1] usando:  1.0 - (rank / min_rank)
-        onde min_rank é o valor mais negativo (mais relevante) do batch.
+        SQLite returns bm25() as negative value (more negative = more relevant).
+        We normalize to [0, 1] using:  1.0 - (rank / min_rank)
+        where min_rank is the most negative (most relevant) value of the batch.
 
         Args:
-            query: Texto de busca. Caracteres especiais são escapados.
-            project_uuid: Filtro opcional por projeto (Strict Scoping).
-            node_type: Filtro cirúrgico (FACT, SKILL, INSIGHT, TRAJECTORY, PATCH).
-            limit: Máximo de resultados.
+            query: Search text. Special characters are escaped.
+            project_uuid: Optional filter by project (Strict Scoping).
+            node_type: Targeted filter (FACT, SKILL, INSIGHT, TRAJECTORY, PATCH).
+            limit: Maximum results.
 
         Returns:
-            Lista de dicts com campos do nó + 'bm25_score' normalizado [0, 1].
-            Ordenada do mais relevante para o menos relevante.
+            List of dicts with node fields + normalized 'bm25_score' [0, 1].
+            Sorted from most relevant to least relevant.
         """
-        # Escapa aspas no query para prevenir injection no FTS5
+        # Escapes quotes in query to prevent FTS5 injection
         safe_query = query.replace('"', '""')
 
-        # Monta a query SQL dinamicamente conforme os filtros
+        # Assembles the SQL query dynamically according to the filters
         sql = """
             SELECT n.*, bm25(nodes_fts) AS rank
             FROM nodes_fts f
@@ -406,30 +406,30 @@ class GraphLogic:
 
         results = [dict(r) for r in rows]
 
-        # Normaliza BM25: o rank mais negativo vira 1.0 e o menos negativo vira ~0.0
-        min_rank = min(r["rank"] for r in results)  # valor mais negativo
+        # Normalizes BM25: the most negative rank becomes 1.0 and the least negative becomes ~0.0
+        min_rank = min(r["rank"] for r in results)  # most negative value
         for r in results:
             if min_rank < 0:
                 r["bm25_score"] = round(r["rank"] / min_rank, 4)
             else:
                 r["bm25_score"] = 1.0
-            del r["rank"]  # Remove campo interno do SQLite
+            del r["rank"]  # Removes internal SQLite field
 
         return results
 
     def fts_rebuild(self) -> None:
-        """Reconstrói o índice FTS5 completo.
+        """Rebuilds the complete FTS5 index.
 
-        Usar após ingestão massiva (concierge mine) para otimizar performance.
+        Use after massive ingestion (concierge mine) to optimize performance.
         """
         def _do(conn: Any) -> None:
             conn.execute("INSERT INTO nodes_fts(nodes_fts) VALUES('rebuild');")
 
         self._conn.write(_do)
-        logger.info("Índice FTS5 reconstruído com sucesso.")
+        logger.info("FTS5 index rebuilt successfully.")
 
     # ===================================================================
-    # 5. BUSCA HÍBRIDA PONDERADA (Hybrid Search v4)
+    # 5. WEIGHTED HYBRID SEARCH (Hybrid Search v4)
     # ===================================================================
 
     def hybrid_search_score(
@@ -438,24 +438,24 @@ class GraphLogic:
         vector_score: float,
         fts_score: float,
     ) -> dict:
-        """Calcula o score final combinado para um nó no Hybrid Search v4.
+        """Calculates final combined score for a node in Hybrid Search v4.
 
-        Fórmula (Architecture v3.8):
-            score = (0.50 × vetorial)
-                  + (0.25 × fts5_normalizado)
-                  + (0.25 × max(recência, centralidade))
+        Formula (Architecture v3.8):
+            score = (0.50 × vector)
+                  + (0.25 × normalized_fts5)
+                  + (0.25 × max(recency, centrality))
 
-        O terceiro componente usa max(recência, centralidade) para proteger
-        "código core" estável: se um nó é antigo (recência baixa) mas tem
-        alta centralidade (muitos dependentes), a centralidade prevalece.
+        The third component uses max(recency, centrality) to protect
+        stable "core code": if a node is old (low recency) but has
+        high centrality (many dependents), centrality prevails.
 
         Args:
-            node_id: ID do nó.
-            vector_score: Score de similaridade vetorial [0, 1] (do backend plugável).
-            fts_score: Score BM25 normalizado [0, 1] (do fts_search).
+            node_id: Node ID.
+            vector_score: Vector similarity score [0, 1] (from pluggable backend).
+            fts_score: Normalized BM25 score [0, 1] (from fts_search).
 
         Returns:
-            Dict com breakdown completo:
+            Dict with complete breakdown:
             {
                 "node_id": int,
                 "score_final": float,
@@ -468,14 +468,14 @@ class GraphLogic:
                 "is_super_node": bool
             }
         """
-        # Calcula os componentes individuais
+        # Calculates individual components
         recency = self.compute_recency_score(node_id)
         centrality = self.compute_centrality(node_id)
 
-        # max(recência, centralidade): protege Super-Nós estáveis
+        # max(recency, centrality): protects stable Super-Nodes
         recency_centrality = max(recency, centrality)
 
-        # Score final ponderado
+        # Weighted final score
         score_final = (
             self.WEIGHT_VECTOR * vector_score
             + self.WEIGHT_FTS5 * fts_score
@@ -498,26 +498,26 @@ class GraphLogic:
         self,
         candidates: list[dict],
     ) -> list[dict]:
-        """Calcula scores híbridos em batch e retorna ordenado por relevância.
+        """Calculates hybrid scores in batch and returns sorted by relevance.
 
-        Otimizado: faz queries de centralidade e recência em batch
-        ao invés de N queries individuais.
+        Optimized: does centrality and recency queries in batch
+        instead of N individual queries.
 
         Args:
-            candidates: Lista de dicts, cada um contendo:
+            candidates: List of dicts, each containing:
                 - "node_id" (int)
-                - "vector_score" (float) — do backend vetorial
-                - "fts_score" (float) — do fts_search (BM25 normalizado)
+                - "vector_score" (float) — from vector backend
+                - "fts_score" (float) — from fts_search (normalized BM25)
 
         Returns:
-            Lista de dicts com score_final e breakdown, ordenada DESC por score.
+            List of dicts with score_final and breakdown, sorted DESC by score.
         """
         if not candidates:
             return []
 
         node_ids = [c["node_id"] for c in candidates]
 
-        # Batch queries — 2 queries SQL ao invés de 2N
+        # Batch queries — 2 SQL queries instead of 2N
         centrality_map = self.compute_centrality_batch(node_ids)
         recency_map = self.compute_recency_batch(node_ids)
 
@@ -548,32 +548,32 @@ class GraphLogic:
                 "is_super_node": centrality >= 1.0,
             })
 
-        # Ordena por score_final DESC (mais relevante primeiro)
+        # Sorts by score_final DESC (most relevant first)
         results.sort(key=lambda x: x["score_final"], reverse=True)
 
         logger.debug(
-            "Hybrid batch: %d candidatos processados. Top score=%.4f",
+            "Hybrid batch: %d candidates processed. Top score=%.4f",
             len(results), results[0]["score_final"] if results else 0.0
         )
         return results
 
     # ===================================================================
-    # 6. CONSULTAS RECURSIVAS (CTE) com proteção anti-loop
+    # 6. RECURSIVE QUERIES (CTE) with loop protection
     # ===================================================================
 
     def get_dependency_tree(
         self, start_node_id: int, max_depth: int = 10
     ) -> list[dict]:
-        """Árvore de dependências: source → target (quem este nó depende).
+        """Dependency tree: source → target (who this node depends on).
 
-        CTE com limite de profundidade para prevenir loops infinitos.
+        CTE with depth limit to prevent infinite loops.
 
         Args:
-            start_node_id: Nó raiz.
-            max_depth: Profundidade máxima (default: 10).
+            start_node_id: Root node.
+            max_depth: Maximum depth (default: 10).
 
         Returns:
-            Lista de dicts: id, label, node_type, depth.
+            List of dicts: id, label, node_type, depth.
         """
         sql = """
             WITH RECURSIVE dep_tree(id, label, node_type, depth) AS (
@@ -595,14 +595,14 @@ class GraphLogic:
     def get_reverse_dependency_tree(
         self, start_node_id: int, max_depth: int = 10
     ) -> list[dict]:
-        """Árvore reversa: quem depende DESTE nó (target → source).
+        """Reverse dependency tree: who depends ON THIS node (target → source).
 
         Args:
-            start_node_id: Nó alvo.
-            max_depth: Profundidade máxima.
+            start_node_id: Target node.
+            max_depth: Maximum depth.
 
         Returns:
-            Lista de dicts: id, label, node_type, depth.
+            List of dicts: id, label, node_type, depth.
         """
         sql = """
             WITH RECURSIVE rev_tree(id, label, node_type, depth) AS (
@@ -622,24 +622,24 @@ class GraphLogic:
         return [dict(r) for r in rows]
 
     # ===================================================================
-    # 7. ESTATÍSTICAS DE PROJETO
+    # 7. PROJECT STATISTICS
     # ===================================================================
 
     def get_project_stats(self, project_uuid: str) -> dict:
-        """Estatísticas completas de um projeto via SQL agregado.
+        """Complete statistics of a project via aggregated SQL.
 
         Returns:
-            Dict com: nodes, nodes_by_type, edges, commits,
+            Dict with: nodes, nodes_by_type, edges, commits,
             last_commit_at, trajectories, trajectories_active.
         """
         with self._conn.read() as conn:
-            # Contagem total de nós
+            # Total node count
             nodes_total = conn.execute(
                 "SELECT COUNT(*) AS c FROM nodes WHERE project_uuid = ?",
                 (project_uuid,)
             ).fetchone()["c"]
 
-            # Contagem por tipo de nó
+            # Count by node type
             type_rows = conn.execute(
                 """SELECT node_type, COUNT(*) AS c FROM nodes
                    WHERE project_uuid = ? GROUP BY node_type""",
@@ -647,7 +647,7 @@ class GraphLogic:
             ).fetchall()
             nodes_by_type = {r["node_type"]: r["c"] for r in type_rows}
 
-            # Arestas do projeto
+            # Project edges
             edges_count = conn.execute(
                 """SELECT COUNT(*) AS c FROM edges e
                    JOIN nodes n ON e.source_id = n.id
@@ -666,7 +666,7 @@ class GraphLogic:
                 (project_uuid,)
             ).fetchone()["last_at"]
 
-            # Trajetórias
+            # Trajectories
             traj_total = conn.execute(
                 "SELECT COUNT(*) AS c FROM trajectories WHERE project_uuid = ?",
                 (project_uuid,)
@@ -688,10 +688,10 @@ class GraphLogic:
         }
 
     def get_last_commit_phase(self, project_uuid: str) -> Optional[str]:
-        """Retorna a fase do commit mais recente do projeto.
+        """Returns the phase of the project's most recent commit.
 
         Returns:
-            String da fase (ex: 'build') ou None se sem commits.
+            String of phase (e.g. 'build') or None if no commits.
         """
         with self._conn.read() as conn:
             row = conn.execute(

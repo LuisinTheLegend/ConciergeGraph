@@ -1,38 +1,38 @@
 """
 agents/revisor_critico.py — Grafo Concierge v3.8.0 (Absolute Solidity)
 
-Auditor de Evolução + Reranking de Gavetas.
+Evolution Auditor + Drawer Reranking.
 
-O Revisor Crítico é o guardião da qualidade do Grafo Concierge.
-Ele atua em dois momentos distintos:
+The Critical Revisor is the guardian of Grafo Concierge's quality.
+It acts in two distinct moments:
 
-Papel 1 — AUDITORIA DE COMMIT:
-    Valida rascunhos do Sumarizador antes de gravar no commit_log.
-    Exige que o rascunho contenha:
-        - technical_changes não vazio e legível
-        - updated_pointers com pelo menos 1 ponteiro
-        - Sem contaminação de dados entre Wings (Barreira de Contaminação)
-    Se rejeitar, devolve feedback ao Sumarizador para retry (máx 3 loops).
-    Após 3 rejeições, aprova com partial_audit=True (fallback seguro).
+Role 1 — COMMIT AUDITING:
+    Validates Summarizer drafts before writing to the commit_log.
+    Requires the draft to contain:
+        - non-empty and readable technical_changes
+        - updated_pointers with at least 1 pointer
+        - No data contamination between Wings (Contamination Barrier)
+    If rejected, returns feedback to the Summarizer for a retry (max 3 loops).
+    After 3 rejections, approves with partial_audit=True (safe fallback).
 
-Papel 2 — RERANKING DE GAVETAS:
-    Em triggers pesados (on_build, on_done), recebe os top-N resultados
-    da Busca Híbrida v4 e usa LLM como juiz para filtrar ruído semântico.
-    Critérios:
-        - Relevância técnica: o nó trata diretamente da tarefa?
-        - Frescor: o nó foi atualizado recentemente?
-        - Especificidade: o nó é específico (não genérico)?
-    Retorna apenas os nós que passaram nos critérios (1 a N itens).
+Role 2 — DRAWER RERANKING:
+    On heavy triggers (on_build, on_done), receives the top-N results
+    from Hybrid Search v4 and uses the LLM as a judge to filter semantic noise.
+    Criteria:
+        - Technical relevance: does the node directly address the task?
+        - Freshness: was the node updated recently?
+        - Specificity: is the node specific (not generic)?
+    Returns only the nodes that passed the criteria (1 to N items).
 
-Papel 3 — BARREIRA DE CONTAMINAÇÃO:
-    Valida que Reference Wings não violam privacy_levels.
-    Um projeto RESTRICTED não pode ter seus dados expostos em
-    contextos PUBLIC. O revisor bloqueia essa contaminação.
+Role 3 — CONTAMINATION BARRIER:
+    Validates that Reference Wings do not violate privacy_levels.
+    A RESTRICTED project cannot have its data exposed in
+    PUBLIC contexts. The revisor blocks this contamination.
 
-Integração:
-    - Reutiliza ingestion.summarizer.LLMAdapter para chamadas LLM
-    - Consome core.config.ConciergeConfig para limites e parâmetros
-    - É consumido por core.middleware.GrafoConcierge e interface/action_hooks
+Integration:
+    - Reuses ingestion.summarizer.LLMAdapter for LLM calls
+    - Consumes core.config.ConciergeConfig for limits and parameters
+    - Is consumed by core.middleware.GrafoConcierge and interface/action_hooks
 """
 
 from __future__ import annotations
@@ -48,25 +48,25 @@ from ingestion.summarizer import LLMAdapter
 
 logger = logging.getLogger("grafo-concierge.revisor-critico")
 
-# Regex para extração de JSON de respostas LLM
+# Regex for extracting JSON from LLM responses
 _JSON_BLOCK_RE = re.compile(r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}", re.DOTALL)
 
 
 # ---------------------------------------------------------------------------
-# Resultados tipados
+# Typed results
 # ---------------------------------------------------------------------------
 
 @dataclass
 class AuditResult:
-    """Resultado de uma auditoria de commit.
+    """Result of a commit audit.
 
     Campos:
-        approved: True se o rascunho passou na validação.
-        reason: Motivo da aprovação ou rejeição.
-        technical_changes: Mudanças técnicas validadas/corrigidas.
-        updated_pointers: Lista de ponteiros validados.
-        partial_audit: True se aprovado por fallback (3 rejeições).
-        loop_count: Número de loops de auditoria executados.
+        approved: True if the draft passed validation.
+        reason: Reason for approval or rejection.
+        technical_changes: Validated/corrected technical changes.
+        updated_pointers: List of validated pointers.
+        partial_audit: True if approved by fallback (3 rejections).
+        loop_count: Number of audit loops executed.
     """
     approved: bool = False
     reason: str = ""
@@ -88,12 +88,12 @@ class AuditResult:
 
 @dataclass
 class RerankResult:
-    """Resultado de um reranking de candidatos.
+    """Result of a candidate reranking.
 
-    Campos:
-        candidates: Lista filtrada de candidatos aprovados.
-        filtered_count: Quantos candidatos foram removidos.
-        criteria_applied: Critérios usados na filtragem.
+    Fields:
+        candidates: Filtered list of approved candidates.
+        filtered_count: How many candidates were removed.
+        criteria_applied: Criteria used in filtering.
     """
     candidates: list[dict] = field(default_factory=list)
     filtered_count: int = 0
@@ -108,7 +108,7 @@ class RerankResult:
 
 
 # ---------------------------------------------------------------------------
-# Prompts do Revisor
+# Revisor Prompts
 # ---------------------------------------------------------------------------
 
 _AUDIT_PROMPT_TEMPLATE = """You are a strict code commit auditor for a memory graph system.
@@ -156,23 +156,23 @@ Respond with ONLY a valid JSON object:
 
 
 # ---------------------------------------------------------------------------
-# RevisorCritico — Guardião de Evolução
+# RevisorCritico — Guardian of Evolution
 # ---------------------------------------------------------------------------
 
 class RevisorCritico:
-    """Auditor de Evolução + Reranking de Gavetas.
+    """Evolution Auditor + Drawer Reranking.
 
-    Dois modos de operação:
-        1. audit(draft) → Valida commit antes de gravar
-        2. rerank(candidates, task_context) → Filtra resultados de busca
+    Two modes of operation:
+        1. audit(draft) → Validates commit before recording
+        2. rerank(candidates, task_context) → Filters search results
 
     Args:
-        llm_adapter: Adaptador LLM para chamadas de IA.
-                     Se None, opera em modo heurístico (sem LLM).
-        config: Configurações centralizadas.
+        llm_adapter: LLM adapter for AI calls.
+                     If None, operates in heuristic mode (no LLM).
+        config: Centralized configurations.
     """
 
-    # Limiar de relevância para reranking (0.0 - 1.0)
+    # Relevance threshold for reranking (0.0 - 1.0)
     RERANK_RELEVANCE_THRESHOLD: float = 0.5
 
     def __init__(
@@ -184,32 +184,32 @@ class RevisorCritico:
         self._config = config
         self._max_loops = config.max_revisor_loops
 
-        mode = "LLM" if llm_adapter else "heurístico"
-        logger.info("RevisorCritico inicializado: modo=%s, max_loops=%d", mode, self._max_loops)
+        mode = "LLM" if llm_adapter else "heuristic"
+        logger.info("RevisorCritico initialized: mode=%s, max_loops=%d", mode, self._max_loops)
 
     # ===================================================================
-    # PAPEL 1 — AUDITORIA DE COMMIT
+    # ROLE 1 — COMMIT AUDITING
     # ===================================================================
 
     def audit(self, draft: dict) -> AuditResult:
-        """Audita um rascunho de commit.
+        """Audits a commit draft.
 
-        Primeiro aplica validação heurística (regras rígidas).
-        Se o LLM estiver disponível, faz validação semântica adicional.
+        First applies heuristic validation (strict rules).
+        If the LLM is available, performs additional semantic validation.
 
         Args:
-            draft: Dict com campos do rascunho:
-                - phase (str): Fase atual
-                - technical_changes (str): Descrição das mudanças
-                - updated_pointers (list[str]): Ponteiros atualizados
-                - source_wing (str, opcional): Ala de origem
+            draft: Dict with draft fields:
+                - phase (str): Current phase
+                - technical_changes (str): Description of changes
+                - updated_pointers (list[str]): Updated pointers
+                - source_wing (str, optional): Source wing
 
         Returns:
-            AuditResult com aprovação e feedback.
+            AuditResult with approval and feedback.
         """
         result = AuditResult(loop_count=1)
 
-        # --- Validação heurística (regras rígidas, sem LLM) ---
+        # --- Heuristic validation (strict rules, without LLM) ---
         heuristic_ok, heuristic_reason = self._heuristic_audit(draft)
 
         if not heuristic_ok:
@@ -217,23 +217,23 @@ class RevisorCritico:
             result.reason = heuristic_reason
             result.technical_changes = draft.get("technical_changes", "")
             result.updated_pointers = draft.get("updated_pointers", [])
-            logger.info("Auditoria heurística REJEITOU: %s", heuristic_reason)
+            logger.info("Heuristic audit REJECTED: %s", heuristic_reason)
             return result
 
-        # --- Validação semântica com LLM (se disponível) ---
+        # --- Semantic validation with LLM (if available) ---
         if self._llm is not None:
             return self._llm_audit(draft)
 
-        # Sem LLM → aprovação heurística
+        # Without LLM -> heuristic approval
         result.approved = True
         result.reason = "Aprovado por validação heurística (sem LLM disponível)."
         result.technical_changes = draft.get("technical_changes", "")
         result.updated_pointers = draft.get("updated_pointers", [])
-        logger.info("Auditoria heurística APROVOU (modo sem LLM).")
+        logger.info("Heuristic audit APPROVED (no LLM mode).")
         return result
 
     def _heuristic_audit(self, draft: dict) -> tuple[bool, str]:
-        """Validação rígida baseada em regras (sem LLM).
+        """Strict rule-based validation (without LLM).
 
         Returns:
             Tuple (passed: bool, reason: str).
@@ -241,37 +241,37 @@ class RevisorCritico:
         tc = draft.get("technical_changes", "")
         up = draft.get("updated_pointers", [])
 
-        # Regra 1: technical_changes não pode estar vazio
+        # Rule 1: technical_changes cannot be empty
         if not tc or not tc.strip():
-            return False, "technical_changes está vazio ou contém apenas espaços."
+            return False, "technical_changes is empty or contains only spaces."
 
-        # Regra 2: technical_changes muito curto (< 10 caracteres)
+        # Rule 2: technical_changes too short (< 10 characters)
         if len(tc.strip()) < 10:
             return False, (
-                f"technical_changes muito curto ({len(tc.strip())} caracteres). "
-                "Descreva as mudanças com mais detalhes."
+                f"technical_changes too short ({len(tc.strip())} characters). "
+                "Describe the changes with more detail."
             )
 
-        # Regra 3: updated_pointers deve ter pelo menos 1 item
+        # Rule 3: updated_pointers must have at least 1 item
         if not up or (isinstance(up, list) and len(up) == 0):
-            return False, "updated_pointers está vazio. Inclua ao menos 1 ponteiro."
+            return False, "updated_pointers is empty. Include at least 1 pointer."
 
-        # Regra 4: cada ponteiro deve ser uma string não vazia
+        # Rule 4: each pointer must be a non-empty string
         if isinstance(up, list):
             empty_ptrs = [p for p in up if not isinstance(p, str) or not p.strip()]
             if empty_ptrs:
                 return False, (
-                    f"{len(empty_ptrs)} ponteiro(s) inválido(s) em updated_pointers. "
-                    "Cada ponteiro deve ser uma string não vazia."
+                    f"{len(empty_ptrs)} invalid pointer(s) in updated_pointers. "
+                    "Each pointer must be a non-empty string."
                 )
 
         return True, "OK"
 
     def _llm_audit(self, draft: dict) -> AuditResult:
-        """Validação semântica via LLM (quando disponível).
+        """Semantic validation via LLM (when available).
 
         Returns:
-            AuditResult com decisão do LLM.
+            AuditResult with LLM decision.
         """
         prompt = _AUDIT_PROMPT_TEMPLATE.format(
             phase=draft.get("phase", "unknown"),
@@ -298,18 +298,18 @@ class RevisorCritico:
                     draft.get("updated_pointers", []),
                 )
 
-                status = "APROVOU" if result.approved else "REJEITOU"
-                logger.info("Auditoria LLM %s: %s", status, result.reason[:100])
+                status = "APPROVED" if result.approved else "REJECTED"
+                logger.info("LLM audit %s: %s", status, result.reason[:100])
                 return result
 
-            logger.warning("Auditoria LLM retornou JSON inválido — fallback heurístico.")
+            logger.warning("LLM audit returned invalid JSON — heuristic fallback.")
 
         except Exception as e:
-            logger.error("Auditoria LLM falhou: %s — fallback heurístico.", e)
+            logger.error("LLM audit failed: %s — heuristic fallback.", e)
 
-        # Fallback: aprovação heurística
+        # Fallback: heuristic approval
         result.approved = True
-        result.reason = "Aprovado por fallback (LLM indisponível ou resposta inválida)."
+        result.reason = "Approved by fallback (LLM unavailable or invalid response)."
         result.technical_changes = draft.get("technical_changes", "")
         result.updated_pointers = draft.get("updated_pointers", [])
         result.partial_audit = True
@@ -320,20 +320,20 @@ class RevisorCritico:
         draft: dict,
         generate_fn: Optional[Any] = None,
     ) -> AuditResult:
-        """Executa o loop de auditoria completo (máx N tentativas).
+        """Executes the complete audit loop (max N attempts).
 
-        Se o revisor rejeitar, chama generate_fn para gerar um novo rascunho
-        com o feedback da rejeição. Após max_loops rejeições, aprova com
+        If the revisor rejects, calls generate_fn to generate a new draft
+        with the rejection feedback. After max_loops rejections, approves with
         partial_audit=True.
 
         Args:
-            draft: Rascunho inicial.
+            draft: Initial draft.
             generate_fn: Callable(task, outcome, feedback) -> dict
-                         Função para regenerar o rascunho.
-                         Se None, retorna o resultado da primeira tentativa.
+                         Function to regenerate the draft.
+                         If None, returns the result of the first attempt.
 
         Returns:
-            AuditResult final (aprovado ou partial_audit).
+            AuditResult final (approved or partial_audit).
         """
         current_draft = draft
 
@@ -343,36 +343,36 @@ class RevisorCritico:
 
             if result.approved:
                 logger.info(
-                    "Commit aprovado na tentativa %d/%d.",
+                    "Commit approved on attempt %d/%d.",
                     attempt, self._max_loops,
                 )
                 return result
 
             logger.warning(
-                "Commit rejeitado (%d/%d): %s",
+                "Commit rejected (%d/%d): %s",
                 attempt, self._max_loops, result.reason,
             )
 
-            # Se não tem função de regeneração, retorna rejeição
+            # If no regeneration function is provided, return rejection
             if generate_fn is None:
                 return result
 
-            # Regenera com feedback
+            # Regenerate with feedback
             try:
                 current_draft = generate_fn(result.reason)
             except Exception as e:
-                logger.error("Falha ao regenerar rascunho: %s", e)
+                logger.error("Failed to regenerate draft: %s", e)
                 break
 
-        # Fallback após max_loops
+        # Fallback after max_loops
         logger.error(
-            "Commit não aprovado após %d tentativas — partial_audit=True.",
+            "Commit not approved after %d attempts — partial_audit=True.",
             self._max_loops,
         )
 
         final = AuditResult(
             approved=True,
-            reason=f"Aprovado por partial_audit após {self._max_loops} rejeições.",
+            reason=f"Approved by partial_audit after {self._max_loops} rejections.",
             technical_changes=current_draft.get("technical_changes", ""),
             updated_pointers=current_draft.get("updated_pointers", []),
             partial_audit=True,
@@ -381,7 +381,7 @@ class RevisorCritico:
         return final
 
     # ===================================================================
-    # PAPEL 2 — RERANKING DE GAVETAS
+    # ROLE 2 — DRAWER RERANKING
     # ===================================================================
 
     def rerank(
@@ -390,24 +390,24 @@ class RevisorCritico:
         task_context: str,
         max_results: int = 5,
     ) -> list[dict]:
-        """Filtra resultados de busca por relevância técnica.
+        """Filters search results by technical relevance.
 
-        Se LLM disponível: usa LLM como juiz semântico.
-        Se não: aplica heurísticas baseadas em score_final.
+        If LLM is available: uses LLM as a semantic judge.
+        If not: applies heuristics based on score_final.
 
         Args:
-            candidates: Top-N resultados da Busca Híbrida v4.
-                        Cada dict deve ter: node_id, score_final, score_breakdown.
-            task_context: Descrição da tarefa atual.
-            max_results: Máximo de resultados a retornar.
+            candidates: Top-N results of Hybrid Search v4.
+                        Each dict must have: node_id, score_final, score_breakdown.
+            task_context: Description of the current task.
+            max_results: Maximum results to return.
 
         Returns:
-            Lista filtrada de candidatos aprovados (1 a max_results itens).
+            Filtered list of approved candidates (1 to max_results items).
         """
         if not candidates:
             return []
 
-        # Limita a max_results antes do reranking
+        # Limits to max_results before reranking
         top_candidates = candidates[:max_results]
 
         if self._llm is not None:
@@ -416,16 +416,16 @@ class RevisorCritico:
             reranked = self._heuristic_rerank(top_candidates)
 
         logger.info(
-            "Reranking: %d candidatos → %d aprovados (task='%.50s...')",
+            "Reranking: %d candidates → %d approved (task='%.50s...')",
             len(top_candidates), len(reranked), task_context,
         )
         return reranked
 
     def _heuristic_rerank(self, candidates: list[dict]) -> list[dict]:
-        """Reranking heurístico (sem LLM).
+        """Heuristic reranking (without LLM).
 
-        Filtra candidatos com score_final abaixo de 30% do melhor score.
-        Garante pelo menos 1 resultado.
+        Filters candidates with score_final below 30% of the best score.
+        Guarantees at least 1 result.
         """
         if not candidates:
             return []
@@ -438,23 +438,23 @@ class RevisorCritico:
             if c.get("score_final", 0) >= threshold
         ]
 
-        # Garante pelo menos 1 resultado
+        # Guarantees at least 1 result
         if not filtered and candidates:
             filtered = [candidates[0]]
 
         logger.debug(
-            "Reranking heurístico: threshold=%.4f, filtrados=%d/%d",
+            "Heuristic reranking: threshold=%.4f, filtered=%d/%d",
             threshold, len(filtered), len(candidates),
         )
         return filtered
 
     def _llm_rerank(self, candidates: list[dict], task_context: str) -> list[dict]:
-        """Reranking semântico via LLM.
+        """Semantic reranking via LLM.
 
-        O LLM avalia cada candidato e atribui um score de relevância.
-        Candidatos abaixo do RERANK_RELEVANCE_THRESHOLD são filtrados.
+        The LLM evaluates each candidate and assigns a relevance score.
+        Candidates below the RERANK_RELEVANCE_THRESHOLD are filtered.
         """
-        # Monta bloco de candidatos para o prompt
+        # Builds candidates block for prompt
         lines: list[str] = []
         for i, c in enumerate(candidates, 1):
             breakdown = c.get("score_breakdown", {})
@@ -482,7 +482,7 @@ class RevisorCritico:
             if parsed and "evaluations" in parsed:
                 evaluations = parsed["evaluations"]
 
-                # Monta mapa node_id → relevância
+                # Builds node_id → relevance map
                 relevance_map: dict[int, float] = {}
                 for ev in evaluations:
                     nid = ev.get("node_id")
@@ -490,7 +490,7 @@ class RevisorCritico:
                     if nid is not None:
                         relevance_map[int(nid)] = float(rel)
 
-                # Filtra candidatos aprovados
+                # Filters approved candidates
                 approved: list[dict] = []
                 for c in candidates:
                     nid = c.get("node_id")
@@ -500,7 +500,7 @@ class RevisorCritico:
                         c_copy["rerank_relevance"] = relevance
                         approved.append(c_copy)
 
-                # Garante pelo menos 1 resultado
+                # Guarantees at least 1 result
                 if not approved and candidates:
                     best_nid = max(relevance_map, key=relevance_map.get, default=None)
                     if best_nid is not None:
@@ -511,28 +511,28 @@ class RevisorCritico:
                                 approved = [c_copy]
                                 break
 
-                # Ordena por relevância do reranking
+                # Sorts by reranking relevance
                 approved.sort(
                     key=lambda x: x.get("rerank_relevance", 0),
                     reverse=True,
                 )
 
                 logger.info(
-                    "Reranking LLM: %d/%d aprovados (threshold=%.2f)",
+                    "LLM Reranking: %d/%d approved (threshold=%.2f)",
                     len(approved), len(candidates), self.RERANK_RELEVANCE_THRESHOLD,
                 )
                 return approved
 
-            logger.warning("Reranking LLM retornou JSON inválido — fallback heurístico.")
+            logger.warning("LLM reranking returned invalid JSON — heuristic fallback.")
 
         except Exception as e:
-            logger.error("Reranking LLM falhou: %s — fallback heurístico.", e)
+            logger.error("LLM reranking failed: %s — heuristic fallback.", e)
 
-        # Fallback heurístico
+        # Heuristic fallback
         return self._heuristic_rerank(candidates)
 
     # ===================================================================
-    # PAPEL 3 — BARREIRA DE CONTAMINAÇÃO
+    # ROLE 3 — CONTAMINATION BARRIER
     # ===================================================================
 
     def check_contamination(
@@ -540,14 +540,14 @@ class RevisorCritico:
         source_project: dict,
         target_project: dict,
     ) -> tuple[bool, str]:
-        """Verifica se há risco de contaminação entre projetos.
+        """Checks for risk of contamination between projects.
 
-        Regra: dados de projetos RESTRICTED não podem fluir para
-        contextos PUBLIC ou INTERNAL.
+        Rule: data from RESTRICTED projects cannot flow to
+        PUBLIC or INTERNAL contexts.
 
         Args:
-            source_project: Projeto de origem dos dados.
-            target_project: Projeto que receberá/exporá os dados.
+            source_project: Source project of the data.
+            target_project: Target project that will receive/expose the data.
 
         Returns:
             Tuple (is_safe: bool, reason: str).
@@ -555,7 +555,7 @@ class RevisorCritico:
         source_privacy = source_project.get("privacy_level", "PUBLIC")
         target_privacy = target_project.get("privacy_level", "PUBLIC")
 
-        # Hierarquia: RESTRICTED > INTERNAL > PUBLIC
+        # Hierarchy: RESTRICTED > INTERNAL > PUBLIC
         privacy_hierarchy = {"PUBLIC": 0, "INTERNAL": 1, "RESTRICTED": 2}
         source_level = privacy_hierarchy.get(source_privacy, 0)
         target_level = privacy_hierarchy.get(target_privacy, 0)
@@ -573,23 +573,23 @@ class RevisorCritico:
         return True, "OK — sem risco de contaminação."
 
     # ===================================================================
-    # UTILITÁRIOS
+    # UTILITIES
     # ===================================================================
 
     def _extract_json(self, text: str) -> Optional[dict]:
-        """Extrai JSON de uma resposta LLM (com fallback regex).
+        """Extracts JSON from an LLM response (with regex fallback).
 
-        Tenta:
-            1. json.loads() direto
-            2. Regex para encontrar bloco JSON embutido
+        Attempts:
+            1. Direct json.loads()
+            2. Regex to find embedded JSON block
         """
         if not text:
             return None
 
-        # Tentativa 1: parse direto
+        # Attempt 1: direct parse
         clean = text.strip()
         if clean.startswith("```"):
-            # Remove fences de markdown
+            # Removes markdown fences
             lines = clean.split("\n")
             lines = [l for l in lines if not l.strip().startswith("```")]
             clean = "\n".join(lines).strip()
@@ -599,7 +599,7 @@ class RevisorCritico:
         except (json.JSONDecodeError, TypeError):
             pass
 
-        # Tentativa 2: regex
+        # Attempt 2: regex
         match = _JSON_BLOCK_RE.search(text)
         if match:
             try:

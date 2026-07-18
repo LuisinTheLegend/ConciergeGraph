@@ -1,10 +1,10 @@
 """
-interface/ — Interface Externa do Grafo Concierge v3.8.0
+interface/ - External Interface of Grafo Concierge v3.8.0
 
-Módulos:
-    mcp_server.py    → Servidor FastMCP com 7 tools (mine, search, commit, wakeup, resume, load, status)
-    action_hooks.py  → Gatilhos reativos de ciclo de vida (on_planning, on_execution, on_done)
-    cli.py           → Interface de terminal (argparse) com 9 comandos
+Modules:
+    mcp_server.py    -> FastMCP server with 7 tools (mine, search, commit, wakeup, resume, load, status)
+    action_hooks.py  -> Reactive lifecycle triggers (on_planning, on_execution, on_done)
+    cli.py           -> Terminal interface (argparse) with 9 commands
 """
 
 from interface.mcp_server import GrafoConciergeServer

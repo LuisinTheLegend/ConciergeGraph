@@ -1,29 +1,29 @@
 """
 main.py — Grafo Concierge v3.8.0 (Absolute Solidity)
 
-Ponto de entrada do sistema. Inicializa todos os componentes e
-executa o servidor MCP via transport stdio.
+System entry point. Initializes all components and
+runs the MCP server via stdio transport.
 
-Fluxo de inicialização:
-    1. Logging configurado (console + timestamps)
+Initialization flow:
+    1. Logging configured (console + timestamps)
     2. Storage: SqliteStore + EmbeddingManager + ChromaVectorStore
-    3. Ingestão: ZoomSummarizer + IngestionManager
-    4. Serviços: JanitorService (background thread)
-    5. Servidor: GrafoConciergeServer (FastMCP)
-    6. Shutdown gracioso: Janitor stop + DB close
+    3. Ingestion: ZoomSummarizer + IngestionManager
+    4. Services: JanitorService (background thread)
+    5. Server: GrafoConciergeServer (FastMCP)
+    6. Graceful shutdown: Janitor stop + DB close
 
-Variáveis de ambiente:
-    GRAFO_DB_PATH         → Caminho do SQLite (default: ./data/concierge.db)
-    GRAFO_CHROMA_PATH     → Caminho do ChromaDB (default: ./data/chroma)
-    GRAFO_CHROMA_COLLECTION → Nome da coleção (default: grafo_concierge)
-    GRAFO_EMBEDDING_MODEL → Modelo de embedding (default: all-MiniLM-L6-v2)
-    GRAFO_LLM_MODEL       → Modelo LLM para sumarização (default: gemini-2.0-flash)
-    GRAFO_LLM_API_KEY     → Chave de API do LLM (opcional)
-    GRAFO_JANITOR_INTERVAL → Intervalo do Janitor em segundos (default: 300)
-    GRAFO_LOG_LEVEL       → Nível de log (default: INFO)
-    GRAFO_TRANSPORT       → Transporte MCP: stdio ou sse (default: stdio)
+Environment variables:
+    GRAFO_DB_PATH         → SQLite path (default: ./data/concierge.db)
+    GRAFO_CHROMA_PATH     → ChromaDB path (default: ./data/chroma)
+    GRAFO_CHROMA_COLLECTION → Collection name (default: grafo_concierge)
+    GRAFO_EMBEDDING_MODEL → Embedding model (default: all-MiniLM-L6-v2)
+    GRAFO_LLM_MODEL       → LLM model for summarization (default: gemini-2.0-flash)
+    GRAFO_LLM_API_KEY     → LLM API Key (optional)
+    GRAFO_JANITOR_INTERVAL → Janitor interval in seconds (default: 300)
+    GRAFO_LOG_LEVEL       → Log level (default: INFO)
+    GRAFO_TRANSPORT       → MCP transport: stdio or sse (default: stdio)
 
-Uso:
+Usage:
     python main.py
 """
 
@@ -38,16 +38,24 @@ import sys
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
-# 1. CONFIGURAÇÃO — Constantes e variáveis de ambiente
+# 1. CONFIGURATION — Constants and environment variables
 # ---------------------------------------------------------------------------
 
-# Paths — ancorados na raiz do projeto, nunca relativos ao CWD
+# Paths — anchored at the project root, never relative to the process CWD
 PROJECT_ROOT = Path(__file__).parent.resolve()
-DB_PATH = os.environ.get("GRAFO_DB_PATH", str(PROJECT_ROOT / "data" / "concierge.db"))
-CHROMA_PATH = os.environ.get("GRAFO_CHROMA_PATH", str(PROJECT_ROOT / "data" / "chroma"))
+
+def resolve_project_path(env_value: str, default_rel: str) -> str:
+    val = env_value or default_rel
+    path = Path(val)
+    if path.is_absolute():
+        return str(path)
+    return str((PROJECT_ROOT / path).resolve())
+
+DB_PATH = resolve_project_path(os.environ.get("GRAFO_DB_PATH", ""), "data/concierge.db")
+CHROMA_PATH = resolve_project_path(os.environ.get("GRAFO_CHROMA_PATH", ""), "data/chroma")
 CHROMA_COLLECTION = os.environ.get("GRAFO_CHROMA_COLLECTION", "grafo_concierge")
 
-# Modelos
+# Models
 EMBEDDING_MODEL = os.environ.get("GRAFO_EMBEDDING_MODEL", "all-MiniLM-L6-v2")
 LLM_MODEL = os.environ.get("GRAFO_LLM_MODEL", "gemini-2.0-flash")
 LLM_API_KEY = os.environ.get("GRAFO_LLM_API_KEY", "")
@@ -63,11 +71,11 @@ TRANSPORT = os.environ.get("GRAFO_TRANSPORT", "stdio")
 
 
 # ---------------------------------------------------------------------------
-# 2. LOGGING — Console com timestamps e níveis
+# 2. LOGGING — Console with timestamps and levels
 # ---------------------------------------------------------------------------
 
 def setup_logging(level: str = "INFO") -> None:
-    """Configura logging global do Grafo Concierge."""
+    """Configures global logging for Grafo Concierge."""
     numeric_level = getattr(logging, level, logging.INFO)
 
     formatter = logging.Formatter(
@@ -75,7 +83,7 @@ def setup_logging(level: str = "INFO") -> None:
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    # Handler: stderr (para não interferir com stdio do MCP)
+    # Handler: stderr (so it does not interfere with MCP stdio)
     handler = logging.StreamHandler(sys.stderr)
     handler.setLevel(numeric_level)
     handler.setFormatter(formatter)
@@ -85,7 +93,7 @@ def setup_logging(level: str = "INFO") -> None:
     root.setLevel(numeric_level)
     root.addHandler(handler)
 
-    # Silencia loggers ruidosos de terceiros
+    # Silence noisy third-party loggers
     logging.getLogger("chromadb").setLevel(logging.WARNING)
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
@@ -93,43 +101,45 @@ def setup_logging(level: str = "INFO") -> None:
 
 
 # ---------------------------------------------------------------------------
-# 3. BOOTSTRAP — Inicialização de todos os componentes
+# 3. BOOTSTRAP — Initialization of all components
 # ---------------------------------------------------------------------------
 
 logger = logging.getLogger("grafo-concierge.main")
 
 
 def bootstrap():
-    """Inicializa e retorna todos os componentes do sistema.
+    """Initializes and returns all system components.
 
     Returns:
-        Tuple com (server, janitor, store) para uso no main loop e shutdown.
+        Tuple containing (server, janitor, store) for use in the main loop and shutdown.
     """
-    # --- Garante que o diretório de dados exista ---
+    # --- Ensures the data directory exists ---
     os.makedirs(os.path.dirname(DB_PATH) or ".", exist_ok=True)
     os.makedirs(CHROMA_PATH, exist_ok=True)
 
     # ── STORAGE ──────────────────────────────────────────────────────
-    logger.info("Inicializando SqliteStore: %s", DB_PATH)
+    logger.info("Initializing SqliteStore: %s", DB_PATH)
     from storage import SqliteStore
     store = SqliteStore(DB_PATH)
 
-    logger.info("Inicializando EmbeddingManager: tier=FLASH")
+    logger.info("Initializing EmbeddingManager: tier=FLASH")
     from storage import EmbeddingManager, EmbeddingTier
     embedder = EmbeddingManager(tier=EmbeddingTier.FLASH)
 
     vector_backend = os.environ.get("GRAFO_VECTOR_BACKEND", "chroma").lower()
     if vector_backend == "qdrant":
         qdrant_url = os.environ.get("GRAFO_QDRANT_URL", "http://localhost:6333")
-        logger.info("Inicializando QdrantVectorStore: url=%s, collection=%s", qdrant_url, CHROMA_COLLECTION)
+        qdrant_key = os.environ.get("GRAFO_QDRANT_API_KEY", "") or None
+        logger.info("Initializing QdrantVectorStore: url=%s, collection=%s", qdrant_url, CHROMA_COLLECTION)
         from core.vector_backend import QdrantVectorStore
         vector_store = QdrantVectorStore(
             url=qdrant_url,
+            api_key=qdrant_key,
             collection_name=CHROMA_COLLECTION,
             embedding_dimensions=embedder.dimensions,
         )
     else:
-        logger.info("Inicializando ChromaVectorStore: path=%s, collection=%s", CHROMA_PATH, CHROMA_COLLECTION)
+        logger.info("Initializing ChromaVectorStore: path=%s, collection=%s", CHROMA_PATH, CHROMA_COLLECTION)
         from storage import ChromaVectorStore
         vector_store = ChromaVectorStore(
             persist_dir=CHROMA_PATH,
@@ -137,8 +147,8 @@ def bootstrap():
             embedding_manager=embedder,
         )
 
-    # ── INGESTÃO ─────────────────────────────────────────────────────
-    logger.info("Inicializando ZoomSummarizer: model=%s", LLM_MODEL)
+    # ── INGESTION ────────────────────────────────────────────────────
+    logger.info("Initializing ZoomSummarizer: model=%s", LLM_MODEL)
     from ingestion import ZoomSummarizer
     from ingestion.summarizer import LLMAdapter
 
@@ -152,7 +162,7 @@ def bootstrap():
         sqlite_store=store,
     )
 
-    logger.info("Inicializando IngestionManager")
+    logger.info("Initializing IngestionManager")
     from ingestion import IngestionManager
     ingestion_manager = IngestionManager(
         sqlite_store=store,
@@ -161,8 +171,8 @@ def bootstrap():
         summarizer=summarizer,
     )
 
-    # ── SERVIÇOS ─────────────────────────────────────────────────────
-    logger.info("Inicializando JanitorService: interval=%ds", JANITOR_INTERVAL)
+    # ── SERVICES ─────────────────────────────────────────────────────
+    logger.info("Initializing JanitorService: interval=%ds", JANITOR_INTERVAL)
     from services import JanitorService
     janitor = JanitorService(
         sqlite_store=store,
@@ -170,8 +180,8 @@ def bootstrap():
         ingestion_manager=ingestion_manager,
     )
 
-    # ── FACHADA CENTRAL ──────────────────────────────────────────────
-    logger.info("Inicializando Fachada Central GrafoConcierge")
+    # ── CENTRAL FACADE ───────────────────────────────────────────────
+    logger.info("Initializing GrafoConcierge Central Facade")
     from core.middleware import GrafoConcierge
     concierge = GrafoConcierge(
         sqlite_store=store,
@@ -180,24 +190,24 @@ def bootstrap():
         ingestion_manager=ingestion_manager,
     )
 
-    # ── SERVIDOR MCP ─────────────────────────────────────────────────
-    logger.info("Inicializando GrafoConciergeServer")
+    # ── MCP SERVER ───────────────────────────────────────────────────
+    logger.info("Initializing GrafoConciergeServer")
     from interface.mcp_server import GrafoConciergeServer
     server = GrafoConciergeServer(
         concierge=concierge,
         janitor=janitor,
     )
 
-    logger.info("Bootstrap concluído — todos os componentes inicializados.")
+    logger.info("Bootstrap complete — all components initialized.")
     return server, janitor, store
 
 
 # ---------------------------------------------------------------------------
-# 4. MAIN — Loop principal com graceful shutdown
+# 4. MAIN — Main loop with graceful shutdown
 # ---------------------------------------------------------------------------
 
 def main() -> None:
-    """Ponto de entrada principal do Grafo Concierge."""
+    """Main entry point of Grafo Concierge."""
 
     # ── Logging ──
     setup_logging(LOG_LEVEL)
@@ -222,19 +232,19 @@ def main() -> None:
         # ── Bootstrap ──
         server, janitor, store = bootstrap()
 
-        # ── Janitor background (se há projeto configurado) ──
+        # ── Background Janitor (if project is configured) ──
         if JANITOR_PROJECT_UUID:
-            logger.info("Iniciando Janitor background para projeto: %s", JANITOR_PROJECT_UUID)
+            logger.info("Starting background Janitor for project: %s", JANITOR_PROJECT_UUID)
             janitor.start_background(JANITOR_PROJECT_UUID, interval=JANITOR_INTERVAL)
         else:
-            logger.info("Janitor em modo idle (sem GRAFO_JANITOR_PROJECT definido).")
+            logger.info("Janitor in idle mode (no GRAFO_JANITOR_PROJECT defined).")
 
-        # ── Servidor MCP ──
-        logger.info("Iniciando servidor MCP (transport=%s)...", TRANSPORT)
+        # ── MCP Server ──
+        logger.info("Starting MCP server (transport=%s)...", TRANSPORT)
         server.run(transport=TRANSPORT)
 
     except KeyboardInterrupt:
-        logger.info("Interrupção recebida (Ctrl+C) — iniciando shutdown gracioso...")
+        logger.info("Interrupt received (Ctrl+C) — starting graceful shutdown...")
 
     except Exception as e:
         logger.critical("Erro fatal durante execução: %s", e, exc_info=True)

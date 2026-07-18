@@ -1,28 +1,28 @@
 """
 interface/cli.py — Grafo Concierge v3.8.0 (Absolute Solidity)
 
-Interface de Terminal (CLI) para gerenciar o Grafo Concierge
+Terminal Interface (CLI) to manage Grafo Concierge
 via Bash/PowerShell.
 
-Comandos:
-    grafo-concierge register  → Registra novo projeto
-    grafo-concierge mine      → Ingestão de diretório
-    grafo-concierge search    → Busca Híbrida v4
-    grafo-concierge wakeup    → Reativação de consciência
-    grafo-concierge resume    → Bússola de Contexto
-    grafo-concierge commit    → Registro de alterações
-    grafo-concierge load      → Lazy Load de nó
-    grafo-concierge status    → Saúde do sistema
-    grafo-concierge projects  → Lista projetos
+Commands:
+    grafo-concierge register  → Registers a new project
+    grafo-concierge mine      → Directory ingestion
+    grafo-concierge search    → Hybrid Search v4
+    grafo-concierge wakeup    → Consciousness reactivation
+    grafo-concierge resume    → Context Compass
+    grafo-concierge commit    → Changelog registration
+    grafo-concierge load      → Node Lazy Load
+    grafo-concierge status    → System health status
+    grafo-concierge projects  → Lists projects
 
-Uso:
-    python -m interface.cli mine --path /projetos/vortex --name vortex-pro
-    python -m interface.cli search --query "autenticação JWT" --project abc123
+Usage:
+    python -m interface.cli mine --path /projects/vortex --name vortex-pro
+    python -m interface.cli search --query "JWT authentication" --project abc123
     python -m interface.cli wakeup --project abc123
 
-Integração:
-    Consome core.middleware.GrafoConcierge como única dependência.
-    Bootstrap é feito automaticamente via _bootstrap_concierge().
+Integration:
+    Consumes core.middleware.GrafoConcierge as sole dependency.
+    Bootstrap is automatically performed via _bootstrap_concierge().
 """
 
 from __future__ import annotations
@@ -39,14 +39,14 @@ logger = logging.getLogger("grafo-concierge.cli")
 
 
 # ---------------------------------------------------------------------------
-# Bootstrap — Inicializa o GrafoConcierge para uso via CLI
+# Bootstrap — Initializes the GrafoConcierge for CLI use
 # ---------------------------------------------------------------------------
 
 def _bootstrap_concierge():
-    """Inicializa a Fachada Central para uso na CLI.
+    """Initializes the Central Facade for CLI usage.
 
-    Usa as mesmas variáveis de ambiente do main.py.
-    Retorna uma instância de GrafoConcierge pronta para uso.
+    Uses the same environment variables as main.py.
+    Returns a ready-to-use GrafoConcierge instance.
     """
     from dotenv import load_dotenv
     load_dotenv()
@@ -56,11 +56,18 @@ def _bootstrap_concierge():
     from ingestion.summarizer import LLMAdapter
     from core.middleware import GrafoConcierge
 
-    # Âncora dinâmica: interface/ → raiz do projeto
+    # Dynamic anchor: interface/ → project root
     _project_root = Path(__file__).parent.parent.resolve()
 
-    db_path = os.environ.get("GRAFO_DB_PATH", str(_project_root / "data" / "concierge.db"))
-    chroma_path = os.environ.get("GRAFO_CHROMA_PATH", str(_project_root / "data" / "chroma"))
+    def resolve_project_path(env_value: str, default_rel: str) -> str:
+        val = env_value or default_rel
+        path = Path(val)
+        if path.is_absolute():
+            return str(path)
+        return str((_project_root / path).resolve())
+
+    db_path = resolve_project_path(os.environ.get("GRAFO_DB_PATH", ""), "data/concierge.db")
+    chroma_path = resolve_project_path(os.environ.get("GRAFO_CHROMA_PATH", ""), "data/chroma")
     chroma_collection = os.environ.get("GRAFO_CHROMA_COLLECTION", "grafo_concierge")
     llm_model = os.environ.get("GRAFO_LLM_MODEL", "gemini-2.0-flash")
     llm_api_key = os.environ.get("GRAFO_LLM_API_KEY", "")
@@ -115,34 +122,34 @@ def _bootstrap_concierge():
 
 
 def _print_json(data: dict) -> None:
-    """Imprime resultado formatado como JSON."""
+    """Prints result formatted as JSON."""
     print(json.dumps(data, indent=2, ensure_ascii=False, default=str))
 
 
 # ---------------------------------------------------------------------------
-# Comandos CLI
+# CLI Commands
 # ---------------------------------------------------------------------------
 
 def cmd_register(args, gc, store):
-    """Registra um novo projeto."""
+    """Registers a new project."""
     uuid = gc.register_project(
         folder_name=args.name,
         wing=args.wing,
         privacy_level=args.privacy or "PUBLIC",
         summary=args.summary,
     )
-    print(f"Projeto registrado: {args.name} → {uuid}")
+    print(f"Project registered: {args.name} → {uuid}")
 
 
 def cmd_mine(args, gc, store):
-    """Executa ingestão de um diretório."""
+    """Executes directory ingestion."""
     uuid = gc.register_project(folder_name=args.name)
     result = gc.mine(uuid, args.path, auto_tag=not args.no_tag)
     _print_json(result)
 
 
 def cmd_search(args, gc, store):
-    """Busca Híbrida v4."""
+    """Hybrid Search v4."""
     results = gc.hybrid_search(
         query=args.query,
         project_uuid=args.project,
@@ -155,19 +162,19 @@ def cmd_search(args, gc, store):
 
 
 def cmd_wakeup(args, gc, store):
-    """Reativação de consciência."""
+    """Consciousness reactivation."""
     result = gc.wake_up(args.project)
     _print_json(result)
 
 
 def cmd_resume(args, gc, store):
-    """Bússola de Contexto."""
+    """Context Compass."""
     resume = gc.get_resume(args.project)
     print(resume)
 
 
 def cmd_commit(args, gc, store):
-    """Registro de commit."""
+    """Commit registration."""
     pointers = args.pointers.split(",") if args.pointers else []
     commit_id = gc.commit_memory(
         project_uuid=args.project,
@@ -175,17 +182,17 @@ def cmd_commit(args, gc, store):
         technical_changes=args.changes,
         updated_pointers=pointers,
     )
-    print(f"Commit registrado: id={commit_id}")
+    print(f"Commit registered: id={commit_id}")
 
 
 def cmd_load(args, gc, store):
-    """Lazy Load de um nó."""
+    """Lazy Load of a node."""
     result = gc.lazy_load(args.node_id)
     _print_json(result)
 
 
 def cmd_status(args, gc, store):
-    """Status do sistema."""
+    """System status."""
     if args.project:
         result = gc.status(args.project)
     else:
@@ -202,26 +209,26 @@ def cmd_status(args, gc, store):
 
 
 def cmd_projects(args, gc, store):
-    """Lista todos os projetos."""
+    """Lists all projects."""
     projects = store.list_projects()
     if not projects:
-        print("Nenhum projeto registrado.")
+        print("No projects registered.")
         return
 
-    print(f"{'UUID':<38} {'Nome':<25} {'Ala':<20} {'Privacy':<12}")
+    print(f"{'UUID':<38} {'Name':<25} {'Wing':<20} {'Privacy':<12}")
     print("-" * 95)
     for p in projects:
         print(
             f"{p['uuid']:<38} {p.get('folder_name', ''):<25} "
-            f"{p.get('primary_wing', 'geral'):<20} {p.get('privacy_level', 'PUBLIC'):<12}"
+            f"{p.get('primary_wing', 'general'):<20} {p.get('privacy_level', 'PUBLIC'):<12}"
         )
 
 
 def cmd_sync_vector(args, gc, store):
-    """Sincroniza e reconcilia embeddings faltantes no vetor ativo de forma manual."""
+    """Synchronizes and reconciles missing embeddings in the active vector store manually."""
     from services.janitor import JanitorService, MaintenanceReport
     
-    # Inicializa o JanitorService local
+    # Initializes local JanitorService
     janitor = JanitorService(
         sqlite_store=store,
         vector_store=gc._vector,
@@ -236,87 +243,87 @@ def cmd_sync_vector(args, gc, store):
         projects_to_sync = [p["uuid"] for p in all_projects]
         
     if not projects_to_sync:
-        print("Nenhum projeto registrado encontrado para sincronizar.")
+        print("No registered projects found to synchronize.")
         return
         
-    print(f"Iniciando reconciliação vetorial manual em lote para {len(projects_to_sync)} projetos...")
+    print(f"Starting manual batch vector reconciliation for {len(projects_to_sync)} projects...")
     for p_uuid in projects_to_sync:
         p_name = next((p["folder_name"] for p in store.list_projects() if p["uuid"] == p_uuid), p_uuid)
-        print(f"-> Sincronizando projeto: {p_name} ({p_uuid})...")
+        print(f"-> Synchronizing project: {p_name} ({p_uuid})...")
         report = MaintenanceReport()
-        # Executa a reconciliação bidirecional (deleta órfãos e gera faltantes)
+        # Executes bidirectional reconciliation (deletes orphans and generates missing)
         janitor._sync_vectors(p_uuid, report)
         if report.errors:
-            print(f"   [ERRO] {report.errors[0]}")
+            print(f"   [ERROR] {report.errors[0]}")
         else:
-            print(f"   [OK] Reconciliação vetorial concluída com sucesso.")
-    print("Reconciliação e sincronização finalizadas!")
+            print(f"   [OK] Vector reconciliation completed successfully.")
+    print("Reconciliation and synchronization finished!")
 
 
 # ---------------------------------------------------------------------------
-# Parser de argumentos
+# Argument parser
 # ---------------------------------------------------------------------------
 
 def build_parser() -> argparse.ArgumentParser:
-    """Constrói o parser de argumentos do CLI."""
+    """Builds the CLI argument parser."""
 
     parser = argparse.ArgumentParser(
         prog="grafo-concierge",
-        description="Grafo Concierge v3.8.0 — Memória Soberana para Agentes IA",
+        description="Grafo Concierge v3.8.0 — Sovereign Memory for AI Agents",
     )
-    subparsers = parser.add_subparsers(dest="command", help="Comando disponível")
+    subparsers = parser.add_subparsers(dest="command", help="Available command")
 
     # --- register ---
-    p_register = subparsers.add_parser("register", help="Registra novo projeto")
-    p_register.add_argument("--name", required=True, help="Nome do projeto")
+    p_register = subparsers.add_parser("register", help="Registers a new project")
+    p_register.add_argument("--name", required=True, help="Project name")
     p_register.add_argument("--wing", default=None, help="Primary Wing")
-    p_register.add_argument("--privacy", default="PUBLIC", help="Nível de privacidade")
-    p_register.add_argument("--summary", default=None, help="Descrição do projeto")
+    p_register.add_argument("--privacy", default="PUBLIC", help="Privacy level")
+    p_register.add_argument("--summary", default=None, help="Project description")
 
     # --- mine ---
-    p_mine = subparsers.add_parser("mine", help="Ingestão de diretório")
-    p_mine.add_argument("--path", required=True, help="Caminho do diretório")
-    p_mine.add_argument("--name", required=True, help="Nome do projeto")
-    p_mine.add_argument("--no-tag", action="store_true", help="Desabilita auto-tag")
+    p_mine = subparsers.add_parser("mine", help="Directory ingestion")
+    p_mine.add_argument("--path", required=True, help="Directory path")
+    p_mine.add_argument("--name", required=True, help="Project name")
+    p_mine.add_argument("--no-tag", action="store_true", help="Disables auto-tag")
 
     # --- search ---
-    p_search = subparsers.add_parser("search", help="Busca Híbrida v4")
-    p_search.add_argument("--query", required=True, help="Texto de busca")
-    p_search.add_argument("--project", required=True, help="UUID do projeto")
-    p_search.add_argument("--top-k", type=int, default=10, help="Máximo de resultados")
-    p_search.add_argument("--node-type", default=None, help="Filtro de tipo de nó")
-    p_search.add_argument("--refs", action="store_true", help="Incluir Reference Wings")
-    p_search.add_argument("--all-wings", action="store_true", help="Buscar em todas as alas")
+    p_search = subparsers.add_parser("search", help="Hybrid Search v4")
+    p_search.add_argument("--query", required=True, help="Search text")
+    p_search.add_argument("--project", required=True, help="Project UUID")
+    p_search.add_argument("--top-k", type=int, default=10, help="Maximum results")
+    p_search.add_argument("--node-type", default=None, help="Node type filter")
+    p_search.add_argument("--refs", action="store_true", help="Include Reference Wings")
+    p_search.add_argument("--all-wings", action="store_true", help="Search in all wings")
 
     # --- wakeup ---
-    p_wakeup = subparsers.add_parser("wakeup", help="Reativação de consciência")
-    p_wakeup.add_argument("--project", required=True, help="UUID do projeto")
+    p_wakeup = subparsers.add_parser("wakeup", help="Consciousness reactivation")
+    p_wakeup.add_argument("--project", required=True, help="Project UUID")
 
     # --- resume ---
-    p_resume = subparsers.add_parser("resume", help="Bússola de Contexto")
-    p_resume.add_argument("--project", required=True, help="UUID do projeto")
+    p_resume = subparsers.add_parser("resume", help="Context Compass")
+    p_resume.add_argument("--project", required=True, help="Project UUID")
 
     # --- commit ---
-    p_commit = subparsers.add_parser("commit", help="Registra commit de memória")
-    p_commit.add_argument("--project", required=True, help="UUID do projeto")
-    p_commit.add_argument("--phase", required=True, help="Fase atual")
-    p_commit.add_argument("--changes", required=True, help="Mudanças técnicas")
-    p_commit.add_argument("--pointers", required=True, help="Ponteiros (separados por vírgula)")
+    p_commit = subparsers.add_parser("commit", help="Registers a memory commit")
+    p_commit.add_argument("--project", required=True, help="Project UUID")
+    p_commit.add_argument("--phase", required=True, help="Current phase")
+    p_commit.add_argument("--changes", required=True, help="Technical changes")
+    p_commit.add_argument("--pointers", required=True, help="Pointers (comma-separated)")
 
     # --- load ---
-    p_load = subparsers.add_parser("load", help="Lazy Load de um nó")
-    p_load.add_argument("--node-id", type=int, required=True, help="ID do nó")
+    p_load = subparsers.add_parser("load", help="Lazy Load of a node")
+    p_load.add_argument("--node-id", type=int, required=True, help="Node ID")
 
     # --- status ---
-    p_status = subparsers.add_parser("status", help="Status do sistema")
-    p_status.add_argument("--project", default=None, help="UUID do projeto (opcional)")
+    p_status = subparsers.add_parser("status", help="System status")
+    p_status.add_argument("--project", default=None, help="Project UUID (optional)")
 
     # --- projects ---
-    subparsers.add_parser("projects", help="Lista todos os projetos")
+    subparsers.add_parser("projects", help="Lists all projects")
 
     # --- sync-vector ---
-    p_sync_vector = subparsers.add_parser("sync-vector", help="Sincroniza e reconcilia embeddings faltantes no vetor ativo de forma manual")
-    p_sync_vector.add_argument("--project", default=None, help="UUID de um projeto específico para sincronizar (opcional)")
+    p_sync_vector = subparsers.add_parser("sync-vector", help="Synchronizes and reconciles missing embeddings in the active vector store manually")
+    p_sync_vector.add_argument("--project", default=None, help="UUID of a specific project to synchronize (optional)")
 
     return parser
 
@@ -340,7 +347,7 @@ COMMAND_MAP = {
 
 
 def main():
-    """Ponto de entrada do CLI."""
+    """CLI entry point."""
     parser = build_parser()
     args = parser.parse_args()
 
@@ -348,7 +355,7 @@ def main():
         parser.print_help()
         sys.exit(1)
 
-    # Setup logging mínimo para CLI
+    # Setup minimal logging for CLI
     logging.basicConfig(
         level=logging.WARNING,
         format="%(levelname)s: %(message)s",
@@ -359,16 +366,16 @@ def main():
     try:
         gc, store = _bootstrap_concierge()
     except Exception as e:
-        print(f"Erro ao inicializar Grafo Concierge: {e}", file=sys.stderr)
+        print(f"Error initializing Grafo Concierge: {e}", file=sys.stderr)
         sys.exit(1)
 
-    # Executa comando
+    # Executes command
     handler = COMMAND_MAP.get(args.command)
     if handler:
         try:
             handler(args, gc, store)
         except Exception as e:
-            print(f"Erro: {e}", file=sys.stderr)
+            print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
         finally:
             try:

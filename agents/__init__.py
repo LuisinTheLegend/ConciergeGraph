@@ -1,10 +1,10 @@
 """
 agents/__init__.py — Grafo Concierge v3.8.0 (Absolute Solidity)
 
-Pacote agents/ — Guardiões de Evolução.
+agents/ package — Guardians of Evolution.
 
-Exporta os agentes de IA crítica:
-    - RevisorCritico → Auditor de Evolução + Reranking de Gavetas
+Exports the critical AI agents:
+    - RevisorCritico → Evolution Auditor + Drawer Reranking
 """
 
 from agents.revisor_critico import RevisorCritico

@@ -1,21 +1,21 @@
 """
-core/project_index.py — Grafo Concierge v3.8.0 (Absolute Solidity)
+core/project_index.py - Grafo Concierge v3.8.0 (Absolute Solidity)
 
-GPS de Conhecimento — Categorização automática de projetos em Alas (Wings).
+Knowledge GPS — Automatic categorization of projects into Wings.
 
-Responsabilidades:
-    1. Categorização automática: Infere a Primary Wing de um projeto
-       analisando nomes de arquivos, tags e descrições contra o
-       dicionário WING_KEYWORDS de ConciergeConfig.
-    2. Gerenciamento de Wings: API para set/get Primary Wing e
-       adicionar/remover Reference Wings.
-    3. Listagem por Ala: Busca projetos da mesma ala para
+Responsibilities:
+    1. Automatic categorization: Infers a project's Primary Wing by
+       analyzing file names, tags, and descriptions against the
+       WING_KEYWORDS dictionary of ConciergeConfig.
+    2. Wing management: API to set/get Primary Wing and
+       add/remove Reference Wings.
+    3. List by Wing: Searches for projects in the same wing for
        find_similar_projects().
 
-Integração:
-    - Lê e escreve na tabela `projects` via SqliteStore.
-    - Lê e escreve na tabela `reference_wings` via SqliteStore.
-    - Consulta ConciergeConfig.wing_keywords para classificação.
+Integration:
+    - Reads and writes to the `projects` table via SqliteStore.
+    - Reads and writes to the `reference_wings` table via SqliteStore.
+    - Queries ConciergeConfig.wing_keywords for classification.
 """
 
 from __future__ import annotations
@@ -31,11 +31,11 @@ logger = logging.getLogger("grafo-concierge.project-index")
 
 
 class ProjectIndex:
-    """GPS de Conhecimento — gerencia categorização e descoberta de projetos.
+    """Knowledge GPS — manages project categorization and discovery.
 
     Args:
-        sqlite_store: Instância de SqliteStore para persistência.
-        config: Configurações do sistema (default: DEFAULT_CONFIG).
+        sqlite_store: SqliteStore instance for persistence.
+        config: System configurations (default: DEFAULT_CONFIG).
     """
 
     def __init__(
@@ -47,7 +47,7 @@ class ProjectIndex:
         self._config = config
 
     # ===================================================================
-    # CATEGORIZAÇÃO AUTOMÁTICA
+    # AUTOMATIC CATEGORIZATION
     # ===================================================================
 
     def categorize_project(
@@ -56,27 +56,27 @@ class ProjectIndex:
         tags: Optional[list[str]] = None,
         description: Optional[str] = None,
     ) -> str:
-        """Infere a Primary Wing mais adequada para um projeto.
+        """Infers the most suitable Primary Wing for a project.
 
-        Analisa labels de nós (nomes de arquivos), tags detectadas e
-        uma descrição opcional contra o dicionário de WING_KEYWORDS.
+        Analyzes node labels (file names), detected tags, and
+        an optional description against the WING_KEYWORDS dictionary.
 
-        Algoritmo:
-            1. Concatena labels + tags + descrição em um corpus.
-            2. Para cada ala, conta quantas palavras-chave aparecem.
-            3. A ala com mais matches vence.
-            4. Empate: retorna a primeira ala em ordem alfabética.
-            5. Zero matches: retorna config.default_wing ("geral").
+        Algorithm:
+            1. Concatenates labels + tags + description into a corpus.
+            2. For each wing, counts how many keywords appear.
+            3. The wing with the most matches wins.
+            4. Tie: returns the first wing in alphabetical order.
+            5. Zero matches: returns config.default_wing ("geral").
 
         Args:
-            labels: Nomes de arquivos / nós do projeto.
-            tags: Tags detectadas durante a ingestão.
-            description: Descrição textual do projeto (opcional).
+            labels: File / node names of the project.
+            tags: Tags detected during ingestion.
+            description: Textual description of the project (optional).
 
         Returns:
-            Nome da ala (ex: "gestão/saas", "finanças/quant", "geral").
+            Wing name (e.g. "gestão/saas", "finanças/quant", "geral").
         """
-        # Monta corpus normalizado
+        # Build normalized corpus
         corpus_parts: list[str] = []
         corpus_parts.extend(labels)
         if tags:
@@ -86,7 +86,7 @@ class ProjectIndex:
 
         corpus = " ".join(corpus_parts).lower()
 
-        # Conta matches por ala
+        # Count matches per wing
         scores: Counter[str] = Counter()
         for wing, keywords in self._config.wing_keywords.items():
             for kw in keywords:
@@ -94,65 +94,65 @@ class ProjectIndex:
                     scores[wing] += 1
 
         if not scores:
-            logger.debug("Nenhuma keyword detectada — ala padrão '%s'.", self._config.default_wing)
+            logger.debug("No keyword detected — using default wing '%s'.", self._config.default_wing)
             return self._config.default_wing
 
-        # Ala com mais matches (em caso de empate, ordem alfabética)
+        # Wing with most matches (in case of tie, alphabetical order)
         best_wing = max(sorted(scores.keys()), key=lambda w: scores[w])
         logger.info(
-            "Categorização automática: '%s' (score=%d, total_candidatas=%d)",
+            "Automatic categorization: '%s' (score=%d, total_candidates=%d)",
             best_wing, scores[best_wing], len(scores),
         )
         return best_wing
 
     # ===================================================================
-    # PRIMARY WING — Gerenciamento
+    # PRIMARY WING — Management
     # ===================================================================
 
     def get_primary_wing(self, project_uuid: str) -> str:
-        """Retorna a Primary Wing de um projeto.
+        """Returns the Primary Wing of a project.
 
         Args:
-            project_uuid: UUID do projeto.
+            project_uuid: Project UUID.
 
         Returns:
-            Nome da Primary Wing.
+            Name of the Primary Wing.
 
         Raises:
-            ProjectNotFoundError: Se o projeto não existe.
+            ProjectNotFoundError: If the project does not exist.
         """
         project = self._store.get_project(project_uuid)
         return project.get("primary_wing", self._config.default_wing)
 
     def set_primary_wing(self, project_uuid: str, wing: str) -> None:
-        """Define a Primary Wing de um projeto (override manual).
+        """Sets the Primary Wing of a project (manual override).
 
         Args:
-            project_uuid: UUID do projeto.
-            wing: Nome da ala a atribuir.
+            project_uuid: Project UUID.
+            wing: Wing name to assign.
 
         Raises:
-            ProjectNotFoundError: Se o projeto não existe.
+            ProjectNotFoundError: If the project does not exist.
         """
-        # Valida que o projeto existe
+        # Validate that the project exists
         self._store.get_project(project_uuid)
         self._store.update_project(project_uuid, primary_wing=wing)
         logger.info("Primary Wing definida: projeto=%s, wing='%s'", project_uuid, wing)
 
     def auto_categorize_project(self, project_uuid: str) -> str:
-        """Categoriza automaticamente um projeto baseado nos nós existentes.
+        """Automatically categorizes a project based on existing nodes.
 
-        Fluxo:
-            1. Busca todos os nós ACTIVE do projeto.
-            2. Extrai labels e tags.
-            3. Chama categorize_project().
-            4. Atualiza a Primary Wing no banco.
+        Flow:
+            1. Fetches all ACTIVE nodes of the project.
+            2. Extracts labels and tags.
+            3. Calls categorize_project().
+            4. Updates the Primary Wing in the database.
 
         Args:
-            project_uuid: UUID do projeto.
+            project_uuid: Project UUID.
 
         Returns:
-            Nome da ala atribuída.
+            Name of the assigned wing.
         """
         nodes = self._store.get_nodes_by_project(project_uuid, status="ACTIVE")
 
@@ -162,7 +162,7 @@ class ProjectIndex:
             if isinstance(n.get("tags"), list):
                 all_tags.extend(n["tags"])
 
-        # Usa o summary do projeto como descrição, se disponível
+        # Use the project summary as description, if available
         project = self._store.get_project(project_uuid)
         description = project.get("summary")
 
@@ -172,29 +172,29 @@ class ProjectIndex:
         return wing
 
     # ===================================================================
-    # REFERENCE WINGS — Gerenciamento
+    # REFERENCE WINGS — Management
     # ===================================================================
 
     def get_reference_wings(self, project_uuid: str) -> list[str]:
-        """Lista as Reference Wings de um projeto.
+        """Lists the Reference Wings of a project.
 
         Args:
-            project_uuid: UUID do projeto.
+            project_uuid: Project UUID.
 
         Returns:
-            Lista de nomes de alas referenciadas.
+            List of referenced wing names.
         """
         return self._store.get_reference_wings(project_uuid)
 
     def add_reference_wing(self, project_uuid: str, wing: str) -> None:
-        """Adiciona uma Reference Wing ao projeto.
+        """Adds a Reference Wing to the project.
 
-        Reference Wings permitem buscas interdisciplinares,
-        expondo apenas resumos (não dados brutos) da ala referenciada.
+        Reference Wings allow cross-disciplinary searches,
+        exposing only summaries (not raw data) of the referenced wing.
 
         Args:
-            project_uuid: UUID do projeto.
-            wing: Nome da ala a referenciar.
+            project_uuid: Project UUID.
+            wing: Wing name to reference.
         """
         primary = self.get_primary_wing(project_uuid)
         if wing == primary:
@@ -207,17 +207,17 @@ class ProjectIndex:
         logger.info("Reference Wing adicionada: projeto=%s, wing='%s'", project_uuid, wing)
 
     def remove_reference_wing(self, project_uuid: str, wing: str) -> None:
-        """Remove uma Reference Wing do projeto.
+        """Removes a Reference Wing from the project.
 
         Args:
-            project_uuid: UUID do projeto.
-            wing: Nome da ala a remover.
+            project_uuid: Project UUID.
+            wing: Wing name to remove.
         """
         self._store.remove_reference_wing(project_uuid, wing)
         logger.info("Reference Wing removida: projeto=%s, wing='%s'", project_uuid, wing)
 
     # ===================================================================
-    # STRICT SCOPING — Resolução de UUIDs para busca
+    # STRICT SCOPING — UUID Resolution for search
     # ===================================================================
 
     def resolve_scoped_uuids(
@@ -226,27 +226,27 @@ class ProjectIndex:
         include_references: bool = False,
         all_wings: bool = False,
     ) -> list[str]:
-        """Resolve a lista de project_uuids para Strict Scoping.
+        """Resolves the list of project_uuids for Strict Scoping.
 
-        Modos:
-            - Padrão: Apenas projetos da mesma Primary Wing.
+        Modes:
+            - Default: Only projects of the same Primary Wing.
             - include_references=True: Primary + Reference Wings.
-            - all_wings=True: Todos os projetos do sistema.
+            - all_wings=True: All projects in the system.
 
         Args:
-            project_uuid: UUID do projeto âncora.
-            include_references: Incluir Reference Wings.
-            all_wings: Incluir todas as alas (ignora scoping).
+            project_uuid: Anchor project UUID.
+            include_references: Include Reference Wings.
+            all_wings: Include all wings (ignores scoping).
 
         Returns:
-            Lista de UUIDs de projetos no escopo da busca.
+            List of project UUIDs in the scope of the search.
         """
         all_projects = self._store.list_projects()
 
         if all_wings:
             return [p["uuid"] for p in all_projects]
 
-        # Monta o conjunto de alas no escopo
+        # Assemble the set of wings in scope
         primary = self.get_primary_wing(project_uuid)
         target_wings = {primary}
 
@@ -254,7 +254,7 @@ class ProjectIndex:
             ref_wings = self.get_reference_wings(project_uuid)
             target_wings.update(ref_wings)
 
-        # Filtra projetos que pertencem às alas do escopo
+        # Filter projects that belong to the wings in scope
         scoped = [
             p["uuid"] for p in all_projects
             if p.get("primary_wing", self._config.default_wing) in target_wings
@@ -267,7 +267,7 @@ class ProjectIndex:
         return scoped
 
     # ===================================================================
-    # DESCOBERTA — Projetos similares
+    # DISCOVERY — Similar Projects
     # ===================================================================
 
     def find_similar_projects(
@@ -277,19 +277,19 @@ class ProjectIndex:
         include_references: bool = False,
         all_wings: bool = False,
     ) -> list[dict]:
-        """Busca projetos da mesma ala (ou alas expandidas).
+        """Searches projects of the same wing (or expanded wings).
 
-        A similaridade é baseada na ala: projetos da mesma Primary Wing
-        são considerados similares por domínio.
+        Similarity is based on the wing: projects of the same Primary Wing
+        are considered similar by domain.
 
         Args:
-            project_uuid: UUID do projeto âncora.
-            limit: Máximo de projetos a retornar.
-            include_references: Incluir Reference Wings.
-            all_wings: Incluir todas as alas.
+            project_uuid: Anchor project UUID.
+            limit: Maximum projects to return.
+            include_references: Include Reference Wings.
+            all_wings: Include all wings.
 
         Returns:
-            Lista de dicts com dados de projetos (excluindo o próprio).
+            List of dicts with project data (excluding itself).
         """
         scoped_uuids = self.resolve_scoped_uuids(
             project_uuid,
@@ -297,10 +297,10 @@ class ProjectIndex:
             all_wings=all_wings,
         )
 
-        # Remove o projeto âncora da lista
+        # Remove the anchor project from the list
         scoped_uuids = [u for u in scoped_uuids if u != project_uuid]
 
-        # Busca dados completos dos projetos no escopo
+        # Retrieve complete data of projects in scope
         results: list[dict] = []
         for uuid in scoped_uuids[:limit]:
             try:

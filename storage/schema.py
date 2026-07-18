@@ -1,20 +1,20 @@
 """
-storage/schema.py — Grafo Concierge v3.8.0 (Absolute Solidity)
+storage/schema.py - Grafo Concierge v3.8.0 (Absolute Solidity)
 
-Definições de Schema SQL, CHECK constraints e Triggers FTS5.
+SQL Schema Definitions, CHECK constraints and FTS5 Triggers.
 
-Responsabilidades:
-    - Constantes SQL para criação das 6 tabelas do Schema v3.8:
+Responsibilities:
+    - SQL constants for creation of the 6 tables of Schema v3.8:
         projects, nodes, edges, reference_wings, trajectories, commit_log.
-    - CHECK constraints inline para validação no nível do banco:
+    - CHECK constraints inline for validation at database level:
         node_type IN ('FACT','SKILL','INSIGHT','TRAJECTORY','PATCH')
         privacy_level IN ('PUBLIC','INTERNAL','RESTRICTED')
         status IN ('ACTIVE','STALE','ARCHIVED')
-    - Índices de performance (10 índices).
-    - Tabela virtual FTS5 (nodes_fts) com content sync.
-    - Triggers de sincronização FTS5 (INSERT, DELETE, UPDATE).
-    - SchemaManager: classe que aplica o schema de forma idempotente
-      e oferece utilitários de verificação e migração.
+    - Performance indexes (10 indexes).
+    - FTS5 virtual table (nodes_fts) with content sync.
+    - FTS5 synchronization triggers (INSERT, DELETE, UPDATE).
+    - SchemaManager: class that applies the schema idempotently
+      and offers verification and migration utilities.
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ logger = logging.getLogger("grafo-concierge.schema")
 
 
 # ---------------------------------------------------------------------------
-# Enums de validação (espelho dos CHECK constraints do SQL)
+# Validation enums (mirror of SQL CHECK constraints)
 # ---------------------------------------------------------------------------
 
 VALID_NODE_TYPES: frozenset[str] = frozenset({
@@ -45,7 +45,7 @@ VALID_STATUSES: frozenset[str] = frozenset({
 
 
 # ---------------------------------------------------------------------------
-# Constantes SQL — Tabelas v3.8.0 com CHECK constraints
+# SQL Constants — Tables v3.8.0 with CHECK constraints
 # ---------------------------------------------------------------------------
 
 TABLES_SQL: str = """
@@ -186,40 +186,40 @@ END;
 
 
 # ---------------------------------------------------------------------------
-# SchemaManager — aplicação e verificação do schema
+# SchemaManager — application and verification of schema
 # ---------------------------------------------------------------------------
 
 class SchemaManager:
-    """Aplica e verifica o Schema v3.8 de forma idempotente.
+    """Applies and verifies Schema v3.8 idempotently.
 
-    Responsabilidades:
-        - Criação de tabelas (IF NOT EXISTS).
-        - Aplicação de CHECK constraints no nível SQL.
-        - Criação de índices.
-        - Criação da tabela virtual FTS5 e seus triggers.
-        - Verificação da versão do schema.
-        - Rebuild do índice FTS5 para grandes cargas.
+    Responsibilities:
+        - Creation of tables (IF NOT EXISTS).
+        - Application of CHECK constraints at SQL level.
+        - Creation of indexes.
+        - Creation of the virtual table FTS5 and its triggers.
+        - Verification of the schema version.
+        - Rebuild of the FTS5 index for large loads.
 
     Args:
-        conn: Conexão SQLite já configurada (WAL, busy_timeout, foreign_keys).
+        conn: Configured SQLite connection (WAL, busy_timeout, foreign_keys).
     """
 
-    # Versão semântica do schema para controle de migrações futuras.
+    # Semantic schema version for controlling future migrations.
     SCHEMA_VERSION: str = "3.8.0"
 
     def __init__(self, conn: sqlite3.Connection) -> None:
         self._conn = conn
 
     def apply_full_schema(self) -> None:
-        """Aplica o schema completo (tabelas + índices + FTS5 + triggers).
+        """Applies the full schema (tables + indexes + FTS5 + triggers).
 
-        Operação idempotente — seguro chamar múltiplas vezes.
-        Executa dentro de uma transação única.
+        Idempotent operation — safe to call multiple times.
+        Executes within a single transaction.
 
         Raises:
-            sqlite3.OperationalError: Se houver erro irrecuperável no DDL.
+            sqlite3.OperationalError: If there is an unrecoverable DDL error.
         """
-        logger.debug("Iniciando aplicação do Schema v%s", self.SCHEMA_VERSION)
+        logger.debug("Starting application of Schema v%s", self.SCHEMA_VERSION)
         try:
             self._conn.executescript(TABLES_SQL)
             self._conn.executescript(INDEXES_SQL)
@@ -227,40 +227,40 @@ class SchemaManager:
             self._conn.executescript(FTS5_TRIGGERS_SQL)
             self._conn.commit()
             
-            # Garantir que a coluna 'content' existe (migração retroativa para bancos legados)
+            # Ensure the column 'content' exists (retroactive migration for legacy databases)
             cursor = self._conn.execute("PRAGMA table_info(nodes)")
             cols = [row[1] for row in cursor.fetchall()]
             if "content" not in cols:
                 self._conn.execute("ALTER TABLE nodes ADD COLUMN content TEXT;")
                 self._conn.commit()
-                logger.info("Migração: coluna 'content' adicionada à tabela 'nodes'.")
+                logger.info("Migration: 'content' column added to table 'nodes'.")
 
-            # Garantir que as colunas 'utility_alpha' e 'utility_beta' existem em semantic_facts
+            # Ensure 'utility_alpha' and 'utility_beta' columns exist in semantic_facts
             cursor = self._conn.execute("PRAGMA table_info(semantic_facts)")
             sem_cols = [row[1] for row in cursor.fetchall()]
             if "utility_alpha" not in sem_cols:
                 self._conn.execute("ALTER TABLE semantic_facts ADD COLUMN utility_alpha REAL NOT NULL DEFAULT 1.0;")
                 self._conn.commit()
-                logger.info("Migração: coluna 'utility_alpha' adicionada à tabela 'semantic_facts'.")
+                logger.info("Migration: 'utility_alpha' column added to table 'semantic_facts'.")
             if "utility_beta" not in sem_cols:
                 self._conn.execute("ALTER TABLE semantic_facts ADD COLUMN utility_beta REAL NOT NULL DEFAULT 1.0;")
                 self._conn.commit()
-                logger.info("Migração: coluna 'utility_beta' adicionada à tabela 'semantic_facts'.")
+                logger.info("Migration: 'utility_beta' column added to table 'semantic_facts'.")
 
-            # Garantir que a versão atual está salva no DB.
+            # Ensure the current version is saved in DB.
             current_version = self.get_schema_version()
             if not current_version or current_version != self.SCHEMA_VERSION:
                 self.set_schema_version(self.SCHEMA_VERSION)
 
-            # Migration retroativa: UNIQUE(scope_type, scope_id, block_label) em user_core_memory.
-            # Bancos criados antes desta versão não têm o índice único — sem ele o
-            # INSERT OR REPLACE não funciona como upsert.
+            # Retroactive migration: UNIQUE(scope_type, scope_id, block_label) in user_core_memory.
+            # Databases created before this version do not have the unique index — without it the
+            # INSERT OR REPLACE does not work as upsert.
             cursor = self._conn.execute(
                 "SELECT name FROM sqlite_master WHERE type='index' AND name='uq_core_memory_scope_label'"
             )
             if cursor.fetchone() is None:
                 try:
-                    # Remove duplicatas mantendo apenas o registro mais recente
+                    # Removes duplicates keeping only the most recent record
                     self._conn.execute("""
                         DELETE FROM user_core_memory
                         WHERE id NOT IN (
@@ -273,21 +273,21 @@ class SchemaManager:
                         ON user_core_memory(scope_type, scope_id, block_label)
                     """)
                     self._conn.commit()
-                    logger.info("Migration: UNIQUE index 'uq_core_memory_scope_label' criado em user_core_memory.")
+                    logger.info("Migration: UNIQUE index 'uq_core_memory_scope_label' created in user_core_memory.")
                 except Exception as idx_err:
-                    logger.warning("Migration UNIQUE index user_core_memory falhou (pode já existir): %s", idx_err)
+                    logger.warning("Migration UNIQUE index user_core_memory failed (may already exist): %s", idx_err)
 
         except Exception as e:
             self._conn.rollback()
-            logger.error("Falha ao aplicar schema: %s", e)
+            logger.error("Failed to apply schema: %s", e)
             raise
 
     def verify_tables_exist(self) -> dict[str, bool]:
-        """Verifica quais tabelas do Schema v3.8 existem no banco.
+        """Verifies which tables of Schema v3.8 exist in the database.
 
         Returns:
-            Dict mapeando nome da tabela → bool (existe ou não).
-            Tabelas verificadas: projects, nodes, edges, reference_wings,
+            Dict mapping table name → bool (exists or not).
+            Verified tables: projects, nodes, edges, reference_wings,
             trajectories, commit_log, nodes_fts.
         """
         required_tables = [
@@ -304,10 +304,10 @@ class SchemaManager:
         return {table: table in existing_tables for table in required_tables}
 
     def verify_triggers_exist(self) -> dict[str, bool]:
-        """Verifica quais triggers FTS5 existem no banco.
+        """Verifies which FTS5 triggers exist in the database.
 
         Returns:
-            Dict mapeando nome do trigger → bool.
+            Dict mapping trigger name → bool.
             Triggers: nodes_ai, nodes_ad, nodes_au.
         """
         required_triggers = ["nodes_ai", "nodes_ad", "nodes_au"]
@@ -318,11 +318,11 @@ class SchemaManager:
         return {trigger: trigger in existing_triggers for trigger in required_triggers}
 
     def get_schema_version(self) -> Optional[str]:
-        """Retorna a versão do schema armazenada no app_id do SQLite (convertida de volta).
-        No SQLite, usaremos 'user_version' que armazena int.
+        """Returns the schema version stored in user_version of SQLite (converted back).
+        In SQLite, we will use 'user_version' which stores int.
         
-        Como queremos armazenar strings semânticas, vamos salvar numa tabela de metadados?
-        Mas se não existe, usaremos um truque com PRAGMA user_version.
+        Since we want to store semantic strings, should we save them in a metadata table?
+        But if it doesn't exist, we will use a trick with PRAGMA user_version.
         3.8.0 -> 308000
         """
         cursor = self._conn.execute("PRAGMA user_version")
@@ -330,17 +330,17 @@ class SchemaManager:
         if val == 0:
             return None
         
-        # Converte de volta: 308000 -> 3.8.0
+        # Converts back: 308000 -> 3.8.0
         major = val // 100000
         minor = (val % 100000) // 1000
         patch = val % 1000
         return f"{major}.{minor}.{patch}"
 
     def set_schema_version(self, version: str) -> None:
-        """Grava a versão do schema no PRAGMA user_version.
+        """Writes the schema version in PRAGMA user_version.
 
         Args:
-            version: Versão semântica (ex: '3.8.0').
+            version: Semantic version (e.g. '3.8.0').
         """
         try:
             parts = [int(p) for p in version.split(".")]
@@ -348,31 +348,31 @@ class SchemaManager:
             val = parts[0] * 100000 + parts[1] * 1000 + parts[2]
             self._conn.execute(f"PRAGMA user_version = {val}")
             self._conn.commit()
-            logger.debug("Schema version salva como PRAGMA user_version=%d", val)
+            logger.debug("Schema version saved as PRAGMA user_version=%d", val)
         except Exception as e:
-            logger.warning("Falha ao salvar versão de schema %s: %s", version, e)
+            logger.warning("Failed to save schema version %s: %s", version, e)
 
     def rebuild_fts_index(self) -> None:
-        """Reconstrói o índice FTS5 a partir da tabela nodes.
+        """Rebuilds the FTS5 index from the nodes table.
 
-        Útil após grandes operações de ingestão (concierge mine).
-        Operação potencialmente lenta para bases grandes.
+        Useful after large ingestion operations (concierge mine).
+        Potentially slow operation for large databases.
         """
-        logger.info("Iniciando rebuild manual do índice FTS5...")
+        logger.info("Manual rebuild of FTS5 index started...")
         try:
             self._conn.execute("INSERT INTO nodes_fts(nodes_fts) VALUES('rebuild');")
             self._conn.commit()
-            logger.info("Índice FTS5 reconstruído com sucesso.")
+            logger.info("FTS5 index rebuilt successfully.")
         except Exception as e:
             self._conn.rollback()
-            logger.error("Falha ao reconstruir FTS5: %s", e)
+            logger.error("Failed to rebuild FTS5: %s", e)
             raise
 
     def get_table_row_counts(self) -> dict[str, int]:
-        """Retorna a contagem de rows de cada tabela do schema.
+        """Returns the row count of each table in the schema.
 
         Returns:
-            Dict mapeando nome da tabela → contagem de registros.
+            Dict mapping table name → record count.
         """
         counts = {}
         tables = [
@@ -385,6 +385,6 @@ class SchemaManager:
                 cursor = self._conn.execute(f"SELECT COUNT(*) FROM {table}")
                 counts[table] = cursor.fetchone()[0]
             except sqlite3.OperationalError:
-                counts[table] = -1  # Indica que a tabela provavelmente não existe
+                counts[table] = -1  # Indicates that the table probably does not exist
                 
         return counts

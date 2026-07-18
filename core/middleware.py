@@ -1,32 +1,32 @@
 """
-core/middleware.py — Grafo Concierge v3.8.0 (Absolute Solidity)
+core/middleware.py - Grafo Concierge v3.8.0 (Absolute Solidity)
 
-A Fachada Central — GrafoConcierge.
+The Central Facade - GrafoConcierge.
 
-Esta é a classe que o mundo exterior consome. Ela encapsula TODA a
-complexidade das camadas internas (storage, ingestion, services, core)
-em uma API pública limpa e orientada a projetos.
+This is the class that the outside world consumes. It encapsulates ALL the
+complexity of the internal layers (storage, ingestion, services, core)
+into a clean, project-oriented public API.
 
-Quem consome esta classe:
-    - interface/mcp_server.py (Servidor MCP → Claude Desktop, Cursor)
-    - interface/cli.py (Linha de Comando)
-    - interface/action_hooks.py (Módulos Operacionais)
-    - Testes de integração
+Consumers of this class:
+    - interface/mcp_server.py (MCP Server → Claude Desktop, Cursor)
+    - interface/cli.py (Command Line Interface)
+    - interface/action_hooks.py (Operational Modules)
+    - Integration tests
 
-Métodos públicos:
-    - register_project()  → Registra um novo projeto no grafo
-    - wake_up()           → Reativa consciência: bússola + wings + commits
-    - mine()              → Ingestão de arquivos (concierge mine)
-    - hybrid_search()     → Busca Híbrida v4 completa
-    - commit_memory()     → Registra alterações consolidadas
-    - get_resume()        → Bússola de Contexto (resumo conciso)
-    - lazy_load()         → Carregamento on-demand de um nó
-    - delete_project()    → Remoção com cascata
-    - find_similar()      → Projetos na mesma ala
-    - status()            → Estatísticas do projeto
+Public methods:
+    - register_project()  → Registers a new project in the graph
+    - wake_up()           → Re-activates consciousness: compass + wings + commits
+    - mine()              → Ingests files (concierge mine)
+    - hybrid_search()     → Complete Hybrid Search v4
+    - commit_memory()     → Registers consolidated changes
+    - get_resume()        → Context Compass (concise summary)
+    - lazy_load()         → On-demand node loading
+    - delete_project()    → Cascaded project deletion
+    - find_similar()      → Projects in the same wing
+    - status()            → Project statistics
 
-Princípio: Nenhuma classe interna (SqliteStore, ChromaVectorStore, etc.)
-é exposta ao mundo exterior. Tudo passa por esta fachada.
+Principle: No internal class (SqliteStore, ChromaVectorStore, etc.)
+is exposed to the outside world. Everything flows through this facade.
 """
 
 from __future__ import annotations
@@ -48,17 +48,17 @@ logger = logging.getLogger("grafo-concierge.middleware")
 
 
 class GrafoConcierge:
-    """Fachada Central do Grafo Concierge — API pública unificada.
+    """Central Facade of Grafo Concierge - unified public API.
 
-    Instanciando esta classe, todos os subsistemas são inicializados
-    automaticamente e inter-conectados.
+    By instantiating this class, all subsystems are initialized
+    automatically and interconnected.
 
     Args:
-        sqlite_store: Instância de SqliteStore.
-        vector_store: Instância de ChromaVectorStore.
-        embedding_manager: Instância de EmbeddingManager.
-        ingestion_manager: Instância de IngestionManager.
-        config: Parâmetros centralizados (default: DEFAULT_CONFIG).
+        sqlite_store: SqliteStore instance.
+        vector_store: ChromaVectorStore instance.
+        embedding_manager: EmbeddingManager instance.
+        ingestion_manager: IngestionManager instance.
+        config: Centralized parameters (default: DEFAULT_CONFIG).
     """
 
     def __init__(
@@ -76,7 +76,7 @@ class GrafoConcierge:
         self._ingestion = ingestion_manager
         self._config = config
 
-        # Sub-módulos do core
+        # Core submodules
         self._project_index = ProjectIndex(sqlite_store, config)
         self._search_engine = HybridSearchEngine(
             sqlite_store=sqlite_store,
@@ -86,7 +86,7 @@ class GrafoConcierge:
             config=config,
         )
 
-        # Motor de Extração Semântica (requer LLM adapter)
+        # Semantic Extraction Engine (requires LLM adapter)
         self._semantic_extractor: SemanticExtractor | None = (
             SemanticExtractor(llm_adapter) if llm_adapter else None
         )
@@ -94,7 +94,7 @@ class GrafoConcierge:
         logger.info("GrafoConcierge (Fachada) inicializada com sucesso.")
 
     # ===================================================================
-    # REGISTER — Registra um novo projeto
+    # REGISTER — Registers a new project
     # ===================================================================
 
     def register_project(
@@ -104,22 +104,22 @@ class GrafoConcierge:
         privacy_level: str = "PUBLIC",
         summary: Optional[str] = None,
     ) -> str:
-        """Registra um novo projeto no grafo.
+        """Registers a new project in the graph.
 
-        Se o projeto já existir (por folder_name), retorna o UUID existente.
-        Caso contrário, gera UUID v4 e cria o registro.
+        If the project already exists (by folder_name), returns the existing UUID.
+        Otherwise, generates a v4 UUID and creates the record.
 
         Args:
-            folder_name: Nome do diretório / identificador do projeto.
-            wing: Primary Wing (se None, será categorizado automaticamente
-                  após a primeira ingestão).
-            privacy_level: Nível de privacidade (PUBLIC, INTERNAL, RESTRICTED).
-            summary: Descrição inicial do projeto.
+            folder_name: Source directory / project identifier.
+            wing: Primary Wing (if None, it will be automatically categorized
+                  after the first ingestion).
+            privacy_level: Privacy level (PUBLIC, INTERNAL, RESTRICTED).
+            summary: Initial description of the project.
 
         Returns:
-            UUID do projeto (novo ou existente).
+            UUID of the project (new or existing).
         """
-        # Verifica se já existe
+        # Checks if already exists
         try:
             existing = self._store.get_project(folder_name)
             logger.info("Projeto já existe: '%s' → %s", folder_name, existing["uuid"])
@@ -145,25 +145,25 @@ class GrafoConcierge:
         return project_uuid
 
     # ===================================================================
-    # WAKE UP — Reativação de consciência
+    # WAKE UP — Re-activation of consciousness
     # ===================================================================
 
     def wake_up(self, project_uuid: str) -> dict:
-        """Reativa a consciência do agente para um projeto.
+        """Re-activates the agent's consciousness for a project.
 
-        Retorna o pacote mínimo de contexto necessário para o agente
-        retomar o trabalho: Bússola, Reference Wings e últimos commits.
+        Returns the minimum context package necessary for the agent
+        to resume work: Compass, Reference Wings, and last commits.
 
-        Alinhado com a Tool MCP concierge_wakeup.
+        Aligned with the MCP Tool concierge_wakeup.
 
         Args:
-            project_uuid: UUID do projeto.
+            project_uuid: Project UUID.
 
         Returns:
-            Dict com:
+            Dict containing:
             {
-                "project": dict (dados do projeto),
-                "resume": str (Bússola de Contexto),
+                "project": dict (project data),
+                "resume": str (Context Compass),
                 "reference_wings": list[str],
                 "recent_commits": list[dict],
                 "stats": dict,
@@ -193,7 +193,7 @@ class GrafoConcierge:
         return result
 
     # ===================================================================
-    # MINE — Ingestão de arquivos
+    # MINE — Ingestion of files
     # ===================================================================
 
     def mine(
@@ -203,24 +203,24 @@ class GrafoConcierge:
         auto_tag: bool = True,
         auto_categorize: bool = True,
     ) -> dict:
-        """Executa o pipeline completo de ingestão (concierge mine).
+        """Runs the complete ingestion pipeline (concierge mine).
 
-        Delega ao IngestionManager e, opcionalmente, recategoriza
-        a Primary Wing do projeto após a ingestão.
+        Delegates to IngestionManager and optionally re-categorizes
+        the project's Primary Wing after ingestion.
 
         Args:
-            project_uuid: UUID do projeto.
-            source_path: Caminho do diretório fonte.
-            auto_tag: Habilitar detecção automática de tags.
-            auto_categorize: Recategorizar ala após ingestão.
+            project_uuid: Project UUID.
+            source_path: Path to the source directory.
+            auto_tag: Enable automatic tag detection.
+            auto_categorize: Re-categorize wing after ingestion.
 
         Returns:
-            Dict compatível com a resposta da Tool MCP concierge_mine.
+            Dict compatible with the MCP Tool concierge_mine response.
         """
         result = self._ingestion.mine(project_uuid, source_path, auto_tag)
         result_dict = result.to_dict()
 
-        # Auto-categorização pós-ingestão
+        # Auto-categorization post-ingestion
         if auto_categorize and result_dict.get("nodes_created", 0) > 0:
             try:
                 wing = self._project_index.auto_categorize_project(project_uuid)
@@ -231,7 +231,7 @@ class GrafoConcierge:
         return result_dict
 
     # ===================================================================
-    # SEARCH — Busca Híbrida v4
+    # SEARCH — Hybrid Search v4
     # ===================================================================
 
     def hybrid_search(
@@ -243,21 +243,21 @@ class GrafoConcierge:
         all_wings: bool = False,
         node_type: Optional[str] = None,
     ) -> list[dict]:
-        """Busca Híbrida v4 — Pipeline completo.
+        """Hybrid Search v4 — Complete Pipeline.
 
-        Delega ao HybridSearchEngine a orquestração tri-sinal.
-        Alinhado com a Tool MCP concierge_search.
+        Delegates tri-signal orchestration to HybridSearchEngine.
+        Aligned with the MCP Tool concierge_search.
 
         Args:
-            query: Texto de busca.
-            project_uuid: UUID do projeto âncora.
-            top_k: Máximo de resultados.
-            include_references: Incluir Reference Wings.
-            all_wings: Buscar em todas as alas.
-            node_type: Filtro cirúrgico por tipo de nó.
+            query: Search query.
+            project_uuid: Anchor project UUID.
+            top_k: Maximum results.
+            include_references: Include Reference Wings.
+            all_wings: Search in all wings.
+            node_type: Surgical filter by node type.
 
         Returns:
-            Lista de dicts com score_final e breakdown, ordenada DESC.
+            List of dicts with final_score and breakdown, sorted DESC.
         """
         return self._search_engine.search(
             query=query,
@@ -269,7 +269,7 @@ class GrafoConcierge:
         )
 
     # ===================================================================
-    # COMMIT — Registro de alterações consolidadas
+    # COMMIT — Consolidated changes registration
     # ===================================================================
 
     def commit_memory(
@@ -280,22 +280,22 @@ class GrafoConcierge:
         updated_pointers: list[str],
         node_ids: Optional[list[int]] = None,
     ) -> int:
-        """Registra um commit de memória no grafo.
+        """Registers a memory commit in the graph.
 
-        Cada commit salva as alterações técnicas e ponteiros atualizados.
-        Se node_ids forem fornecidos, atualiza o last_commit_at de cada nó.
+        Each commit saves technical changes and updated pointers.
+        If node_ids are provided, updates the last_commit_at of each node.
 
-        Alinhado com a Tool MCP concierge_commit.
+        Aligned with the MCP Tool concierge_commit.
 
         Args:
-            project_uuid: UUID do projeto.
-            phase: Fase atual (planning, build, done, review).
-            technical_changes: Descrição das mudanças técnicas.
-            updated_pointers: Lista de ponteiros atualizados.
-            node_ids: IDs de nós afetados (para atualizar recência).
+            project_uuid: Project UUID.
+            phase: Current phase (planning, build, done, review).
+            technical_changes: Description of technical changes.
+            updated_pointers: List of updated pointers.
+            node_ids: IDs of affected nodes (to update recency).
 
         Returns:
-            ID do commit criado.
+            ID of the created commit.
         """
         commit_id = self._store.create_commit(
             project_uuid=project_uuid,
@@ -304,7 +304,7 @@ class GrafoConcierge:
             updated_pointers=updated_pointers,
         )
 
-        # Atualiza recência dos nós afetados
+        # Update recency of affected nodes
         if node_ids:
             for nid in node_ids:
                 try:
@@ -319,19 +319,19 @@ class GrafoConcierge:
         return commit_id
 
     # ===================================================================
-    # RESUME — Bússola de Contexto
+    # RESUME — Context Compass
     # ===================================================================
 
     def get_resume(self, project_uuid: str) -> str:
-        """Retorna a Bússola de Contexto (resumo conciso) do projeto.
+        """Returns the Context Compass (concise summary) of the project.
 
-        Alinhado com a Tool MCP concierge_resume.
+        Aligned with the MCP Tool concierge_resume.
 
         Args:
-            project_uuid: UUID do projeto.
+            project_uuid: Project UUID.
 
         Returns:
-            String com o resumo do projeto (max ~300 tokens).
+            String with the project summary (max ~300 tokens).
         """
         project = self._store.get_project(project_uuid)
         resume = project.get("summary", "")
@@ -348,28 +348,28 @@ class GrafoConcierge:
         return resume
 
     # ===================================================================
-    # LAZY LOAD — Carregamento on-demand de um nó
+    # LAZY LOAD — On-demand node loading
     # ===================================================================
 
     def lazy_load(self, node_id: int) -> dict:
-        """Carrega os dados completos de um nó sob demanda.
+        """Loads complete node data under demand.
 
-        Atualiza o last_accessed do nó para registrar a consulta.
-        Alinhado com a Tool MCP concierge_load.
+        Updates the node's last_accessed to record the query.
+        Aligned with the MCP Tool concierge_load.
 
         Args:
-            node_id: ID do nó a carregar.
+            node_id: ID of the node to load.
 
         Returns:
-            Dict com todos os campos do nó + arestas de saída.
+            Dict with all node fields + outgoing edges.
         """
         node = self._store.get_node(node_id)
 
-        # Atualiza last_accessed (relevante para Amnésia Seletiva)
+        # Update last_accessed (relevant for Selective Amnesia)
         now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
         self._store.update_node(node_id, last_accessed=now)
 
-        # Carrega arestas de saída para contexto
+        # Load outgoing edges for context
         edges_out = self._store.get_edges_from(node_id)
 
         result = {
@@ -381,19 +381,19 @@ class GrafoConcierge:
         return result
 
     # ===================================================================
-    # DELETE — Remoção de projeto
+    # DELETE — Project removal
     # ===================================================================
 
     def delete_project(self, project_uuid: str) -> None:
-        """Remove um projeto e todos os dados associados.
+        """Removes a project and all associated data.
 
-        Cascata: nós, arestas, trajetórias, commits e reference_wings.
-        Também limpa vetores associados no ChromaDB.
+        Cascade: nodes, edges, trajectories, commits, and reference_wings.
+        Also clears associated vectors in ChromaDB.
 
         Args:
-            project_uuid: UUID do projeto a remover.
+            project_uuid: UUID of the project to remove.
         """
-        # Remove vetores do ChromaDB antes do SQLite (precisa dos node_ids)
+        # Remove vectors from ChromaDB before SQLite (needs node_ids)
         try:
             nodes = self._store.get_nodes_by_project(project_uuid)
             if nodes:
@@ -403,12 +403,12 @@ class GrafoConcierge:
         except Exception as e:
             logger.warning("Falha ao limpar vetores do projeto %s: %s", project_uuid, e)
 
-        # Remove do SQLite (CASCADE cuida de nós, arestas, etc.)
+        # Remove from SQLite (CASCADE handles nodes, edges, etc.)
         self._store.delete_project(project_uuid)
         logger.info("Projeto removido: %s", project_uuid)
 
     # ===================================================================
-    # SIMILAR — Projetos da mesma ala
+    # SIMILAR — Projects in the same wing
     # ===================================================================
 
     def find_similar(
@@ -418,35 +418,35 @@ class GrafoConcierge:
         include_references: bool = False,
         all_wings: bool = False,
     ) -> list[dict]:
-        """Busca projetos similares por domínio (mesma ala).
+        """Searches similar projects by domain (same wing).
 
         Args:
-            project_uuid: UUID do projeto âncora.
-            limit: Máximo de resultados.
-            include_references: Incluir Reference Wings.
-            all_wings: Todas as alas.
+            project_uuid: Anchor project UUID.
+            limit: Maximum results.
+            include_references: Include Reference Wings.
+            all_wings: All wings.
 
         Returns:
-            Lista de dicts com dados dos projetos similares.
+            List of dicts with data of similar projects.
         """
         return self._project_index.find_similar_projects(
             project_uuid, limit, include_references, all_wings,
         )
 
     # ===================================================================
-    # STATUS — Estatísticas do projeto
+    # STATUS — Project statistics
     # ===================================================================
 
     def status(self, project_uuid: str) -> dict:
-        """Retorna estatísticas completas de um projeto.
+        """Returns complete project statistics.
 
-        Alinhado com a Tool MCP concierge_status.
+        Aligned with the MCP Tool concierge_status.
 
         Args:
-            project_uuid: UUID do projeto.
+            project_uuid: Project UUID.
 
         Returns:
-            Dict com contadores de nós, arestas, commits, trajetórias, etc.
+            Dict with counters for nodes, edges, commits, trajectories, etc.
         """
         project = self._store.get_project(project_uuid)
         stats = self._store.get_project_stats(project_uuid)
@@ -461,30 +461,30 @@ class GrafoConcierge:
         }
 
     # ===================================================================
-    # Acesso a sub-módulos (para uso avançado / testes)
+    # Submodule access (for advanced use / testing)
     # ===================================================================
 
     @property
     def project_index(self) -> ProjectIndex:
-        """Acesso ao ProjectIndex para operações avançadas de alas."""
+        """Access to ProjectIndex for advanced wing operations."""
         return self._project_index
 
     @property
     def search_engine(self) -> HybridSearchEngine:
-        """Acesso ao HybridSearchEngine para buscas customizadas."""
+        """Access to HybridSearchEngine for customized searches."""
         return self._search_engine
 
     @property
     def store(self) -> SqliteStore:
-        """Acesso ao SqliteStore (para operações internas avançadas)."""
+        """Access to SqliteStore (for advanced internal operations)."""
         return self._store
 
     def search_symbols(self, query: str, project_uuid: Optional[str] = None, limit: int = 50) -> list[dict]:
-        """Realiza busca rápida por símbolos no FTS5."""
+        """Performs quick symbol search on FTS5."""
         return self._store.search_symbols(query, project_uuid, limit)
 
     def get_implementations(self, symbol_id: int) -> dict:
-        """Retorna o bloco de código exato da AST armazenado no nó."""
+        """Returns the exact AST code block stored in the node."""
         node = self._store.get_node(symbol_id)
         return {
             "id": node["id"],
@@ -496,16 +496,15 @@ class GrafoConcierge:
         }
 
     def get_callers(self, symbol_id: int) -> list[dict]:
-        """Consulta as arestas para retornar todas as chamadas ao símbolo."""
+        """Queries edges to return all calls to the symbol."""
         return self._store.get_callers(symbol_id)
 
     def get_full_topology(self, project_uuid: Optional[str] = None) -> dict[str, list[dict]]:
-        """Retorna a topologia completa (nós e arestas) de forma leve."""
+        """Returns the complete topology (nodes and edges) in a lightweight format."""
         return self._store.get_lightweight_topology(project_uuid)
 
     # ===================================================================
-
-    # STORE FACT — Gravação de Fatos Semânticos via SemanticExtractor
+    # STORE FACT — Storing Semantic Facts via SemanticExtractor
     # ===================================================================
 
     def store_fact(
@@ -514,28 +513,28 @@ class GrafoConcierge:
         scope_id: str,
         fact_statement: str,
     ) -> list[dict]:
-        """Grava um fato semântico no grafo via SemanticExtractor.
+        """Stores a semantic fact in the graph via SemanticExtractor.
 
-        O SemanticExtractor avalia o fato contra os fatos existentes
-        do escopo e decide: ADD, UPDATE, DELETE ou NOOP.
+        The SemanticExtractor evaluates the fact against existing facts
+        of the scope and decides: ADD, UPDATE, DELETE, or NOOP.
 
-        Alinhado com a Tool MCP concierge_store_fact.
+        Aligned with the MCP Tool concierge_store_fact.
 
         Args:
-            scope_type: Tipo de escopo ('user', 'session', 'agent', 'org').
-            scope_id: Identificador único do escopo.
-            fact_statement: Texto do fato/preferência a gravar.
+            scope_type: Scope type ('user', 'session', 'agent', 'org').
+            scope_id: Unique identifier of the scope.
+            fact_statement: Text of the fact/preference to store.
 
         Returns:
-            Lista de dicts detalhando as decisões tomadas.
+            List of dicts detailing the decisions made.
 
         Raises:
-            RuntimeError: Se o SemanticExtractor não está configurado.
+            RuntimeError: If SemanticExtractor is not configured.
         """
         if self._semantic_extractor is None:
             raise RuntimeError(
-                "SemanticExtractor não disponível: llm_adapter não foi "
-                "fornecido na inicialização do GrafoConcierge."
+                "SemanticExtractor not available: llm_adapter was not "
+                "provided during GrafoConcierge initialization."
             )
 
         def _do_store(conn) -> list[dict]:
@@ -548,11 +547,11 @@ class GrafoConcierge:
 
         results = self._store.write_callback(_do_store)
         logger.info(
-            "store_fact: scope=%s/%s, resultados=%d",
+            "store_fact: scope=%s/%s, results=%d",
             scope_type, scope_id, len(results),
         )
 
-        # Sincronização vetorial episódica se o backend for QdrantVectorStore
+        # Episodic vector synchronization if vector backend is QdrantVectorStore
         try:
             from core.vector_backend import QdrantVectorStore
             if isinstance(self._vector, QdrantVectorStore) and results:
@@ -576,9 +575,9 @@ class GrafoConcierge:
                                 embedding=emb,
                                 metadata=metadata
                             )
-                            logger.info("Fato semântico %d sincronizado no Qdrant (episodic_memory).", fact_id)
+                            logger.info("Semantic fact %d synchronized in Qdrant (episodic_memory).", fact_id)
         except Exception as q_err:
-            logger.warning("Falha ao sincronizar fato semântico no Qdrant: %s", q_err)
+            logger.warning("Failed to synchronize semantic fact in Qdrant: %s", q_err)
 
         return results
 
@@ -593,16 +592,16 @@ class GrafoConcierge:
         block_label: str,
         content: str,
     ) -> int:
-        """Grava ou atualiza um bloco de memória core do usuário/sessão.
+        """Stores or updates a core memory block of the user/session.
 
         Args:
-            scope_type: 'user', 'session', 'agent' ou 'org'.
-            scope_id: Identificador único do escopo.
-            block_label: Rótulo do bloco de memória.
-            content: Conteúdo a armazenar.
+            scope_type: 'user', 'session', 'agent', or 'org'.
+            scope_id: Unique identifier of the scope.
+            block_label: Label of the memory block.
+            content: Content to store.
 
         Returns:
-            ID do registro inserido/atualizado.
+            ID of the inserted/updated record.
         """
         return self._store.set_core_memory(scope_type, scope_id, block_label, content)
 
@@ -612,16 +611,16 @@ class GrafoConcierge:
         scope_id: str,
         block_label: Optional[str] = None,
     ) -> list[dict]:
-        """Retorna blocos de memória core para um escopo.
+        """Returns core memory blocks for a scope.
 
         Args:
-            scope_type: Tipo de escopo.
-            scope_id: Identificador único do escopo.
-            block_label: Se informado, retorna apenas o bloco específico
-                         (lista com 0 ou 1 elemento). Se ausente, retorna todos.
+            scope_type: Scope type.
+            scope_id: Unique identifier of the scope.
+            block_label: If provided, returns only the specific block
+                         (list with 0 or 1 element). If absent, returns all.
 
         Returns:
-            Lista de dicts com os registros de user_core_memory.
+            List of dicts with the user_core_memory records.
         """
         if block_label:
             record = self._store.get_core_memory(scope_type, scope_id, block_label)
@@ -629,18 +628,18 @@ class GrafoConcierge:
         return self._store.list_core_memory_blocks(scope_type, scope_id)
 
     # ===================================================================
-    # FEEDBACK LOOP BAYESIANO — Patch 3
+    # BAYESIAN FEEDBACK LOOP — Patch 3
     # ===================================================================
 
     def update_fact_utility(self, fact_id: int, was_useful: bool) -> None:
-        """Atualiza a utilidade Bayesiana de um semantic_fact.
+        """Updates the Bayesian utility of a semantic_fact.
 
-        Incrementa utility_alpha (sucesso) ou utility_beta (falha) do fato,
-        alimentando o Thompson Sampling do HybridSearchEngine.
+        Increments utility_alpha (success) or utility_beta (failure) of the fact,
+        feeding Thompson Sampling in HybridSearchEngine.
 
         Args:
-            fact_id: ID do fato semântico (campo id de semantic_facts).
-            was_useful: True se o fato foi útil, False caso contrário.
+            fact_id: ID of the semantic fact.
+            was_useful: True if the fact was useful, False otherwise.
         """
         from storage.semantic_logic import update_memory_utility
 
@@ -654,69 +653,69 @@ class GrafoConcierge:
         )
 
     # ===================================================================
-    # ARSENAL MCP — Backend-6.1: Ciclo de Vida + Telemetria + Vetorial
+    # MCP ARSENAL — Backend-6.1: Life Cycle + Telemetry + Vector
     # ===================================================================
 
     def update_project(self, project_uuid: str, **fields: Any) -> None:
-        """Atualiza campos permitidos de um projeto (cadastro).
+        """Updates allowed fields of a project (registry).
 
         Args:
-            project_uuid: UUID do projeto.
-            **fields: Campos a atualizar (folder_name, primary_wing,
+            project_uuid: Project UUID.
+            **fields: Fields to update (folder_name, primary_wing,
                       privacy_level, summary).
         """
         self._store.update_project(project_uuid, **fields)
         logger.info("update_project: %s → campos=%s", project_uuid, list(fields.keys()))
 
     def add_reference_wing(self, project_uuid: str, wing_name: str) -> None:
-        """Associa uma Reference Wing ao projeto.
+        """Associates a Reference Wing to the project.
 
         Args:
-            project_uuid: UUID do projeto.
-            wing_name: Nome da ala a associar.
+            project_uuid: Project UUID.
+            wing_name: Wing name to associate.
         """
         self._store.add_reference_wing(project_uuid, wing_name)
         logger.info("add_reference_wing: %s → wing=%s", project_uuid, wing_name)
 
     def remove_reference_wing(self, project_uuid: str, wing_name: str) -> None:
-        """Remove uma Reference Wing do projeto.
+        """Removes a Reference Wing from the project.
 
         Args:
-            project_uuid: UUID do projeto.
-            wing_name: Nome da ala a remover.
+            project_uuid: Project UUID.
+            wing_name: Wing name to remove.
         """
         self._store.remove_reference_wing(project_uuid, wing_name)
         logger.info("remove_reference_wing: %s → wing=%s", project_uuid, wing_name)
 
     def get_trajectories(self, project_uuid: str) -> list[dict]:
-        """Recupera o histórico de trajetórias cognitivas do projeto.
+        """Retrieves the history of cognitive trajectories of the project.
 
         Args:
-            project_uuid: UUID do projeto.
+            project_uuid: Project UUID.
 
         Returns:
-            Lista de dicts com as trajetórias registradas.
+            List of dicts with the registered trajectories.
         """
         return self._store.get_trajectories(project_uuid)
 
     def count_embeddings(self, project_uuid: Optional[str] = None) -> int:
-        """Retorna a contagem exata de vetores no ChromaDB.
+        """Returns the exact count of vectors in ChromaDB.
 
         Args:
-            project_uuid: Se informado, conta apenas deste projeto.
+            project_uuid: If provided, counts only for this project.
 
         Returns:
-            Número total de embeddings armazenados.
+            Total number of stored embeddings.
         """
         return self._vector.count(project_uuid)
 
     def reset_collection(self) -> bool:
-        """Destrói e recria a coleção de vetores (reparo emergencial).
+        """Destroys and recreates the vector collection (emergency repair).
 
-        CUIDADO: Operação destrutiva e irreversível. Exigirá re-ingestão.
+        CAUTION: Destructive and irreversible operation. Will require re-ingestion.
 
         Returns:
-            True se sucesso, False caso contrário.
+            True if successful, False otherwise.
         """
         result = self._vector.reset_collection()
         if result:

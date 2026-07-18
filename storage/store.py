@@ -1,17 +1,17 @@
 """
-storage/store.py — Grafo Concierge v3.8.0 (Absolute Solidity)
+storage/store.py - Grafo Concierge v3.8.0 (Absolute Solidity)
 
-Fachada (Facade) unificada que compõe:
-    - ConnectionManager (connection.py) → WAL, busy_timeout, fila serializada
-    - SchemaManager (schema.py)        → DDL, CHECK constraints, FTS5 triggers
-    - GraphLogic (logic.py)            → decaimento, centralidade, recência, FTS5
+Unified Facade that composes:
+    - ConnectionManager (connection.py) -> WAL, busy_timeout, serialized queue
+    - SchemaManager (schema.py)        -> DDL, CHECK constraints, FTS5 triggers
+    - GraphLogic (logic.py)            -> decay, centrality, recency, FTS5
 
-API consistente com as Tools MCP v3.8:
-    concierge_resume   → get_project / get_project_stats
-    concierge_commit   → create_commit + touch_node_commit
-    concierge_search   → fts_search / hybrid_search_score_batch
-    concierge_mine     → create_node / find_node_by_hash
-    concierge_register → create_project
+API consistent with MCP v3.8 Tools:
+    concierge_resume   -> get_project / get_project_stats
+    concierge_commit   -> create_commit + touch_node_commit
+    concierge_search   -> fts_search / hybrid_search_score_batch
+    concierge_mine     -> create_node / find_node_by_hash
+    concierge_register -> create_project
 """
 
 from __future__ import annotations
@@ -34,31 +34,31 @@ logger = logging.getLogger("grafo-concierge.store")
 
 
 # ---------------------------------------------------------------------------
-# Exceções da fachada
+# Facade exceptions
 # ---------------------------------------------------------------------------
 
 class ProjectNotFoundError(Exception):
-    """Projeto não encontrado por UUID nem folder_name."""
+    """Project not found by UUID or folder_name."""
 
 class NodeNotFoundError(Exception):
-    """Nó não encontrado pelo ID fornecido."""
+    """Node not found by the provided ID."""
 
 class CommitValidationError(Exception):
-    """Campos obrigatórios ausentes no commit."""
+    """Required fields missing in the commit."""
 
 
 # ---------------------------------------------------------------------------
-# SqliteStore — Fachada Unificada
+# SqliteStore — Unified Facade
 # ---------------------------------------------------------------------------
 
 class SqliteStore:
-    """Fachada de persistência SQLite para o Grafo Concierge v3.8.
+    """SQLite persistence facade for Grafo Concierge v3.8.
 
-    No __init__, o schema é verificado e aplicado automaticamente.
-    O usuário final só interage com esta classe.
+    In __init__, the schema is verified and applied automatically.
+    The end user only interacts with this class.
 
     Args:
-        db_path: Caminho para o .db (default: <project_root>/data/concierge.db).
+        db_path: Path to the .db (default: <project_root>/data/concierge.db).
     """
 
     def __init__(self, db_path: str | None = None, config: Optional["ConciergeConfig"] = None) -> None:
@@ -67,22 +67,22 @@ class SqliteStore:
         resolved = str(Path(db_path).expanduser().absolute())
         Path(resolved).parent.mkdir(parents=True, exist_ok=True)
 
-        # 1. Schema PRIMEIRO (aplica DDL + FTS5 + triggers antes de qualquer conexão persistente)
-        #    A conexão temporária é aberta e fechada aqui, sem competir com a fila.
+        # 1. Schema FIRST (applies DDL + FTS5 + triggers before any persistent connection)
+        #    The temporary connection is opened and closed here, without competing with the queue.
         self._boot_schema(resolved)
 
-        # 2. Conexões (WAL + busy_timeout + fila serializada) — inicia APÓS schema estar pronto
+        # 2. Connections (WAL + busy_timeout + serialized queue) - starts AFTER schema is ready
         self._conn_mgr = ConnectionManager(resolved)
         self._conn_mgr.start()
 
-        # 3. Inteligência (centralidade, recência, decay, FTS5, CTE)
-        #    Agora repassa ConciergeConfig para que os pesos obedeçam o config do usuário
+        # 3. Intelligence (centrality, recency, decay, FTS5, CTE)
+        #    Now passes ConciergeConfig so that weights obey user config
         self._logic = GraphLogic(self._conn_mgr, config=config)
 
-        logger.info("SqliteStore inicializado: %s", resolved)
+        logger.info("SqliteStore initialized: %s", resolved)
 
     def _boot_schema(self, db_path: str) -> None:
-        """Abre conexão temporária para aplicar o schema de forma idempotente."""
+        """Opens temporary connection to apply the schema idempotently."""
         conn = sqlite3.connect(db_path)
         try:
             conn.execute("PRAGMA journal_mode=WAL;")
@@ -91,33 +91,33 @@ class SqliteStore:
             mgr = SchemaManager(conn)
             mgr.apply_full_schema()
 
-            # Log de verificação
+            # Verification log
             tables = mgr.verify_tables_exist()
             missing = [t for t, exists in tables.items() if not exists]
             if missing:
-                logger.error("Tabelas ausentes após boot: %s", missing)
-                raise RuntimeError(f"Schema incompleto: {missing}")
+                logger.error("Missing tables after boot: %s", missing)
+                raise RuntimeError(f"Incomplete schema: {missing}")
 
             triggers = mgr.verify_triggers_exist()
             missing_t = [t for t, exists in triggers.items() if not exists]
             if missing_t:
-                logger.error("Triggers FTS5 ausentes: %s", missing_t)
-                raise RuntimeError(f"Triggers ausentes: {missing_t}")
+                logger.error("Missing FTS5 triggers: %s", missing_t)
+                raise RuntimeError(f"Missing triggers: {missing_t}")
 
-            logger.info("Schema v%s verificado — todas as tabelas e triggers OK.", SchemaManager.SCHEMA_VERSION)
+            logger.info("Schema v%s verified - all tables and triggers OK.", SchemaManager.SCHEMA_VERSION)
         finally:
             conn.close()
 
     def close(self) -> None:
-        """Encerra a fila de escrita e conexões de leitura."""
+        """Shuts down the write queue and read connections."""
         self._conn_mgr.close()
-        logger.info("SqliteStore encerrado.")
+        logger.info("SqliteStore closed.")
 
     def write_callback(self, fn: Callable, *args: Any, **kwargs: Any) -> Any:
-        """Delega uma operação de escrita para a fila serializada do ConnectionManager.
+        """Delegates a write operation to the ConnectionManager's serialized queue.
 
-        Este método protege o encapsulamento do ConnectionManager e de sua
-        fila de escrita interna.
+        This method protects the encapsulation of the ConnectionManager and its
+        internal write queue.
         """
         return self._conn_mgr.write(fn, *args, **kwargs)
 
@@ -129,9 +129,9 @@ class SqliteStore:
         self, uuid: str, folder_name: str, primary_wing: str = "geral",
         privacy_level: str = "PUBLIC", summary: Optional[str] = None,
     ) -> dict:
-        """Registra um novo projeto (alinhado com concierge_register)."""
+        """Registers a new project (aligned with concierge_register)."""
         if privacy_level not in VALID_PRIVACY_LEVELS:
-            raise ValueError(f"privacy_level inválido: '{privacy_level}'. Aceitos: {sorted(VALID_PRIVACY_LEVELS)}")
+            raise ValueError(f"Invalid privacy_level: '{privacy_level}'. Accepted: {sorted(VALID_PRIVACY_LEVELS)}")
 
         def _do(conn, u, fn, pw, pl, s):
             conn.execute(
@@ -142,23 +142,23 @@ class SqliteStore:
         return self._conn_mgr.write(_do, uuid, folder_name, primary_wing, privacy_level, summary)
 
     def get_project(self, project_id: str) -> dict:
-        """Busca projeto por UUID ou folder_name."""
+        """Retrieves a project by UUID or folder_name."""
         with self._conn_mgr.read() as conn:
             row = conn.execute(
                 "SELECT * FROM projects WHERE uuid = ? OR folder_name = ?",
                 (project_id, project_id)).fetchone()
         if not row:
-            raise ProjectNotFoundError(f"Projeto não encontrado: {project_id}")
+            raise ProjectNotFoundError(f"Project not found: {project_id}")
         return dict(row)
 
     def update_project(self, uuid: str, **fields: Any) -> None:
-        """Atualiza campos permitidos de um projeto."""
+        """Updates allowed fields of a project."""
         allowed = {"folder_name", "primary_wing", "privacy_level", "summary"}
         updates = {k: v for k, v in fields.items() if k in allowed}
         if not updates:
             return
         if "privacy_level" in updates and updates["privacy_level"] not in VALID_PRIVACY_LEVELS:
-            raise ValueError(f"privacy_level inválido: {updates['privacy_level']}")
+            raise ValueError(f"Invalid privacy_level: {updates['privacy_level']}")
         updates["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
         set_clause = ", ".join(f"{k} = ?" for k in updates)
         vals = list(updates.values()) + [uuid]
@@ -168,13 +168,13 @@ class SqliteStore:
         self._conn_mgr.write(_do, set_clause, vals)
 
     def delete_project(self, uuid: str) -> None:
-        """Remove um projeto e todos os dados cascata."""
+        """Removes a project and all cascaded data."""
         def _do(conn, u):
             conn.execute("DELETE FROM projects WHERE uuid = ?", (u,))
         self._conn_mgr.write(_do, uuid)
 
     def list_projects(self) -> list[dict]:
-        """Lista todos os projetos ordenados por updated_at DESC."""
+        """Lists all projects sorted by updated_at DESC."""
         with self._conn_mgr.read() as conn:
             rows = conn.execute("SELECT * FROM projects ORDER BY updated_at DESC").fetchall()
         return [dict(r) for r in rows]
@@ -191,16 +191,17 @@ class SqliteStore:
         valid_from_commit: Optional[str] = None,
         valid_to_commit: Optional[str] = None,
     ) -> int:
-        """Cria um nó no grafo (alinhado com concierge_mine).
+        """Creates a node in the graph (aligned with concierge_mine).
 
         Args:
-            valid_from_commit: SHA do commit em que o nó passa a ser válido (opcional).
-            valid_to_commit: SHA do commit em que o nó deixa de ser válido (opcional).
+            valid_from_commit: SHA of the commit where the node becomes valid (optional).
+            valid_to_commit: SHA of the commit where the node ceases to be valid (optional).
         """
         if node_type not in VALID_NODE_TYPES:
-            raise ValueError(f"node_type inválido: '{node_type}'. Aceitos: {sorted(VALID_NODE_TYPES)}")
+            raise ValueError(f"Invalid node_type: '{node_type}'. Accepted: {sorted(VALID_NODE_TYPES)}")
         if status not in VALID_STATUSES:
-            raise ValueError(f"status inválido: '{status}'. Aceitos: {sorted(VALID_STATUSES)}")
+            raise ValueError(f"Invalid status: '{status}'. Accepted: {sorted(VALID_STATUSES)}")
+        
         tags_json = json.dumps(tags, ensure_ascii=False) if tags else None
 
         def _do(conn, pu, lb, sm, nt, tp, tg, fh, st, ct, vfc, vtc):
@@ -217,11 +218,11 @@ class SqliteStore:
         )
 
     def get_node(self, node_id: int) -> dict:
-        """Retorna um nó pelo ID."""
+        """Returns a node by ID."""
         with self._conn_mgr.read() as conn:
             row = conn.execute("SELECT * FROM nodes WHERE id = ?", (node_id,)).fetchone()
         if not row:
-            raise NodeNotFoundError(f"Nó não encontrado: {node_id}")
+            raise NodeNotFoundError(f"Node not found: {node_id}")
         result = dict(row)
         if result.get("tags"):
             try:
@@ -233,7 +234,7 @@ class SqliteStore:
     def get_nodes_by_project(
         self, project_uuid: str, node_type: Optional[str] = None, status: Optional[str] = None,
     ) -> list[dict]:
-        """Lista nós de um projeto com filtros opcionais."""
+        """Lists nodes of a project with optional filters."""
         sql = "SELECT * FROM nodes WHERE project_uuid = ?"
         params: list[Any] = [project_uuid]
         if node_type:
@@ -256,15 +257,15 @@ class SqliteStore:
         return results
 
     def get_lightweight_topology(self, project_uuid: Optional[str] = None) -> dict[str, list[dict]]:
-        """Retorna a topologia completa e ultraleve (nós e arestas) do banco.
+        """Returns the complete and lightweight topology (nodes and edges) from the database.
 
-        Evita carregar resumos de texto (summary) ou embeddings para otimização de banda.
+        Avoids loading text summaries (summary) or embeddings for bandwidth optimization.
 
         Args:
-            project_uuid: UUID opcional para filtrar os nós e arestas daquele projeto.
+            project_uuid: Optional UUID to filter the nodes and edges of that project.
 
         Returns:
-            Dict com a estrutura:
+            Dict with structure:
             {
                 "nodes": [{"node_id": int, "name": str, "node_type": str}],
                 "edges": [{"source": int, "target": int, "edge_type": str}]
@@ -301,7 +302,7 @@ class SqliteStore:
 
 
     def update_node(self, node_id: int, **fields: Any) -> None:
-        """Atualiza campos permitidos de um nó (inclui campos temporais)."""
+        """Updates allowed fields of a node (includes temporal fields)."""
         allowed = {"label", "summary", "node_type", "type", "tags", "file_hash",
                     "last_accessed", "last_commit_at", "status",
                     "valid_from_commit", "valid_to_commit"}
@@ -309,9 +310,9 @@ class SqliteStore:
         if not updates:
             return
         if "node_type" in updates and updates["node_type"] not in VALID_NODE_TYPES:
-            raise ValueError(f"node_type inválido: {updates['node_type']}")
+            raise ValueError(f"Invalid node_type: {updates['node_type']}")
         if "status" in updates and updates["status"] not in VALID_STATUSES:
-            raise ValueError(f"status inválido: {updates['status']}")
+            raise ValueError(f"Invalid status: {updates['status']}")
         if "tags" in updates and isinstance(updates["tags"], list):
             updates["tags"] = json.dumps(updates["tags"], ensure_ascii=False)
         set_clause = ", ".join(f"{k} = ?" for k in updates)
@@ -322,13 +323,13 @@ class SqliteStore:
         self._conn_mgr.write(_do, set_clause, vals)
 
     def delete_node(self, node_id: int) -> None:
-        """Remove um nó e suas arestas (CASCADE)."""
+        """Removes a node and its edges (CASCADE)."""
         def _do(conn, nid):
             conn.execute("DELETE FROM nodes WHERE id = ?", (nid,))
         self._conn_mgr.write(_do, node_id)
 
     def find_node_by_hash(self, project_uuid: str, file_hash: str) -> Optional[dict]:
-        """Busca nó por SHA256 hash (delta update check no concierge_mine)."""
+        """Searches node by SHA256 hash (delta update check in concierge_mine)."""
         with self._conn_mgr.read() as conn:
             row = conn.execute(
                 "SELECT * FROM nodes WHERE project_uuid = ? AND file_hash = ?",
@@ -336,21 +337,21 @@ class SqliteStore:
         return dict(row) if row else None
 
     def touch_node_commit(self, node_id: int) -> None:
-        """Atualiza last_commit_at para agora (usado no commit_memory)."""
+        """Updates last_commit_at to now (used in commit_memory)."""
         now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
         self.update_node(node_id, last_commit_at=now)
 
     def update_nodes_file_hash_bulk(self, updates: list[tuple[int, str]]) -> int:
-        """Atualiza file_hash de múltiplos nós em uma única transação.
+        """Updates file_hash of multiple nodes in a single transaction.
 
-        Usado pelo Delta Cache para vincular nós cacheados ao novo hash do arquivo,
-        evitando que o Garbage Collection os marque como órfãos.
+        Used by Delta Cache to bind cached nodes to the new file hash,
+        preventing Garbage Collection from marking them as orphans.
 
         Args:
-            updates: Lista de tuplas (node_id, new_file_hash).
+            updates: List of tuples (node_id, new_file_hash).
 
         Returns:
-            Número de nós atualizados com sucesso.
+            Number of successfully updated nodes.
         """
         if not updates:
             return 0
@@ -365,11 +366,11 @@ class SqliteStore:
         return len(updates)
 
     def cleanup_obsolete_nodes(self, project_uuid: str, relative_path: str, current_file_hash: str) -> None:
-        """Remove nós órfãos de um arquivo modificado (chunks que deixaram de existir).
+        """Removes orphan nodes from a modified file (chunks that ceased to exist).
 
-        Ao modificar um arquivo, os chunks inalterados são cacheados e os novos são
-        inseridos (ambos com o novo file_hash). Os chunks antigos do mesmo arquivo
-        que não foram reaproveitados mantém o hash antigo e são removidos aqui.
+        When modifying a file, unchanged chunks are cached and new ones are
+        inserted (both with the new file_hash). Old chunks of the same file
+        that were not reused keep the old hash and are removed here.
         """
         def _do(conn):
             prefix = f"{relative_path}::"
@@ -385,18 +386,18 @@ class SqliteStore:
         nodes_to_create: list[dict],
         edges_to_create: list[dict]
     ) -> list[int]:
-        """Cria múltiplos nós e arestas em uma única transação SQLite (WAL-friendly).
+        """Creates multiple nodes and edges in a single SQLite transaction (WAL-friendly).
 
-        Suporta campos temporais e confidence_tag em cada dict de nó/aresta.
+        Supports temporal fields and confidence_tag in each node/edge dict.
         """
         def _do(conn) -> list[int]:
             node_ids = []
-            # Inserir nós
+            # Insert nodes
             for n in nodes_to_create:
                 if n.get("node_type", "FACT") not in VALID_NODE_TYPES:
-                    raise ValueError(f"node_type inválido no bulk: {n.get('node_type')}")
+                    raise ValueError(f"Invalid node_type in bulk: {n.get('node_type')}")
                 if n.get("status", "ACTIVE") not in VALID_STATUSES:
-                    raise ValueError(f"status inválido no bulk: {n.get('status')}")
+                    raise ValueError(f"Invalid status in bulk: {n.get('status')}")
                     
                 tags_json = json.dumps(n.get("tags"), ensure_ascii=False) if n.get("tags") else None
                 cur = conn.execute(
@@ -411,12 +412,12 @@ class SqliteStore:
                 )
                 node_ids.append(cur.lastrowid)
                 
-            # Inserir arestas
+            # Insert edges
             for e in edges_to_create:
                 src_id = e["source_id"]
                 tgt_id = e["target_id"]
                 
-                # Resolução de referências de índices temporários se passados como idx_0, idx_1 etc.
+                # Resolution of index references if passed as idx_0, idx_1 etc.
                 if isinstance(src_id, str) and src_id.startswith("idx_"):
                     idx = int(src_id.split("_")[1])
                     src_id = node_ids[idx]
@@ -448,12 +449,12 @@ class SqliteStore:
         valid_to_commit: Optional[str] = None,
         confidence_tag: str = "EXTRACTED",
     ) -> None:
-        """Cria ou atualiza uma aresta entre dois nós.
+        """Creates or updates an edge between two nodes.
 
         Args:
-            valid_from_commit: SHA do commit em que a aresta passa a ser válida.
-            valid_to_commit: SHA do commit em que a aresta deixa de ser válida.
-            confidence_tag: Grau de confiança da relação ('EXTRACTED'|'INFERRED'|'AMBIGUOUS').
+            valid_from_commit: Commit SHA in which the edge becomes valid.
+            valid_to_commit: Commit SHA in which the edge ceases to be valid.
+            confidence_tag: Confidence degree of the relation ('EXTRACTED'|'INFERRED'|'AMBIGUOUS').
         """
         def _do(conn, s, t, r, w, vfc, vtc, ct):
             conn.execute(
@@ -468,25 +469,25 @@ class SqliteStore:
         )
 
     def get_edges_from(self, node_id: int) -> list[dict]:
-        """Arestas saindo de um nó (source → targets)."""
+        """Edges coming out of a node (source → targets)."""
         with self._conn_mgr.read() as conn:
             rows = conn.execute("SELECT * FROM edges WHERE source_id = ?", (node_id,)).fetchall()
         return [dict(r) for r in rows]
 
     def get_edges_to(self, node_id: int) -> list[dict]:
-        """Arestas chegando em um nó (sources → target)."""
+        """Edges arriving at a node (sources → target)."""
         with self._conn_mgr.read() as conn:
             rows = conn.execute("SELECT * FROM edges WHERE target_id = ?", (node_id,)).fetchall()
         return [dict(r) for r in rows]
 
     def get_in_degree(self, node_id: int) -> int:
-        """Conta arestas de entrada (in-degree) de um nó."""
+        """Counts incoming edges (in-degree) of a node."""
         with self._conn_mgr.read() as conn:
             row = conn.execute("SELECT COUNT(*) AS c FROM edges WHERE target_id = ?", (node_id,)).fetchone()
         return row["c"] if row else 0
 
     def delete_edge(self, source_id: int, target_id: int) -> None:
-        """Remove uma aresta."""
+        """Removes an edge."""
         def _do(conn, s, t):
             conn.execute("DELETE FROM edges WHERE source_id = ? AND target_id = ?", (s, t))
         self._conn_mgr.write(_do, source_id, target_id)
@@ -500,9 +501,9 @@ class SqliteStore:
         erro_encontrado: Optional[str] = None, solucao_aplicada: Optional[str] = None,
         status: str = "ACTIVE",
     ) -> int:
-        """Registra uma trajetória episódica (Learning Loop)."""
+        """Registers an episodic trajectory (Learning Loop)."""
         if status not in VALID_STATUSES:
-            raise ValueError(f"status inválido: '{status}'")
+            raise ValueError(f"Invalid status: '{status}'")
 
         def _do(conn, pu, po, te, ee, sa, st):
             cur = conn.execute(
@@ -515,7 +516,7 @@ class SqliteStore:
                                      erro_encontrado, solucao_aplicada, status)
 
     def get_trajectories(self, project_uuid: str, status: Optional[str] = None) -> list[dict]:
-        """Lista trajetórias de um projeto com filtro opcional de status."""
+        """Lists trajectories of a project with optional status filter."""
         sql = "SELECT * FROM trajectories WHERE project_uuid = ?"
         params: list[Any] = [project_uuid]
         if status:
@@ -527,11 +528,11 @@ class SqliteStore:
         return [dict(r) for r in rows]
 
     def decay_trajectory(self, trajectory_id: int, new_status: str) -> bool:
-        """Delega ao GraphLogic (máquina de estados com validação)."""
+        """Delegates to GraphLogic (state machine with validation)."""
         return self._logic.decay_trajectory(trajectory_id, new_status)
 
     # ===================================================================
-    # COMMIT LOG (alinhado com concierge_commit)
+    # COMMIT LOG (aligned with concierge_commit)
     # ===================================================================
 
     def create_commit(
@@ -539,14 +540,14 @@ class SqliteStore:
         updated_pointers: list[str], revisor_approved: bool = False,
         partial_audit: bool = False,
     ) -> int:
-        """Registra um commit de memória auditado.
+        """Registers an audited memory commit.
 
-        Validação obrigatória: technical_changes e updated_pointers não podem estar vazios.
+        Mandatory validation: technical_changes and updated_pointers cannot be empty.
         """
         if not technical_changes:
-            raise CommitValidationError("technical_changes é obrigatório e não pode estar vazio.")
+            raise CommitValidationError("technical_changes is mandatory and cannot be empty.")
         if not updated_pointers:
-            raise CommitValidationError("updated_pointers é obrigatório e não pode estar vazio.")
+            raise CommitValidationError("updated_pointers is mandatory and cannot be empty.")
         pointers_json = json.dumps(updated_pointers, ensure_ascii=False)
 
         def _do(conn, pu, ph, tc, up, ra, pa):
@@ -560,7 +561,7 @@ class SqliteStore:
                                      pointers_json, revisor_approved, partial_audit)
 
     def get_recent_commits(self, project_uuid: str, limit: int = 5) -> list[dict]:
-        """Retorna os N commits mais recentes de um projeto."""
+        """Returns the N most recent commits of a project."""
         with self._conn_mgr.read() as conn:
             rows = conn.execute(
                 "SELECT * FROM commit_log WHERE project_uuid = ? ORDER BY created_at DESC LIMIT ?",
@@ -581,74 +582,74 @@ class SqliteStore:
     # ===================================================================
 
     def add_reference_wing(self, project_uuid: str, wing_name: str) -> None:
-        """Adiciona uma Reference Wing ao projeto."""
+        """Adds a Reference Wing to the project."""
         def _do(conn, pu, wn):
             conn.execute("INSERT OR IGNORE INTO reference_wings (project_uuid, wing_name) VALUES (?,?)", (pu, wn))
         self._conn_mgr.write(_do, project_uuid, wing_name)
 
     def get_reference_wings(self, project_uuid: str) -> list[str]:
-        """Lista Reference Wings de um projeto."""
+        """Lists Reference Wings of a project."""
         with self._conn_mgr.read() as conn:
             rows = conn.execute("SELECT wing_name FROM reference_wings WHERE project_uuid = ?", (project_uuid,)).fetchall()
         return [r["wing_name"] for r in rows]
 
     def remove_reference_wing(self, project_uuid: str, wing_name: str) -> None:
-        """Remove uma Reference Wing."""
+        """Removes a Reference Wing."""
         def _do(conn, pu, wn):
             conn.execute("DELETE FROM reference_wings WHERE project_uuid = ? AND wing_name = ?", (pu, wn))
         self._conn_mgr.write(_do, project_uuid, wing_name)
 
     # ===================================================================
-    # INTELIGÊNCIA (delegado ao GraphLogic)
+    # INTELLIGENCE (delegated to GraphLogic)
     # ===================================================================
 
     def compute_centrality(self, node_id: int) -> float:
-        """Centralidade normalizada: min(in_degree/10, 1.0)."""
+        """Normalized centrality: min(in_degree/10, 1.0)."""
         return self._logic.compute_centrality(node_id)
 
     def compute_recency_score(self, node_id: int) -> float:
-        """Score de recência: max(e^(-λ×t), 0.01)."""
+        """Recency score: max(e^(-λ×t), 0.01)."""
         return self._logic.compute_recency_score(node_id)
 
     def fts_search(self, query: str, project_uuid: Optional[str] = None,
                    node_type: Optional[str] = None, limit: int = 20) -> list[dict]:
-        """Busca FTS5 com BM25 normalizado (concierge_search — componente frequência)."""
+        """FTS5 search with normalized BM25 (concierge_search - frequency component)."""
         return self._logic.fts_search(query, project_uuid, node_type, limit)
 
     def hybrid_search_score(self, node_id: int, vector_score: float, fts_score: float) -> dict:
-        """Score híbrido individual: 0.50×vet + 0.25×fts + 0.25×max(rec,cent)."""
+        """Individual hybrid score: 0.50×vet + 0.25×fts + 0.25×max(rec,cent)."""
         return self._logic.hybrid_search_score(node_id, vector_score, fts_score)
 
     def hybrid_search_score_batch(self, candidates: list[dict]) -> list[dict]:
-        """Score híbrido em batch — usado pelo concierge_search."""
+        """Hybrid score in batch — used by concierge_search."""
         return self._logic.hybrid_search_score_batch(candidates)
 
     def fts_rebuild(self) -> None:
-        """Reconstrói o índice FTS5 (pós concierge_mine massivo)."""
+        """Rebuilds the FTS5 index (post massive concierge_mine)."""
         self._logic.fts_rebuild()
 
     def get_dependency_tree(self, start_node_id: int, max_depth: int = 10) -> list[dict]:
-        """CTE: árvore de dependências com proteção anti-loop."""
+        """CTE: dependency tree with anti-loop protection."""
         return self._logic.get_dependency_tree(start_node_id, max_depth)
 
     def get_reverse_dependency_tree(self, start_node_id: int, max_depth: int = 10) -> list[dict]:
-        """CTE reversa: quem depende deste nó."""
+        """Reverse CTE: who depends on this node."""
         return self._logic.get_reverse_dependency_tree(start_node_id, max_depth)
 
     def get_project_stats(self, project_uuid: str) -> dict:
-        """Estatísticas completas de um projeto."""
+        """Complete statistics of a project."""
         return self._logic.get_project_stats(project_uuid)
 
     def get_last_commit_phase(self, project_uuid: str) -> Optional[str]:
-        """Fase do commit mais recente."""
+        """Phase of the most recent commit."""
         return self._logic.get_last_commit_phase(project_uuid)
 
     def bulk_decay_stale_trajectories(self, project_uuid: str, stale_threshold_days: int = 30) -> int:
-        """Decaimento em massa para o Background Janitor."""
+        """Mass decay for the Background Janitor."""
         return self._logic.bulk_decay_stale_trajectories(project_uuid, stale_threshold_days)
 
     def search_symbols(self, query: str, project_uuid: Optional[str] = None, limit: int = 50) -> list[dict]:
-        """Busca por classes, métodos e funções indexados usando FTS5."""
+        """Searches for indexed classes, methods, and functions using FTS5."""
         safe_query = query.replace('"', '""')
         sql = """
             SELECT n.id, n.label, n.type, n.project_uuid, n.file_hash
@@ -666,7 +667,7 @@ class SqliteStore:
         return self._conn_mgr.execute_raw_read(sql, tuple(params))
 
     def get_callers(self, symbol_id: int) -> list[dict]:
-        """Retorna todos os nós que chamam o símbolo especificado."""
+        """Returns all nodes that call the specified symbol."""
         sql = """
             SELECT n.id, n.label, n.type, n.project_uuid
             FROM edges e
@@ -677,33 +678,33 @@ class SqliteStore:
 
 
     # ===================================================================
-    # ENCAPSULAMENTO — API pública para o JanitorService (Patch 2)
+    # ENCAPSULATION — Public API for JanitorService (Patch 2)
     # ===================================================================
 
     def is_write_queue_empty(self) -> bool:
-        """Retorna True se a fila de escrita (SerializedWriteQueue) não tem jobs pendentes.
+        """Returns True if the write queue (SerializedWriteQueue) has no pending jobs.
 
-        Substitui o acesso direto _conn_mgr._write_queue._queue.empty() no Janitor.
+        Replaces direct access to _conn_mgr._write_queue._queue.empty() in Janitor.
         """
         return self._conn_mgr.is_write_queue_empty()
 
     def execute_read_sql(self, sql: str, params: tuple = ()) -> list[dict]:
-        """Executa SQL de leitura arbitrária e retorna lista de dicts.
+        """Executes arbitrary read SQL and returns a list of dicts.
 
-        Permite que o JanitorService faça queries complexas (WITH RECURSIVE,
-        JOIN com FTS5, etc.) sem precisar acessar self._conn_mgr diretamente.
+        Allows JanitorService to make complex queries (WITH RECURSIVE,
+        JOIN with FTS5, etc.) without needing to access self._conn_mgr directly.
 
         Args:
-            sql: Query SQL de leitura (SELECT / WITH RECURSIVE).
-            params: Parâmetros posicionais para a query.
+            sql: SQL query for reading (SELECT / WITH RECURSIVE).
+            params: Positional parameters for the query.
 
         Returns:
-            Lista de dicionários com os resultados.
+            List of dictionaries with the results.
         """
         return self._conn_mgr.execute_raw_read(sql, params)
 
     # ===================================================================
-    # USER CORE MEMORY — CRUD completo (Patch 1)
+    # USER CORE MEMORY — Complete CRUD (Patch 1)
     # ===================================================================
 
     _VALID_SCOPE_TYPES: frozenset[str] = frozenset({"user", "session", "agent", "org"})
@@ -715,28 +716,28 @@ class SqliteStore:
         block_label: str,
         content: str,
     ) -> int:
-        """Grava ou atualiza um bloco de memória core do usuário/sessão.
+        """Writes or updates a block of user/session core memory.
 
-        Usa INSERT OR REPLACE para garantir que block_label seja único por escopo.
+        Uses INSERT OR REPLACE to ensure block_label is unique per scope.
 
         Args:
-            scope_type: Tipo de escopo — 'user', 'session', 'agent' ou 'org'.
-            scope_id: Identificador do escopo (ex: user UUID, session UUID).
-            block_label: Rótulo do bloco de memória (ex: 'preferred_language').
-            content: Conteúdo do bloco de memória.
+            scope_type: Scope type — 'user', 'session', 'agent' or 'org'.
+            scope_id: Scope identifier (e.g. user UUID, session UUID).
+            block_label: Label of the memory block (e.g. 'preferred_language').
+            content: Content of the memory block.
 
         Returns:
-            O id do registro inserido ou substituído.
+            The id of the inserted or replaced record.
 
         Raises:
-            ValueError: Se scope_type for inválido ou campos obrigatórios estiverem vazios.
+            ValueError: If scope_type is invalid or required fields are empty.
         """
         if scope_type not in self._VALID_SCOPE_TYPES:
-            raise ValueError(f"scope_type inválido: '{scope_type}'. Aceitos: {sorted(self._VALID_SCOPE_TYPES)}")
+            raise ValueError(f"Invalid scope_type: '{scope_type}'. Accepted: {sorted(self._VALID_SCOPE_TYPES)}")
         if not scope_id or not scope_id.strip():
-            raise ValueError("scope_id não pode ser vazio.")
+            raise ValueError("scope_id cannot be empty.")
         if not block_label or not block_label.strip():
-            raise ValueError("block_label não pode ser vazio.")
+            raise ValueError("block_label cannot be empty.")
 
         def _write(conn: "sqlite3.Connection") -> int:
             cursor = conn.execute(
@@ -755,18 +756,18 @@ class SqliteStore:
         scope_id: str,
         block_label: str,
     ) -> Optional[dict]:
-        """Retorna um bloco de memória core específico, ou None se não existir.
+        """Returns a specific core memory block, or None if it doesn't exist.
 
         Args:
-            scope_type: Tipo de escopo.
-            scope_id: Identificador do escopo.
-            block_label: Rótulo do bloco de memória.
+            scope_type: Scope type.
+            scope_id: Scope identifier.
+            block_label: Label of the memory block.
 
         Returns:
-            Dict com as colunas do registro, ou None.
+            Dict with the record columns, or None.
         """
         if scope_type not in self._VALID_SCOPE_TYPES:
-            raise ValueError(f"scope_type inválido: '{scope_type}'.")
+            raise ValueError(f"Invalid scope_type: '{scope_type}'.")
         rows = self._conn_mgr.execute_raw_read(
             """SELECT id, scope_type, scope_id, block_label, content, updated_at
                FROM user_core_memory
@@ -781,17 +782,17 @@ class SqliteStore:
         scope_type: str,
         scope_id: str,
     ) -> list[dict]:
-        """Retorna todos os blocos de memória core para um escopo.
+        """Returns all core memory blocks for a scope.
 
         Args:
-            scope_type: Tipo de escopo.
-            scope_id: Identificador do escopo.
+            scope_type: Scope type.
+            scope_id: Scope identifier.
 
         Returns:
-            Lista de dicts (pode ser vazia).
+            List of dicts (can be empty).
         """
         if scope_type not in self._VALID_SCOPE_TYPES:
-            raise ValueError(f"scope_type inválido: '{scope_type}'.")
+            raise ValueError(f"Invalid scope_type: '{scope_type}'.")
         return self._conn_mgr.execute_raw_read(
             """SELECT id, scope_type, scope_id, block_label, content, updated_at
                FROM user_core_memory

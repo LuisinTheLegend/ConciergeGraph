@@ -1,8 +1,8 @@
 """
 core/memory_extractor.py — Grafo Concierge v3.8.0 (Absolute Solidity)
 
-Motor de Extração Semântica e pipeline de decisão NOOP da Camada Conversacional Híbrida.
-Garante que novos fatos sejam classificados e gravados de forma bi-temporal pura (invalidação + inserção).
+Semantic Extraction Engine and NOOP decision pipeline of the Hybrid Conversational Layer.
+Ensures that new facts are classified and recorded in pure bi-temporal form (invalidation + insertion).
 """
 
 from __future__ import annotations
@@ -43,17 +43,17 @@ JSON format:
 
 
 class SemanticExtractor:
-    """Motor de processamento e consolidação de fatos semânticos em escopos de memória.
+    """Processing and consolidation engine for semantic facts within memory scopes.
 
-    Usa um adaptador LLM para classificar novos fatos e decide se deve criá-los (ADD),
-    atualizá-los sob lógica bi-temporal (UPDATE), revogá-los (DELETE) ou ignorá-los (NOOP).
+    Uses an LLM adapter to classify new facts and decides whether to create them (ADD),
+    update them under bi-temporal logic (UPDATE), revoke them (DELETE), or ignore them (NOOP).
     """
 
     def __init__(self, llm_adapter: Any) -> None:
-        """Inicializa o extrator de memória.
+        """Initializes the memory extractor.
 
         Args:
-            llm_adapter: Objeto de adaptação do LLM (ex: LLMAdapter ou mock equivalente).
+            llm_adapter: LLM adaptation object (e.g. LLMAdapter or equivalent mock).
         """
         self.llm = llm_adapter
 
@@ -64,16 +64,16 @@ class SemanticExtractor:
         scope_id: str,
         new_facts: list[str]
     ) -> list[dict[str, Any]]:
-        """Avalia novos fatos e os armazena de acordo com a lógica NOOP / bi-temporal.
+        """Evaluates new facts and stores them according to NOOP / bi-temporal logic.
 
         Args:
-            conn: Conexão direta com o SQLite (utilizada sob uma única transação).
-            scope_type: Escopo do fato ('user', 'session', 'agent', 'org').
-            scope_id: ID identificador do escopo.
-            new_facts: Lista de strings contendo as memórias em estado bruto a avaliar.
+            conn: Direct connection to SQLite (used under a single transaction).
+            scope_type: Scope of the fact ('user', 'session', 'agent', 'org').
+            scope_id: Identifying ID of the scope.
+            new_facts: List of strings containing the raw memories to evaluate.
 
         Returns:
-            Lista de dicionários detalhando as decisões tomadas para cada fato.
+            List of dictionaries detailing the decisions made for each fact.
         """
         results: list[dict[str, Any]] = []
 
@@ -84,7 +84,7 @@ class SemanticExtractor:
 
             active_facts = get_active_semantic_facts(conn, scope_type, scope_id)
             if not active_facts:
-                # Otimização: se não há fatos cadastrados, é obrigatoriamente um ADD
+                # Optimization: if there are no registered facts, it is obligatorily an ADD
                 fact_id = insert_semantic_fact(conn, scope_type, scope_id, new_fact)
                 results.append({
                     "fact": new_fact,
@@ -94,7 +94,7 @@ class SemanticExtractor:
                 })
                 continue
 
-            # Monta bloco de fatos existentes para injeção no prompt
+            # Builds block of existing facts for injection into the prompt
             existing_facts_block = "\n".join(
                 f"- ID {f['id']}: {f['fact_statement']}" for f in active_facts
             )
@@ -153,7 +153,7 @@ class SemanticExtractor:
 
             elif action == "UPDATE":
                 if t_id is None or t_id not in active_ids:
-                    # ID inválido/inexistente nos ativos resulta em inserção pura (ADD)
+                    # Invalid/non-existent ID in active facts results in pure insertion (ADD)
                     fact_id = insert_semantic_fact(conn, scope_type, scope_id, new_fact)
                     results.append({
                         "fact": new_fact,
@@ -162,7 +162,7 @@ class SemanticExtractor:
                         "fact_id": fact_id
                     })
                 else:
-                    # Lógica Bi-temporal pura: invalida antigo e insere o novo consolidado
+                    # Pure bi-temporal logic: invalidates the old one and inserts the new consolidated statement
                     invalidate_semantic_fact(conn, t_id)
                     stmt_to_insert = (updated_statement or new_fact).strip()
                     fact_id = insert_semantic_fact(conn, scope_type, scope_id, stmt_to_insert)
@@ -176,7 +176,7 @@ class SemanticExtractor:
 
             elif action == "DELETE":
                 if t_id is None or t_id not in active_ids:
-                    # Sem ID válido para invalidação, trata como NOOP
+                    # No valid ID for invalidation, treat as NOOP
                     results.append({
                         "fact": new_fact,
                         "action": "NOOP",
@@ -193,7 +193,7 @@ class SemanticExtractor:
                     })
 
             else:
-                # Caso de ação desconhecida ou inválida, trata como NOOP
+                # In case of unknown or invalid action, treat as NOOP
                 results.append({
                     "fact": new_fact,
                     "action": "NOOP",
@@ -204,12 +204,12 @@ class SemanticExtractor:
         return results
 
     def _extract_json_with_fallback(self, raw_response: str) -> Optional[dict[str, Any]]:
-        """Tenta extrair o dicionário JSON da resposta do LLM com fallback progressivo."""
+        """Attempts to extract the JSON dictionary from the LLM response with progressive fallback."""
         if not raw_response or not raw_response.strip():
             return None
         text = raw_response.strip()
 
-        # Remove delimitadores de markdown se presentes
+        # Remove markdown delimiters if present
         if text.startswith("```"):
             lines = text.splitlines()
             if lines[0].startswith("```"):
@@ -218,13 +218,13 @@ class SemanticExtractor:
                 lines = lines[:-1]
             text = "\n".join(lines).strip()
 
-        # Tentativa 1: parsing direto
+        # Attempt 1: direct parsing
         try:
             return json.loads(text)
         except (json.JSONDecodeError, ValueError):
             pass
 
-        # Tentativa 2: regex para capturar bloco de chaves
+        # Attempt 2: regex to capture braces block
         matches = _JSON_BLOCK_RE.findall(text)
         for match in matches:
             try:
@@ -232,7 +232,7 @@ class SemanticExtractor:
             except (json.JSONDecodeError, ValueError):
                 continue
 
-        # Tentativa 3: captura simples do primeiro e último colchetes/chaves
+        # Attempt 3: simple capture of the first and last braces
         first_brace = text.find("{")
         last_brace = text.rfind("}")
         if first_brace != -1 and last_brace > first_brace:

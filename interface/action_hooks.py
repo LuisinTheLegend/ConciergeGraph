@@ -1,26 +1,26 @@
 """
 interface/action_hooks.py — Grafo Concierge v3.8.0 (Absolute Solidity)
 
-Gatilhos Reativos de Ciclo de Vida para Módulos Operacionais.
+Reactive Lifecycle Triggers for Operational Modules.
 
-Este módulo expõe decoradores e funções que permitem que qualquer
-Módulo Operacional (Skills no Cursor, Agentes no n8n, Automações)
-se conecte ao Grafo Concierge em momentos-chave do ciclo de vida.
+This module exposes decorators and functions that allow any
+Operational Module (Cursor Skills, n8n Agents, Automations)
+to connect to Grafo Concierge at key lifecycle moments.
 
 Triggers:
-    on_planning()   → Reativa consciência + busca gavetas relevantes
-    on_execution()  → Busca focada + lazy load de nós específicos
-    on_done()       → Commit auditado + decaimento de trajetórias
+    on_planning()   -> Reactivates consciousness + searches relevant drawers
+    on_execution()  -> Focused search + lazy load of specific nodes
+    on_done()       -> Audited commit + trajectory decay
 
-Fluxo típico de um Módulo Operacional:
-    1. Módulo recebe tarefa do usuário
-    2. Chama hooks.on_planning() → recebe Bússola + contexto
-    3. Executa tarefa usando hooks.on_execution() para buscar código
-    4. Finaliza com hooks.on_done() → grava resultado no grafo
+Typical flow of an Operational Module:
+    1. Module receives user task
+    2. Calls hooks.on_planning() -> receives Compass + context
+    3. Executes task using hooks.on_execution() to fetch code
+    4. Finishes with hooks.on_done() -> writes result to graph
 
-Integração:
-    - Consome core.middleware.GrafoConcierge como única dependência
-    - Consome agents.revisor_critico.RevisorCritico para auditoria
+Integration:
+    - Consumes core.middleware.GrafoConcierge as sole dependency
+    - Consumes agents.revisor_critico.RevisorCritico for auditing
 """
 
 from __future__ import annotations
@@ -35,16 +35,16 @@ logger = logging.getLogger("grafo-concierge.hooks")
 
 
 class ActionHooks:
-    """Gatilhos reativos para Módulos Operacionais.
+    """Reactive triggers for Operational Modules.
 
-    Centraliza os pontos de contato entre Módulos Operacionais e
-    o Grafo Concierge. Cada método corresponde a uma fase do
-    ciclo de vida de uma tarefa.
+    Centralizes contact points between Operational Modules and
+    Grafo Concierge. Each method corresponds to a phase of
+    a task's lifecycle.
 
     Args:
-        concierge: Instância da Fachada Central.
-        revisor: Instância do Revisor Crítico (opcional).
-                 Se None, commits não passam por auditoria LLM.
+        concierge: Central Facade instance.
+        revisor: Critical Reviewer instance (optional).
+                 If None, commits do not go through LLM auditing.
     """
 
     def __init__(
@@ -56,12 +56,12 @@ class ActionHooks:
         self._revisor = revisor or RevisorCritico()
 
         logger.info(
-            "ActionHooks inicializado: revisor=%s",
-            "LLM" if revisor and revisor._llm else "heurístico",
+            "ActionHooks initialized: reviewer=%s",
+            "LLM" if revisor and revisor._llm else "heuristic",
         )
 
     # ===================================================================
-    # ON_PLANNING — Reativação de consciência
+    # ON_PLANNING — Consciousness reactivation
     # ===================================================================
 
     def on_planning(
@@ -71,33 +71,33 @@ class ActionHooks:
         top_k: int = 5,
         node_type: Optional[str] = None,
     ) -> dict:
-        """Trigger de planejamento — prepara o contexto para a tarefa.
+        """Planning trigger — prepares the context for the task.
 
-        Fluxo:
-            1. Wake-up → carrega Bússola + Reference Wings + commits
-            2. Busca Híbrida → encontra gavetas relevantes para a tarefa
-            3. Retorna pacote de contexto completo
+        Flow:
+            1. Wake-up -> loads Compass + Reference Wings + commits
+            2. Hybrid Search -> finds relevant drawers for the task
+            3. Returns full context package
 
         Args:
-            project_uuid: UUID do projeto.
-            task: Descrição da tarefa a ser executada.
-            top_k: Máximo de resultados da busca.
-            node_type: Filtro cirúrgico opcional.
+            project_uuid: UUID of the project.
+            task: Description of the task to be executed.
+            top_k: Maximum number of search results.
+            node_type: Optional surgical filter.
 
         Returns:
-            Dict com:
+            Dict with:
             {
-                "wake_up": dict (Bússola + Wings + commits),
-                "relevant_nodes": list[dict] (resultados da busca),
+                "wake_up": dict (Compass + Wings + commits),
+                "relevant_nodes": list[dict] (search results),
                 "task": str,
             }
         """
-        logger.info("on_planning: projeto=%s, task='%.50s...'", project_uuid, task)
+        logger.info("on_planning: project=%s, task='%.50s...'", project_uuid, task)
 
         # 1. Wake-up
         wake_data = self._gc.wake_up(project_uuid)
 
-        # 2. Busca Híbrida
+        # 2. Hybrid Search
         search_results = self._gc.hybrid_search(
             query=task,
             project_uuid=project_uuid,
@@ -112,14 +112,14 @@ class ActionHooks:
         }
 
         logger.info(
-            "on_planning OK: wake_up com %d commits, %d nós relevantes.",
+            "on_planning OK: wake_up with %d commits, %d relevant nodes.",
             len(wake_data.get("recent_commits", [])),
             len(search_results),
         )
         return result
 
     # ===================================================================
-    # ON_EXECUTION — Busca focada durante execução
+    # ON_EXECUTION — Focused search during execution
     # ===================================================================
 
     def on_execution(
@@ -131,27 +131,27 @@ class ActionHooks:
         include_references: bool = False,
         rerank: bool = True,
     ) -> list[dict]:
-        """Trigger de execução — busca e filtra gavetas por relevância.
+        """Execution trigger — searches and filters drawers by relevance.
 
-        Fluxo:
-            1. Busca Híbrida v4 com Strict Scoping
-            2. Se rerank=True, Revisor Crítico filtra top-5
-            3. Retorna gavetas relevantes para a tarefa
+        Flow:
+            1. Hybrid Search v4 with Strict Scoping
+            2. If rerank=True, Critical Reviewer filters top-5
+            3. Returns relevant drawers for the task
 
         Args:
-            project_uuid: UUID do projeto.
-            task: Descrição da tarefa atual.
-            top_k: Máximo de resultados da busca inicial.
-            node_type: Filtro cirúrgico (FACT, SKILL, INSIGHT, etc.).
-            include_references: Incluir Reference Wings.
-            rerank: Aplicar Reranking do Revisor Crítico.
+            project_uuid: UUID of the project.
+            task: Description of the current task.
+            top_k: Maximum number of initial search results.
+            node_type: Surgical filter (FACT, SKILL, INSIGHT, etc.).
+            include_references: Include Reference Wings.
+            rerank: Apply Critical Reviewer Reranking.
 
         Returns:
-            Lista de dicts com resultados filtrados.
+            List of dicts with filtered results.
         """
-        logger.info("on_execution: projeto=%s, task='%.50s...'", project_uuid, task)
+        logger.info("on_execution: project=%s, task='%.50s...'", project_uuid, task)
 
-        # 1. Busca Híbrida
+        # 1. Hybrid Search
         search_results = self._gc.hybrid_search(
             query=task,
             project_uuid=project_uuid,
@@ -160,7 +160,7 @@ class ActionHooks:
             node_type=node_type,
         )
 
-        # 2. Reranking (se ativo e houver resultados)
+        # 2. Reranking (if active and there are results)
         if rerank and search_results:
             search_results = self._revisor.rerank(
                 candidates=search_results,
@@ -169,13 +169,13 @@ class ActionHooks:
             )
 
         logger.info(
-            "on_execution OK: %d resultados (rerank=%s).",
+            "on_execution OK: %d results (rerank=%s).",
             len(search_results), rerank,
         )
         return search_results
 
     # ===================================================================
-    # ON_DONE — Commit auditado pós-tarefa
+    # ON_DONE — Audited commit post-task
     # ===================================================================
 
     def on_done(
@@ -183,33 +183,33 @@ class ActionHooks:
         project_uuid: str,
         outcome: dict,
     ) -> dict:
-        """Trigger de conclusão — registra resultado no grafo.
+        """Conclusion trigger — registers result in the graph.
 
-        Fluxo:
-            1. Revisor Crítico audita o rascunho
-            2. Se aprovado, grava commit no grafo
-            3. Se houver erro/solução, registra trajetória episódica
-            4. Retorna resultado da operação
+        Flow:
+            1. Critical Reviewer audits the draft
+            2. If approved, writes commit to the graph
+            3. If there is an error/solution, registers episodic trajectory
+            4. Returns operation result
 
         Args:
-            project_uuid: UUID do projeto.
-            outcome: Dict com resultado da tarefa:
-                - phase (str): Fase (planning, build, done, review)
-                - technical_changes (str): Mudanças técnicas
-                - updated_pointers (list[str]): Ponteiros atualizados
-                - node_ids (list[int], opcional): Nós afetados
-                - erro_encontrado (str, opcional): Erro ocorrido
-                - solucao_aplicada (str, opcional): Solução aplicada
+            project_uuid: UUID of the project.
+            outcome: Dict with task outcome:
+                - phase (str): Phase (planning, build, done, review)
+                - technical_changes (str): Technical changes
+                - updated_pointers (list[str]): Updated pointers
+                - node_ids (list[int], optional): Affected nodes
+                - erro_encontrado (str, optional): Error occurred
+                - solucao_aplicada (str, optional): Solution applied
 
         Returns:
-            Dict com:
+            Dict with:
             {
                 "commit_id": int,
                 "audit": AuditResult.to_dict(),
-                "trajectory_id": int (se houve erro),
+                "trajectory_id": int (if there was an error),
             }
         """
-        logger.info("on_done: projeto=%s, fase='%s'", project_uuid, outcome.get("phase", "?"))
+        logger.info("on_done: project=%s, phase='%s'", project_uuid, outcome.get("phase", "?"))
 
         result: dict[str, Any] = {}
 

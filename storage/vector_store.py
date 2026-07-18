@@ -1,18 +1,18 @@
 """
 storage/vector_store.py — Grafo Concierge v3.8.0 (Absolute Solidity)
 
-Backend vetorial concreto baseado em ChromaDB (padrão) com suporte a:
-    - Model Tiering (Flash vs Elite) para otimização de custo
-    - Batch Processing para ingestão massiva (concierge mine)
-    - Reconciliation Loop (verify_sync) para eliminar vetores órfãos
-    - Semantic Fallback (embedding falhou → log + skip, sem travar pipeline)
-    - Busca vetorial com scores prontos para Hybrid Search / Reranking
+Concrete vector backend based on ChromaDB (default) with support for:
+    - Model Tiering (Flash vs Elite) for cost optimization
+    - Batch Processing for massive ingestion (concierge mine)
+    - Reconciliation Loop (verify_sync) to eliminate orphan vectors
+    - Semantic Fallback (embedding failed → log + skip, without blocking pipeline)
+    - Vector search with scores ready for Hybrid Search / Reranking
 
-Dependência: chromadb>=0.4.0 (pip install chromadb)
+Dependency: chromadb>=0.4.0 (pip install chromadb)
 
-Arquitetura:
-    EmbeddingManager  → Gera embeddings com tiering Flash/Elite + fallback
-    ChromaVectorStore → Implementa BaseVectorBackend sobre ChromaDB
+Architecture:
+    EmbeddingManager  → Generates embeddings with Flash/Elite tiering + fallback
+    ChromaVectorStore → Implements BaseVectorBackend on ChromaDB
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ from typing import Any, Optional
 logger = logging.getLogger("grafo-concierge.vector-store")
 
 # ---------------------------------------------------------------------------
-# Import defensivo do ChromaDB — permite importar o módulo sem a dependência
+# Defensive import of ChromaDB — allows importing the module without the dependency
 # ---------------------------------------------------------------------------
 
 try:
@@ -35,11 +35,11 @@ try:
 except ImportError:
     CHROMADB_AVAILABLE = False
     logger.warning(
-        "chromadb não instalado. Instale com: pip install chromadb>=0.4.0"
+        "chromadb not installed. Install with: pip install chromadb>=0.4.0"
     )
 
 # ---------------------------------------------------------------------------
-# Import defensivo do SentenceTransformers (modelo Flash local)
+# Defensive import of SentenceTransformers (local Flash model)
 # ---------------------------------------------------------------------------
 
 try:
@@ -48,8 +48,8 @@ try:
 except ImportError:
     SENTENCE_TRANSFORMERS_AVAILABLE = False
     logger.warning(
-        "sentence-transformers não instalado. Tier FLASH indisponível. "
-        "Instale com: pip install sentence-transformers"
+        "sentence-transformers not installed. Tier FLASH unavailable. "
+        "Install with: pip install sentence-transformers"
     )
 
 from storage.base_backend import (
@@ -59,36 +59,36 @@ from storage.base_backend import (
 )
 
 # ---------------------------------------------------------------------------
-# Exceções do módulo vetorial
+# Vector module exceptions
 # ---------------------------------------------------------------------------
 
 class EmbeddingError(Exception):
-    """Erro durante a geração de embedding (modelo não disponível, input inválido)."""
+    """Error during embedding generation (model not available, invalid input)."""
 
 class VectorStoreNotAvailableError(Exception):
-    """ChromaDB não está instalado ou acessível."""
+    """ChromaDB is not installed or accessible."""
 
 # ---------------------------------------------------------------------------
-# EmbeddingManager — geração de embeddings com tiering e fallback
+# EmbeddingManager — embedding generation with tiering and fallback
 # ---------------------------------------------------------------------------
 
 class EmbeddingManager:
-    """Gera embeddings com suporte a Model Tiering.
+    """Generates embeddings with support for Model Tiering.
 
     Tiers:
-        FLASH: all-MiniLM-L6-v2 (local, 384 dims, gratuito)
-        ELITE: text-embedding-3-small (OpenAI API, 1536 dims, pago)
+        FLASH: all-MiniLM-L6-v2 (local, 384 dims, free)
+        ELITE: text-embedding-3-small (OpenAI API, 1536 dims, paid)
 
     Semantic Fallback:
-        Se a geração falhar, retorna None + loga o erro.
-        O chamador decide se pula o item ou aborta.
+        If generation fails, returns None + logs the error.
+        The caller decides whether to skip the item or abort.
 
     Args:
-        tier: EmbeddingTier.FLASH ou EmbeddingTier.ELITE.
-        openai_api_key: Chave da API OpenAI (obrigatória para tier ELITE).
+        tier: EmbeddingTier.FLASH or EmbeddingTier.ELITE.
+        openai_api_key: OpenAI API key (required for tier ELITE).
     """
 
-    # Configurações por tier
+    # Configurations per tier
     TIER_CONFIG: dict[EmbeddingTier, dict] = {
         EmbeddingTier.FLASH: {
             "model_name": "all-MiniLM-L6-v2",
@@ -114,74 +114,74 @@ class EmbeddingManager:
         self._openai_key = openai_api_key
 
         logger.info(
-            "EmbeddingManager inicializado: tier=%s, modelo=%s, dims=%d",
+            "EmbeddingManager initialized: tier=%s, model=%s, dims=%d",
             tier.value, self._config["model_name"], self._dimensions
         )
 
     @property
     def dimensions(self) -> int:
-        """Número de dimensões do modelo ativo."""
+        """Number of dimensions of the active model."""
         return self._dimensions
 
     @property
     def tier(self) -> EmbeddingTier:
-        """Tier atual (FLASH ou ELITE)."""
+        """Current tier (FLASH or ELITE)."""
         return self._tier
 
     def _load_model(self) -> None:
-        """Carrega o modelo de embedding (lazy loading).
+        """Loads the embedding model (lazy loading).
 
         Raises:
-            EmbeddingError: Se o modelo não pode ser carregado.
+            EmbeddingError: If the model cannot be loaded.
         """
         if self._model is not None:
             return
 
         import os
         if os.environ.get("GRAFO_LIGHTWEIGHT_MODE", "false").lower() == "true":
-            raise EmbeddingError("Modo lightweight ativo - modelo local desativado.")
+            raise EmbeddingError("Lightweight mode active - local model disabled.")
 
         if self._tier == EmbeddingTier.FLASH:
             if not SENTENCE_TRANSFORMERS_AVAILABLE:
                 raise EmbeddingError(
-                    "sentence-transformers não instalado. "
-                    "Instale com: pip install sentence-transformers"
+                    "sentence-transformers not installed. "
+                    "Install with: pip install sentence-transformers"
                 )
             try:
                 self._model = SentenceTransformer(self._config["model_name"])
-                logger.info("Modelo FLASH carregado: %s", self._config["model_name"])
+                logger.info("FLASH model loaded: %s", self._config["model_name"])
             except Exception as e:
-                raise EmbeddingError(f"Falha ao carregar modelo FLASH: {e}") from e
+                raise EmbeddingError(f"Failed to load FLASH model: {e}") from e
 
         elif self._tier == EmbeddingTier.ELITE:
             if not self._openai_key:
                 raise EmbeddingError(
-                    "openai_api_key é obrigatória para o tier ELITE."
+                    "openai_api_key is required for the ELITE tier."
                 )
             try:
                 import openai
                 self._model = openai.OpenAI(api_key=self._openai_key)
-                logger.info("Cliente OpenAI inicializado para tier ELITE.")
+                logger.info("OpenAI client initialized for ELITE tier.")
             except ImportError:
                 raise EmbeddingError(
-                    "openai não instalado. Instale com: pip install openai>=1.0"
+                    "openai not installed. Install with: pip install openai>=1.0"
                 )
 
     def embed(self, text: str) -> Optional[list[float]]:
-        """Gera embedding para um texto.
+        """Generates embedding for a text.
 
-        Semantic Fallback: retorna None em caso de erro (não trava o pipeline).
+        Semantic Fallback: returns None in case of error (does not block the pipeline).
 
         Args:
-            text: Texto para gerar embedding.
+            text: Text to generate embedding.
 
         Returns:
-            Lista de floats (vetor) ou None se falhou.
+            List of floats (vector) or None if it failed.
         """
         try:
             self._load_model()
         except EmbeddingError as e:
-            logger.error("Modelo indisponível para embed(): %s", e)
+            logger.error("Model unavailable for embed(): %s", e)
             return None
 
         try:
@@ -197,29 +197,29 @@ class EmbeddingManager:
                 return response.data[0].embedding
 
         except Exception as e:
-            # SEMANTIC FALLBACK: loga o erro mas NÃO propaga
+            # SEMANTIC FALLBACK: logs the error but DOES NOT propagate
             logger.error(
-                "Semantic Fallback ativado — embed falhou para texto (%.40s...): %s",
+                "Semantic Fallback activated — embed failed for text (%.40s...): %s",
                 text, e
             )
             return None
 
     def embed_batch(self, texts: list[str]) -> list[Optional[list[float]]]:
-        """Gera embeddings em lote.
+        """Generates embeddings in batch.
 
-        Semantic Fallback aplicado individualmente: itens que falham
-        retornam None na posição correspondente.
+        Semantic Fallback applied individually: failing items
+        return None in the corresponding position.
 
         Args:
-            texts: Lista de textos para gerar embeddings.
+            texts: List of texts to generate embeddings.
 
         Returns:
-            Lista de vetores (ou None para itens que falharam).
+            List of vectors (or None for items that failed).
         """
         try:
             self._load_model()
         except EmbeddingError as e:
-            logger.error("Modelo indisponível para embed_batch(): %s", e)
+            logger.error("Model unavailable for embed_batch(): %s", e)
             return [None] * len(texts)
 
         results: list[Optional[list[float]]] = []
@@ -233,7 +233,7 @@ class EmbeddingManager:
                 return [None] * len(texts)
 
         elif self._tier == EmbeddingTier.ELITE:
-            # OpenAI suporta batch nativo
+            # OpenAI supports native batch
             try:
                 response = self._model.embeddings.create(
                     model=self._config["model_name"],
@@ -247,26 +247,26 @@ class EmbeddingManager:
         return results
 
 # ---------------------------------------------------------------------------
-# ChromaVectorStore — implementação concreta do BaseVectorBackend
+# ChromaVectorStore — concrete implementation of BaseVectorBackend
 # ---------------------------------------------------------------------------
 
 class ChromaVectorStore(BaseVectorBackend):
-    """Backend vetorial baseado em ChromaDB.
+    """Vector backend based on ChromaDB.
 
-    Implementa todos os métodos do BaseVectorBackend:
+    Implements all methods of BaseVectorBackend:
         - store_embedding / store_embeddings_batch (Batch Processing)
-        - search (Top-K com scores para Hybrid Search)
+        - search (Top-K with scores for Hybrid Search)
         - delete / delete_batch
         - verify_sync (Reconciliation Loop)
         - health_check / count
 
     Args:
-        persist_dir: Diretório de persistência do ChromaDB.
-        collection_name: Nome da coleção (default: 'grafo_concierge').
-        embedding_manager: Instância de EmbeddingManager para gerar embeddings.
+        persist_dir: Persistence directory of ChromaDB.
+        collection_name: Name of the collection (default: 'grafo_concierge').
+        embedding_manager: Instance of EmbeddingManager to generate embeddings.
     """
 
-    # Tamanho máximo de cada batch para ChromaDB (evita OOM em projetos gigantes)
+    # Maximum size of each batch for ChromaDB (avoids OOM in massive projects)
     BATCH_SIZE: int = 100
 
     def __init__(
@@ -282,7 +282,7 @@ class ChromaVectorStore(BaseVectorBackend):
 
         import os
         if os.environ.get("GRAFO_LIGHTWEIGHT_MODE", "false").lower() == "true":
-            logger.info("ChromaVectorStore operando em modo NO-OP (Modo Lightweight ativo).")
+            logger.info("ChromaVectorStore operating in NO-OP mode (Lightweight Mode active).")
             self._available = False
             self._client = None
             self._collection = None
@@ -292,7 +292,7 @@ class ChromaVectorStore(BaseVectorBackend):
 
         if not CHROMADB_AVAILABLE:
             logger.warning(
-                "ChromaVectorStore operando em modo NO-OP (chromadb não instalado)."
+                "ChromaVectorStore operating in NO-OP mode (chromadb not installed)."
             )
             self._client = None
             self._collection = None
@@ -311,12 +311,12 @@ class ChromaVectorStore(BaseVectorBackend):
         )
 
         logger.info(
-            "ChromaVectorStore inicializado: dir=%s, collection=%s, tier=%s",
+            "ChromaVectorStore initialized: dir=%s, collection=%s, tier=%s",
             resolved_dir, collection_name, self._embedding_mgr.tier.value
         )
 
     # ===================================================================
-    # STORE — armazenamento individual
+    # STORE — individual storage
     # ===================================================================
 
     def store_embedding(
@@ -325,23 +325,23 @@ class ChromaVectorStore(BaseVectorBackend):
         embedding: list[float],
         metadata: dict,
     ) -> None:
-        """Armazena um embedding com metadados no ChromaDB.
+        """Stores an embedding with metadata in ChromaDB.
 
         Args:
-            doc_id: ID único (formato recomendado: 'node_{node_id}').
-            embedding: Vetor de embedding.
-            metadata: Dict com 'node_id' (int) e 'project_uuid' (str).
+            doc_id: Unique ID (recommended format: 'node_{node_id}').
+            embedding: Embedding vector.
+            metadata: Dict with 'node_id' (int) and 'project_uuid' (str).
 
         Raises:
-            ValueError: Se metadata não contém campos obrigatórios.
+            ValueError: If metadata does not contain required fields.
         """
         if not self._available:
-            logger.warning("store_embedding ignorado: ChromaDB indisponível.")
+            logger.warning("store_embedding ignored: ChromaDB unavailable.")
             return
 
         self._validate_metadata(metadata)
 
-        # ChromaDB requer que todos os valores de metadata sejam str, int ou float
+        # ChromaDB requires all metadata values to be str, int or float
         safe_meta = self._sanitize_metadata(metadata)
 
         self._collection.upsert(
@@ -349,33 +349,33 @@ class ChromaVectorStore(BaseVectorBackend):
             embeddings=[embedding],
             metadatas=[safe_meta],
         )
-        logger.debug("Embedding armazenado: doc_id=%s, node_id=%s", doc_id, metadata.get("node_id"))
+        logger.debug("Embedding stored: doc_id=%s, node_id=%s", doc_id, metadata.get("node_id"))
 
     # ===================================================================
-    # STORE BATCH — inserção em lote para concierge mine
+    # STORE BATCH — batch insertion
     # ===================================================================
 
     def store_embeddings_batch(self, items: list[dict]) -> int:
-        """Armazena múltiplos embeddings em lotes controlados.
+        """Stores multiple embeddings in controlled batches.
 
-        Processa em chunks de BATCH_SIZE para evitar OOM.
-        Itens com embedding=None (Semantic Fallback) são ignorados silenciosamente.
+        Processes in chunks of BATCH_SIZE to avoid OOM.
+        Items with embedding=None (Semantic Fallback) are ignored silently.
 
         Args:
-            items: Lista de dicts, cada um contendo:
+            items: List of dicts, each containing:
                 - doc_id (str)
-                - embedding (list[float] ou None)
-                - metadata (dict com node_id e project_uuid)
+                - embedding (list[float] or None)
+                - metadata (dict with node_id and project_uuid)
 
         Returns:
-            Número de embeddings efetivamente armazenados.
+            Number of embeddings effectively stored.
         """
         if not self._available:
-            logger.warning("store_embeddings_batch ignorado: ChromaDB indisponível.")
+            logger.warning("store_embeddings_batch ignored: ChromaDB unavailable.")
             return 0
 
         stored = 0
-        # Filtra itens com embedding válido
+        # Filters items with valid embedding
         valid_items = [
             item for item in items
             if item.get("embedding") is not None
@@ -384,10 +384,10 @@ class ChromaVectorStore(BaseVectorBackend):
         skipped = len(items) - len(valid_items)
         if skipped > 0:
             logger.warning(
-                "Batch store: %d itens ignorados (Semantic Fallback — embedding None)", skipped
+                "Batch store: %d items ignored (Semantic Fallback — embedding None)", skipped
             )
 
-        # Processa em chunks
+        # Processes in chunks
         for i in range(0, len(valid_items), self.BATCH_SIZE):
             chunk = valid_items[i:i + self.BATCH_SIZE]
 
@@ -402,7 +402,7 @@ class ChromaVectorStore(BaseVectorBackend):
                     embeddings.append(item["embedding"])
                     metadatas.append(self._sanitize_metadata(item["metadata"]))
                 except (ValueError, KeyError) as e:
-                    logger.warning("Item ignorado no batch (metadata inválida): %s", e)
+                    logger.warning("Item ignored in batch (invalid metadata): %s", e)
                     continue
 
             if ids:
@@ -412,13 +412,13 @@ class ChromaVectorStore(BaseVectorBackend):
                     metadatas=metadatas,
                 )
                 stored += len(ids)
-                logger.debug("Batch chunk armazenado: %d embeddings", len(ids))
+                logger.debug("Batch chunk stored: %d embeddings", len(ids))
 
-        logger.info("Batch store finalizado: %d/%d embeddings armazenados.", stored, len(items))
+        logger.info("Batch store finished: %d/%d embeddings stored.", stored, len(items))
         return stored
 
     # ===================================================================
-    # SEARCH — busca vetorial para Hybrid Search
+    # SEARCH — vector search for Hybrid Search
     # ===================================================================
 
     def search(
@@ -428,25 +428,25 @@ class ChromaVectorStore(BaseVectorBackend):
         top_k: int = 10,
         filters: Optional[dict] = None,
     ) -> list[VectorSearchResult]:
-        """Busca por similaridade coseno com Strict Scoping por projeto.
+        """Search by cosine similarity with Strict Scoping per project.
 
-        Os resultados são retornados com scores normalizados [0, 1],
-        prontos para o pipeline de Hybrid Search / Reranking.
+        Results are returned with normalized scores [0, 1],
+        ready for the Hybrid Search / Reranking pipeline.
 
         Args:
-            query_embedding: Vetor da query.
-            project_uuids: Lista de UUIDs para filtrar (Strict Scoping).
-            top_k: Máximo de resultados.
-            filters: Filtros adicionais (ex: {'node_type': 'FACT'}).
+            query_embedding: Vector of the query.
+            project_uuids: List of UUIDs to filter (Strict Scoping).
+            top_k: Maximum results.
+            filters: Additional filters (e.g. {'node_type': 'FACT'}).
 
         Returns:
-            Lista de VectorSearchResult ordenada por score DESC.
+            List of VectorSearchResult sorted by score DESC.
         """
         if not self._available:
-            logger.warning("search ignorada: ChromaDB indisponível.")
+            logger.warning("search ignored: ChromaDB unavailable.")
             return []
 
-        # Monta o filtro do ChromaDB
+        # Builds the ChromaDB filter
         where_filter = self._build_where_filter(project_uuids, filters)
 
         try:
@@ -457,11 +457,11 @@ class ChromaVectorStore(BaseVectorBackend):
                 include=["metadatas", "distances"],
             )
         except Exception as e:
-            logger.error("Erro na busca vetorial: %s", e)
+            logger.error("Error in vector search: %s", e)
             return []
 
-        # ChromaDB retorna distances (menor = mais similar para cosine)
-        # Convertemos para score (maior = mais similar): score = 1 - distance
+        # ChromaDB returns distances (less = more similar for cosine)
+        # We convert to score (greater = more similar): score = 1 - distance
         search_results: list[VectorSearchResult] = []
 
         if results and results.get("ids") and results["ids"][0]:
@@ -470,7 +470,7 @@ class ChromaVectorStore(BaseVectorBackend):
             metadatas = results["metadatas"][0] if results.get("metadatas") else [{}] * len(ids)
 
             for doc_id, distance, meta in zip(ids, distances, metadatas):
-                # Cosine distance → similarity score
+                # Cosine distance -> similarity score
                 score = max(1.0 - distance, 0.0)
                 search_results.append(VectorSearchResult(
                     doc_id=doc_id,
@@ -480,32 +480,32 @@ class ChromaVectorStore(BaseVectorBackend):
                     metadata=meta,
                 ))
 
-        logger.debug("Busca vetorial retornou %d resultados (top_k=%d)", len(search_results), top_k)
+        logger.debug("Vector search returned %d results (top_k=%d)", len(search_results), top_k)
         return search_results
 
     # ===================================================================
-    # DELETE — remoção individual e batch
+    # DELETE — individual and batch deletion
     # ===================================================================
 
     def delete(self, doc_id: str) -> None:
-        """Remove um embedding pelo doc_id."""
+        """Removes an embedding by doc_id."""
         if not self._available:
             return
 
         try:
             self._collection.delete(ids=[doc_id])
-            logger.debug("Embedding removido: %s", doc_id)
+            logger.debug("Embedding removed: %s", doc_id)
         except Exception as e:
-            logger.warning("Falha ao deletar embedding %s: %s", doc_id, e)
+            logger.warning("Failed to delete embedding %s: %s", doc_id, e)
 
     def delete_batch(self, doc_ids: list[str]) -> int:
-        """Remove múltiplos embeddings em lote.
+        """Removes multiple embeddings in batch.
 
         Args:
-            doc_ids: Lista de doc_ids a remover.
+            doc_ids: List of doc_ids to remove.
 
         Returns:
-            Número de IDs processados para remoção.
+            Number of processed IDs for removal.
         """
         if not self._available:
             return 0
@@ -520,9 +520,9 @@ class ChromaVectorStore(BaseVectorBackend):
                 self._collection.delete(ids=chunk)
                 deleted += len(chunk)
             except Exception as e:
-                logger.error("Falha ao deletar batch de %d embeddings: %s", len(chunk), e)
+                logger.error("Failed to delete batch of %d embeddings: %s", len(chunk), e)
 
-        logger.info("Batch delete finalizado: %d/%d removidos.", deleted, len(doc_ids))
+        logger.info("Batch delete finished: %d/%d removed.", deleted, len(doc_ids))
         return deleted
 
     # ===================================================================
@@ -530,19 +530,19 @@ class ChromaVectorStore(BaseVectorBackend):
     # ===================================================================
 
     def verify_sync(self, sqlite_node_ids: set[int]) -> list[str]:
-        """Detecta vetores órfãos comparando com os IDs válidos do SQLite.
+        """Detects orphan vectors by comparing with the valid SQLite IDs.
 
-        Fluxo paginado (proteção OOM):
-            1. Obtém apenas os doc_ids do ChromaDB (sem metadados pesados).
-            2. Itera em lotes de BATCH_SIZE, carregando metadados por fatia.
-            3. Compara node_id de cada lote com sqlite_node_ids.
-            4. Acumula doc_ids cujo node_id NÃO existe no SQLite.
+        Paged flow (OOM protection):
+            1. Gets only doc_ids from ChromaDB (without heavy metadata).
+            2. Iterates in batches of BATCH_SIZE, loading metadata per slice.
+            3. Compares node_id of each batch with sqlite_node_ids.
+            4. Accumulates doc_ids whose node_id does NOT exist in SQLite.
 
         Args:
-            sqlite_node_ids: Conjunto de node_ids válidos no SQLite.
+            sqlite_node_ids: Set of valid node_ids in SQLite.
 
         Returns:
-            Lista de doc_ids órfãos (existem no vetor mas não no SQLite).
+            List of orphan doc_ids (exist in vector but not in SQLite).
         """
         if not self._available:
             return []
@@ -550,15 +550,15 @@ class ChromaVectorStore(BaseVectorBackend):
         orphans: list[str] = []
 
         try:
-            # Fase 1: obtém apenas IDs (sem metadados pesados na RAM)
+            # Phase 1: get only IDs (without heavy metadata in RAM)
             id_data = self._collection.get(include=[])
             all_ids = id_data.get("ids", [])
 
             if not all_ids:
-                logger.info("Reconciliation Loop: coleção vazia — nada a verificar.")
+                logger.info("Reconciliation Loop: collection empty — nothing to verify.")
                 return []
 
-            # Fase 2: itera em lotes de BATCH_SIZE, carregando metadados por fatia
+            # Phase 2: iterate in batches of BATCH_SIZE, loading metadata per slice
             for offset in range(0, len(all_ids), self.BATCH_SIZE):
                 batch_ids = all_ids[offset:offset + self.BATCH_SIZE]
                 batch_data = self._collection.get(
@@ -571,7 +571,7 @@ class ChromaVectorStore(BaseVectorBackend):
                 for doc_id, meta in zip(batch_doc_ids, batch_metas):
                     node_id = meta.get("node_id") if meta else None
                     if node_id is None:
-                        # Metadata corrompida — considerar órfão
+                        # Metadata corrupted — consider orphan
                         orphans.append(doc_id)
                         continue
 
@@ -579,14 +579,14 @@ class ChromaVectorStore(BaseVectorBackend):
                         orphans.append(doc_id)
 
         except Exception as e:
-            logger.error("Falha no Reconciliation Loop (verify_sync): %s", e)
+            logger.error("Failed in Reconciliation Loop (verify_sync): %s", e)
 
         if orphans:
             logger.warning(
-                "Reconciliation Loop: %d vetores órfãos detectados.", len(orphans)
+                "Reconciliation Loop: %d orphan vectors detected.", len(orphans)
             )
         else:
-            logger.info("Reconciliation Loop: todos os vetores estão sincronizados.")
+            logger.info("Reconciliation Loop: all vectors are synchronized.")
 
         return orphans
 
@@ -595,7 +595,7 @@ class ChromaVectorStore(BaseVectorBackend):
     # ===================================================================
 
     def health_check(self) -> bool:
-        """Verifica se o ChromaDB está operacional."""
+        """Verifies if ChromaDB is operational."""
         if not self._available:
             return False
 
@@ -603,14 +603,14 @@ class ChromaVectorStore(BaseVectorBackend):
             self._client.heartbeat()
             return True
         except Exception as e:
-            logger.error("Health check falhou: %s", e)
+            logger.error("Health check failed: %s", e)
             return False
 
     def count(self, project_uuid: Optional[str] = None) -> int:
-        """Retorna o total de vetores armazenados.
+        """Returns the total number of stored vectors.
 
         Args:
-            project_uuid: Se informado, conta apenas vetores deste projeto.
+            project_uuid: If provided, counts only vectors of this project.
         """
         if not self._available:
             return 0
@@ -624,20 +624,20 @@ class ChromaVectorStore(BaseVectorBackend):
                 return len(result.get("ids", []))
             return self._collection.count()
         except Exception as e:
-            logger.error("Falha ao contar vetores: %s", e)
+            logger.error("Failed to count vectors: %s", e)
             return 0
 
     def reset_collection(self) -> bool:
-        """Destrói e recria a coleção física de vetores (reparo emergencial).
+        """Destroys and recreates the physical collection of vectors (emergency repair).
 
-        CUIDADO: Esta operação apaga TODOS os embeddings irreversivelmente.
-        Após reset, será necessário re-ingerir os projetos para recriar vetores.
+        WARNING: This operation deletes ALL embeddings irreversibly.
+        After reset, it will be necessary to re-ingest projects to recreate vectors.
 
         Returns:
-            True se a operação foi bem-sucedida, False caso contrário.
+            True if the operation was successful, False otherwise.
         """
         if not self._available or self._client is None:
-            logger.warning("reset_collection ignorado: ChromaDB indisponível.")
+            logger.warning("reset_collection ignored: ChromaDB unavailable.")
             return False
 
         try:
@@ -648,54 +648,54 @@ class ChromaVectorStore(BaseVectorBackend):
                 metadata={"hnsw:space": "cosine"},
             )
             logger.info(
-                "reset_collection OK: coleção '%s' destruída e recriada "
-                "(%d embeddings eliminados).",
+                "reset_collection OK: collection '%s' destroyed and recreated "
+                "(%d embeddings eliminated).",
                 self._collection_name, old_count,
             )
             return True
         except Exception as e:
-            logger.error("reset_collection FALHOU: %s", e)
+            logger.error("reset_collection FAILED: %s", e)
             return False
 
     # ===================================================================
-    # MÉTODOS AUXILIARES INTERNOS
+    # AUXILIARY INTERNAL METHODS
     # ===================================================================
 
     def update_metadata(self, doc_id: str, metadata: dict) -> None:
-        """Atualiza os metadados de um vetor existente sem substituir o embedding.
+        """Updates the metadata of an existing vector without replacing the embedding.
 
-        Permite que o JanitorService injete community_id e outros atributos
-        sem precisar acessar self._collection diretamente.
+        Allows JanitorService to inject community_id and other attributes
+        without needing to access self._collection directly.
 
         Args:
-            doc_id: Identificador do documento (ex: 'node_42').
-            metadata: Dicionário de metadados a aplicar.
+            doc_id: Document identifier (e.g. 'node_42').
+            metadata: Metadata dictionary to apply.
         """
         if not self._available or self._collection is None:
-            logger.debug("update_metadata: ChromaDB indisponível — ignorado para %s.", doc_id)
+            logger.debug("update_metadata: ChromaDB unavailable — ignored for %s.", doc_id)
             return
 
         try:
             safe_meta = self._sanitize_metadata(metadata)
             self._collection.update(ids=[doc_id], metadatas=[safe_meta])
-            logger.debug("Metadata vetorial atualizada: doc_id=%s", doc_id)
+            logger.debug("Vector metadata updated: doc_id=%s", doc_id)
         except Exception as e:
-            logger.error("Falha ao atualizar metadados no ChromaDB para %s: %s", doc_id, e)
+            logger.error("Failed to update metadata in ChromaDB for %s: %s", doc_id, e)
 
 
     @staticmethod
     def _validate_metadata(metadata: dict) -> None:
-        """Valida que metadata contém campos obrigatórios."""
+        """Validates that metadata contains required fields."""
         if "node_id" not in metadata:
-            raise ValueError("metadata deve conter 'node_id' (int).")
+            raise ValueError("metadata must contain 'node_id' (int).")
         if "project_uuid" not in metadata:
-            raise ValueError("metadata deve conter 'project_uuid' (str).")
+            raise ValueError("metadata must contain 'project_uuid' (str).")
 
     @staticmethod
     def _sanitize_metadata(metadata: dict) -> dict:
-        """Garante que todos os valores de metadata sejam tipos aceitos pelo ChromaDB.
+        """Ensures that all metadata values are types accepted by ChromaDB.
 
-        ChromaDB aceita: str, int, float, bool. Listas e dicts são convertidos para str.
+        ChromaDB accepts: str, int, float, bool. Lists and dicts are converted to str.
         """
         safe = {}
         for k, v in metadata.items():
@@ -712,14 +712,14 @@ class ChromaVectorStore(BaseVectorBackend):
         project_uuids: list[str],
         extra_filters: Optional[dict] = None,
     ) -> Optional[dict]:
-        """Monta o filtro 'where' do ChromaDB combinando projeto + filtros extras.
+        """Builds the ChromaDB 'where' filter combining project + extra filters.
 
         Args:
-            project_uuids: Lista de UUIDs para Strict Scoping.
-            extra_filters: Filtros adicionais (ex: {'node_type': 'FACT'}).
+            project_uuids: List of UUIDs for Strict Scoping.
+            extra_filters: Additional filters (e.g. {'node_type': 'FACT'}).
 
         Returns:
-            Dict no formato ChromaDB where, ou None se sem filtros.
+            Dict in ChromaDB where format, or None if no filters.
         """
         conditions: list[dict] = []
 
@@ -740,7 +740,7 @@ class ChromaVectorStore(BaseVectorBackend):
         return {"$and": conditions}
 
     def get_all_stored_node_ids(self) -> set[int]:
-        """Retorna todos os node_ids numéricos presentes na coleção do Chroma."""
+        """Returns all numerical node_ids present in the Chroma collection."""
         if not self._available:
             return set()
         try:
@@ -755,5 +755,5 @@ class ChromaVectorStore(BaseVectorBackend):
                         pass
             return node_ids
         except Exception as e:
-            logger.error("Erro ao obter node_ids salvos no Chroma: %s", e)
+            logger.error("Error obtaining stored node_ids in Chroma: %s", e)
             return set()

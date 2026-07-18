@@ -1,8 +1,8 @@
 """
-services/ — Serviços autônomos do Grafo Concierge v3.8.0
+services/ - Autonomous services of Grafo Concierge v3.8.0
 
-Módulos:
-    janitor.py → Background Janitor — manutenção autônoma do grafo
+Modules:
+    janitor.py → Background Janitor — autonomous maintenance of the graph
 """
 
 from services.janitor import JanitorService, MaintenanceReport

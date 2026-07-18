@@ -1,25 +1,25 @@
 """
 ingestion/crawler.py — Grafo Concierge v3.8.0 (Absolute Solidity)
 
-Varredura inteligente de filesystem para o Motor de Ingestão Apex.
+Intelligent filesystem scanning for the Apex Ingestion Engine.
 
-Responsabilidades:
-    - Percorrer recursivamente diretórios de projetos.
-    - Respeitar padrões de ignore (.gitignore + IGNORE_DIRS do config).
-    - Calcular SHA256 de cada arquivo para detecção de deltas.
-    - Comparar hashes com SqliteStore para skip de arquivos inalterados.
-    - Classificar arquivos por tipo (code, doc, config, conversation).
-    - Detectar arquivos deletados para Garbage Collection.
+Responsibilities:
+    - Recursively traverse project directories.
+    - Respect ignore patterns (.gitignore + IGNORE_DIRS from config).
+    - Calculate SHA256 of each file for delta detection.
+    - Compare hashes with SqliteStore to skip unmodified files.
+    - Classify files by type (code, doc, config, conversation).
+    - Detect deleted files for Garbage Collection.
 
-Integração:
-    - SqliteStore.find_node_by_hash(project_uuid, hash) → verifica se já processado.
-    - SqliteStore.get_nodes_by_project(project_uuid) → lista nós existentes para GC.
-    - Resultado é um CrawlReport consumido pelo Parser/Orchestrator.
+Integration:
+    - SqliteStore.find_node_by_hash(project_uuid, hash) → checks if already processed.
+    - SqliteStore.get_nodes_by_project(project_uuid) → lists existing nodes for GC.
+    - Result is a CrawlReport consumed by the Parser/Orchestrator.
 
-Preservação de Identidade (Path-Agnostic ID):
-    O doc_id de cada nó é derivado do conteúdo (hash), não do path.
-    Se o arquivo mudar de pasta, o hash muda → novo nó é criado.
-    Se o arquivo for renomeado sem alterar conteúdo → mesmo hash → reutiliza nó.
+Identity Preservation (Path-Agnostic ID):
+    The doc_id of each node is derived from the content (hash), not the path.
+    If the file moves to another folder, the hash changes → new node is created.
+    If the file is renamed without content changes → same hash → reuses the node.
 """
 
 from __future__ import annotations
@@ -38,18 +38,18 @@ logger = logging.getLogger("grafo-concierge.crawler")
 
 
 # ---------------------------------------------------------------------------
-# Classificação de arquivos
+# File classification
 # ---------------------------------------------------------------------------
 
 class FileCategory(str, Enum):
-    """Categorias de arquivo detectadas automaticamente pelo Crawler.
+    """File categories automatically detected by the Crawler.
 
-    Mapeamento conforme spec v3.8:
+    Mapping per spec v3.8:
         code         → .py, .js, .ts, .go, .rs, .java, .cpp, .c, .rb
         doc          → .md, .txt, .rst, .adoc
         config       → .json, .yaml, .yml, .toml, .env, .ini, .cfg
         conversation → .log, .chat
-        unknown      → extensões não mapeadas
+        unknown      → unmapped extensions
     """
     CODE = "code"
     DOC = "doc"
@@ -58,7 +58,7 @@ class FileCategory(str, Enum):
     UNKNOWN = "unknown"
 
 
-# Mapeamento extensão → categoria (conforme tabela da API v3.8)
+# Extension -> category mapping (per API v3.8 table)
 EXTENSION_MAP: dict[str, FileCategory] = {
     # Code
     ".py": FileCategory.CODE,
@@ -110,22 +110,22 @@ EXTENSION_MAP: dict[str, FileCategory] = {
 
 
 # ---------------------------------------------------------------------------
-# CrawlResult — resultado individual de um arquivo escaneado
+# CrawlResult — individual result of a scanned file
 # ---------------------------------------------------------------------------
 
 @dataclass
 class CrawlResult:
-    """Resultado da varredura de um único arquivo.
+    """Result of the scan of a single file.
 
     Attributes:
-        absolute_path: Caminho absoluto no filesystem.
-        relative_path: Caminho relativo ao source_path do projeto.
-        file_hash: SHA256 do conteúdo do arquivo.
-        category: Classificação automática (code, doc, config, conversation).
-        extension: Extensão do arquivo (ex: '.py').
-        size_bytes: Tamanho em bytes.
-        is_new: True se o hash não existe no SqliteStore (arquivo novo ou modificado).
-        existing_node_id: Se não é novo, o ID do nó existente no SQLite.
+        absolute_path: Absolute path in the filesystem.
+        relative_path: Relative path to the project's source_path.
+        file_hash: SHA256 of the file content.
+        category: Automatic classification (code, doc, config, conversation).
+        extension: File extension (e.g. '.py').
+        size_bytes: Size in bytes.
+        is_new: True if the hash does not exist in SqliteStore (new or modified file).
+        existing_node_id: If not new, the ID of the existing node in SQLite.
     """
     absolute_path: str
     relative_path: str
@@ -139,14 +139,14 @@ class CrawlResult:
 
 @dataclass
 class CrawlReport:
-    """Relatório consolidado de uma operação de crawl.
+    """Consolidated report of a crawl operation.
 
     Attributes:
-        new_files: Arquivos novos ou modificados (para processamento).
-        unchanged_files: Arquivos cujo hash não mudou (skip).
-        deleted_node_ids: IDs de nós no SQLite cujos arquivos não existem mais (GC).
-        categories: Contagem por categoria.
-        total_scanned: Total de arquivos escaneados.
+        new_files: New or modified files (for processing).
+        unchanged_files: Files whose hash has not changed (skip).
+        deleted_node_ids: SQLite node IDs whose files no longer exist (GC).
+        categories: Count per category.
+        total_scanned: Total scanned files.
     """
     new_files: list[CrawlResult] = field(default_factory=list)
     unchanged_files: list[CrawlResult] = field(default_factory=list)
@@ -156,38 +156,38 @@ class CrawlReport:
 
 
 # ---------------------------------------------------------------------------
-# GitignoreParser — parser robusto de .gitignore
+# GitignoreParser — robust parser for .gitignore
 # ---------------------------------------------------------------------------
 
 class GitignoreParser:
-    """Parser de .gitignore com suporte a padrões comuns.
+    """Parser for .gitignore with support for common patterns.
 
-    Suporta:
-        - Comentários (# ...) e linhas em branco.
-        - Negação (! padrão → não ignora).
-        - Diretórios explícitos (dir/ → só diretórios).
+    Supports:
+        - Comments (# ...) and blank lines.
+        - Negation (! pattern → do not ignore).
+        - Explicit directories (dir/ → directories only).
         - Wildcards (*, **, ?).
-        - Padrões ancorados (começando com /).
+        - Anchored patterns (starting with /).
 
-    Limitações:
-        - Não suporta .gitignore aninhados em subdiretórios (apenas o da raiz).
-        - Padrões complexos com range [a-z] são tratados como glob simples.
+    Limitations:
+        - Does not support nested .gitignore in subdirectories (root only).
+        - Complex patterns with ranges [a-z] are treated as simple globs.
     """
 
     def __init__(self) -> None:
-        """Inicializa o parser com listas vazias."""
+        """Initializes the parser with empty lists."""
         self._patterns: list[str] = []
         self._negations: list[str] = []
         self._dir_only_patterns: list[str] = []
 
     def add_patterns(self, patterns: list[str]) -> None:
-        """Adiciona uma lista de padrões de ignore programaticamente.
+        """Adds a list of ignore patterns programmatically.
 
-        Permite carregar padrões padrão de segurança (DEFAULT_IGNORE_PATTERNS)
-        sem depender de um arquivo no disco. Segue a mesma semântica do .gitignore.
+        Allows loading default safety patterns (DEFAULT_IGNORE_PATTERNS)
+        without depending on a file on disk. Follows the same semantics as .gitignore.
 
         Args:
-            patterns: Lista de padrões no formato .gitignore.
+            patterns: List of patterns in .gitignore format.
         """
         for raw in patterns:
             stripped = raw.strip()
@@ -213,92 +213,92 @@ class GitignoreParser:
         )
 
     def load(self, gitignore_path: str) -> None:
-        """Carrega e parseia um arquivo .gitignore.
+        """Loads and parses a .gitignore file.
 
-        Ignora linhas em branco e comentários.
-        Padrões de negação (!) são armazenados separadamente.
-        Padrões de diretório (terminados em /) são armazenados separadamente.
+        Ignores blank lines and comments.
+        Negation patterns (!) are stored separately.
+        Directory patterns (ending in /) are stored separately.
 
         Args:
-            gitignore_path: Caminho absoluto do .gitignore.
+            gitignore_path: Absolute path to the .gitignore.
         """
         try:
             with open(gitignore_path, "r", encoding="utf-8", errors="replace") as f:
                 raw_lines = f.readlines()
         except (OSError, IOError) as e:
-            logger.warning("Não foi possível ler .gitignore em %s: %s", gitignore_path, e)
+            logger.warning("Could not read .gitignore at %s: %s", gitignore_path, e)
             return
 
         for line in raw_lines:
-            # Remove trailing whitespace (mantém leading para padrões com espaço)
+            # Remove trailing whitespace (keeps leading for space patterns)
             stripped = line.rstrip()
 
-            # Ignora linhas vazias e comentários
+            # Ignores empty lines and comments
             if not stripped or stripped.startswith("#"):
                 continue
 
-            # Remove trailing espaço escapado (\\ no final)
+            # Remove trailing escaped space (\\ at the end)
             if stripped.endswith("\\ "):
                 stripped = stripped[:-2] + " "
 
-            # Padrões de negação
+            # Negation patterns
             if stripped.startswith("!"):
                 negation = stripped[1:].strip()
                 if negation:
                     self._negations.append(negation)
                 continue
 
-            # Padrões de diretório (terminados em /)
+            # Directory patterns (ending in /)
             if stripped.endswith("/"):
                 self._dir_only_patterns.append(stripped.rstrip("/"))
-                # Também adiciona como padrão normal para o conteúdo do diretório
+                # Also adds as normal pattern for directory contents
                 self._patterns.append(stripped.rstrip("/"))
                 self._patterns.append(stripped.rstrip("/") + "/**")
                 continue
 
-            # Remove barra inicial (ancora ao root, mas nós tratamos relativo)
+            # Remove leading slash (anchors to root, but we treat as relative)
             if stripped.startswith("/"):
                 stripped = stripped[1:]
 
             self._patterns.append(stripped)
 
         logger.debug(
-            "GitignoreParser: %d padrões carregados, %d negações, %d dir-only",
+            "GitignoreParser: %d patterns loaded, %d negations, %d dir-only",
             len(self._patterns), len(self._negations), len(self._dir_only_patterns),
         )
 
     def should_ignore(self, relative_path: str, is_dir: bool = False) -> bool:
-        """Verifica se um path relativo deve ser ignorado.
+        """Verifies if a relative path should be ignored.
 
-        A lógica segue a semântica do Git:
-            1. Se o path corresponde a algum padrão de ignore → True.
-            2. Se o path corresponde a um padrão de negação → False (override).
-            3. Padrões dir-only só se aplicam a diretórios.
+        Logic follows Git semantics:
+            1. If the path matches any ignore pattern → True.
+            2. If the path matches a negation pattern → False (override).
+            3. Directory-only patterns only apply to directories.
 
         Args:
-            relative_path: Caminho relativo ao root do projeto (forward slashes).
-            is_dir: True se o path é um diretório.
+            relative_path: Relative path to the project root (forward slashes).
+            is_dir: True if the path is a directory.
 
         Returns:
-            True se deve ser ignorado.
+            True if it should be ignored.
         """
-        # Normaliza para forward slashes
+        # Normalize to forward slashes
         normalized = relative_path.replace("\\", "/")
-        # Extrai o nome base para matching simples (ex: 'node_modules')
+        # Extract basename for simple matching (e.g. 'node_modules')
         basename = normalized.rsplit("/", 1)[-1] if "/" in normalized else normalized
 
-        # Verifica negações primeiro (override)
+        # Check negations first (override)
         for neg_pattern in self._negations:
             if self._matches(normalized, neg_pattern) or self._matches(basename, neg_pattern):
                 return False
 
-        # Verifica padrões de diretório
+        # Check directory patterns
         if is_dir:
             for dir_pattern in self._dir_only_patterns:
                 if self._matches(normalized, dir_pattern) or self._matches(basename, dir_pattern):
                     return True
 
-        # Verifica padrões gerais
+        # Check general patterns
         for pattern in self._patterns:
             if self._matches(normalized, pattern) or self._matches(basename, pattern):
                 return True
@@ -307,23 +307,23 @@ class GitignoreParser:
 
     @staticmethod
     def _matches(path: str, pattern: str) -> bool:
-        """Verifica se um path corresponde a um padrão glob.
+        """Checks if a path matches a glob pattern.
 
-        Suporta:
+        Supports:
             - fnmatch wildcards (*, ?, [seq])
-            - ** (glob recursivo — match de qualquer profundidade)
+            - ** (recursive glob — match of any depth)
 
         Args:
-            path: Path normalizado (forward slashes).
-            pattern: Padrão glob.
+            path: Normalized path (forward slashes).
+            pattern: Glob pattern.
 
         Returns:
-            True se o path corresponde ao padrão.
+            True if the path matches the pattern.
         """
-        # ** → qualquer subdiretório
+        # ** → any subdirectory
         if "**" in pattern:
-            # Transforma 'dir/**/file' em match recursivo
-            # Divide pelo '**' e verifica as partes
+            # Transforms 'dir/**/file' into recursive match
+            # Splits by '**' and checks the parts
             parts = pattern.split("**")
             if len(parts) == 2:
                 prefix = parts[0].rstrip("/")
@@ -338,13 +338,13 @@ class GitignoreParser:
                     return fnmatch.fnmatch(path.rsplit("/", 1)[-1], suffix)
                 if prefix and not suffix:
                     return path.startswith(prefix)
-                return True  # ** sozinho → ignora tudo
+                return True  # ** alone → ignores everything
 
-        # Padrão contém / → match contra path completo
+        # Pattern contains / → match against full path
         if "/" in pattern:
             return fnmatch.fnmatch(path, pattern)
 
-        # Padrão simples → match contra cada componente do path
+        # Simple pattern → match against each component of the path
         components = path.split("/")
         for component in components:
             if fnmatch.fnmatch(component, pattern):
@@ -354,26 +354,26 @@ class GitignoreParser:
 
 
 # ---------------------------------------------------------------------------
-# ProjectCrawler — Motor de varredura
+# ProjectCrawler — Scanning engine
 # ---------------------------------------------------------------------------
 
 class ProjectCrawler:
-    """Varredura inteligente de filesystem com Delta Detection.
+    """Intelligent filesystem scanning with Delta Detection.
 
-    Fluxo:
-        1. Carrega padrões de ignore (.gitignore + IGNORE_DIRS).
-        2. Percorre recursivamente o source_path.
-        3. Calcula SHA256 de cada arquivo.
-        4. Consulta SqliteStore para verificar se o hash já existe.
-        5. Classifica arquivo por extensão.
-        6. Detecta nós órfãos (arquivos deletados) para Garbage Collection.
+    Flow:
+        1. Loads ignore patterns (.gitignore + IGNORE_DIRS).
+        2. Recursively traverses the source_path.
+        3. Calculates SHA256 of each file.
+        4. Queries SqliteStore to check if the hash already exists.
+        5. Classifies file by extension.
+        6. Detects orphan nodes (deleted files) for Garbage Collection.
 
     Args:
-        sqlite_store: Instância do SqliteStore para consulta de hashes.
-        ignore_dirs: Lista de diretórios extras a ignorar (merge com DEFAULT_IGNORE_DIRS).
+        sqlite_store: SqliteStore instance for hash queries.
+        ignore_dirs: List of extra directories to ignore (merge with DEFAULT_IGNORE_DIRS).
     """
 
-    # Diretórios ignorados por padrão (conforme ConciergeConfig.IGNORE_DIRS)
+    # Ignored directories by default (per ConciergeConfig.IGNORE_DIRS)
     DEFAULT_IGNORE_DIRS: set[str] = {
         ".git", "node_modules", ".next", "dist", "build",
         "__pycache__", ".venv", "venv", ".env", ".idea",
@@ -382,36 +382,36 @@ class ProjectCrawler:
         "target", "vendor", "bower_components",
     }
 
-    # Padrões de ARQUIVOS ignorados por padrão (segurança zero-config)
+    # Ignored FILE patterns by default (zero-config security)
     DEFAULT_IGNORE_PATTERNS: list[str] = [
-        # Segurança — Credenciais e Chaves
+        # Security — Credentials and Keys
         ".env", ".env.*",
         "*.pem", "*.key", "*.cert", "*.der", "*.pfx", "*.p12",
         "id_rsa", "id_dsa", "id_ed25519",
-        # Lock files — Ruído puro
+        # Lock files — Pure noise
         "package-lock.json", "yarn.lock", "pnpm-lock.yaml",
         "poetry.lock", "Cargo.lock", "composer.lock", "Gemfile.lock",
-        # Logs e Texto lixo
+        # Logs and junk text
         "*.log", "*.txt",
-        # Bancos de dados locais
+        # Local databases
         "*.db", "*.sqlite", "*.sqlite3",
-        # Binários e Compilação
+        # Binaries and compilation
         "*.exe", "*.dll", "*.so", "*.dylib", "*.bin", "*.o", "*.a",
         "*.pyc", "*.pyo", "*.class", "*.wasm",
-        # Arquivos compactados
+        # Compressed files
         "*.zip", "*.tar", "*.tar.gz", "*.tgz", "*.rar", "*.7z", "*.bz2",
-        # Mídia e Imagens
+        # Media and Images
         "*.jpg", "*.jpeg", "*.png", "*.gif", "*.ico", "*.svg",
         "*.mp3", "*.mp4", "*.wav", "*.avi", "*.mov", "*.webp",
         "*.ttf", "*.woff", "*.woff2", "*.eot",
-        # Lixo de SO
+        # OS junk
         ".DS_Store", "Thumbs.db", "desktop.ini",
     ]
 
-    # Tamanho máximo de arquivo para ingestão (10 MB)
+    # Maximum file size for ingestion (10 MB)
     MAX_FILE_SIZE_BYTES: int = 10 * 1024 * 1024
 
-    # Tamanho do bloco de leitura para hash (64 KB — eficiência de memória)
+    # Read block size for hash (64 KB — memory efficiency)
     _HASH_BLOCK_SIZE: int = 65536
 
     def __init__(
@@ -419,22 +419,22 @@ class ProjectCrawler:
         sqlite_store: "SqliteStore",
         ignore_dirs: Optional[set[str]] = None,
     ) -> None:
-        """Inicializa o Crawler.
+        """Initializes the Crawler.
 
         Args:
-            sqlite_store: Fachada SQLite para consulta de hashes existentes.
-            ignore_dirs: Diretórios extras a ignorar (merge com DEFAULT_IGNORE_DIRS).
+            sqlite_store: SQLite facade for querying existing hashes.
+            ignore_dirs: Extra directories to ignore (merge with DEFAULT_IGNORE_DIRS).
         """
         self._store = sqlite_store
         self._ignore_dirs = self.DEFAULT_IGNORE_DIRS.copy()
         if ignore_dirs:
             self._ignore_dirs.update(ignore_dirs)
 
-        # GitignoreParser será carregado por crawl() se existir .gitignore
+        # GitignoreParser will be loaded by crawl() if .gitignore exists
         self._gitignore: Optional[GitignoreParser] = None
 
         logger.info(
-            "ProjectCrawler inicializado: %d padrões de ignore ativos.",
+            "ProjectCrawler initialized: %d active ignore patterns.",
             len(self._ignore_dirs),
         )
 
@@ -443,57 +443,57 @@ class ProjectCrawler:
         source_path: str,
         project_uuid: str,
     ) -> CrawlReport:
-        """Executa varredura completa de um diretório de projeto.
+        """Executes a complete scan of a project directory.
 
-        Fluxo:
-            1. Valida source_path.
-            2. Carrega .gitignore (se existir).
-            3. Percorre arquivos recursivamente.
-            4. Para cada arquivo: hash → classify → delta check.
-            5. Detecta nós órfãos (Garbage Collection).
-            6. Retorna CrawlReport com new_files, unchanged e deleted.
+        Flow:
+            1. Validates source_path.
+            2. Loads .gitignore (if it exists).
+            3. Traverses files recursively.
+            4. For each file: hash → classify → delta check.
+            5. Detects orphan nodes (Garbage Collection).
+            6. Returns CrawlReport with new_files, unchanged, and deleted.
 
         Args:
-            source_path: Diretório raiz do projeto a escanear.
-            project_uuid: UUID do projeto (para filtro de nós no SQLite).
+            source_path: Root directory of the project to scan.
+            project_uuid: Project UUID (for node filtering in SQLite).
 
         Returns:
-            CrawlReport com o inventário completo da varredura.
+            CrawlReport with the complete scan inventory.
 
         Raises:
-            FileNotFoundError: Se source_path não existe.
-            NotADirectoryError: Se source_path não é um diretório.
+            FileNotFoundError: If source_path does not exist.
+            NotADirectoryError: If source_path is not a directory.
         """
         root = Path(source_path).resolve()
 
-        # --- Validação de entrada ---
+        # --- Input validation ---
         if not root.exists():
-            raise FileNotFoundError(f"source_path não existe: {source_path}")
+            raise FileNotFoundError(f"source_path does not exist: {source_path}")
         if not root.is_dir():
-            raise NotADirectoryError(f"source_path não é um diretório: {source_path}")
+            raise NotADirectoryError(f"source_path is not a directory: {source_path}")
 
-        logger.info("Crawl iniciado: %s (projeto: %s)", root, project_uuid)
+        logger.info("Crawl started: %s (project: %s)", root, project_uuid)
 
-        # --- Carrega padrões de ignore (3 camadas) ---
+        # --- Load ignore patterns (3 layers) ---
         self._gitignore = GitignoreParser()
 
-        # Camada 1: Padrões de segurança padrão (zero-config)
+        # Layer 1: Default safety patterns (zero-config)
         self._gitignore.add_patterns(self.DEFAULT_IGNORE_PATTERNS)
-        logger.info("Padrões de segurança padrão carregados: %d regras.", len(self.DEFAULT_IGNORE_PATTERNS))
+        logger.info("Default safety patterns loaded: %d rules.", len(self.DEFAULT_IGNORE_PATTERNS))
 
-        # Camada 2: .gitignore do projeto
+        # Layer 2: Project .gitignore
         gitignore_file = root / ".gitignore"
         if gitignore_file.is_file():
             self._gitignore.load(str(gitignore_file))
-            logger.info(".gitignore encontrado e carregado: %s", gitignore_file)
+            logger.info(".gitignore found and loaded: %s", gitignore_file)
 
-        # Camada 3: .conciergeignore (regras extras específicas do Grafo Concierge)
+        # Layer 3: .conciergeignore (Grafo Concierge specific extra rules)
         concierge_ignore_file = root / ".conciergeignore"
         if concierge_ignore_file.is_file():
             self._gitignore.load(str(concierge_ignore_file))
-            logger.info(".conciergeignore encontrado e carregado: %s", concierge_ignore_file)
+            logger.info(".conciergeignore found and loaded: %s", concierge_ignore_file)
 
-        # --- Percorre recursivamente ---
+        # --- Traverse recursively ---
         report = CrawlReport()
         current_hashes: set[str] = set()
         current_files: set[str] = set()
@@ -502,7 +502,7 @@ class ProjectCrawler:
             current_dir = Path(dirpath)
             relative_dir = current_dir.relative_to(root)
 
-            # Filtra diretórios IN-PLACE (os.walk topdown=True respeita isso)
+            # Filter directories IN-PLACE (os.walk topdown=True respects this)
             dirnames[:] = [
                 d for d in dirnames
                 if not self._should_ignore_dir(d, str(relative_dir / d))
@@ -512,47 +512,47 @@ class ProjectCrawler:
                 filepath = current_dir / filename
                 relative_filepath = str(relative_dir / filename).replace("\\", "/")
 
-                # Pula arquivos ocultos (começam com .)
+                # Skip hidden files (start with .)
                 if filename.startswith("."):
                     continue
 
-                # Verifica .gitignore
+                # Check .gitignore
                 if self._gitignore and self._gitignore.should_ignore(relative_filepath, is_dir=False):
-                    logger.debug("Ignorado (.gitignore): %s", relative_filepath)
+                    logger.debug("Ignored (.gitignore): %s", relative_filepath)
                     continue
 
-                # Verifica se é arquivo regular e legível
+                # Check if it is a regular and readable file
                 if not filepath.is_file():
                     continue
 
-                # Verifica tamanho máximo
+                # Check maximum size
                 try:
                     size_bytes = filepath.stat().st_size
                 except OSError as e:
-                    logger.warning("Não foi possível ler stat de %s: %s", filepath, e)
+                    logger.warning("Could not read stat of %s: %s", filepath, e)
                     continue
 
                 if size_bytes > self.MAX_FILE_SIZE_BYTES:
                     logger.debug(
-                        "Arquivo excede MAX_FILE_SIZE (%d bytes): %s",
+                        "File exceeds MAX_FILE_SIZE (%d bytes): %s",
                         size_bytes, relative_filepath,
                     )
                     continue
 
-                # Pula arquivos vazios (0 bytes)
+                # Skip empty files (0 bytes)
                 if size_bytes == 0:
                     continue
 
-                # --- Calcula SHA256 ---
+                # --- Compute SHA256 ---
                 file_hash = self.compute_file_hash(str(filepath))
                 if file_hash is None:
-                    # Erro na leitura — skip (já logado pelo compute_file_hash)
+                    # Reading error — skip (already logged by compute_file_hash)
                     continue
 
                 current_hashes.add(file_hash)
                 current_files.add(relative_filepath)
 
-                # --- Classifica ---
+                # --- Classify ---
                 category = self.classify_file(filename)
                 extension = Path(filename).suffix.lower()
 
@@ -575,16 +575,16 @@ class ProjectCrawler:
                 else:
                     report.unchanged_files.append(result)
 
-                # Contagem por categoria
+                # Count per category
                 cat_key = category.value
                 report.categories[cat_key] = report.categories.get(cat_key, 0) + 1
                 report.total_scanned += 1
 
-        # --- Detecta nós órfãos para Garbage Collection ---
+        # --- Detect orphan nodes for Garbage Collection ---
         report.deleted_node_ids = self._detect_deleted_nodes(project_uuid, current_files)
 
         logger.info(
-            "Crawl concluído: %d escaneados, %d novos, %d inalterados, %d deletados (GC).",
+            "Crawl completed: %d scanned, %d new, %d unchanged, %d deleted (GC).",
             report.total_scanned,
             len(report.new_files),
             len(report.unchanged_files),
@@ -594,16 +594,16 @@ class ProjectCrawler:
         return report
 
     def compute_file_hash(self, filepath: str) -> Optional[str]:
-        """Calcula SHA256 do conteúdo de um arquivo.
+        """Calculates SHA256 of a file's content.
 
-        Lê o arquivo em blocos de 64KB para eficiência de memória.
-        Retorna None em caso de erro de leitura (Semantic Fallback).
+        Reads the file in 64KB blocks for memory efficiency.
+        Returns None in case of read error (Semantic Fallback).
 
         Args:
-            filepath: Caminho absoluto do arquivo.
+            filepath: Absolute path to the file.
 
         Returns:
-            Hash SHA256 hexadecimal (64 caracteres) ou None se falhou.
+            Hexadecimal SHA256 hash (64 characters) or None if it failed.
         """
         sha256 = hashlib.sha256()
         try:
@@ -615,46 +615,46 @@ class ProjectCrawler:
                     sha256.update(block)
             return sha256.hexdigest()
         except (OSError, IOError, PermissionError) as e:
-            logger.warning("Falha ao calcular hash de %s: %s", filepath, e)
+            logger.warning("Failed to calculate hash of %s: %s", filepath, e)
             return None
 
     def classify_file(self, filename: str) -> FileCategory:
-        """Classifica um arquivo pela extensão.
+        """Classifies a file by extension.
 
         Args:
-            filename: Nome do arquivo (basename, ex: 'main.py').
+            filename: File name (basename, e.g. 'main.py').
 
         Returns:
-            FileCategory correspondente (ou UNKNOWN para extensões não mapeadas).
+            Corresponding FileCategory (or UNKNOWN for unmapped extensions).
         """
         ext = Path(filename).suffix.lower()
         return EXTENSION_MAP.get(ext, FileCategory.UNKNOWN)
 
     def _should_ignore_dir(self, dirname: str, relative_path: str) -> bool:
-        """Verifica se um diretório deve ser ignorado.
+        """Checks if a directory should be ignored.
 
-        Avalia contra:
-            - DEFAULT_IGNORE_DIRS + ignore_dirs customizados.
-            - Padrões do .gitignore.
-            - Diretórios ocultos (começam com . exceto .github, .husky).
+        Evaluates against:
+            - DEFAULT_IGNORE_DIRS + customized ignore_dirs.
+            - Patterns from .gitignore.
+            - Hidden directories (start with . except .github, .husky).
 
         Args:
-            dirname: Nome do diretório (basename).
-            relative_path: Caminho relativo ao root.
+            dirname: Directory name (basename).
+            relative_path: Relative path to root.
 
         Returns:
-            True se deve ser ignorado.
+            True if it should be ignored.
         """
-        # Diretórios da lista de ignore
+        # Directories from ignore list
         if dirname in self._ignore_dirs:
             return True
 
-        # Diretórios ocultos (exceto exceções úteis)
+        # Hidden directories (except useful exceptions)
         ALLOWED_HIDDEN = {".github", ".husky", ".circleci", ".gitlab"}
         if dirname.startswith(".") and dirname not in ALLOWED_HIDDEN:
             return True
 
-        # Verifica .gitignore
+        # Check .gitignore
         if self._gitignore and self._gitignore.should_ignore(
             relative_path.replace("\\", "/"), is_dir=True
         ):
@@ -667,28 +667,28 @@ class ProjectCrawler:
         project_uuid: str,
         current_files: set[str],
     ) -> list[int]:
-        """Detecta nós no SQLite cujos arquivos não existem mais no disco.
+        """Detects nodes in SQLite whose files no longer exist on disk.
 
-        Compara os paths relativos dos nós do projeto com a lista de arquivos
-        existentes no disco. Nós que pertencem a arquivos que não estão mais
-        em current_files são marcados para Garbage Collection.
+        Compares the relative paths of project nodes in SQLite with the list of files
+        existing on disk. Nodes belonging to files that are no longer in current_files
+        are marked for Garbage Collection.
 
-        SEGURANÇA: Apenas nós que não sejam diretórios ou projetos são deletados.
+        SECURITY: Only nodes that are not directories or projects are deleted.
 
         Args:
-            project_uuid: UUID do projeto.
-            current_files: Conjunto de paths relativos dos arquivos existentes no disco.
+            project_uuid: UUID of the project.
+            current_files: Set of relative paths of files existing on disk.
 
         Returns:
-            Lista de node_ids órfãos para remoção.
+            List of orphan node_ids for removal.
         """
         orphan_ids: list[int] = []
 
         try:
-            # Busca todos os nós do projeto no SQLite
+            # Fetch all project nodes from SQLite
             all_nodes = self._store.get_nodes_by_project(project_uuid)
             for node in all_nodes:
-                # Apenas nós que não sejam diretórios ou projetos
+                # Only nodes that are not directories or projects
                 if node.get("type") in ("directory", "cluster", "project"):
                     continue
 
@@ -696,14 +696,14 @@ class ProjectCrawler:
                 if not label:
                     continue
 
-                # O label é formatado como 'rel_path::symbol_name' ou 'rel_path'
+                # The label is formatted as 'rel_path::symbol_name' or 'rel_path'
                 rel_path = label.split("::")[0]
 
-                # Se o arquivo não existe mais no disco → nó órfão
+                # If the file no longer exists on disk → orphan node
                 if rel_path not in current_files:
                     orphan_ids.append(node["id"])
                     logger.debug(
-                        "Nó órfão detectado (GC): id=%d, label=%s, arquivo deletado=%s",
+                        "Orphan node detected (GC): id=%d, label=%s, deleted file=%s",
                         node["id"], label, rel_path,
                     )
 

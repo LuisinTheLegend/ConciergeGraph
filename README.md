@@ -1,91 +1,91 @@
 # 🧠 Grafo Concierge v3.8.2
-**O Palácio de Memórias de Longo Prazo (LTM) para Agentes de IA**
+**The Long-Term Memory (LTM) Palace for AI Agents**
 
-O Grafo Concierge é uma infraestrutura de memória cognitiva local projetada para resolver a "amnésia" dos LLMs em projetos complexos. Diferente de sistemas de RAG simples, ele utiliza uma arquitetura robusta que combina persistência relacional, busca vetorial, síntese hierárquica e um sistema de manutenção autônomo.
+Grafo Concierge is a local cognitive memory infrastructure designed to solve LLM "amnesia" in complex projects. Unlike simple RAG systems, it utilizes a robust architecture combining relational persistence, vector search, hierarchical synthesis, and an autonomous maintenance system.
 
-## 💡 O Problema que Resolvemos (Em Termos Simples)
-Imagine que você está construindo um software gigante com a ajuda de uma Inteligência Artificial. Com o passar do tempo, a IA começa a "esquecer" como os arquivos se conectam ou as regras que vocês definiram no passado, simplesmente porque a "memória de curto prazo" (context window) dela lotou.
+## 💡 The Problem We Solve (In Simple Terms)
+Imagine you are building a giant software project with the help of an Artificial Intelligence. Over time, the AI starts to "forget" how files connect or the rules you defined in the past, simply because its "short-term memory" (context window) has filled up.
 
-O **Grafo Concierge** age como um **cérebro externo e permanente** para a IA. Ele rastreia todo o seu projeto, entende as conexões entre os arquivos e sempre entrega à IA exatamente a informação que ela precisa para trabalhar, sem esquecer o passado.
+**Grafo Concierge** acts as an **external and permanent brain** for the AI. It tracks your entire project, understands the connections between files, and always provides the AI with exactly the information it needs to work, without forgetting the past.
 
-## 🚀 Performance Colossal (Benchmarks)
-Validado pelo **Colossus Protocol**, o sistema demonstrou escalabilidade linear e latência sub-segundo em ambientes de Big Data.
+## 🚀 Colossal Performance (Benchmarks)
+Validated by the **Colossus Protocol**, the system demonstrated linear scalability and sub-second latency in Big Data environments.
 
-| Métrica | Resultado (20.000 nós) |
+| Metric | Result (20,000 nodes) |
 | --- | --- |
-| **Latência de Busca (P50)** | 41.69 ms |
-| **Latência de Busca (P99)** | 112.75 ms |
-| **Fator de Escalabilidade** | 0.93x (Performance preservada em alto volume) |
-| **Ingestão (SQLite)** | ~536 nós/segundo |
-| **Ingestão (ChromaDB)** | ~914 vetores/segundo |
-| **Manutenção (Janitor)** | 20.000 órfãos limpos em ~11s |
+| **Search Latency (P50)** | 41.69 ms |
+| **Search Latency (P99)** | 112.75 ms |
+| **Scalability Factor** | 0.93x (Performance preserved at high volume) |
+| **Ingestion (SQLite)** | ~536 nodes/second |
+| **Ingestion (ChromaDB)** | ~914 vectors/second |
+| **Maintenance (Janitor)** | 20,000 orphans cleaned in ~11s |
 
-### Entendendo os Termos e Métricas
-- **P50 (Percentil 50 / Mediana):** Indica que 50% das buscas retornaram resultados neste tempo ou mais rápido. É a latência "típica" sentida pelo usuário.
-- **P99 (Percentil 99):** Indica que 99% das buscas foram mais rápidas que este tempo. É a métrica que representa o "pior caso" (worst-case scenario), provando a estabilidade do sistema sob pressão.
-- **Nós (Nodes):** São as unidades fundamentais de memória no Grafo. Um nó não é apenas texto: ele pode representar um fato arquitetural, uma regra de negócio, um arquivo de código ou uma decisão tomada, tudo interligado.
-- **Engrenagem de Zoom (L0/L1/L2):** Nosso algoritmo autônomo de compressão de contexto hierárquico.
-  - **L0 (Micro):** Resumo detalhado de um único arquivo ou função.
-  - **L1 (Meso):** Síntese de vários L0, descrevendo o propósito de um módulo ou diretório inteiro.
-  - **L2 (Macro - Bússola):** Visão arquitetural global do projeto. É usada para dar o contexto inicial perfeito aos Agentes de IA sem estourar o limite de tokens (Context Window).
+### Understanding Terms and Metrics
+- **P50 (50th Percentile / Median):** Indicates that 50% of the searches returned results in this time or faster. It is the "typical" latency experienced by the user.
+- **P99 (99th Percentile):** Indicates that 99% of the searches were faster than this time. It represents the "worst-case scenario", proving the stability of the system under pressure.
+- **Nodes:** The fundamental units of memory in the Graph. A node is not just text: it can represent an architectural fact, a business rule, a code file, or a decision made, all interconnected.
+- **Zoom Gear (L0/L1/L2):** Our autonomous hierarchical context compression algorithm.
+  - **L0 (Micro):** Detailed summary of a single file or chunk ingested.
+  - **L1 (Meso):** Synthesis of multiple L0s, describing the purpose of an entire module or directory.
+  - **L2 (Macro - Compass):** Global architectural summary of the project. It is used to provide the perfect initial context to AI Agents without blowing the token limit (Context Window).
 
 
-## 🏛️ Arquitetura: Divisão de Camadas
-O sistema é dividido em camadas modulares para garantir que a memória seja organizada, auditada e duradoura:
+## 🏛️ Architecture: Layer Division
+The system is divided into modular layers to ensure that memory is organized, audited, and long-lasting:
 
-- **`core/` (O Sistema Nervoso):** Centraliza a lógica de Busca Híbrida v4 (Vetorial + FTS5 + Sinais de Grafo) e a fachada central do sistema.
-- **`storage/` (A Fundação):** Gerenciamento atômico thread-safe de conexões de leitura SQLite e escrita serializada isolada (WAL mode), além de persistência vetorial via ChromaDB.
-- **`ingestion/` (O Motor Apex):** Pipeline de extração de código, crawling inteligente, detecção de AST multilinguagem compatível e a Engrenagem de Zoom (L0/L1/L2).
-- **`agents/` (Os Guardiões):** Agentes de IA dedicados ao Reranking semântico e auditoria cirúrgica de commits, prevenindo contaminação de contexto.
-- **`services/` (A Manutenção):** O Janitor, um serviço de background autônomo que lida com o decaimento temporal e o controle de histórico de manutenção livre de memory leaks.
-- **`interface/` (O Portal):** Servidor nativo MCP (Model Context Protocol) estendido para o ciclo de vida completo de projetos e painel CLI.
+- **`core/` (The Nervous System):** Centralizes the Hybrid Search v4 logic (Vector + FTS5 + Graph Signals) and the central facade of the system.
+- **`storage/` (The Foundation):** Thread-safe atomic management of SQLite read connections and isolated serialized writes (WAL mode), plus vector persistence via ChromaDB.
+- **`ingestion/` (O Motor Apex):** Code extraction pipeline, intelligent crawling, compatible multi-language AST detection, and the Zoom Gear (L0/L1/L2).
+- **`agents/` (The Guardians):** AI agents dedicated to semantic Reranking and surgical auditing of commits, preventing context contamination.
+- **`services/` (The Maintenance):** The Janitor, an autonomous background service that handles temporal decay and history cleanup without memory leaks.
+- **`interface/` (O Portal):** Native MCP (Model Context Protocol) server extended for the complete lifecycle of projects, plus a CLI panel.
 
-## 🛠️ Tecnologia de Busca Híbrida v4
-A relevância é calculada através de uma composição ponderada que prioriza o contexto exato e a recência da informação:
+## 🛠️ Hybrid Search v4 Technology
+Relevance is calculated using a weighted composition that prioritizes exact context and information recency:
 
-1. **Busca Vetorial (50%):** Similaridade semântica profunda via embeddings.
-2. **Busca FTS5 (25%):** Correspondência exata de palavras-chave (BM25 normalizado).
-3. **Sinais de Grafo (25%):** Maior valor entre a Recência temporal e a Centralidade do nó (peso relacional).
+1. **Vector Search (50%):** Deep semantic similarity via embeddings.
+2. **FTS5 Search (25%):** Exact keyword matching (normalized BM25).
+3. **Graph Signals (25%):** The higher value between temporal Recency and node Centrality (relational weight).
 
-A recência segue a fórmula de decaimento exponencial, garantindo que a memória "envelheça" graciosamente e dê espaço para novos fatos com o tempo:
+Recency follows an exponential decay formula, ensuring that memory "ages" gracefully and makes room for new facts over time:
 $$W = W_0 \cdot e^{-\lambda t}$$
 
-## 🔧 Instalação e Uso
+## 🔧 Installation and Usage
 
-**Pré-requisitos:**
+**Prerequisites:**
 - Python 3.10+
-- Chave de API (Google Gemini / OpenAI) para a Engrenagem de Zoom e Auditores.
+- API Key (Google Gemini / OpenAI) for the Zoom Gear and Auditors.
 
-**Configuração:**
-1. Clone o repositório.
-2. Crie um arquivo `.env` na raiz (o arquivo está ignorado de forma segura no `.gitignore`):
+**Configuration:**
+1. Clone the repository.
+2. Create a `.env` file in the root (securely ignored in `.gitignore`):
 ```env
-GRAFO_LLM_API_KEY=sua_chave_aqui
+GRAFO_LLM_API_KEY=your_key_here
 GRAFO_LLM_MODEL=gemini-2.5-flash
 ```
-3. Instale as dependências:
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-**Execução:**
-Para iniciar o servidor MCP e expor todas as ferramentas de memória cognitiva e ciclo de vida ao LLM:
+**Execution:**
+To start the MCP server and expose all cognitive memory and project lifecycle tools to the LLM:
 ```bash
 python -m interface.mcp_server
 ```
 
-## 🧪 Suíte de Testes & Integração Contínua (Absolute Solidity)
-O projeto conta com uma suíte exaustiva de testes integrados e unitários com descoberta automática nativa configurada em `pyproject.toml` e pipeline de CI via **GitHub Actions** (`ci.yml`).
+## 🧪 Test Suite & Continuous Integration (Absolute Solidity)
+The project features an exhaustive suite of integrated and unit tests with native auto-discovery configured in `pyproject.toml` and a CI pipeline via **GitHub Actions** (`ci.yml`).
 
-Para rodar os testes da suíte automatizada:
+To run the automated test suite:
 ```bash
 python -m pytest
 ```
 
-Para rodar o diagnóstico completo de integridade e sanitização da memória local:
+To run the complete health diagnostic and local memory sanitization check:
 ```bash
 python tests/check_brain.py
 ```
 
-## 📄 Licença
-Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
+## 📄 License
+Distributed under the MIT license. See `LICENSE` for more information.
