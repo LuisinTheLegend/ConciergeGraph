@@ -1413,11 +1413,6 @@ class GrafoConciergeServer:
                 "fact_id": fact_id,
                 "was_useful": was_useful,
                 "updated_field": updated_field,
-                "message": f"{updated_field} incrementado para o fato {fact_id}.",
-                "duration_seconds": round(elapsed, 3),
-            }
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
                 "message": f"{updated_field} incremented for fact {fact_id}.",
                 "duration_seconds": round(elapsed, 3),
             }
