@@ -180,21 +180,39 @@ class LLMAdapter:
         if self._call_fn is not None:
             return self._call_fn(prompt, max_tokens)
 
-        # Attempt with Google Generative AI (Gemini)
+        # Attempt with Google GenAI SDK (google.genai)
         try:
-            import google.generativeai as genai
-            if self._api_key:
-                genai.configure(api_key=self._api_key)
-            model = genai.GenerativeModel(self._model_name)
-            response = model.generate_content(
-                prompt,
-                generation_config=genai.GenerationConfig(max_output_tokens=max_tokens),
+            from google import genai
+            client = genai.Client(api_key=self._api_key) if self._api_key else genai.Client()
+            response = client.models.generate_content(
+                model=self._model_name,
+                contents=prompt,
             )
-            return response.text
+            if response.text:
+                return response.text
         except ImportError:
-            pass
+            # Attempt with legacy Google Generative AI
+            try:
+                import warnings
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    import google.generativeai as legacy_genai
+                if self._api_key:
+                    legacy_genai.configure(api_key=self._api_key)
+                model = legacy_genai.GenerativeModel(self._model_name)
+                response = model.generate_content(
+                    prompt,
+                    generation_config=legacy_genai.GenerationConfig(max_output_tokens=max_tokens),
+                )
+                if response.text:
+                    return response.text
+            except ImportError:
+                pass
+            except Exception as e:
+                logger.error("Failed to call legacy Gemini (%s): %s", self._model_name, e)
+                raise RuntimeError(f"LLM call failed: {e}") from e
         except Exception as e:
-            logger.error("Failed to call Gemini (%s): %s", self._model_name, e)
+            logger.error("Failed to call Google GenAI (%s): %s", self._model_name, e)
             raise RuntimeError(f"LLM call failed: {e}") from e
 
         # Attempt with OpenAI / Compatible Provider

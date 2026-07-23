@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  concierge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: concierge-graph
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - GRAFO_HOST=0.0.0.0
+      - GRAFO_PORT=8000
+      - GRAFO_LLM_API_KEY=${GRAFO_LLM_API_KEY:-}
+      - GRAFO_LLM_MODEL=${GRAFO_LLM_MODEL:-gemini-2.0-flash}
+      - GRAFO_VECTOR_BACKEND=${GRAFO_VECTOR_BACKEND:-chroma}
+      - GRAFO_API_KEY=${GRAFO_API_KEY:-}
+      - GRAFO_CORS_ORIGINS=${GRAFO_CORS_ORIGINS:-*}
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/ || exit 0"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Optional Qdrant Vector DB Service
+  # Uncomment below to run local Qdrant cluster alongside Grafo Concierge
+  # qdrant:
+  #   image: qdrant/qdrant:latest
+  #   container_name: concierge-qdrant
+  #   restart: unless-stopped
+  #   ports:
+  #     - "6333:6333"
+  #     - "6334:6334"
+  #   volumes:
+  #     - ./data/qdrant_storage:/qdrant/storage

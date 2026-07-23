@@ -72,15 +72,44 @@ class GrafoConciergeServer:
         # Creates the FastMCP server
         self._mcp = FastMCP("Grafo Concierge", host=host, port=port)
 
-        # Enables CORS on Starlette sse_app for Frontend (Next.js) connections
+        # Enables CORS and optional API Key Authentication on Starlette sse_app
         original_sse_app = self._mcp.sse_app
         def custom_sse_app(*args, **kwargs):
             app = original_sse_app(*args, **kwargs)
             from starlette.middleware.cors import CORSMiddleware
+            from starlette.responses import JSONResponse
+            
+            api_key = self._gc.config.api_key or os.environ.get("GRAFO_API_KEY")
+            cors_origins_env = os.environ.get("GRAFO_CORS_ORIGINS")
+            if cors_origins_env:
+                origins = [o.strip() for o in cors_origins_env.split(",") if o.strip()]
+            else:
+                origins = list(self._gc.config.cors_origins)
+
+            # 1. API Key Authentication Middleware (if configured)
+            if api_key:
+                @app.middleware("http")
+                async def auth_middleware(request, call_next):
+                    # Check Authorization header (Bearer token) or query param ?token=
+                    auth_header = request.headers.get("Authorization", "")
+                    token_param = request.query_params.get("token", "")
+                    
+                    is_valid = False
+                    if auth_header.startswith("Bearer "):
+                        is_valid = (auth_header[7:].strip() == api_key)
+                    elif token_param:
+                        is_valid = (token_param.strip() == api_key)
+
+                    if not is_valid:
+                        return JSONResponse({"error": "Unauthorized access to Grafo Concierge MCP"}, status_code=401)
+                    return await call_next(request)
+
+            # 2. CORS Middleware
+            allow_creds = True if origins != ["*"] else False
             app.add_middleware(
                 CORSMiddleware,
-                allow_origins=["*"],
-                allow_credentials=True,
+                allow_origins=origins,
+                allow_credentials=allow_creds,
                 allow_methods=["*"],
                 allow_headers=["*"],
             )

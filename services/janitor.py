@@ -30,7 +30,7 @@ import logging
 import threading
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from storage import SqliteStore, ChromaVectorStore
@@ -224,7 +224,7 @@ class JanitorService:
         """
         t0 = time.perf_counter()
         report = MaintenanceReport(
-            timestamp=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+            timestamp=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
             project_uuid=project_uuid,
         )
 
@@ -408,7 +408,7 @@ class JanitorService:
         """Marks nodes without recent access as ARCHIVED."""
         try:
             nodes = self._store.get_nodes_by_project(project_uuid, status="ACTIVE")
-            threshold = datetime.utcnow() - timedelta(days=self._inactive_days)
+            threshold = datetime.now(timezone.utc) - timedelta(days=self._inactive_days)
             threshold_str = threshold.strftime("%Y-%m-%d %H:%M:%S")
             archived = 0
 

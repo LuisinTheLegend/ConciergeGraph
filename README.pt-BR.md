@@ -3,168 +3,254 @@
 
 # 🧠 Grafo Concierge v3.8.2
 
-**O Palácio de Memórias de Longo Prazo (LTM) para Agentes de IA e Ambientes de Desenvolvimento**
+**O Palácio de Memórias Cognitivas de Longo Prazo (LTM) Open-Source para Agentes de IA, IDEs e Ambientes de Desenvolvimento**
 
-O Grafo Concierge é uma infraestrutura de memória cognitiva local de alta performance projetada para resolver a "amnésia" e a poluição de contexto dos LLMs em bases de código complexas e de grande escala. Diferente de sistemas tradicionais de RAG (Retrieval-Augmented Generation) simples, o Grafo Concierge utiliza uma arquitetura híbrida bi-temporal que combina persistência relacional SQL, busca vetorial, síntese de contexto hierárquica e um sistema de manutenção autônomo com autocorreção.
+[![Licença MIT](https://img.shields.io/badge/Licen%C3%A7a-MIT-green.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
+[![Protocolo MCP](https://img.shields.io/badge/Protocolo-MCP-purple.svg)](https://modelcontextprotocol.io/)
+[![Suporte Docker](https://img.shields.io/badge/Docker-Pronto-blue)](docker-compose.yml)
+
+O Grafo Concierge é um servidor de memória cognitiva local de alta performance projetado para resolver a "amnésia" dos LLMs e a poluição de contexto. Diferente de scripts simples de RAG (Retrieval-Augmented Generation), o Grafo Concierge funciona como um motor de memória bi-temporal com auto-recuperação que combina persistência SQL relacional, busca vetorial, síntese hierárquica de contexto (Zoom Gear) e manutenção autônoma em background (Janitor Loop).
 
 ---
 
-## 💡 O Problema que Resolvemos
+## 💡 O que é o Grafo Concierge? (Para Leigos e Devs Seniores)
 
-Ao colaborar com agentes de IA em bases de código massivas, os modelos de IA inevitavelmente começam a "esquecer" relações de arquivos, decisões históricas ou regras de arquitetura assim que sua memória de curto prazo (janela de contexto) fica cheia.
+### 👶 Explicação Simples (A Analogia)
+> Imagine contratar um engenheiro de software sênior brilhante que sofre de perda de memória de curto prazo. Toda vez que você abre um novo chat no Cursor ou no Claude Desktop, ele esquece a estrutura do seu projeto, os padrões do seu código e as decisões arquiteturais tomadas ontem.
+>
+> **O Grafo Concierge é o cérebro externo permanente desse engenheiro.** Conectado de forma transparente pelo protocolo padrão Model Context Protocol (MCP), seu assistente de IA consulta, aprende e atualiza esse cérebro automaticamente em milissegundos — sem que você precise ficar copiando e colando trechos de código manualmente!
 
-O **Grafo Concierge** funciona como um **cérebro externo permanente**. Ele:
-1. Indexa toda a estrutura do código-fonte (classes, métodos, módulos) e documentação.
-2. Aprende seus hábitos, preferências e regras de arquitetura como fatos semânticos explícitos.
-3. Serve como uma fonte única de verdade que alimenta trechos de contexto altamente filtrados para qualquer cliente de IA.
+### 🧙‍♂️ Aprofundamento Técnico (Para Engenheiros)
+O Grafo Concierge é um daemon local ou de VPS que oferece:
+1. **Persistência Bi-Temporal de Fatos**: Registra fatos semânticos e entidades de código rastreando tempo válido e tempo de transação.
+2. **Motor de Busca Híbrida v4**: Equilibra similaridade vetorial densa (50%), busca exata de tokens/símbolos via SQLite FTS5 BM25 (25%) e sinais de grafo (25% combinando centralidade e decaimento temporal exponencial $W = W_0 \cdot e^{-\lambda t}$).
+3. **Ingestão Apex Sensível a AST**: Varre e analisa arquivos em Python, TypeScript, JS, Go, Rust, Java, C/C++ criando nós estruturais de AST com delta-hashing (SHA-256) para ignorar códigos não modificados.
+4. **Manutenção Autônoma com Auto-Recuperação (Janitor Loop)**: Executa em uma thread isolada para reconciliar tabelas do SQLite com coleções vetoriais, podar embeddings órfãos e aplicar decaimento em contextos inativos.
 
 ---
 
 ## 🔌 Integração Simultânea Multi-Cliente via MCP
 
-O Grafo Concierge é alimentado pelo protocolo **Model Context Protocol (MCP)**. Isso permite que você execute uma única instância do servidor e a conecte **simultaneamente** a várias ferramentas e ambientes de desenvolvimento:
+Alimentado pelo protocolo **Model Context Protocol (MCP)** da Anthropic, uma única instância do servidor Grafo Concierge comunica-se **simultaneamente** com todas as suas ferramentas favoritas:
 
-* 💻 **Cursor / Windsurf**: Permita que o agente da sua IDE varra, pesquise e recupere nós do grafo de memória de forma dinâmica conforme você escreve código.
-* 💬 **Claude Desktop**: Dê ao seu assistente de desktop awareness completo dos seus projetos e topologias de código-fonte.
-* 🤖 **Agentes Autônomos / Scripts Customizados**: Conecte scripts de orquestração personalizados (como n8n, LangChain ou rotinas de LLM customizadas) usando endpoints JSON-RPC 2.0 padrão sobre Server-Sent Events (SSE).
+```
+    ┌───────────────────────────┐      ┌───────────────────────────┐
+    │     Cursor / Windsurf     │      │       Claude Desktop      │
+    └─────────────┬─────────────┘      └─────────────┬─────────────┘
+                  │                                  │
+                  │        JSON-RPC / SSE (MCP)      │
+                  └─────────────────┬────────────────┘
+                                    │
+                                    ▼
+                     ┌─────────────────────────────┐
+                     │ 🧠 Grafo Concierge Server   │
+                     │  (Local / VPS - Porta 8000) │
+                     └─────────────────────────────┘
+```
+
+* 💻 **Cursor e Windsurf**: O agente da sua IDE varre, busca e recupera memórias do projeto dinamicamente enquanto você programa.
+* 💬 **Claude Desktop**: Dá ao seu assistente de desktop conhecimento macro imediato de todas as suas bases de código.
+* 🤖 **Agentes Autônomos e Workflows**: Conecte rotinas em n8n, LangChain, AutoGen ou scripts Python customizados via endpoints SSE.
 
 ---
 
-## 🌐 Backends Vetoriais Plulgáveis (Local e Qdrant Cloud)
+## ⚡ Guia de Início Rápido (3 Minutos)
 
-A arquitetura suporta backends de banco de dados plugáveis para armazenamento vetorial, adaptando-se a qualquer requisito de escalabilidade:
+### Opção 1: Instalação via PyPI (Recomendado para a maioria dos usuários)
 
-1. **ChromaDB (Padrão - Local)**: Banco de dados local com configuração zero que armazena os embeddings no diretório local `data/`.
-2. **Qdrant (Local e Nuvem)**: Alterne para o Qdrant para terceirizar o processamento de embeddings. Suporta clusters do **Qdrant Cloud** para alta disponibilidade, persistência remota e configurações multi-usuário.
+```bash
+# Instalar o pacote Grafo Concierge e o CLI global
+pip install concierge-graph
+
+# Atualizar ou Desinstalar a qualquer momento
+pip install concierge-graph --upgrade # para atualizar
+pip uninstall concierge-graph         # para desinstalar
+```
+
+### Opção 2: Configuração Local via Código-Fonte (Para Desenvolvedores)
+
+1. **Clonar e Instalar em Modo Editável**:
+   ```bash
+   git clone https://github.com/LuisinTheLegend/GrafoConcierge.git
+   cd GrafoConcierge
+   pip install -e .[dev]
+   ```
+
+2. **Configurar Ambiente (`.env`)**:
+   ```bash
+   cp .env.example .env
+   ```
+   Insira sua chave de API do Gemini ou OpenAI:
+   ```env
+   GRAFO_LLM_API_KEY=sua_chave_gemini_aqui
+   GRAFO_LLM_MODEL=gemini-2.0-flash
+   ```
+
+3. **Iniciar o Servidor MCP**:
+   ```bash
+   concierge-mcp
+   # ou: python main.py
+   ```
 
 ---
 
-## 🚀 Benchmarks de Performance (Colossus Protocol)
+### Opção 2: Implantação em VPS (Direta via `pip` ou via `Docker`) 🌐
 
-Validado sob o **Colossus Protocol**, o sistema demonstra latência sub-segundo e escalabilidade linear mesmo com volumes massivos de dados.
+Você pode hospedar o Grafo Concierge em qualquer VPS Linux (Ubuntu/Debian) de duas formas:
+
+#### A) Instalação Direta (Nativa via `pip`)
+```bash
+# 1. Instalar diretamente na VPS
+pip install concierge-graph
+
+# 2. Configurar variáveis de ambiente (ou criar um arquivo .env)
+export GRAFO_LLM_API_KEY="sua_chave_gemini"
+export GRAFO_HOST="0.0.0.0"
+export GRAFO_API_KEY="sua_chave_remota_segura"
+
+# 3. Iniciar o servidor
+concierge-mcp
+```
+
+#### B) Instalação Containerizada (Docker 🐳)
+```bash
+# Definir a chave de autenticação no .env
+echo "GRAFO_API_KEY=sua_chave_remota_segura" >> .env
+
+# Subir os containers em background
+docker compose up -d
+```
+
+---
+
+## 💻 Configuração em 1 Clique para IDEs e Claude Desktop
+
+### Para Claude Desktop (`claude_desktop_config.json`)
+Adicione o Grafo Concierge ao seu arquivo de configuração:
+
+```json
+{
+  "mcpServers": {
+    "concierge-graph": {
+      "command": "python",
+      "args": ["-m", "interface.mcp_server"],
+      "cwd": "/caminho/para/GrafoConcierge",
+      "env": {
+        "GRAFO_LLM_API_KEY": "sua_chave_api_aqui"
+      }
+    }
+  }
+}
+```
+
+### Para VPS Remota / Conexões SSE (Cursor / Scripts Customizados)
+Quando executado em um servidor remoto:
+```json
+{
+  "mcpServers": {
+    "concierge-graph": {
+      "url": "http://ip-da-sua-vps:8000/sse",
+      "headers": {
+        "Authorization": "Bearer sua_chave_remota_segura"
+      }
+    }
+  }
+}
+```
+
+---
+
+## 🚀 Benchmarks de Desempenho (Colossus Protocol)
+
+Testado contra 20.000 nós de código sob o **Colossus Protocol**:
 
 | Métrica | Resultado (20.000 nós) |
 | --- | --- |
 | **Latência de Busca (P50)** | 41.69 ms |
 | **Latência de Busca (P99)** | 112.75 ms |
-| **Fator de Escalabilidade** | 0.93x (Performance preservada em alto volume) |
-| **Ingestão (SQLite)** | ~536 nós/segundo |
-| **Ingestão (ChromaDB)** | ~914 vetores/segundo |
-| **Manutenção (Janitor)** | 20.000 órfãos limpos em ~11s |
-
----
-
-## 🏛️ Arquitetura do Sistema em Camadas
-
-O Grafo Concierge é construído desde o início para ser modular, robusto e thread-safe:
-
-* **`core/` (Sistema Nervoso)**: Orquestra o **Motor de Busca Híbrida v4** (combinando FTS5, similaridade vetorial de cosseno e sinais de grafo de centralidade/recência) e a fachada central do sistema.
-* **`storage/` (Camada de Retenção)**: Garante acesso atômico e thread-safe ao banco relacional SQLite (modo WAL, fila de escrita serializada) e armazenamento vetorial.
-* **`ingestion/` (Motor de Ingestão Apex)**: Varre diretórios (respeitando `.gitignore`), analisa arquivos de código-fonte em chunks semânticos de AST (Python, JS/TS, Markdown), extrai metadados e aciona a **Engrenagem de Zoom** hierárquica.
-* **`agents/` (Auditoria e Reranking)**: Agentes de IA projetados para re-ranquear resultados de busca usando LLM-as-a-judge e auditar declarações de commits antes de gravá-los no ledger cognitivo.
-* **`services/` (Manutenção Autônoma)**: Abriga o **Background Janitor**, que roda em uma thread isolada para lidar com decaimento temporal, reconciliar SQLite ↔ coleções vetoriais, podar vetores órfãos e reconstruir índices de busca.
-* **`interface/` (Portal Operacional)**: Expõe o servidor MCP e o utilitário CLI.
+| **Fator de Escalabilidade** | 0.93x (Desempenho linear preservado em alto volume) |
+| **Vazão de Ingestão (SQLite)** | ~536 nós/segundo |
+| **Vazão de Ingestão (ChromaDB)** | ~914 vetores/segundo |
+| **Manutenção em Background (Janitor)** | 20.000 vetores órfãos limpos em ~11s |
 
 ---
 
 ## 🛠️ Fórmula da Busca Híbrida v4
 
-Os scores de relevância são calculados compondo três sinais distintos para retornar apenas contextos altamente qualificados:
+Os scores de relevância são calculados compondo três sinais distintos:
 
 $$\text{Score} = (0.50 \times \text{Similaridade Vetorial}) + (0.25 \times \text{FTS5 BM25 Normalizado}) + (0.25 \times \max(\text{Recência}, \text{Centralidade}))$$
 
-1. **Similaridade Vetorial (50%)**: Significado semântico profundo dos chunks.
-2. **FTS5 BM25 (25%)**: Correspondência de tokens para assinaturas exatas de símbolos.
+1. **Similaridade Vetorial (50%)**: Captura significado semântico profundo usando embeddings densos.
+2. **FTS5 BM25 (25%)**: Correspondência de tokens exatos para nomes de funções, classes e símbolos.
 3. **Sinais de Grafo (25%)**:
    - **Centralidade**: Conectividade relativa de um nó (grau de entrada normalizado).
-   - **Recência**: Decaimento exponencial baseado no tempo, garantindo que o contexto envelheça graciosamente:
+   - **Recência**: Decaimento exponencial baseado no tempo, garantindo envelhecimento suave do contexto:
      $$W = W_0 \cdot e^{-\lambda t}$$
 
 ---
 
-## 🔌 Ferramentas MCP Detalhadas e Comandos CLI
+## 🔌 Referência Rápida das Ferramentas MCP
 
-### 1. Ingestão e Ciclo de Vida
-* **`concierge_register`**: Registra uma nova pasta de projeto/workspace.
-  * *Comando CLI*: `python -m interface.cli register --name <nome_do_projeto> [--wing <ala>] [--privacy <nivel>]`
-* **`concierge_mine`**: Varre o projeto, divide arquivos em chunks, gera resumos, calcula embeddings e armazena os dados.
-  * *Comando CLI*: `python -m interface.cli mine --path <caminho_absoluto> --name <nome_do_projeto>`
-* **`delete_project`**: Expurgamento completo de um projeto e todos os registros relacionais/vetoriais associados.
-  * *Comando CLI*: `python -m interface.cli delete --project <uuid_ou_nome>`
-* **`update_project`**: Modifica detalhes do registro (nome, ala, níveis de privacidade, descrição).
-* **`concierge_list_projects`**: Lista todos os projetos no banco de dados local.
-  * *Comando CLI*: `python -m interface.cli projects`
-
-### 2. Busca Avançada
-* **`concierge_search`**: Executa o pipeline completo da Busca Híbrida v4.
-  * *Comando CLI*: `python -m interface.cli search --query "<busca>" --project <uuid_ou_nome> [--top_k <k>]`
-  * *Integração no Agente*: A principal ferramenta de busca usada para localizar arquivos relacionados, contexto e implementações anteriores.
-* **`search_symbols`**: Busca assinaturas de classes/funções instantaneamente no índice FTS5.
-* **`get_implementations`**: Retorna o bloco de código completo para um dado ID de símbolo sob demanda.
-* **`get_callers`**: Lista todos os nós chamadores que apontam para o símbolo especificado.
-* **`find_similar`**: Busca outros workspaces registrados sob a mesma ala técnica.
-
-### 3. Contexto Cognitivo e Trajetórias
-* **`concierge_wakeup`**: Reativa a memória do agente para um workspace buscando a Bússola de Contexto L2, Alas de Referência e commits recentes.
-  * *Comando CLI*: `python -m interface.cli wakeup --project <uuid>`
-  * *Integração no Agente*: Executado no início de uma sessão para "acordar" a memória do agente sobre a base de código.
-* **`concierge_resume`**: Recupera a Bússola de Contexto (resumo macro recursivo) do projeto.
-  * *Comando CLI*: `python -m interface.cli resume --project <uuid>`
-* **`concierge_load`**: Carregador de nós sob demanda (Lazy Load) contendo metadados, conteúdo e relações.
-* **`get_trajectories`**: Recupera o histórico detalhado bi-temporal das etapas de navegação.
-
-### 4. Fatos e Preferências
-* **`concierge_store_fact`**: Avalia e grava um fato semântico (preferências/regras) usando invalidação bi-temporal.
-* **`concierge_set_memory`**: Armazena blocos de memória core do usuário (ex: `preferred_language`, `persona`).
-* **`concierge_get_memory`**: Recupera blocos de memória core salvos.
-* **`concierge_feedback`**: Registra feedback de busca para otimizar os pesos de relevância (Thompson Sampling Bayesiano).
+* **`concierge_mine`**: Varre um diretório, extrai nós de código (AST), gera tags e resumos hierárquicos (L0/L1/L2).
+* **`concierge_search`**: Executa a Busca Híbrida v4 em todos os projetos indexados.
+* **`concierge_wakeup`**: Reativa a consciência do agente ao iniciar a sessão retornando a Bússola de Contexto, alas de referência e commits recentes.
+* **`concierge_resume`**: Recupera a Bússola de Contexto macro do projeto (ideal para injeção em system prompts).
+* **`concierge_load`**: Carregador sob demanda (lazy load) do conteúdo completo, conexões e dependências de um nó.
+* **`concierge_commit`**: Registra alterações arquiteturais auditadas no ledger cognitivo.
+* **`concierge_store_fact`**: Armazena preferências do usuário e regras com invalidação bi-temporal.
 
 ---
 
-## 🔧 Instalação e Configuração
+## 🛠️ Referência dos Subcomandos Globais do CLI (`concierge`)
 
-### Pré-requisitos
-* Python 3.10+
-* Chave de API Google Gemini ou OpenAI (necessária para resumos e auditoria via LLM).
+Após executar `pip install concierge-graph`, dois comandos globais no terminal são instalados via `pyproject.toml`:
+1. **`concierge-mcp`**: Inicializa o daemon do servidor FastMCP.
+2. **`concierge`**: Utilitário CLI multifuncional que suporta os seguintes subcomandos:
 
-### Configuração
-1. Clone o repositório.
-2. Crie um arquivo `.env` no diretório raiz:
-```env
-# Configuração do Provedor de LLM
-GRAFO_LLM_API_KEY=sua_chave_de_api_aqui
-GRAFO_LLM_MODEL=gemini-2.5-flash
-
-# Backend Vetorial (Chroma ou Qdrant)
-GRAFO_VECTOR_BACKEND=chroma
-
-# (Opcional) Configuração do Qdrant Cloud
-# GRAFO_VECTOR_BACKEND=qdrant
-# QDRANT_URL=https://xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.us-east-1-0.aws.cloud.qdrant.io:6333
-# QDRANT_API_KEY=sua_chave_de_api_do_qdrant_cloud
-```
-
-3. Instale as dependências:
 ```bash
-pip install -r requirements.txt
-```
+# 1. Registrar um novo workspace/projeto
+concierge register --name meu-projeto --wing backend --privacy PUBLIC
 
-### Rodando o Servidor MCP
-Para inicializar o servidor do Model Context Protocol:
-```bash
-python -m interface.mcp_server
+# 2. Minerar / Ingerir um diretório de código na memória
+concierge mine --path /caminho/para/codigo --name meu-projeto
+
+# 3. Executar Busca Híbrida v4 na memória indexada
+concierge search --query "middleware de autenticação" --project meu-projeto
+
+# 4. Reativar consciência do agente (Bússola + Alas + Commits)
+concierge wakeup --project meu-projeto
+
+# 5. Recuperar o resumo macro da Bússola de Contexto
+concierge resume --project meu-projeto
+
+# 6. Registrar um commit arquitetural auditado no ledger
+concierge commit --project <uuid> --phase build --technical_changes "Adicionado JWT"
+
+# 7. Carregar um único nó sob demanda (Lazy Load)
+concierge load --node_id 42
+
+# 8. Exibir a saúde do sistema, contadores e status dos bancos
+concierge status
+
+# 9. Listar todos os projetos registrados no banco local
+concierge projects
+
+# 10. Expurgar um projeto e todos os registros relacionais e vetoriais
+concierge delete --project meu-projeto
 ```
 
 ---
 
-## 🧪 Suíte de Testes e Verificação
+## 🧪 Suíte de Testes e Diagnóstico
 
-Para rodar a suíte de testes automatizados:
+Executar todos os testes de unidade e estresse:
 ```bash
 python -m pytest
 ```
 
-Para rodar os testes de diagnóstico de integridade nos sistemas de memória:
+Executar diagnóstico de integridade da memória:
 ```bash
 python -m tests.check_brain
 ```
@@ -172,4 +258,5 @@ python -m tests.check_brain
 ---
 
 ## 📄 Licença
-Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
+Distribuído sob a Licença MIT. Veja `LICENSE` para mais informações.
+

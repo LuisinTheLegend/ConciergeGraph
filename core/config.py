@@ -153,9 +153,9 @@ class ConciergeConfig:
     # Critical Revisor: maximum loops of auditing.
     max_revisor_loops: int = 3
 
-    # Janitor: default interval in seconds.
-    janitor_interval_seconds: int = 300
-    janitor_stale_threshold_days: int = 30
+    # Security & VPS authentication
+    api_key: Optional[str] = None
+    cors_origins: tuple[str, ...] = ("*",)
 
     def __post_init__(self) -> None:
         """Calculates derived fields after initialization."""
@@ -170,6 +170,18 @@ class ConciergeConfig:
             env_val = os.environ.get("GRAFO_LIGHTWEIGHT_MODE", "false").lower() == "true"
             if env_val:
                 object.__setattr__(self, "lightweight_mode", True)
+
+        if self.api_key is None:
+            env_key = os.environ.get("GRAFO_API_KEY")
+            if env_key:
+                object.__setattr__(self, "api_key", env_key)
+
+        env_cors = os.environ.get("GRAFO_CORS_ORIGINS")
+        if env_cors:
+            origins = tuple(o.strip() for o in env_cors.split(",") if o.strip())
+            if origins:
+                object.__setattr__(self, "cors_origins", origins)
+
 
 
 # ---------------------------------------------------------------------------

@@ -3,166 +3,254 @@ English · [Português (Brasil)](README.pt-BR.md)
 
 # 🧠 Concierge Graph v3.8.2
 
-**The Long-Term Memory (LTM) Palace for AI Agents & Developer Environments**
+**The Open-Source Long-Term Memory (LTM) & Cognitive Palace for AI Agents, IDEs & Developer Environments**
 
-Concierge Graph is a high-performance, local cognitive memory infrastructure designed to solve LLM "amnesia" and context pollution in complex, large-scale codebases. Unlike traditional, simple RAG (Retrieval-Augmented Generation) systems, Concierge Graph utilizes a bi-temporal, hybrid database architecture combining relational SQL persistence, vector search, hierarchical context synthesis, and an autonomous self-healing maintenance system.
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
+[![Protocol MCP](https://img.shields.io/badge/Protocol-MCP-purple.svg)](https://modelcontextprotocol.io/)
+[![Docker Supported](https://img.shields.io/badge/Docker-Ready-blue)](docker-compose.yml)
+
+Concierge Graph is a high-performance, local cognitive memory server designed to solve LLM "amnesia" and context window pollution. Unlike simple RAG (Retrieval-Augmented Generation) scripts, Concierge Graph acts as a bi-temporal, self-healing memory engine combining relational SQL persistence, vector search, hierarchical context synthesis (Zoom Gear), and autonomous background maintenance (Janitor Loop).
 
 ---
 
-## 💡 The Core Problem We Solve
+## 💡 What is Concierge Graph? (For Beginners & Senior Devs)
 
-When collaborating with AI agents on massive codebases, AI models inevitably start to "forget" file relations, historical decisions, or architecture rules once their short-term memory (context window) fills up.
+### 👶 Simple Explanation (The Analogy)
+> Imagine hiring a brilliant senior software engineer who suffers from short-term memory loss. Every time you open a new chat window in Cursor or Claude Desktop, they forget your project structure, coding standards, and past architectural decisions.
+>
+> **Concierge Graph is that engineer's permanent external brain.** Connected seamlessly via the Model Context Protocol (MCP), your AI assistant automatically consults, learns from, and updates this brain in milliseconds—without you ever copying and pasting context again!
 
-**Concierge Graph** acts as a **permanent external brain**. It:
-1. Indexes the entire codebase structure (classes, methods, modules) and documentation.
-2. Learns your habits, preferences, and architectural rules as explicit semantic facts.
-3. Serves as a single source of truth that feeds relevant, highly filtered context to any AI client.
+### 🧙‍♂️ Technical Deep-Dive (For Engineers)
+Concierge Graph is a local/VPS daemon that provides:
+1. **Bi-Temporal Fact Persistence**: Stores semantic facts and code entities with explicit valid time and transaction time tracking.
+2. **Hybrid Search v4 Engine**: Balances dense vector embeddings (50%), precise keyword signatures via SQLite FTS5 BM25 (25%), and graph signals (25% combining centrality and exponential recency decay $W = W_0 \cdot e^{-\lambda t}$).
+3. **AST-Aware Apex Ingestion**: Parses Python, TypeScript, JS, Go, Rust, Java, C/C++ files into structural AST nodes with delta-hashing (SHA-256) to skip unmodified code.
+4. **Autonomous Self-Healing (Janitor Loop)**: Operates in a background thread to reconcile relational SQLite tables with vector collections, prune orphan embeddings, and decay inactive context.
 
 ---
 
 ## 🔌 Simultaneous Multi-Client Integration via MCP
 
-Concierge Graph is powered by the **Model Context Protocol (MCP)**. This allows you to run a single server instance and connect it **simultaneously** to multiple developer tools and environments:
+Powered by Anthropic's **Model Context Protocol (MCP)**, a single Concierge Graph server instance communicates **simultaneously** with all your favorite tools:
 
-* 💻 **Cursor / Windsurf**: Let your IDE agent dynamically scan, search, and recall memory graph nodes as you write code.
-* 💬 **Claude Desktop**: Give your general desktop assistant full awareness of your projects and codebase topologies.
-* 🤖 **Autonomous Agents / Custom Scripts**: Plug in custom orchestration scripts (e.g., n8n, LangChain, or custom LLM routines) using standard JSON-RPC 2.0 endpoints over Server-Sent Events (SSE).
+```
+    ┌───────────────────────────┐      ┌───────────────────────────┐
+    │     Cursor / Windsurf     │      │       Claude Desktop      │
+    └─────────────┬─────────────┘      └─────────────┬─────────────┘
+                  │                                  │
+                  │        JSON-RPC / SSE (MCP)      │
+                  └─────────────────┬────────────────┘
+                                    │
+                                    ▼
+                     ┌─────────────────────────────┐
+                     │ 🧠 Concierge Graph Server   │
+                     │  (Local / VPS - Port 8000)  │
+                     └─────────────────────────────┘
+```
+
+* 💻 **Cursor & Windsurf**: Your IDE agent dynamically searches, recalls, and commits project memory as you write code.
+* 💬 **Claude Desktop**: Grants your desktop AI assistant instant macro awareness of your repos.
+* 🤖 **Autonomous Agents & Workflows**: Connect n8n, LangChain, AutoGen, or custom python scripts via SSE endpoints.
 
 ---
 
-## 🌐 Pluggable Vector Backends (Local & Qdrant Cloud)
+## ⚡ Quick Start Guide (3 Minutes)
 
-The architecture supports pluggable database backends for vector storage, making it adaptable to any scalability requirement:
+### Option 1: Install via PyPI (Recommended for Most Users)
 
-1. **ChromaDB (Default - Local)**: Zero-configuration local database storing embeddings in the local `data/` directory.
-2. **Qdrant (Local & Cloud)**: Switch to Qdrant to offload embeddings processing. Supports **Qdrant Cloud** clusters for high availability, remote persistence, and multi-user configurations.
+```bash
+# Install Grafo Concierge package & CLI
+pip install concierge-graph
+
+# Uninstall anytime
+pip install concierge-graph --upgrade # to update
+pip uninstall concierge-graph         # to uninstall
+```
+
+### Option 2: Local Setup from Source (For Developers & Contributors)
+
+1. **Clone & Install in Editable Mode**:
+   ```bash
+   git clone https://github.com/LuisinTheLegend/GrafoConcierge.git
+   cd GrafoConcierge
+   pip install -e .[dev]
+   ```
+
+2. **Configure Environment (`.env`)**:
+   ```bash
+   cp .env.example .env
+   ```
+   Add your Gemini or OpenAI key:
+   ```env
+   GRAFO_LLM_API_KEY=your_gemini_api_key_here
+   GRAFO_LLM_MODEL=gemini-2.0-flash
+   ```
+
+3. **Start the MCP Server**:
+   ```bash
+   concierge-mcp
+   # or: python main.py
+   ```
+
+---
+
+### Option 2: VPS Deployment (Direct `pip` or `Docker`) 🌐
+
+You can host Concierge Graph on any Linux VPS (Ubuntu/Debian) in two ways:
+
+#### A) Direct Installation (Native `pip`)
+```bash
+# 1. Install directly on your VPS
+pip install concierge-graph
+
+# 2. Set your environment variables (or create a .env file)
+export GRAFO_LLM_API_KEY="your_gemini_key"
+export GRAFO_HOST="0.0.0.0"
+export GRAFO_API_KEY="your_secure_vps_token"
+
+# 3. Launch the server
+concierge-mcp
+```
+
+#### B) Containerized Installation (Docker 🐳)
+```bash
+# Set your API Key for remote security in .env
+echo "GRAFO_API_KEY=your_secure_vps_token" >> .env
+
+# Boot the containerized server
+docker compose up -d
+```
+
+---
+
+## 💻 1-Click Configuration for IDEs & Claude Desktop
+
+### For Claude Desktop (`claude_desktop_config.json`)
+Add Concierge Graph to your configuration file:
+
+```json
+{
+  "mcpServers": {
+    "concierge-graph": {
+      "command": "python",
+      "args": ["-m", "interface.mcp_server"],
+      "cwd": "/path/to/GrafoConcierge",
+      "env": {
+        "GRAFO_LLM_API_KEY": "your_api_key_here"
+      }
+    }
+  }
+}
+```
+
+### For Remote VPS / SSE Connections (Cursor / Custom Scripts)
+When running on a server:
+```json
+{
+  "mcpServers": {
+    "concierge-graph": {
+      "url": "http://your-vps-ip:8000/sse",
+      "headers": {
+        "Authorization": "Bearer your_secure_remote_token"
+      }
+    }
+  }
+}
+```
 
 ---
 
 ## 🚀 Performance Benchmarks (Colossus Protocol)
 
-Validated under the **Colossus Protocol**, the system demonstrates sub-second latency and linear scalability even at massive data volumes.
+Tested against 20,000 code nodes under the **Colossus Protocol**:
 
 | Metric | Result (20,000 nodes) |
 | --- | --- |
 | **Search Latency (P50)** | 41.69 ms |
 | **Search Latency (P99)** | 112.75 ms |
-| **Scalability Factor** | 0.93x (Performance preserved at high volume) |
-| **Ingestion (SQLite)** | ~536 nodes/second |
-| **Ingestion (ChromaDB)** | ~914 vectors/second |
-| **Maintenance (Janitor)** | 20,000 orphans cleaned in ~11s |
-
----
-
-## 🏛️ Layered System Architecture
-
-Concierge Graph is built from the ground up to be modular, robust, and thread-safe:
-
-* **`core/` (Nervous System)**: Orchestrates the **Hybrid Search Engine v4** (combining FTS5, cosine vector similarity, and graph centrality/recency signals) and the system's central facade.
-* **`storage/` (Retention Layer)**: Guarantees atomic, thread-safe access to the SQLite relational database (WAL mode, serialized write queue) and vector storage.
-* **`ingestion/` (Apex Ingestion Engine)**: Traverses directories (respecting `.gitignore`), parses source code files into semantic AST chunks (Python, JS/TS, Markdown), extracts metadata, and triggers the hierarchical **Zoom Gear**.
-* **`agents/` (Audit & Reranking)**: AI agents designed to rerank search results using LLM-as-a-judge and audit commit statements before they write to the cognitive ledger.
-* **`services/` (Autonomous Maintenance)**: Houses the **Background Janitor**, which runs in an isolated thread to handle temporal decay, reconcile SQLite ↔ Vector stores, prune orphan vectors, and rebuild search indexes.
-* **`interface/` (Operational Portal)**: Exposes the MCP server and CLI utility.
+| **Scalability Factor** | 0.93x (Linear performance preserved) |
+| **Ingestion Throughput (SQLite)** | ~536 nodes/second |
+| **Ingestion Throughput (ChromaDB)** | ~914 vectors/second |
+| **Background Maintenance (Janitor)** | 20,000 orphan vectors reconciled in ~11s |
 
 ---
 
 ## 🛠️ Hybrid Search v4 Formula
 
-Relevance scores are calculated by composing three distinct signals to return only highly relevant context:
+Relevance scores are calculated by composing three distinct signals:
 
 $$\text{Score} = (0.50 \times \text{Vector Similarity}) + (0.25 \times \text{Normalized FTS5 BM25}) + (0.25 \times \max(\text{Recency}, \text{Centrality}))$$
 
-1. **Vector Similarity (50%)**: Deep semantic meaning of chunks.
-2. **FTS5 BM25 (25%)**: Token matching for precise symbol signatures.
+1. **Vector Similarity (50%)**: Captures deep conceptual meaning using dense embeddings.
+2. **FTS5 BM25 (25%)**: Exact token signatures for function names, classes, and symbols.
 3. **Graph Signals (25%)**:
    - **Centrality**: Relative connectivity of a node (in-degree normalized).
-   - **Recency**: Time-based exponential decay ensuring context ages gracefully:
+   - **Recency**: Time-based exponential decay ensuring historical context ages gracefully:
      $$W = W_0 \cdot e^{-\lambda t}$$
 
 ---
 
-## 🔌 Detailed MCP Tools & CLI Commands
+## 🔌 Core MCP Tools Reference
 
-### 1. Ingestion and Lifecycle
-* **`concierge_register`**: Registers a new codebase workspace folder.
-  * *CLI command*: `python -m interface.cli register --name <project_name> [--wing <wing>] [--privacy <level>]`
-* **`concierge_mine`**: Traverses project, chunks files, generates summaries, embeds code, and stores data.
-  * *CLI command*: `python -m interface.cli mine --path <absolute_path> --name <project_name>`
-* **`delete_project`**: Completely purges a project and all associated relational/vector records.
-  * *CLI command*: `python -m interface.cli delete --project <uuid_or_name>`
-* **`update_project`**: Modifies registered details (name, wing, privacy levels, description).
-* **`concierge_list_projects`**: Lists all projects inside the local database.
-  * *CLI command*: `python -m interface.cli projects`
-
-### 2. Advanced Search
-* **`concierge_search`**: Runs the complete Hybrid Search v4 pipeline.
-  * *CLI command*: `python -m interface.cli search --query "<query>" --project <uuid_or_name> [--top_k <k>]`
-* **`search_symbols`**: Instantly searches class/function names in the FTS5 index.
-* **`get_implementations`**: Returns the complete raw code block for a given symbol ID.
-* **`get_callers`**: Lists all caller nodes that point to the specified symbol.
-* **`find_similar`**: Finds other workspaces registered under the same wing.
-
-### 3. Cognitive Context & Trajectories
-* **`concierge_wakeup`**: Resuscitates the agent's memory for a workspace by fetching the L2 Context Compass, Reference Wings, and recent commits.
-  * *CLI command*: `python -m interface.cli wakeup --project <uuid>`
-* **`concierge_resume`**: Retrieves the Context Compass (recursive macro summary) of the project.
-  * *CLI command*: `python -m interface.cli resume --project <uuid>`
-* **`concierge_load`**: On-demand node loader (Lazy Load) returning metadata, contents, and relationships.
-* **`get_trajectories`**: Retrieves the detailed bi-temporal history of navigation steps.
-
-### 4. Facts & Preferences
-* **`concierge_store_fact`**: Evaluates and records a semantic fact (preferences/rules) using bi-temporal invalidation.
-* **`concierge_set_memory`**: Stores user core memory blocks (e.g. `preferred_language`, `persona`).
-* **`concierge_get_memory`**: Retrieves saved core memory blocks.
-* **`concierge_feedback`**: Registers search feedback to optimize search weights (Bayesian Thompson Sampling).
+* **`concierge_mine`**: Ingests a directory, chunks code (AST), extracts tags, and generates L0/L1/L2 summaries.
+* **`concierge_search`**: Runs the complete Hybrid Search v4 pipeline across indexed projects.
+* **`concierge_wakeup`**: Reactivates agent consciousness on session start by returning the Context Compass, reference wings, and recent commits.
+* **`concierge_resume`**: Retrieves macro summary of project context (ideal for system prompt injection).
+* **`concierge_load`**: On-demand lazy loader for full node contents, edges, and dependencies.
+* **`concierge_commit`**: Registers audited architectural changes to the cognitive ledger.
+* **`concierge_store_fact`**: Records user preferences and architectural rules with bi-temporal invalidation.
 
 ---
 
-## 🔧 Installation & Configuration
+## 🛠️ Global CLI Subcommands Reference (`concierge`)
 
-### Prerequisites
-* Python 3.10+
-* Google Gemini or OpenAI API Key (required for LLM summarization and auditing).
+After running `pip install concierge-graph`, two global terminal commands are installed via `pyproject.toml`:
+1. **`concierge-mcp`**: Boots the FastMCP Server daemon.
+2. **`concierge`**: Multifunctional CLI utility supporting the following subcommands:
 
-### Configuration Setup
-1. Clone the repository.
-2. Create a `.env` file in the root directory:
-```env
-# LLM Provider Configuration
-GRAFO_LLM_API_KEY=your_api_key_here
-GRAFO_LLM_MODEL=gemini-2.5-flash
-
-# Vector Backend (Chroma or Qdrant)
-GRAFO_VECTOR_BACKEND=chroma
-
-# (Optional) Qdrant Cloud Configuration
-# GRAFO_VECTOR_BACKEND=qdrant
-# QDRANT_URL=https://xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.us-east-1-0.aws.cloud.qdrant.io:6333
-# QDRANT_API_KEY=your_qdrant_cloud_api_key
-```
-
-3. Install dependencies:
 ```bash
-pip install -r requirements.txt
-```
+# 1. Register a new workspace/project
+concierge register --name my-project --wing backend --privacy PUBLIC
 
-### Running the MCP Server
-To boot the Model Context Protocol server:
-```bash
-python -m interface.mcp_server
+# 2. Mine / Ingest a codebase directory into the memory graph
+concierge mine --path /path/to/codebase --name my-project
+
+# 3. Perform Hybrid Search v4 across indexed memory
+concierge search --query "authentication middleware" --project my-project
+
+# 4. Reactivate agent consciousness (Compass + Wings + Commits)
+concierge wakeup --project my-project
+
+# 5. Retrieve Context Compass macro summary
+concierge resume --project my-project
+
+# 6. Register audited architectural commit to ledger
+concierge commit --project <uuid> --phase build --technical_changes "Added Auth JWT"
+
+# 7. Lazy load a single node on demand
+concierge load --node_id 42
+
+# 8. Display system health, counts, and database status
+concierge status
+
+# 9. List all registered projects inside the local database
+concierge projects
+
+# 10. Purge a project and all associated relational & vector records
+concierge delete --project my-project
 ```
 
 ---
 
-## 🧪 Test Suite & Code Verification
+## 🧪 Test Suite & Health Diagnostics
 
-To run the automated test suite:
+Run all unit and stress tests:
 ```bash
 python -m pytest
 ```
 
-To run the complete health diagnostic checks on the memory systems:
+Run full memory diagnostics:
 ```bash
 python -m tests.check_brain
 ```
@@ -170,4 +258,4 @@ python -m tests.check_brain
 ---
 
 ## 📄 License
-Distributed under the MIT license. See `LICENSE` for more information.
+Distributed under the MIT License. See `LICENSE` for details.
