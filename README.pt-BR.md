@@ -41,6 +41,15 @@ O Grafo Concierge é um daemon local ou de VPS que oferece:
 
 ---
 
+## ⚙️ Recursos Avançados de Engenharia
+
+* ⚡ **Modo Lightweight com Economia de RAM (`GRAFO_LIGHTWEIGHT_MODE=true`)**: Permite rodar o Grafo Concierge em servidores de baixo custo (ex: VPS de $4/mês com 512MB RAM) ignorando modelos vetoriais pesados e usando busca SQLite FTS5 BM25.
+* 🔍 **Engrenagem de Zoom Hierárquica (L0 ➔ L1 ➔ L2)**: Sintetiza chunks de código (L0) em clusters de diretórios (L1) e na Bússola de Contexto do projeto (L2) com descarte por amnésia seletiva.
+* 🎯 **Aprendizado Bayesiano (Thompson Sampling)**: Loop de feedback em tempo real (`concierge_feedback`) que ajusta os pesos do algoritmo de busca com base nas avaliações do agente.
+* 🔐 **Isolamento por Alas de Privacidade**: Particionamento estrutural entre alas `PUBLIC`, `INTERNAL` e `RESTRICTED` para evitar contaminação cruzada de contexto.
+
+---
+
 ## 🔌 Integração Simultânea Multi-Cliente via MCP
 
 Alimentado pelo protocolo **Model Context Protocol (MCP)** da Anthropic, uma única instância do servidor Grafo Concierge comunica-se **simultaneamente** com todas as suas ferramentas favoritas:
