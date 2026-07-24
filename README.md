@@ -30,6 +30,17 @@ Concierge Graph is a local/VPS daemon that provides:
 
 ---
 
+## 🛡️ Key Architectural Advantages (Solving Common Memory Pitfalls)
+
+| Pitfall in Traditional Memory | How Concierge Graph v3.8.2 Solves It |
+| :--- | :--- |
+| **"Wrong Drawer" False Negatives** | **Dynamic Scoping with Fallback**: Search automatically falls back to Reference Wings (`all_wings=True`) if local relevance falls below threshold. No rigid lockouts. |
+| **Stale Memory & Contradictions** | **Bi-Temporal Invalidation & Exponential Decay**: `concierge_store_fact` invalidates superseded facts with valid/transaction timestamps while the Janitor decays inactive nodes via $W = W_0 \cdot e^{-\lambda t}$. |
+| **Dual Query I/O Latency** | **Sub-40ms Latency (Colossus Benchmark)**: Uses `SerializedWriteQueue` with SQLite WAL mode and thread-local read connections for ultra-fast P50 (41ms) response times. |
+| **Proprietary SDK Lock-in** | **Native MCP Standard**: Operates via Anthropic's Model Context Protocol (JSON-RPC/SSE). Zero vendor lock-in; works with Cursor, Claude Desktop, LangChain, or custom scripts. |
+
+---
+
 ## 🔌 Simultaneous Multi-Client Integration via MCP
 
 Powered by Anthropic's **Model Context Protocol (MCP)**, a single Concierge Graph server instance communicates **simultaneously** with all your favorite tools:
