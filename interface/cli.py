@@ -116,6 +116,7 @@ def _bootstrap_concierge():
         vector_store=vector_store,
         embedding_manager=embedder,
         ingestion_manager=ingestion_manager,
+        llm_adapter=llm_adapter,
     )
 
     return gc, store

@@ -532,10 +532,18 @@ class GrafoConcierge:
             RuntimeError: If SemanticExtractor is not configured.
         """
         if self._semantic_extractor is None:
-            raise RuntimeError(
-                "SemanticExtractor not available: llm_adapter was not "
-                "provided during GrafoConcierge initialization."
-            )
+            def _do_direct_store(conn) -> list[dict]:
+                from storage.semantic_logic import insert_semantic_fact
+                fact_id = insert_semantic_fact(conn, scope_type, scope_id, fact_statement.strip())
+                return [{
+                    "fact": fact_statement.strip(),
+                    "action": "ADD",
+                    "target_id": None,
+                    "fact_id": fact_id
+                }]
+            results = self._store.write_callback(_do_direct_store)
+            logger.info("store_fact (direct fallback): scope=%s/%s, fact_id=%s", scope_type, scope_id, results[0].get("fact_id"))
+            return results
 
         def _do_store(conn) -> list[dict]:
             return self._semantic_extractor.evaluate_and_store_facts(
