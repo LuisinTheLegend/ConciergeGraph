@@ -11,6 +11,8 @@ from ingestion.summarizer import LLMAdapter, ZoomSummarizer
 # ===================================================================
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEST_DIR = os.path.join(BASE, "_test_orchestrator_tmp")
+if os.path.exists(TEST_DIR):
+    shutil.rmtree(TEST_DIR, ignore_errors=True)
 os.makedirs(os.path.join(TEST_DIR, "src"), exist_ok=True)
 os.makedirs(os.path.join(TEST_DIR, "docs"), exist_ok=True)
 os.makedirs(os.path.join(TEST_DIR, "node_modules", "dep"), exist_ok=True)
@@ -31,7 +33,10 @@ with open(os.path.join(TEST_DIR, ".gitignore"), "w") as f:
     f.write("node_modules/\ntest_orchestrator.db*\n")
 
 # SqliteStore
-db_path = os.path.join(TEST_DIR, "test_orchestrator.db")
+db_path = os.path.join(BASE, "test_orchestrator.db")
+if os.path.exists(db_path):
+    try: os.remove(db_path)
+    except Exception: pass
 store = SqliteStore(db_path)
 project_uuid = str(uuid.uuid4())
 store.create_project(project_uuid, "test-orchestrator", "dev/test")
@@ -56,10 +61,11 @@ class MockVectorStore:
         valid = [i for i in items if i.get("embedding") is not None]
         self.stored.extend(i["doc_id"] for i in valid)
         return len(valid)
-    def delete(self, doc_id):
-        self.deleted.append(doc_id)
+    def delete_batch(self, doc_ids):
+        self.deleted.extend(doc_ids)
+        return len(doc_ids)
     def verify_sync(self, sqlite_ids):
-        return {"orphans_removed": 0}
+        return []
 
 mock_embedder = MockEmbeddingManager()
 mock_vector = MockVectorStore()
@@ -158,6 +164,8 @@ print()
 print("=" * 60)
 print("TESTE 5: mine() sem Summarizer (summarizer=None)")
 print("=" * 60)
+project_no_sum_uuid = str(uuid.uuid4())
+store.create_project(project_no_sum_uuid, "test-no-sum", "dev/test")
 mock_vector4 = MockVectorStore()
 manager4 = IngestionManager(
     sqlite_store=store,
@@ -168,7 +176,7 @@ manager4 = IngestionManager(
 # Recria um arquivo para ter algo novo
 with open(os.path.join(TEST_DIR, "src", "new_file.py"), "w") as f:
     f.write("def new(): pass\n")
-result4 = manager4.mine(project_uuid, TEST_DIR)
+result4 = manager4.mine(project_no_sum_uuid, TEST_DIR)
 print(f"  files_processed: {result4.files_processed}")
 print(f"  summaries_generated: {result4.summaries_generated}")
 assert result4.summaries_generated == 0, "Sem summarizer, não deveria gerar resumos"
@@ -198,10 +206,10 @@ print("  [PASS] Zoom Gear L1/L2 OK")
 # Cleanup
 # ===================================================================
 store.close()
-shutil.rmtree(TEST_DIR)
-# Remove new_file se sobrou
-if os.path.exists(os.path.join(TEST_DIR)):
-    shutil.rmtree(TEST_DIR)
+shutil.rmtree(TEST_DIR, ignore_errors=True)
+if os.path.exists(db_path):
+    try: os.remove(db_path)
+    except Exception: pass
 
 print()
 print("=" * 60)

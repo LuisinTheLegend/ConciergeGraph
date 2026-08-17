@@ -807,13 +807,13 @@ class IngestionManager:
         # Reconciliation Loop: verifies SQLite ↔ Vector synchronization
         try:
             existing_nodes = self._store.get_nodes_by_project(project_uuid)
-            sqlite_ids = [f"node_{n['id']}" for n in existing_nodes if n.get("type") not in ("directory", "cluster", "project")]
-            sync_report = self._vector.verify_sync(sqlite_ids)
-            orphan_count = sync_report.get("orphans_removed", 0)
-            if orphan_count > 0:
-                logger.warning("Reconciliation: %d orphan vectors removed post-GC.", orphan_count)
+            valid_node_ids = {n["id"] for n in existing_nodes if n.get("type") not in ("directory", "cluster", "project")}
+            orphans = self._vector.verify_sync(valid_node_ids)
+            if orphans:
+                removed_count = self._vector.delete_batch(orphans)
+                logger.warning("Reconciliation: %d orphan vectors removed post-GC.", removed_count)
         except Exception as e:
-            logger.debug("Reconciliation loop failed (non-fatal): %s", e)
+            logger.warning("Reconciliation loop failed (non-fatal): %s", e)
 
         return removed
 

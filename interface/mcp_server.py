@@ -16,6 +16,8 @@ Tools exposed (6 tools — aligned with Architecture v3.8):
     concierge_resume   → Context Compass (concise summary)
     concierge_load     → Lazy Load of a node on demand
     concierge_status   → System health and statistics
+    concierge_store_fact  → Write semantic facts (via SemanticExtractor)
+    concierge_list_facts  → Read active semantic facts for a scope
 
 Architecture:
     This module is ONLY the MCP bridge ↔ Central Facade.
@@ -437,6 +439,34 @@ class GrafoConciergeServer:
                 Dictionary with decisions made by SemanticExtractor.
             """
             return server._handle_store_fact(scope_type, scope_id, fact_statement)
+
+        # --- concierge_list_facts ---
+        @self._mcp.tool(
+            name="concierge_list_facts",
+            description=(
+                "Lists all active semantic facts for a given scope. "
+                "Returns facts stored via concierge_store_fact that are still valid "
+                "(not invalidated). Use to review stored preferences, decisions, and context. "
+                "IMPORTANT: Each fact object contains a stable 'id' field (the database primary key). "
+                "Always reference facts by this 'id' (e.g., 'Fact #<id>'). "
+                "Never use list position or sequential counting — IDs may have gaps due to "
+                "bi-temporal invalidation of superseded facts."
+            ),
+        )
+        def concierge_list_facts(
+            scope_type: str,
+            scope_id: str,
+        ) -> dict:
+            """Lists active semantic facts for a scope.
+
+            Args:
+                scope_type: Scope type ('user', 'session', 'agent', 'org').
+                scope_id: Unique identifier of scope.
+
+            Returns:
+                Dictionary with success, facts list, and count.
+            """
+            return server._handle_list_facts(scope_type, scope_id)
 
         # --- concierge_set_memory ---
         @self._mcp.tool(
@@ -1293,6 +1323,54 @@ class GrafoConciergeServer:
                 "error": str(e),
                 "scope_type": scope_type,
                 "scope_id": scope_id,
+                "duration_seconds": round(elapsed, 3),
+            }
+
+    # ===================================================================
+    # HANDLER: concierge_list_facts
+    # ===================================================================
+
+    def _handle_list_facts(
+        self, scope_type: str, scope_id: str,
+    ) -> dict:
+        """Handler for concierge_list_facts — delegates to Facade."""
+        t0 = time.perf_counter()
+        try:
+            valid_scopes = {"user", "session", "agent", "org"}
+            if scope_type not in valid_scopes:
+                raise ValueError(f"Invalid scope_type '{scope_type}'. Must be one of: {valid_scopes}")
+            if not scope_id or not scope_id.strip():
+                raise ValueError("scope_id cannot be empty.")
+
+            facts = self._gc.list_facts(
+                scope_type=scope_type,
+                scope_id=scope_id,
+            )
+            elapsed = time.perf_counter() - t0
+
+            logger.info(
+                "concierge_list_facts OK: scope=%s/%s, count=%d, %.3fs",
+                scope_type, scope_id, len(facts), elapsed,
+            )
+
+            return {
+                "success": True,
+                "scope_type": scope_type,
+                "scope_id": scope_id,
+                "facts_count": len(facts),
+                "facts": facts,
+                "duration_seconds": round(elapsed, 3),
+            }
+
+        except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("concierge_list_facts FAILED: %s", e)
+            return {
+                "success": False,
+                "error": str(e),
+                "scope_type": scope_type,
+                "scope_id": scope_id,
+                "facts": [],
                 "duration_seconds": round(elapsed, 3),
             }
 

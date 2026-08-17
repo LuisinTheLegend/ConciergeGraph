@@ -178,17 +178,27 @@ class GrafoConcierge:
         if not resume:
             resume = f"Projeto '{project.get('folder_name', 'unknown')}' — sem Bússola de Contexto definida."
 
+        # Include active semantic facts for the project scope
+        semantic_facts: list[dict] = []
+        try:
+            folder_name = project.get("folder_name", "")
+            if folder_name:
+                semantic_facts = self.list_facts("user", folder_name)
+        except Exception as e:
+            logger.warning("Falha ao carregar fatos semânticos no wake_up: %s", e)
+
         result = {
             "project": project,
             "resume": resume,
             "reference_wings": ref_wings,
             "recent_commits": recent_commits,
             "stats": stats,
+            "semantic_facts": semantic_facts,
         }
 
         logger.info(
-            "Wake-up: projeto=%s, commits=%d, ref_wings=%d",
-            project_uuid, len(recent_commits), len(ref_wings),
+            "Wake-up: projeto=%s, commits=%d, ref_wings=%d, semantic_facts=%d",
+            project_uuid, len(recent_commits), len(ref_wings), len(semantic_facts),
         )
         return result
 
@@ -564,8 +574,8 @@ class GrafoConcierge:
             from core.vector_backend import QdrantVectorStore
             if isinstance(self._vector, QdrantVectorStore) and results:
                 for fact in results:
-                    fact_id = fact.get("id")
-                    statement = fact.get("fact_statement")
+                    fact_id = fact.get("fact_id")
+                    statement = fact.get("updated_statement") or fact.get("fact")
                     if fact_id is not None and statement:
                         emb = self._embedder.embed(statement)
                         if emb:
@@ -588,6 +598,40 @@ class GrafoConcierge:
             logger.warning("Failed to synchronize semantic fact in Qdrant: %s", q_err)
 
         return results
+
+    # ===================================================================
+    # LIST FACTS — Retrieve active semantic facts for a scope
+    # ===================================================================
+
+    def list_facts(
+        self,
+        scope_type: str,
+        scope_id: str,
+    ) -> list[dict]:
+        """Returns all active semantic facts for a given scope.
+
+        A fact is considered active if its t_invalid is NULL
+        (i.e., it has not been revoked).
+
+        Aligned with the MCP Tool concierge_list_facts.
+
+        Args:
+            scope_type: Scope type ('user', 'session', 'agent', 'org').
+            scope_id: Unique identifier of the scope.
+
+        Returns:
+            List of dicts with active semantic facts data.
+        """
+        from storage.semantic_logic import get_active_semantic_facts
+
+        with self._store._conn_mgr.read() as conn:
+            facts = get_active_semantic_facts(conn, scope_type, scope_id)
+
+        logger.info(
+            "list_facts: scope=%s/%s, active_count=%d",
+            scope_type, scope_id, len(facts),
+        )
+        return facts
 
     # ===================================================================
     # USER CORE MEMORY — Patch 1
