@@ -14,7 +14,7 @@ Welcome to the official technical documentation for **Grafo Concierge**, the ope
 | [**`04_INGESTION_AND_AST.md`**](04_INGESTION_AND_AST.md) | Multi-language Tree-sitter AST parsing, symbol extraction (`CLASS`, `FUNCTION`, `METHOD`), call graph edges, chunk delta caching, and Prompt Armor XML sanitization. | Backend Engineers & Ingestion Devs |
 | [**`05_HYBRID_SEARCH_AND_ROUTING.md`**](05_HYBRID_SEARCH_AND_ROUTING.md) | Hybrid Search v4 tri-signal scoring formula (Vector + FTS5 + Max(Recency, Centrality)), Wing taxonomy, and edge-friendly Lightweight RAM mode (<35MB). | Search & Retrieval Engineers |
 | [**`06_DEPLOY_AND_CONFIGURATION.md`**](06_DEPLOY_AND_CONFIGURATION.md) | Complete environment variables reference (`GRAFO_*`), Docker / Compose setup, remote FastMCP VPS hosting, token authentication, and 1-click IDE integration. | DevOps, Sysadmins & Developers |
-| [**`07_MIGRATION_AND_OPERATIONS.md`**](07_MIGRATION_AND_OPERATIONS.md) | CLI commands reference (`register`, `mine`, `search`, `sync-vector`), switching to Qdrant Cloud, system diagnostics, and operational troubleshooting. | Operators & Developers |
+| [**`07_MIGRATION_AND_OPERATIONS.md`**](07_MIGRATION_AND_OPERATIONS.md) | CLI commands reference (`concierge register`, `mine`, `search`, `status`, `sync-vector`), switching to Qdrant Cloud, system diagnostics, and operational troubleshooting. | Operators & Developers |
 
 ---
 

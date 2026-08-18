@@ -98,13 +98,12 @@ docker compose up -d
 
 ### 3.1 Claude Desktop (`claude_desktop_config.json`)
 
-* **Local stdio connection**:
+* **Local stdio connection (via `concierge-graph` package)**:
   ```json
   {
     "mcpServers": {
-      "grafo-concierge": {
-        "command": "python",
-        "args": ["-m", "interface.mcp_server"],
+      "concierge-graph": {
+        "command": "concierge-mcp",
         "env": {
           "GRAFO_LLM_API_KEY": "your_api_key_here"
         }
@@ -112,12 +111,13 @@ docker compose up -d
     }
   }
   ```
+  *(Or use `"command": "python", "args": ["-m", "interface.mcp_server"]` when executing from local source).*
 
 * **Remote VPS SSE connection**:
   ```json
   {
     "mcpServers": {
-      "grafo-concierge": {
+      "concierge-graph": {
         "url": "http://your-vps-ip:8000/sse",
         "headers": {
           "Authorization": "Bearer your_super_secret_vps_token"
@@ -134,7 +134,7 @@ docker compose up -d
 ```json
 {
   "mcpServers": {
-    "grafo-concierge": {
+    "concierge-graph": {
       "command": "concierge-mcp",
       "env": {
         "GRAFO_DB_PATH": "C:/Nexus-Memory/GrafoConcierge/data/concierge.db"
@@ -151,9 +151,11 @@ docker compose up -d
 ```json
 {
   "mcpServers": {
-    "grafo-concierge": {
-      "command": "python",
-      "args": ["-m", "interface.mcp_server"]
+    "concierge-graph": {
+      "command": "concierge-mcp",
+      "env": {
+        "GRAFO_LLM_API_KEY": "your_api_key_here"
+      }
     }
   }
 }

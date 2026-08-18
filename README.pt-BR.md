@@ -101,10 +101,15 @@ pip uninstall concierge-graph         # para desinstalar
    ```bash
    cp .env.example .env
    ```
-   Insira sua chave de API do Gemini ou OpenAI:
+   Insira sua chave de API do Gemini ou OpenAI (e opcionalmente as configurações do Qdrant Cloud):
    ```env
    GRAFO_LLM_API_KEY=sua_chave_gemini_aqui
    GRAFO_LLM_MODEL=gemini-2.0-flash
+
+   # Opcional: Qdrant Cloud / Cluster Remoto
+   # GRAFO_VECTOR_BACKEND=qdrant
+   # GRAFO_QDRANT_URL=https://seu-cluster.qdrant.tech:6333
+   # GRAFO_QDRANT_API_KEY=sua_chave_qdrant_aqui
    ```
 
 3. **Iniciar o Servidor MCP**:
@@ -153,9 +158,7 @@ Adicione o Grafo Concierge ao seu arquivo de configuração:
 {
   "mcpServers": {
     "concierge-graph": {
-      "command": "python",
-      "args": ["-m", "interface.mcp_server"],
-      "cwd": "/caminho/para/GrafoConcierge",
+      "command": "concierge-mcp",
       "env": {
         "GRAFO_LLM_API_KEY": "sua_chave_api_aqui"
       }
@@ -163,6 +166,7 @@ Adicione o Grafo Concierge ao seu arquivo de configuração:
   }
 }
 ```
+*(Ou use `"command": "python", "args": ["-m", "interface.mcp_server"], "cwd": "/caminho/para/GrafoConcierge"` ao executar direto do código-fonte clonado).*
 
 ### Para VPS Remota / Conexões SSE (Cursor / Scripts Customizados)
 Quando executado em um servidor remoto:
@@ -257,7 +261,10 @@ concierge status
 # 9. Listar todos os projetos registrados no banco local
 concierge projects
 
-# 10. Expurgar um projeto e todos os registros relacionais e vetoriais
+# 10. Sincronizar e reconciliar embeddings do banco vetorial
+concierge sync-vector
+
+# 11. Expurgar um projeto e todos os registros relacionais e vetoriais
 concierge delete --project meu-projeto
 ```
 

@@ -4,13 +4,13 @@
 
 ---
 
-## 1. Complete CLI Reference (`interface/cli.py`)
+## 1. Complete CLI Reference (`concierge`)
 
-Grafo Concierge includes a complete terminal interface accessible via `python -m interface.cli <command>` (or `grafo-concierge <command>` if installed via package):
+Grafo Concierge includes a native global CLI accessible directly via `concierge <command>` (or `python -m interface.cli <command>` when running from source):
 
 ### 1.1 `register` — Register a Project
 ```bash
-python -m interface.cli register --name "vortex-pro" --wing "gestão/saas" --privacy "INTERNAL" --summary "SaaS Analytics Dashboard"
+concierge register --name "vortex-pro" --wing "gestão/saas" --privacy "INTERNAL" --summary "SaaS Analytics Dashboard"
 ```
 * **Flags**:
   * `--name` (required): Folder name of the project.
@@ -22,7 +22,7 @@ python -m interface.cli register --name "vortex-pro" --wing "gestão/saas" --pri
 
 ### 1.2 `mine` — Ingest a Codebase Directory
 ```bash
-python -m interface.cli mine --path "/path/to/project" --name "vortex-pro"
+concierge mine --path "/path/to/project" --name "vortex-pro"
 ```
 * **Flags**:
   * `--path` (required): Filesystem path to scan and ingest.
@@ -33,7 +33,7 @@ python -m interface.cli mine --path "/path/to/project" --name "vortex-pro"
 
 ### 1.3 `search` — Hybrid Search v4 Query
 ```bash
-python -m interface.cli search --query "JWT authentication" --project "e4b3c2a1-..." --top-k 5 --refs
+concierge search --query "JWT authentication" --project "e4b3c2a1-..." --top-k 5 --refs
 ```
 * **Flags**:
   * `--query` (required): Natural language or technical query.
@@ -47,7 +47,7 @@ python -m interface.cli search --query "JWT authentication" --project "e4b3c2a1-
 
 ### 1.4 `wakeup` — Re-activate Agent Session Context
 ```bash
-python -m interface.cli wakeup --project "e4b3c2a1-..."
+concierge wakeup --project "e4b3c2a1-..."
 ```
 * Pre-loads the L2 Context Compass, reference wings summaries, and latest 3 commits.
 
@@ -55,7 +55,7 @@ python -m interface.cli wakeup --project "e4b3c2a1-..."
 
 ### 1.5 `resume` — Print Project Context Compass
 ```bash
-python -m interface.cli resume --project "e4b3c2a1-..."
+concierge resume --project "e4b3c2a1-..."
 ```
 * Prints the concise 200-300 token executive summary of the repository.
 
@@ -63,7 +63,7 @@ python -m interface.cli resume --project "e4b3c2a1-..."
 
 ### 1.6 `commit` — Register Memory Changelog
 ```bash
-python -m interface.cli commit --project "e4b3c2a1-..." --phase "build" --changes "Refactored JWT validator" --pointers "src/auth.py,src/middleware.py"
+concierge commit --project "e4b3c2a1-..." --phase "build" --changes "Refactored JWT validator" --pointers "src/auth.py,src/middleware.py"
 ```
 * **Flags**:
   * `--project` (required): Project UUID.
@@ -75,27 +75,39 @@ python -m interface.cli commit --project "e4b3c2a1-..." --phase "build" --change
 
 ### 1.7 `load` — Inspect a Specific Node
 ```bash
-python -m interface.cli load --node-id 42
+concierge load --node-id 42
 ```
 * Dumps all relational attributes, code contents, and connected edges of node ID 42.
 
 ---
 
-### 1.8 `projects` — List All Registered Projects
+### 1.8 `status` — System & Project Health Diagnostics
 ```bash
-python -m interface.cli projects
+# Global health check
+concierge status
+
+# Specific project health check
+concierge status --project "e4b3c2a1-..."
+```
+* Displays database connectivity, active project counts, vector storage status, and memory metrics.
+
+---
+
+### 1.9 `projects` — List All Registered Projects
+```bash
+concierge projects
 ```
 * Outputs a formatted table of all registered projects with UUID, Name, Wing, and Privacy level.
 
 ---
 
-### 1.9 `sync-vector` — Manual Batch Vector Re-sync
+### 1.10 `sync-vector` — Manual Batch Vector Re-sync
 ```bash
 # Sync all projects in the database
-python -m interface.cli sync-vector
+concierge sync-vector
 
 # Sync a specific project
-python -m interface.cli sync-vector --project "e4b3c2a1-..."
+concierge sync-vector --project "e4b3c2a1-..."
 ```
 * Executes bidirectional vector reconciliation: prunes orphan embeddings and generates missing embeddings for all active SQLite nodes.
 
@@ -113,7 +125,7 @@ When migrating from local ChromaDB to production Qdrant Cloud:
    ```
 2. **Execute Full Auto-Sync**:
    ```bash
-   python -m interface.cli sync-vector
+   concierge sync-vector
    ```
 3. The Janitor reconciles all SQLite nodes with the new Qdrant collection automatically, populating your cloud cluster without data loss.
 
@@ -142,4 +154,4 @@ python -m tests.check_brain
 * **Answer**: SQLite in WAL (`Write-Ahead Logging`) mode writes transactions to temporary `.db-wal` files for performance and concurrency. Do **not** delete them manually while the server is running. They are automatically merged into `concierge.db` by SQLite checkpoints and the Janitor's `VACUUM` routine.
 
 ### Q: How do I recover from an emergency vector corruption?
-* **Answer**: Call the MCP tool `reset_collection` or delete the `data/chroma/` directory, then run `python -m interface.cli sync-vector`. All vectors will be cleanly regenerated from the primary SQLite truth table.
+* **Answer**: Call the MCP tool `reset_collection` or delete the `data/chroma/` directory, then run `concierge sync-vector` (or `python -m interface.cli sync-vector`). All vectors will be cleanly regenerated from the primary SQLite truth table.
