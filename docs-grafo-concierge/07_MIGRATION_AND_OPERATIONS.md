@@ -1,157 +1,58 @@
-# 🛠️ Migration, Operations & CLI Reference (v3.8.2)
+# 🛠️ Operations, Janitor Maintenance & Test Audit (v3.8.3)
 
-> **Complete Guide to CLI Commands, Vector Synchronization, Schema Upgrades, and Health Diagnostics**
-
----
-
-## 1. Complete CLI Reference (`concierge`)
-
-Grafo Concierge includes a native global CLI accessible directly via `concierge <command>` (or `python -m interface.cli <command>` when running from source):
-
-### 1.1 `register` — Register a Project
-```bash
-concierge register --name "vortex-pro" --wing "gestão/saas" --privacy "INTERNAL" --summary "SaaS Analytics Dashboard"
-```
-* **Flags**:
-  * `--name` (required): Folder name of the project.
-  * `--wing` (optional): Primary Wing (`marketing/vendas`, `finanças/quant`, `gestão/saas`, `automação/rh`, `estatística`, `geral`).
-  * `--privacy` (optional): `PUBLIC`, `INTERNAL`, or `RESTRICTED` (default: `PUBLIC`).
-  * `--summary` (optional): Descriptive summary.
+> **Complete Guide to Vector Reconciliation, SLM Background Summarization, Time-Travel Operations, and E2E Test Verification**
 
 ---
 
-### 1.2 `mine` — Ingest a Codebase Directory
-```bash
-concierge mine --path "/path/to/project" --name "vortex-pro"
-```
-* **Flags**:
-  * `--path` (required): Filesystem path to scan and ingest.
-  * `--name` (required): Project folder name or UUID.
-  * `--no-tag` (optional): Disables automatic regex framework tag detection.
+## 1. Background Janitor & Maintenance Operations
+
+### 1.1 Vector Reconciliation (`core/vector_reconciler.py`)
+Identifies and deletes orphaned vectors from Qdrant/Chroma that no longer exist in SQLite WAL:
+* Set difference algorithm: $$\text{Orphans} = \text{Vector IDs} \setminus \text{SQLite Paths}$$.
+* Batch expurge with zero impact on active search queries.
+
+### 1.2 Idle SLM Summarization (`core/background_janitor.py`)
+* Periodically inspects `communities` table for `is_dirty = 1`.
+* Concatenates code files for each dirty community.
+* Invokes local free SLM (e.g., Ollama `llama3.2:3b` or `qwen2.5-coder:1.5b`).
+* Updates `summary_text` and resets dirty flags to `0` with zero cloud API token cost.
 
 ---
 
-### 1.3 `search` — Hybrid Search v4 Query
-```bash
-concierge search --query "JWT authentication" --project "e4b3c2a1-..." --top-k 5 --refs
-```
-* **Flags**:
-  * `--query` (required): Natural language or technical query.
-  * `--project` (required): Project UUID.
-  * `--top-k` (optional): Number of results (default: 10).
-  * `--node-type` (optional): Filter by node type (`CLASS`, `FUNCTION`, `FACT`, etc.).
-  * `--refs` (optional): Include reference wings.
-  * `--all-wings` (optional): Search across all projects globally.
+## 2. Time-Travel Debugging & State Rollback
+
+Using `AgnosticCheckpointer`, external agents can navigate backwards in their execution timeline:
+1. `agent_list_checkpoints(agent_id, session_id)`: Fetches chronological history.
+2. `agent_get_checkpoint(agent_id, session_id, checkpoint_id)`: Loads previous state dictionary for variable restoration and replay.
 
 ---
 
-### 1.4 `wakeup` — Re-activate Agent Session Context
-```bash
-concierge wakeup --project "e4b3c2a1-..."
-```
-* Pre-loads the L2 Context Compass, reference wings summaries, and latest 3 commits.
+## 3. Automated Test Suite & Master E2E Audit
 
----
-
-### 1.5 `resume` — Print Project Context Compass
-```bash
-concierge resume --project "e4b3c2a1-..."
-```
-* Prints the concise 200-300 token executive summary of the repository.
-
----
-
-### 1.6 `commit` — Register Memory Changelog
-```bash
-concierge commit --project "e4b3c2a1-..." --phase "build" --changes "Refactored JWT validator" --pointers "src/auth.py,src/middleware.py"
-```
-* **Flags**:
-  * `--project` (required): Project UUID.
-  * `--phase` (required): Engineering phase (`planning`, `build`, `test`, `deploy`).
-  * `--changes` (required): Summary of technical modifications.
-  * `--pointers` (required): Comma-separated list of modified file paths.
-
----
-
-### 1.7 `load` — Inspect a Specific Node
-```bash
-concierge load --node-id 42
-```
-* Dumps all relational attributes, code contents, and connected edges of node ID 42.
-
----
-
-### 1.8 `status` — System & Project Health Diagnostics
-```bash
-# Global health check
-concierge status
-
-# Specific project health check
-concierge status --project "e4b3c2a1-..."
-```
-* Displays database connectivity, active project counts, vector storage status, and memory metrics.
-
----
-
-### 1.9 `projects` — List All Registered Projects
-```bash
-concierge projects
-```
-* Outputs a formatted table of all registered projects with UUID, Name, Wing, and Privacy level.
-
----
-
-### 1.10 `sync-vector` — Manual Batch Vector Re-sync
-```bash
-# Sync all projects in the database
-concierge sync-vector
-
-# Sync a specific project
-concierge sync-vector --project "e4b3c2a1-..."
-```
-* Executes bidirectional vector reconciliation: prunes orphan embeddings and generates missing embeddings for all active SQLite nodes.
-
----
-
-## 2. Switching Vector Backends (ChromaDB ➔ Qdrant Cloud)
-
-When migrating from local ChromaDB to production Qdrant Cloud:
-
-1. **Update `.env`**:
-   ```env
-   GRAFO_VECTOR_BACKEND=qdrant
-   GRAFO_QDRANT_URL=https://your-cluster-id.qdrant.tech:6333
-   GRAFO_QDRANT_API_KEY=your_qdrant_api_key
-   ```
-2. **Execute Full Auto-Sync**:
-   ```bash
-   concierge sync-vector
-   ```
-3. The Janitor reconciles all SQLite nodes with the new Qdrant collection automatically, populating your cloud cluster without data loss.
-
----
-
-## 3. System Diagnostics & Health Checks
-
-### 3.1 Running the Pytest Test Suite
-Grafo Concierge includes 22 rigorous unit and stress test suites covering concurrency, bi-temporal logic, Thompson sampling, and AST parsing:
+The repository contains **23 automated tests** covering all survival slices with 100% green status and zero warnings:
 
 ```bash
-python -m pytest tests/ -v
+python -m pytest tests/test_e2e_concierge_integration.py \
+                 tests/test_mcp_server_extensions.py \
+                 tests/test_agent_checkpointer.py \
+                 tests/test_graph_rag_janitor.py \
+                 tests/test_vector_reconciler.py \
+                 tests/test_delta_sync.py \
+                 tests/test_dependency_injection.py \
+                 tests/test_concurrency_stress.py \
+                 tests/test_watcher_ignore.py -v --noconftest
 ```
 
-### 3.2 Running the Interactive Brain Check
-```bash
-python -m tests.check_brain
-```
-* Inspects database connectivity, active projects, vector store health, and executes a test hybrid search query.
+### Test Suite Matrix:
 
----
-
-## 4. Troubleshooting & Operational FAQ
-
-### Q: What are the `.db-wal` and `.db-shm` files?
-* **Answer**: SQLite in WAL (`Write-Ahead Logging`) mode writes transactions to temporary `.db-wal` files for performance and concurrency. Do **not** delete them manually while the server is running. They are automatically merged into `concierge.db` by SQLite checkpoints and the Janitor's `VACUUM` routine.
-
-### Q: How do I recover from an emergency vector corruption?
-* **Answer**: Call the MCP tool `reset_collection` or delete the `data/chroma/` directory, then run `concierge sync-vector` (or `python -m interface.cli sync-vector`). All vectors will be cleanly regenerated from the primary SQLite truth table.
+| Suite | Component | Scope |
+| :--- | :--- | :--- |
+| `test_watcher_ignore.py` | `interface/watcher.py` | Early-Exit ignore filtering (`.conciergeignore`, `pathspec`). |
+| `test_concurrency_stress.py` | `interface/queue_writer.py` | Massive concurrent write stress test against SQLite WAL. |
+| `test_dependency_injection.py` | `core/dependencies.py` | Immutable container and path traversal defense. |
+| `test_delta_sync.py` | `core/delta_manager.py` | Structural Signature Hash (SSH) and Lazy Summarization JIT. |
+| `test_vector_reconciler.py` | `core/search_engine.py` / `vector_reconciler.py` | Query-time self-healing filter and background orphan expurging. |
+| `test_graph_rag_janitor.py` | `core/graph_rag.py` / `background_janitor.py` | Natural communities, CTE recursive call chains, and local SLM offloading. |
+| `test_agent_checkpointer.py` | `core/checkpointer.py` | Agnostic state checkpointing, timeline ordering, and multi-agent isolation. |
+| `test_mcp_server_extensions.py` | `interface/mcp_server.py` | Standalone FastMCP JSON-RPC tools for checkpoints and call chains. |
+| `test_e2e_concierge_integration.py` | Master E2E Pipeline | Full lifecycle integration and cascading data verification. |

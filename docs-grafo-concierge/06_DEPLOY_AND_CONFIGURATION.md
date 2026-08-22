@@ -1,24 +1,23 @@
-# 🚀 Deployment, Configuration & Client Integration (v3.8.2)
+# 🚀 Deployment, Configuration & Local-First Security (v3.8.3)
 
-> **Complete Operations Guide for Local IDEs, Remote VPS Deployments, Docker Containers, and Qdrant Cloud**
+> **Complete Operations Guide for Local IDEs, Remote VPS Hosting, Docker Containers, and Tailscale Networking**
 
 ---
 
 ## 1. Environment Variables Reference (`.env`)
 
-All runtime options are configured via environment variables prefixed with `GRAFO_`:
-
 | Variable | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| **`GRAFO_DB_PATH`** | `str` | `data/concierge.db` | Relative or absolute path to the relational SQLite database file. |
+| **`CONCIERGE_BIND_ADDRESS`** | `str` | `127.0.0.1` | **Local-First Security Binding**. Set to `127.0.0.1` (default, safe for public Wi-Fi) or `0.0.0.0` (for Tailscale / LAN remote access). |
+| **`GRAFO_DB_PATH`** | `str` | `data/concierge.db` | Path to the relational SQLite database file. |
 | **`GRAFO_CHROMA_PATH`** | `str` | `data/chroma` | Directory for local ChromaDB vector persistence. |
 | **`GRAFO_CHROMA_COLLECTION`**| `str` | `grafo_concierge` | Name of the primary vector collection. |
 | **`GRAFO_VECTOR_BACKEND`** | `str` | `chroma` | Vector backend selector: `chroma` or `qdrant`. |
 | **`GRAFO_QDRANT_URL`** | `str` | `http://localhost:6333` | Host URL for local Qdrant container or Qdrant Cloud cluster. |
 | **`GRAFO_QDRANT_API_KEY`** | `str` | `None` | API Key for authenticated Qdrant Cloud deployments. |
 | **`GRAFO_LLM_PROVIDER`** | `str` | `gemini` | LLM provider: `gemini`, `openai`, `ollama`, or `custom`. |
-| **`GRAFO_LLM_API_KEY`** | `str` | `None` | API key for the LLM summarization and semantic fact extraction. |
-| **`GRAFO_LLM_MODEL`** | `str` | `gemini-2.0-flash` | LLM model identifier (recommended: fast/flash tier models). |
+| **`GRAFO_LLM_API_KEY`** | `str` | `None` | API key for LLM summarization and semantic fact extraction. |
+| **`GRAFO_LLM_MODEL`** | `str` | `gemini-2.0-flash` | LLM model identifier. |
 | **`GRAFO_LLM_BASE_URL`** | `str` | `None` | Custom base URL for Ollama or self-hosted OpenAI-compatible APIs. |
 | **`GRAFO_LIGHTWEIGHT_MODE`** | `bool`| `false` | When `true`, disables vector models to run in <35MB RAM via FTS5. |
 | **`GRAFO_HOST`** | `str` | `127.0.0.1` | Network interface for FastMCP SSE server (`0.0.0.0` for VPS). |
@@ -28,154 +27,54 @@ All runtime options are configured via environment variables prefixed with `GRAF
 
 ---
 
-## 2. Deployment Strategies
+## 2. Docker Deployment & Local-First Security
 
-### Option A: Local Stdio (Default Developer Setup)
-Ideal for individual developers running Cursor or Claude Desktop locally.
+### `docker-compose.yml` (Secure by Default):
 
-```bash
-# 1. Clone and install in editable mode
-git clone https://github.com/LuisinTheLegend/GrafoConcierge.git
-cd GrafoConcierge
-pip install -e .
-
-# 2. Configure .env
-cp .env.example .env
-
-# 3. Launch FastMCP server over stdio
-concierge-mcp
-```
-
----
-
-### Option B: Remote VPS Hosting (FastMCP HTTP / SSE)
-Run Grafo Concierge as a centralized, continuous daemon on a Linux VPS (Ubuntu/Debian) to serve multiple machines or automated agents.
-
-```bash
-# 1. Set environment on VPS
-export GRAFO_HOST="0.0.0.0"
-export GRAFO_PORT="8000"
-export GRAFO_API_KEY="your_super_secret_vps_token"
-export GRAFO_LLM_API_KEY="your_gemini_or_openai_key"
-
-# 2. Start server in SSE mode
-concierge-mcp --transport sse
-```
-
----
-
-### Option C: Containerized Deployment (Docker & Compose)
-Run fully isolated instances with volume persistence for SQLite and ChromaDB.
-
-`docker-compose.yml`:
 ```yaml
+version: '3.8'
+
 services:
-  grafo-concierge:
-    build: .
-    container_name: grafo-concierge
+  concierge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: concierge-graph
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "${CONCIERGE_BIND_ADDRESS:-127.0.0.1}:8000:8000"
     environment:
       - GRAFO_HOST=0.0.0.0
       - GRAFO_PORT=8000
-      - GRAFO_API_KEY=your_secure_token_here
-      - GRAFO_LLM_API_KEY=your_gemini_api_key_here
-      - GRAFO_LLM_MODEL=gemini-2.0-flash
-      - GRAFO_VECTOR_BACKEND=chroma
+      - GRAFO_LLM_API_KEY=${GRAFO_LLM_API_KEY:-}
+      - GRAFO_LLM_MODEL=${GRAFO_LLM_MODEL:-gemini-2.0-flash}
+      - GRAFO_VECTOR_BACKEND=${GRAFO_VECTOR_BACKEND:-chroma}
+      - GRAFO_API_KEY=${GRAFO_API_KEY:-}
+      - GRAFO_CORS_ORIGINS=${GRAFO_CORS_ORIGINS:-*}
     volumes:
       - ./data:/app/data
-```
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/ || exit 0"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-Launch with:
-```bash
-docker compose up -d
-```
-
----
-
-## 3. Client Configuration (1-Click Integration)
-
-### 3.1 Claude Desktop (`claude_desktop_config.json`)
-
-* **Local stdio connection (via `concierge-graph` package)**:
-  ```json
-  {
-    "mcpServers": {
-      "concierge-graph": {
-        "command": "concierge-mcp",
-        "env": {
-          "GRAFO_LLM_API_KEY": "your_api_key_here"
-        }
-      }
-    }
-  }
-  ```
-  *(Or use `"command": "python", "args": ["-m", "interface.mcp_server"]` when executing from local source).*
-
-* **Remote VPS SSE connection**:
-  ```json
-  {
-    "mcpServers": {
-      "concierge-graph": {
-        "url": "http://your-vps-ip:8000/sse",
-        "headers": {
-          "Authorization": "Bearer your_super_secret_vps_token"
-        }
-      }
-    }
-  }
-  ```
-
----
-
-### 3.2 Cursor IDE (`.cursor/mcp.json`)
-
-```json
-{
-  "mcpServers": {
-    "concierge-graph": {
-      "command": "concierge-mcp",
-      "env": {
-        "GRAFO_DB_PATH": "C:/Nexus-Memory/GrafoConcierge/data/concierge.db"
-      }
-    }
-  }
-}
+  # Optional Qdrant Vector DB Service
+  # qdrant:
+  #   image: qdrant/qdrant:latest
+  #   container_name: concierge-qdrant
+  #   restart: unless-stopped
+  #   ports:
+  #     - "${CONCIERGE_BIND_ADDRESS:-127.0.0.1}:6333:6333"
+  #     - "${CONCIERGE_BIND_ADDRESS:-127.0.0.1}:6334:6334"
+  #   volumes:
+  #     - ./data/qdrant_storage:/qdrant/storage
 ```
 
 ---
 
-### 3.3 Windsurf IDE (`mcp_config.json`)
+## 3. Remote Access via Tailscale
 
-```json
-{
-  "mcpServers": {
-    "concierge-graph": {
-      "command": "concierge-mcp",
-      "env": {
-        "GRAFO_LLM_API_KEY": "your_api_key_here"
-      }
-    }
-  }
-}
-```
-
----
-
-### 3.4 Programmatic Python / LangChain Integration
-
-```python
-from mcp.client.session import ClientSession
-from mcp.client.stdio import stdio_client
-
-# Connect to Grafo Concierge programmatically in Python agent loops
-async with stdio_client(["python", "-m", "interface.mcp_server"]) as (read, write):
-    async with ClientSession(read, write) as session:
-        await session.initialize()
-        results = await session.call_tool("concierge_search", {
-            "query": "database connection pool",
-            "project_uuid": "e4b3c2a1-..."
-        })
-        print(results)
-```
+To connect multiple machines (e.g. laptop querying desktop PC running Grafo Concierge):
+1. In `.env`, change `CONCIERGE_BIND_ADDRESS=0.0.0.0`.
+2. Access the server over your secure Tailscale IP (e.g. `http://100.x.y.z:8000/sse`).

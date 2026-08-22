@@ -19,6 +19,12 @@ Tools exposed (6 tools — aligned with Architecture v3.8):
     concierge_store_fact  → Write semantic facts (via SemanticExtractor)
     concierge_list_facts  → Read active semantic facts for a scope
 
+    SDD-08 Extensions (Standalone module-level functions):
+    agent_save_checkpoint      → Persist agent state (AgnosticCheckpointer)
+    agent_get_checkpoint       → Retrieve agent state (AgnosticCheckpointer)
+    agent_list_checkpoints     → Time-Travel timeline (AgnosticCheckpointer)
+    concierge_get_call_chain   → Recursive call chain (GraphRAGEngine)
+
 Architecture:
     This module is ONLY the MCP bridge ↔ Central Facade.
     No business logic resides here. All operations are delegated
@@ -39,6 +45,15 @@ from core.middleware import GrafoConcierge
 from services import JanitorService
 
 logger = logging.getLogger("grafo-concierge.mcp")
+
+
+# ---------------------------------------------------------------------------
+# SDD-08: Module-level sentinels for standalone MCP tool functions.
+# These are injectable by tests (setUp) or by the application bootstrap.
+# ---------------------------------------------------------------------------
+db_manager = None        # type: ignore[assignment]
+checkpointer = None      # type: ignore[assignment]
+graph_rag = None         # type: ignore[assignment]
 
 
 # ---------------------------------------------------------------------------
@@ -1813,3 +1828,72 @@ class GrafoConciergeServer:
                 "error": str(e),
                 "duration_seconds": round(elapsed, 3),
             }
+
+
+# ===================================================================
+# SDD-08: STANDALONE MODULE-LEVEL MCP TOOL FUNCTIONS
+# ===================================================================
+# These functions are callable directly as module-level functions
+# (e.g., mcp_server.agent_save_checkpoint(...)) and delegate to the
+# module-level sentinel instances (checkpointer, graph_rag).
+# They serve as JSON-RPC bridge functions for external agent integration.
+# ===================================================================
+
+import json as _json
+
+
+def agent_save_checkpoint(
+    agent_id: str,
+    session_id: str,
+    checkpoint_id: str,
+    state_dict: dict,
+) -> str:
+    """MCP Tool: Persists agent state in SQLite WAL via AgnosticCheckpointer.
+
+    Returns a JSON string with 'success' (bool) and 'message' (str).
+    """
+    success = checkpointer.save_checkpoint(
+        agent_id, session_id, checkpoint_id, state_dict
+    )
+    return _json.dumps({
+        "success": success,
+        "message": (
+            f"Checkpoint '{checkpoint_id}' saved successfully for agent '{agent_id}'"
+            if success
+            else f"Failed to save checkpoint '{checkpoint_id}' for agent '{agent_id}'"
+        ),
+    })
+
+
+def agent_get_checkpoint(
+    agent_id: str,
+    session_id: str,
+    checkpoint_id: str,
+) -> dict:
+    """MCP Tool: Retrieves agent state from SQLite WAL via AgnosticCheckpointer.
+
+    Returns the decoded state dictionary, or {} if not found.
+    """
+    return checkpointer.get_checkpoint(agent_id, session_id, checkpoint_id)
+
+
+def agent_list_checkpoints(
+    agent_id: str,
+    session_id: str,
+) -> list:
+    """MCP Tool: Returns the chronological timeline of checkpoints for Time-Travel.
+
+    Returns a list of dicts with 'checkpoint_id' and 'created_at', ordered ASC.
+    """
+    return checkpointer.list_checkpoints(agent_id, session_id)
+
+
+def concierge_get_call_chain(
+    start_node: str,
+    depth_limit: int = 5,
+) -> list:
+    """MCP Tool: Resolves recursive call chain dependencies via GraphRAGEngine.
+
+    Returns a flat list of file paths connected to the start node.
+    """
+    return graph_rag.get_call_chain_recursive(start_node, depth_limit)

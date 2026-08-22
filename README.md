@@ -1,7 +1,7 @@
 English · [Português (Brasil)](README.pt-BR.md)
 ---
 
-# 🧠 Concierge Graph v3.8.2
+# 🧠 Concierge Graph v3.8.3
 
 **The Open-Source Long-Term Memory (LTM) & Cognitive Palace for AI Agents, IDEs & Developer Environments**
 
@@ -10,7 +10,7 @@ English · [Português (Brasil)](README.pt-BR.md)
 [![Protocol MCP](https://img.shields.io/badge/Protocol-MCP-purple.svg)](https://modelcontextprotocol.io/)
 [![Docker Supported](https://img.shields.io/badge/Docker-Ready-blue)](docker-compose.yml)
 
-Concierge Graph is a high-performance, local cognitive memory server designed to solve LLM "amnesia" and context window pollution. Unlike simple RAG (Retrieval-Augmented Generation) scripts, Concierge Graph acts as a bi-temporal, self-healing memory engine combining relational SQL persistence, vector search, hierarchical context synthesis (Zoom Gear), and autonomous background maintenance (Janitor Loop).
+Concierge Graph is a high-performance, local-first cognitive memory server designed to solve LLM "amnesia", context window pollution, and runaway cloud API costs. Unlike simple RAG (Retrieval-Augmented Generation) scripts, Concierge Graph acts as a bi-temporal, self-healing memory engine combining relational SQLite WAL persistence, vector search, structural delta synchronization (SSH), frugal GraphRAG, and agnostic state checkpointing with Time-Travel.
 
 ---
 
@@ -22,28 +22,34 @@ Concierge Graph is a high-performance, local cognitive memory server designed to
 > **Concierge Graph is that engineer's permanent external brain.** Connected seamlessly via the Model Context Protocol (MCP), your AI assistant automatically consults, learns from, and updates this brain in milliseconds—without you ever copying and pasting context again!
 
 ### 🧙‍♂️ Technical Deep-Dive (For Engineers)
-Concierge Graph is a local/VPS daemon that provides:
-1. **Bi-Temporal Fact Persistence**: Stores semantic facts and code entities with explicit valid time and transaction time tracking.
-2. **Hybrid Search v4 Engine**: Balances dense vector embeddings (50%), precise keyword signatures via SQLite FTS5 BM25 (25%), and graph signals (25% combining centrality and exponential recency decay $W = W_0 \cdot e^{-\lambda t}$).
-3. **AST-Aware Apex Ingestion**: Parses Python, TypeScript, JS, Go, Rust, Java, C/C++ files into structural AST nodes with delta-hashing (SHA-256) to skip unmodified code.
-4. **Autonomous Self-Healing (Janitor Loop)**: Operates in a background thread to reconcile relational SQLite tables with vector collections, prune orphan embeddings, and decay inactive context.
+Concierge Graph is a local-first/VPS daemon that provides:
+1. **Zero-Lock Concurrency (`SerializedWriteQueue`)**: Channelling all write mutations through a dedicated single-writer daemon thread over SQLite WAL mode, guaranteeing zero `database is locked` collisions under intense multi-agent concurrency.
+2. **Structural Delta Sync & SSH Hashing**: Calculates SHA-256 Structural Signature Hashes (`def`, `class`, `import`, `from`), updating internal logic changes silently without invalidating the knowledge graph or incurring wasteful LLM summarization tokens.
+3. **Frugal GraphRAG & Recursive CTEs**: Replaces heavy network partition algorithms with $O(1)$ natural directory community mapping and executes multi-hop call chain traversals in milliseconds via SQLite `WITH RECURSIVE` queries.
+4. **Query-Time Self-Healing & Eventual Consistency**: Intercepts vector queries and drops orphan vectors in real-time ($O(1)$ batch lookup) while a background Janitor physically purges orphans asynchronously via set-difference algorithms.
+5. **Agnostic State Checkpointing & Time-Travel**: Persists arbitrary AI agent state dictionaries as JSON blobs under composite primary keys `(agent_id, session_id, checkpoint_id)`, enabling hermetic multi-agent isolation and chronological state rollbacks.
+6. **Bi-Temporal Fact Persistence & Thompson Sampling**: Stores semantic facts with explicit valid and transaction time tracking (`t_valid` / `t_invalid`) with Bayesian reinforcement learning over memory utility.
+7. **Early-Exit Reactive Watcher**: Filters file system events against `.conciergeignore` / `pathspec` rules before opening file descriptors, eliminating I/O bottlenecks.
 
 ---
 
 ## 🛡️ Key Architectural Advantages (Solving Common Memory Pitfalls)
 
-| Pitfall in Traditional Memory | How Concierge Graph v3.8.2 Solves It |
+| Pitfall in Traditional Memory | How Concierge Graph v3.8.3 Solves It |
 | :--- | :--- |
-| **"Wrong Drawer" False Negatives** | **Dynamic Scoping with Fallback**: Search automatically falls back to Reference Wings (`all_wings=True`) if local relevance falls below threshold. No rigid lockouts. |
-| **Stale Memory & Contradictions** | **Bi-Temporal Invalidation & Exponential Decay**: `concierge_store_fact` invalidates superseded facts with valid/transaction timestamps while the Janitor decays inactive nodes via $W = W_0 \cdot e^{-\lambda t}$. |
-| **Dual Query I/O Latency** | **Sub-40ms Latency (Colossus Benchmark)**: Uses `SerializedWriteQueue` with SQLite WAL mode and thread-local read connections for ultra-fast P50 (41ms) response times. |
-| **Proprietary SDK Lock-in** | **Native MCP Standard**: Operates via Anthropic's Model Context Protocol (JSON-RPC/SSE). Zero vendor lock-in; works with Cursor, Claude Desktop, LangChain, or custom scripts. |
+| **"Database is Locked" Concurrency Crashing** | **`SerializedWriteQueue` (SQLite WAL)**: Single-writer daemon thread serializes writes atomically while serving concurrent reads at sub-5ms latency. |
+| **Runaway LLM Re-indexing Costs** | **Structural Signature Hashing (SSH)**: Internal logic edits update content silently with zero AI token cost. Summarization occurs strictly on-demand (Lazy Summarization JIT) or via free local SLMs. |
+| **Stale Memory & Desynchronized Vectors** | **Query-Time Self-Healing + Janitor**: Inactive/deleted files are dropped from vector results in real-time, and background workers purge vector collections via $O(N)$ set difference. |
+| **Heavy RAM Graph Partitioning** | **Frugal GraphRAG Engine**: Uses physical directory topologies ($O(1)$) as natural communities and resolves call chains through SQLite native CTEs with depth and cycle guards. |
+| **Multi-Agent State Collision & Amnesia** | **Agnostic Checkpointing & Time-Travel**: Universal JSON state persistence under composite keys allowing agents to inspect their history and roll back to previous execution steps. |
+| **Proprietary SDK Lock-in** | **Native MCP Standard (30 Tools)**: Operates via Anthropic's Model Context Protocol (JSON-RPC/SSE). Works with Cursor, Windsurf, Claude Desktop, LangChain, or custom swarms. |
 
 ---
 
 ## ⚙️ Advanced Engineering Highlights
 
 * ⚡ **Lightweight RAM-Saving Mode (`GRAFO_LIGHTWEIGHT_MODE=true`)**: Enables Concierge Graph to run on low-spec edge hardware or $4/mo VPS (512MB RAM) by bypassing heavy vector models and utilizing SQLite FTS5 BM25 search.
+* 🔒 **Local-First Security Binding (`CONCIERGE_BIND_ADDRESS=127.0.0.1`)**: Binds to localhost by default for public Wi-Fi safety, easily configurable to `0.0.0.0` for secure Tailscale mesh networking.
 * 🔍 **Hierarchical Zoom Gear (L0 ➔ L1 ➔ L2)**: Synthesizes individual code chunks (L0) into folder clusters (L1) and project-wide Context Compasses (L2) with selective amnesia thresholding.
 * 🎯 **Bayesian Thompson Sampling**: Real-time feedback loop (`concierge_feedback`) that dynamically adjusts search scoring weights based on agent reinforcement signals.
 * 🔐 **Privacy Wings Isolation**: Structural partition between `PUBLIC`, `INTERNAL`, and `RESTRICTED` wings to prevent cross-tenant context contamination.
@@ -71,7 +77,7 @@ Powered by Anthropic's **Model Context Protocol (MCP)**, a single Concierge Grap
 
 * 💻 **Cursor & Windsurf**: Your IDE agent dynamically searches, recalls, and commits project memory as you write code.
 * 💬 **Claude Desktop**: Grants your desktop AI assistant instant macro awareness of your repos.
-* 🤖 **Autonomous Agents & Workflows**: Connect n8n, LangChain, AutoGen, or custom python scripts via SSE endpoints.
+* 🤖 **Autonomous Agents & Swarms**: Connect n8n, LangChain, AutoGen, or custom python scripts via SSE endpoints.
 
 ---
 
@@ -83,9 +89,8 @@ Powered by Anthropic's **Model Context Protocol (MCP)**, a single Concierge Grap
 # Install Grafo Concierge package & CLI
 pip install concierge-graph
 
-# Uninstall anytime
-pip install concierge-graph --upgrade # to update
-pip uninstall concierge-graph         # to uninstall
+# Launch FastMCP Server
+concierge-mcp
 ```
 
 ### Option 2: Local Setup from Source (For Developers & Contributors)
@@ -101,185 +106,52 @@ pip uninstall concierge-graph         # to uninstall
    ```bash
    cp .env.example .env
    ```
-   Add your Gemini or OpenAI key (and optionally Qdrant Cloud settings):
+   Add your Gemini or OpenAI key (and optionally Qdrant settings):
    ```env
    GRAFO_LLM_API_KEY=your_gemini_api_key_here
    GRAFO_LLM_MODEL=gemini-2.0-flash
-
-   # Optional: Qdrant Cloud / Remote Cluster
-   # GRAFO_VECTOR_BACKEND=qdrant
-   # GRAFO_QDRANT_URL=https://your-cluster.qdrant.tech:6333
-   # GRAFO_QDRANT_API_KEY=your_qdrant_api_key
+   CONCIERGE_BIND_ADDRESS=127.0.0.1
    ```
 
 3. **Start the MCP Server**:
    ```bash
    concierge-mcp
-   # or: python main.py
    ```
 
 ---
 
-### Option 2: VPS Deployment (Direct `pip` or `Docker`) 🌐
+## 🔌 Core MCP Tools Reference (30 Tools)
 
-You can host Concierge Graph on any Linux VPS (Ubuntu/Debian) in two ways:
-
-#### A) Direct Installation (Native `pip`)
-```bash
-# 1. Install directly on your VPS
-pip install concierge-graph
-
-# 2. Set your environment variables (or create a .env file)
-export GRAFO_LLM_API_KEY="your_gemini_key"
-export GRAFO_HOST="0.0.0.0"
-export GRAFO_API_KEY="your_secure_vps_token"
-
-# 3. Launch the server
-concierge-mcp
-```
-
-#### B) Containerized Installation (Docker 🐳)
-```bash
-# Set your API Key for remote security in .env
-echo "GRAFO_API_KEY=your_secure_vps_token" >> .env
-
-# Boot the containerized server
-docker compose up -d
-```
-
----
-
-## 💻 1-Click Configuration for IDEs & Claude Desktop
-
-### For Claude Desktop (`claude_desktop_config.json`)
-Add Concierge Graph to your configuration file:
-
-```json
-{
-  "mcpServers": {
-    "concierge-graph": {
-      "command": "concierge-mcp",
-      "env": {
-        "GRAFO_LLM_API_KEY": "your_api_key_here"
-      }
-    }
-  }
-}
-```
-*(Or use `"command": "python", "args": ["-m", "interface.mcp_server"], "cwd": "/path/to/GrafoConcierge"` when running directly from cloned source).*
-
-### For Remote VPS / SSE Connections (Cursor / Custom Scripts)
-When running on a server:
-```json
-{
-  "mcpServers": {
-    "concierge-graph": {
-      "url": "http://your-vps-ip:8000/sse",
-      "headers": {
-        "Authorization": "Bearer your_secure_remote_token"
-      }
-    }
-  }
-}
-```
-
----
-
-## 🚀 Performance Benchmarks (Colossus Protocol)
-
-Tested against 20,000 code nodes under the **Colossus Protocol**:
-
-| Metric | Result (20,000 nodes) |
-| --- | --- |
-| **Search Latency (P50)** | 41.69 ms |
-| **Search Latency (P99)** | 112.75 ms |
-| **Scalability Factor** | 0.93x (Linear performance preserved) |
-| **Ingestion Throughput (SQLite)** | ~536 nodes/second |
-| **Ingestion Throughput (ChromaDB)** | ~914 vectors/second |
-| **Background Maintenance (Janitor)** | 20,000 orphan vectors reconciled in ~11s |
-
----
-
-## 🛠️ Hybrid Search v4 Formula
-
-Relevance scores are calculated by composing three distinct signals:
-
-$$\text{Score} = (0.50 \times \text{Vector Similarity}) + (0.25 \times \text{Normalized FTS5 BM25}) + (0.25 \times \max(\text{Recency}, \text{Centrality}))$$
-
-1. **Vector Similarity (50%)**: Captures deep conceptual meaning using dense embeddings.
-2. **FTS5 BM25 (25%)**: Exact token signatures for function names, classes, and symbols.
-3. **Graph Signals (25%)**:
-   - **Centrality**: Relative connectivity of a node (in-degree normalized).
-   - **Recency**: Time-based exponential decay ensuring historical context ages gracefully:
-     $$W = W_0 \cdot e^{-\lambda t}$$
-
----
-
-## 🔌 Core MCP Tools Reference
-
-* **`concierge_mine`**: Ingests a directory, chunks code (AST), extracts tags, and generates L0/L1/L2 summaries.
-* **`concierge_search`**: Runs the complete Hybrid Search v4 pipeline across indexed projects.
-* **`concierge_wakeup`**: Reactivates agent consciousness on session start by returning the Context Compass, reference wings, and recent commits.
+* **`concierge_mine`**: Ingests a directory with early-exit filtering, AST chunking, and L0/L1/L2 summarization.
+* **`concierge_search`**: Hybrid Search v4 combining dense vectors (50%), FTS5 BM25 (25%), and graph dynamics (25%) with Query-Time Self-Healing.
+* **`concierge_get_call_chain`**: Multi-hop recursive call chain discovery via SQLite CTEs with circular cycle protection.
+* **`agent_save_checkpoint`**: Persists arbitrary AI agent state dictionaries into SQLite WAL.
+* **`agent_get_checkpoint`**: Retrieves and decodes stored state dictionaries for a given step.
+* **`agent_list_checkpoints`**: Returns the chronological timeline of checkpoints for Time-Travel Debugging.
+* **`concierge_wakeup`**: Reactivates agent consciousness on session start by returning Context Compass, reference wings, and recent commits.
 * **`concierge_resume`**: Retrieves macro summary of project context (ideal for system prompt injection).
 * **`concierge_load`**: On-demand lazy loader for full node contents, edges, and dependencies.
 * **`concierge_commit`**: Registers audited architectural changes to the cognitive ledger.
 * **`concierge_store_fact`**: Records user preferences and architectural rules with bi-temporal invalidation.
+* **`concierge_list_facts`**: Lists all active semantic facts for a scope with stable database primary keys.
+* **`concierge_feedback`**: Registers utility feedback for Bayesian Thompson Sampling optimization.
 
 ---
 
-## 🛠️ Global CLI Subcommands Reference (`concierge`)
+## 🧪 Test Suite & Quality Assurance
 
-After running `pip install concierge-graph`, two global terminal commands are installed via `pyproject.toml`:
-1. **`concierge-mcp`**: Boots the FastMCP Server daemon.
-2. **`concierge`**: Multifunctional CLI utility supporting the following subcommands:
+Concierge Graph features a rigorous automated test suite covering all survival modules and E2E integration with **23/23 tests passing with zero warnings**:
 
 ```bash
-# 1. Register a new workspace/project
-concierge register --name my-project --wing backend --privacy PUBLIC
-
-# 2. Mine / Ingest a codebase directory into the memory graph
-concierge mine --path /path/to/codebase --name my-project
-
-# 3. Perform Hybrid Search v4 across indexed memory
-concierge search --query "authentication middleware" --project my-project
-
-# 4. Reactivate agent consciousness (Compass + Wings + Commits)
-concierge wakeup --project my-project
-
-# 5. Retrieve Context Compass macro summary
-concierge resume --project my-project
-
-# 6. Register audited architectural commit to ledger
-concierge commit --project <uuid> --phase build --technical_changes "Added Auth JWT"
-
-# 7. Lazy load a single node on demand
-concierge load --node_id 42
-
-# 8. Display system health, counts, and database status
-concierge status
-
-# 9. List all registered projects inside the local database
-concierge projects
-
-# 10. Synchronize and reconcile vector store embeddings
-concierge sync-vector
-
-# 11. Purge a project and all associated relational & vector records
-concierge delete --project my-project
-```
-
----
-
-## 🧪 Test Suite & Health Diagnostics
-
-Run all unit and stress tests:
-```bash
-python -m pytest
-```
-
-Run full memory diagnostics:
-```bash
-python -m tests.check_brain
+python -m pytest tests/test_e2e_concierge_integration.py \
+                 tests/test_mcp_server_extensions.py \
+                 tests/test_agent_checkpointer.py \
+                 tests/test_graph_rag_janitor.py \
+                 tests/test_vector_reconciler.py \
+                 tests/test_delta_sync.py \
+                 tests/test_dependency_injection.py \
+                 tests/test_concurrency_stress.py \
+                 tests/test_watcher_ignore.py -v --noconftest
 ```
 
 ---

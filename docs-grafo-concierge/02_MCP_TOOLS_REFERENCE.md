@@ -1,8 +1,8 @@
-# 🔌 MCP Tools Reference — Complete 26 Tools Catalog (v3.8.2)
+# 🔌 MCP Tools Reference — Complete 30 Tools Catalog (v3.8.3)
 
-> **Official Specification for Model Context Protocol (MCP) Clients (Cursor, Windsurf, Claude Desktop, Autonomous Agents)**
+> **Official Specification for Model Context Protocol (MCP) Clients (Cursor, Windsurf, Claude Desktop, Autonomous Agents & External Multi-Agent Swarms)**
 
-Grafo Concierge exposes **26 native tools** via the Model Context Protocol over `stdio` or `HTTP/SSE`.
+Grafo Concierge exposes **30 native tools** via the Model Context Protocol over `stdio` or `HTTP/SSE`.
 
 ---
 
@@ -26,10 +26,15 @@ Grafo Concierge exposes **26 native tools** via the Model Context Protocol over 
 ├── 🔍 Search, Discovery & Similarities (2 tools)
 │   ├── concierge_search
 │   └── find_similar
-├── 🌳 AST Code Intelligence & Call Graphs (3 tools)
+├── 🌳 AST Code Intelligence & Call Graphs (4 tools)
 │   ├── search_symbols
 │   ├── get_implementations
-│   └── get_callers
+│   ├── get_callers
+│   └── concierge_get_call_chain         [NEW: SDD-08]
+├── 💾 Session Checkpointing & Time-Travel (3 tools)
+│   ├── agent_save_checkpoint            [NEW: SDD-08]
+│   ├── agent_get_checkpoint             [NEW: SDD-08]
+│   └── agent_list_checkpoints           [NEW: SDD-08]
 ├── 🧠 Bi-Temporal Cognitive Facts & Feedback (3 tools)
 │   ├── concierge_store_fact
 │   ├── concierge_list_facts
@@ -52,7 +57,7 @@ Grafo Concierge exposes **26 native tools** via the Model Context Protocol over 
 Registers a new project in the SQLite knowledge graph.
 * **Arguments**:
   * `project_path` (`str`, required): Absolute or relative filesystem path of the project.
-  * `wing` (`str`, optional): Primary Wing. If omitted, automatically detected via keywords.
+  * `wing` (`str`, optional): Primary Wing. Default: `geral`.
   * `privacy_level` (`str`, optional): Privacy level (`PUBLIC`, `INTERNAL`, `RESTRICTED`). Default: `PUBLIC`.
   * `summary` (`str`, optional): Descriptive project compass/summary.
 * **Return**: `{"success": bool, "project_uuid": str, "folder_name": str, "primary_wing": str, "privacy_level": str}`
@@ -103,24 +108,12 @@ Removes an associated reference wing from a project.
 ## 2. Ingestion, Context & Sessions
 
 ### `concierge_mine`
-Executes directory ingestion: scans filesystem, performs delta-hashing, Tree-sitter AST chunking, prompt armoring, summarization, embedding, and garbage collection.
+Executes directory ingestion: scans filesystem with early-exit filtering, performs delta-hashing, Tree-sitter AST chunking, prompt armoring, summarization, embedding, and garbage collection.
 * **Arguments**:
-  * `project_path` (`str`, required): Path of the directory/file to ingest.
-  * `project_uuid` (`str`, optional): Project UUID or directory name.
+  * `path` (`str`, required): Path of the directory/file to ingest.
+  * `project_identifier` (`str`, required): Project UUID or directory name.
   * `auto_tag` (`bool`, optional): Auto-detect framework and language tags. Default: `True`.
-* **Return**:
-  ```json
-  {
-    "success": true,
-    "files_processed": 42,
-    "categories": {"code": 30, "doc": 8, "config": 4, "conversation": 0},
-    "nodes_created": 42,
-    "embeddings_stored": 42,
-    "tags_applied": ["python", "fastapi", "jwt"],
-    "files_skipped": 12,
-    "files_deleted": 0
-  }
-  ```
+* **Return**: `{"success": bool, "files_processed": int, "nodes_created": int, "embeddings_stored": int, ...}`
 
 ### `concierge_wakeup`
 Pre-loads project context compass, reference wing summaries, and latest commits into agent context at session startup.
@@ -132,7 +125,6 @@ Pre-loads project context compass, reference wing summaries, and latest commits 
 Returns the L2 Context Compass of the project (200-300 tokens).
 * **Arguments**:
   * `project_uuid` (`str`, required): Project UUID or directory name.
-  * `max_tokens` (`int`, optional): Token ceiling. Default: `300`.
 * **Return**: `{"success": bool, "resume": str}`
 
 ### `concierge_load`
@@ -146,8 +138,9 @@ Registers memory changelog after task completion, updating `commit_log` and refr
 * **Arguments**:
   * `project_uuid` (`str`, required): Project UUID or directory name.
   * `phase` (`str`, required): Engineering phase (`planning`, `build`, `test`, `deploy`).
-  * `technical_changes` (`str`, required): Summary of technical modifications and added functions/dependencies.
+  * `technical_changes` (`str`, required): Summary of technical modifications.
   * `updated_pointers` (`list[str]`, required): List of changed file paths.
+  * `node_ids` (`list[int]`, optional): IDs of affected nodes.
 * **Return**: `{"success": bool, "commit_id": int}`
 
 ---
@@ -155,15 +148,14 @@ Registers memory changelog after task completion, updating `commit_log` and refr
 ## 3. Search & Discovery Tools
 
 ### `concierge_search`
-Executes Hybrid Search v4 combining dense vectors (50%), FTS5 BM25 (25%), and Max(Recency, Centrality) (25%).
+Executes Hybrid Search v4 combining dense vectors (50%), FTS5 BM25 (25%), and Max(Recency, Centrality) (25%) with Query-Time Self-Healing.
 * **Arguments**:
   * `query` (`str`, required): Natural language or technical query.
-  * `project_uuid` (`str`, required): Project UUID or directory name.
+  * `project_identifier` (`str`, optional): Project UUID or directory name for Strict Scoping.
   * `top_k` (`int`, optional): Maximum results. Default: `10`.
+  * `node_type` (`str`, optional): Surgical filter (`FACT`, `SKILL`, `INSIGHT`, `TRAJECTORY`, `PATCH`, `CLASS`, `FUNCTION`, `METHOD`, `MODULE`).
   * `include_references` (`bool`, optional): Include linked reference wings. Default: `False`.
   * `all_wings` (`bool`, optional): Search across all projects globally. Default: `False`.
-  * `node_type` (`str`, optional): Surgical filter (`FACT`, `SKILL`, `INSIGHT`, `TRAJECTORY`, `PATCH`, `CLASS`, `FUNCTION`, `METHOD`, `MODULE`).
-  * `enable_probabilistic` (`bool`, optional): Use Thompson Sampling for reinforcement scoring. Default: `False`.
 * **Return**: `{"success": bool, "results_count": int, "results": list[dict]}`
 
 ### `find_similar`
@@ -198,77 +190,77 @@ Inspects graph edges to find all caller nodes referencing the specified symbol.
   * `symbol_id` (`int`, required): Numeric ID of the target symbol node.
 * **Return**: `{"success": bool, "symbol_id": int, "callers_count": int, "callers": list[dict]}`
 
+### `concierge_get_call_chain` (NEW)
+Executes recursive call chain discovery via `WITH RECURSIVE` queries over `ast_edges` in SQLite WAL, guarded against circular loops.
+* **Arguments**:
+  * `start_node` (`str`, required): Root file path or symbol identifier (e.g. `core/main.py`).
+  * `depth_limit` (`int`, optional): Maximum traversal recursion depth. Default: `5`.
+* **Return**: `list[str]` (Flat list of connected child file paths, excluding the root start node).
+
 ---
 
-## 5. Bi-Temporal Cognitive Facts & Feedback
+## 5. Session Checkpointing & Time-Travel (NEW)
+
+### `agent_save_checkpoint`
+Persists arbitrary agent state dictionaries as JSON blobs in SQLite WAL under a composite primary key `(agent_id, session_id, checkpoint_id)` via `AgnosticCheckpointer`.
+* **Arguments**:
+  * `agent_id` (`str`, required): Identifier of the agent (e.g. `nexus_agent`, `hermes`).
+  * `session_id` (`str`, required): Unique session run identifier.
+  * `checkpoint_id` (`str`, required): Identifier of the step/checkpoint (e.g. `step_1`, `pre_refactor`).
+  * `state_dict` (`dict`, required): Arbitrary Python dictionary containing agent variables, memory, and kanban state.
+* **Return**: `str` (JSON string: `{"success": true, "message": "Checkpoint 'step_1' saved successfully for agent 'nexus_agent'"}`).
+
+### `agent_get_checkpoint`
+Retrieves and decodes the persisted state dictionary for a specific step.
+* **Arguments**:
+  * `agent_id` (`str`, required): Identifier of the agent.
+  * `session_id` (`str`, required): Session run identifier.
+  * `checkpoint_id` (`str`, required): Step identifier.
+* **Return**: `dict` (Decoded state dictionary, or `{}` if non-existent).
+
+### `agent_list_checkpoints`
+Lists the complete chronological history of checkpoints recorded for an agent session, enabling Time-Travel navigation.
+* **Arguments**:
+  * `agent_id` (`str`, required): Identifier of the agent.
+  * `session_id` (`str`, required): Session run identifier.
+* **Return**: `list[dict]` (List of `{"checkpoint_id": str, "created_at": str}` ordered ascending by creation timestamp).
+
+---
+
+## 6. Bi-Temporal Cognitive Facts & Feedback
 
 ### `concierge_store_fact`
 Evaluates and consolidates a semantic fact under bi-temporal rules (`ADD`, `UPDATE`, `DELETE`, `NOOP`).
 * **Arguments**:
   * `scope_type` (`str`, required): Scope category (`user`, `session`, `agent`, `org`).
-  * `scope_id` (`str`, required): Scope identifier (e.g., username, project name, agent ID).
+  * `scope_id` (`str`, required): Scope identifier.
   * `fact_statement` (`str`, required): Factual statement or architectural decision.
-* **Return**:
-  ```json
-  {
-    "success": true,
-    "scope_type": "user",
-    "scope_id": "guial",
-    "decisions": [
-      {
-        "fact": "Project uses SQLite WAL mode with SerializedWriteQueue",
-        "action": "ADD",
-        "target_id": null,
-        "fact_id": 21
-      }
-    ]
-  }
-  ```
+* **Return**: `{"success": bool, "scope_type": str, "scope_id": str, "decisions": list[dict]}`
 
 ### `concierge_list_facts`
 Lists all currently active semantic facts for a scope (`t_invalid IS NULL`).
 * **Arguments**:
   * `scope_type` (`str`, required): Scope category (`user`, `session`, `agent`, `org`).
   * `scope_id` (`str`, required): Scope identifier.
-* **Return**:
-  ```json
-  {
-    "success": true,
-    "facts_count": 2,
-    "facts": [
-      {
-        "id": 1,
-        "scope_type": "user",
-        "scope_id": "guial",
-        "fact_statement": "Prefers FastAPI over Flask",
-        "t_valid": "2026-08-16 02:20:00",
-        "t_invalid": null,
-        "utility_alpha": 3.0,
-        "utility_beta": 1.0
-      }
-    ]
-  }
-  ```
-> [!IMPORTANT]
-> Always reference facts using their stable database primary key `id` (e.g., `Fact #1`). Never use list position / sequential indexing, as invalidated facts create gaps in IDs.
+* **Return**: `{"success": bool, "facts_count": int, "facts": list[dict]}`
 
 ### `concierge_feedback`
 Registers utility feedback for a semantic fact to tune Thompson Sampling weights.
 * **Arguments**:
   * `fact_id` (`int`, required): Primary key of the semantic fact.
-  * `was_useful` (`bool`, required): `True` increments `utility_alpha` (+1.0); `False` increments `utility_beta` (+1.0).
+  * `was_useful` (`bool`, required): `True` increments `utility_alpha`; `False` increments `utility_beta`.
 * **Return**: `{"success": bool, "fact_id": int, "was_useful": bool, "message": str}`
 
 ---
 
-## 6. Scoped Core Memory
+## 7. Scoped Core Memory
 
 ### `concierge_set_memory`
 Stores or updates a labeled core memory block for a specific scope.
 * **Arguments**:
   * `scope_type` (`str`, required): Scope category (`user`, `session`, `agent`, `org`).
   * `scope_id` (`str`, required): Unique scope identifier.
-  * `block_label` (`str`, required): Identifier label (e.g., `persona`, `tech_stack`, `rules`).
+  * `block_label` (`str`, required): Identifier label (e.g. `persona`, `tech_stack`).
   * `content` (`str`, required): Text content to store.
 * **Return**: `{"success": bool, "block_id": int, "message": str}`
 
@@ -277,17 +269,17 @@ Retrieves core memory blocks for a scope.
 * **Arguments**:
   * `scope_type` (`str`, required): Scope category (`user`, `session`, `agent`, `org`).
   * `scope_id` (`str`, required): Unique scope identifier.
-  * `block_label` (`str`, optional): If provided, returns only the specified block. If omitted, returns all blocks for the scope.
+  * `block_label` (`str`, optional): If provided, returns only that block. If omitted, returns all.
 * **Return**: `{"success": bool, "blocks_count": int, "blocks": list[dict]}`
 
 ---
 
-## 7. Topology & Low-Level Storage Operations
+## 8. Topology & Low-Level Storage Operations
 
 ### `get_full_topology`
 Returns the complete lean node/edge graph topology for real-time 3D web visualizations.
 * **Arguments**:
-  * `project_identifier` (`str`, optional): Project UUID or directory name to filter.
+  * `project_identifier` (`str`, optional): Project UUID or directory name.
 * **Return**: `{"success": bool, "nodes": list[dict], "edges": list[dict]}`
 
 ### `get_trajectories`
