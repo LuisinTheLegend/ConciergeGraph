@@ -54,14 +54,17 @@ class GraphRAGEngine:
         Nós de subgrafos desconectados são automaticamente excluídos.
         """
         rows = self.db_manager.read_query(
-            "WITH RECURSIVE call_chain(node, depth) AS ("
-            "  SELECT child_node, 1 FROM ast_edges WHERE parent_node = ?"
-            "  UNION"
-            "  SELECT e.child_node, cc.depth + 1"
+            "WITH RECURSIVE call_chain(node, depth, path_visited) AS ("
+            "  SELECT ? AS node, 0 AS depth, '|' || ? || '|' AS path_visited"
+            "  UNION ALL"
+            "  SELECT e.child_node AS node,"
+            "         cc.depth + 1 AS depth,"
+            "         cc.path_visited || e.child_node || '|' AS path_visited"
             "  FROM ast_edges e"
             "  JOIN call_chain cc ON e.parent_node = cc.node"
             "  WHERE cc.depth < ?"
-            ") SELECT DISTINCT node FROM call_chain WHERE node != ?;",
-            (start_node, depth_limit, start_node),
+            "    AND instr(cc.path_visited, '|' || e.child_node || '|') = 0"
+            ") SELECT DISTINCT node, depth FROM call_chain WHERE node != ?;",
+            (start_node, start_node, depth_limit, start_node),
         )
         return [row[0] for row in rows]

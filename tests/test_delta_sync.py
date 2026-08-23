@@ -69,7 +69,7 @@ class TestDeltaSyncAndLazyLoading(unittest.TestCase):
         self.db_manager.write_query(
             "CREATE TABLE IF NOT EXISTS files ("
             "path TEXT PRIMARY KEY, content TEXT, ssh_hash TEXT, "
-            "is_dirty INTEGER, community_id TEXT"
+            "body_hash TEXT, is_dirty INTEGER, community_id TEXT"
             ");"
         )
         self.db_manager.write_query(
@@ -99,23 +99,65 @@ class TestDeltaSyncAndLazyLoading(unittest.TestCase):
         except OSError:
             pass
 
-    def test_should_not_trigger_dirty_flag_for_internal_logic_changes(self):
-        """Garante que alterar apenas lógicas internas (como ifs) não marca o grafo como sujo."""
+    def test_should_trigger_dirty_flag_for_internal_logic_changes(self):
+        """SDD-11: Garante que alterar lógica interna (mesmo sem mudar assinatura) MARCA como DIRTY via LBH."""
         file_path = "core/utils.py"
         base_code = "import os\n\ndef calculate_total(a, b):\n    return a + b\n"
 
         self.delta_manager.process_file_change(file_path, base_code, "core_module")
 
-        # Simula alteração estritamente de lógica interna
-        modified_code = "import os\n\ndef calculate_total(a, b):\n    return a - b  # lógica mudou, assinatura não\n"
+        # Limpa dirty flag após inserção inicial
+        self.db_manager.write_query(
+            "UPDATE files SET is_dirty = 0 WHERE path = ?;", (file_path,)
+        )
+        self.db_manager.write_query(
+            "UPDATE communities SET is_dirty = 0 WHERE id = 'core_module';"
+        )
 
-        is_structural_change = self.delta_manager.process_file_change(
+        # Simula alteração de lógica interna (a+b → a-b)
+        modified_code = "import os\n\ndef calculate_total(a, b):\n    return a - b\n"
+
+        is_semantic_change = self.delta_manager.process_file_change(
             file_path, modified_code, "core_module"
         )
 
+        self.assertTrue(
+            is_semantic_change,
+            "SDD-11: Alterações de lógica interna devem ser detectadas pelo LBH.",
+        )
+
+        comm_dirty = self.db_manager.read_query(
+            "SELECT is_dirty FROM communities WHERE id = 'core_module';"
+        )[0][0]
+        self.assertEqual(
+            comm_dirty, 1, "A comunidade deveria ter sido marcada como DIRTY."
+        )
+
+    def test_should_not_trigger_dirty_flag_for_cosmetic_changes(self):
+        """SDD-11: Garante que mudanças cosméticas (comentários, espaços) NÃO marcam como DIRTY."""
+        file_path = "core/formatter_test.py"
+        base_code = "def greet(name):\n    return f'Hello {name}'\n"
+
+        self.delta_manager.process_file_change(file_path, base_code, "core_module")
+
+        # Limpa dirty flag após inserção inicial
+        self.db_manager.write_query(
+            "UPDATE files SET is_dirty = 0 WHERE path = ?;", (file_path,)
+        )
+        self.db_manager.write_query(
+            "UPDATE communities SET is_dirty = 0 WHERE id = 'core_module';"
+        )
+
+        # Adiciona apenas comentários e espaços extras (sem mudar lógica)
+        cosmetic_code = "def greet(name):\n    # Saudação formal\n    return f'Hello {name}'\n"
+
+        is_change = self.delta_manager.process_file_change(
+            file_path, cosmetic_code, "core_module"
+        )
+
         self.assertFalse(
-            is_structural_change,
-            "Alterações internas de lógica não deveriam sujar a estrutura.",
+            is_change,
+            "Mudanças cosméticas (comentários, espaços) não devem sujar a estrutura.",
         )
 
         comm_dirty = self.db_manager.read_query(

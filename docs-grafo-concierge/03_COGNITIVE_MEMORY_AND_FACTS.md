@@ -1,4 +1,4 @@
-# 🧠 Cognitive Memory, Bi-Temporal Facts & Reinforcement (v3.8.2)
+# 🧠 Cognitive Memory, Bi-Temporal Facts & Reinforcement (v4.0.0)
 
 > **Architectural Deep-Dive into Bi-Temporal Persistence, Scoped Core Memory, and Bayesian Thompson Sampling**
 
@@ -69,21 +69,21 @@ When a client or agent calls `concierge_store_fact`, the incoming statement pass
                  Fetch Active Facts for Scope (t_invalid IS NULL)
                                     │
                                     ▼
-                     Prompt LLM (Decision Matrix Prompt)
+                      Prompt LLM (Decision Matrix Prompt)
                                     │
-               ┌────────────────────┼────────────────────┐
-               ▼                    ▼                    ▼
-           ┌───────┐            ┌────────┐           ┌────────┐
-           │  ADD  │            │ UPDATE │           │ DELETE │
-           └───────┘            └────────┘           └────────┘
-               │                    │                    │
-        Insert new row       1. Invalidate old       Invalidate
-        with t_valid=now     (t_invalid=now)         target_id
-                             2. Insert consolidated  (t_invalid=now)
-                             statement (new ID)
+                ┌────────────────────┼────────────────────┐
+                ▼                    ▼                    ▼
+            ┌───────┐            ┌────────┐           ┌────────┐
+            │  ADD  │            │ UPDATE │           │ DELETE │
+            └───────┘            └────────┘           └────────┘
+                │                    │                    │
+         Insert new row       1. Invalidate old       Invalidate
+         with t_valid=now     (t_invalid=now)         target_id
+                              2. Insert consolidated  (t_invalid=now)
+                              statement (new ID)
                                     │
                                     ▼ (or NOOP: discard redundancy)
-                       Consolidated Memory State
+                        Consolidated Memory State
 ```
 
 ### 3.1 The 4 Consolidation Actions

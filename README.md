@@ -1,7 +1,7 @@
 English · [Português (Brasil)](README.pt-BR.md)
 ---
 
-# 🧠 Concierge Graph v3.8.3
+# 🧠 Concierge Graph v4.0.0
 
 **The Open-Source Long-Term Memory (LTM) & Cognitive Palace for AI Agents, IDEs & Developer Environments**
 
@@ -10,7 +10,7 @@ English · [Português (Brasil)](README.pt-BR.md)
 [![Protocol MCP](https://img.shields.io/badge/Protocol-MCP-purple.svg)](https://modelcontextprotocol.io/)
 [![Docker Supported](https://img.shields.io/badge/Docker-Ready-blue)](docker-compose.yml)
 
-Concierge Graph is a high-performance, local-first cognitive memory server designed to solve LLM "amnesia", context window pollution, and runaway cloud API costs. Unlike simple RAG (Retrieval-Augmented Generation) scripts, Concierge Graph acts as a bi-temporal, self-healing memory engine combining relational SQLite WAL persistence, vector search, structural delta synchronization (SSH), frugal GraphRAG, and agnostic state checkpointing with Time-Travel.
+Concierge Graph is a high-performance, local-first cognitive memory server designed to solve LLM "amnesia", context window pollution, and runaway cloud API costs. Unlike simple RAG (Retrieval-Augmented Generation) scripts, Concierge Graph acts as a bi-temporal, self-healing memory engine combining relational SQLite WAL persistence with adaptive auto-batching, dual-hash delta sync (SSH + LBH Semantic Drift Guard), frugal GraphRAG with strict loop guards, smart checkpoint auto-pruning, and agnostic state checkpointing with Time-Travel.
 
 ---
 
@@ -23,25 +23,27 @@ Concierge Graph is a high-performance, local-first cognitive memory server desig
 
 ### 🧙‍♂️ Technical Deep-Dive (For Engineers)
 Concierge Graph is a local-first/VPS daemon that provides:
-1. **Zero-Lock Concurrency (`SerializedWriteQueue`)**: Channelling all write mutations through a dedicated single-writer daemon thread over SQLite WAL mode, guaranteeing zero `database is locked` collisions under intense multi-agent concurrency.
-2. **Structural Delta Sync & SSH Hashing**: Calculates SHA-256 Structural Signature Hashes (`def`, `class`, `import`, `from`), updating internal logic changes silently without invalidating the knowledge graph or incurring wasteful LLM summarization tokens.
-3. **Frugal GraphRAG & Recursive CTEs**: Replaces heavy network partition algorithms with $O(1)$ natural directory community mapping and executes multi-hop call chain traversals in milliseconds via SQLite `WITH RECURSIVE` queries.
-4. **Query-Time Self-Healing & Eventual Consistency**: Intercepts vector queries and drops orphan vectors in real-time ($O(1)$ batch lookup) while a background Janitor physically purges orphans asynchronously via set-difference algorithms.
-5. **Agnostic State Checkpointing & Time-Travel**: Persists arbitrary AI agent state dictionaries as JSON blobs under composite primary keys `(agent_id, session_id, checkpoint_id)`, enabling hermetic multi-agent isolation and chronological state rollbacks.
-6. **Bi-Temporal Fact Persistence & Thompson Sampling**: Stores semantic facts with explicit valid and transaction time tracking (`t_valid` / `t_invalid`) with Bayesian reinforcement learning over memory utility.
-7. **Early-Exit Reactive Watcher**: Filters file system events against `.conciergeignore` / `pathspec` rules before opening file descriptors, eliminating I/O bottlenecks.
+1. **Zero-Lock Concurrency & Auto-Batching (`SerializedWriteQueue`)**: Channels all writes through a single-writer daemon on SQLite WAL. Features Adaptive Opportunistic Batching (draining up to 50 queued items in atomic `BEGIN IMMEDIATE ... COMMIT` blocks) and Single-Item Fallback to rescue healthy writes if an integrity constraint fails.
+2. **Dual-Hash Delta Sync (SSH + LBH Semantic Drift Guard)**: Combines Structural Signature Hashes (SSH) with Logical Body Hashes (LBH) using `DocstringStripper(ast.NodeTransformer)`. Catches internal logic changes (`is_dirty = 1`) while safely ignoring comments, docstrings, whitespace, and formatters, saving 100% of LLM token costs.
+3. **Frugal GraphRAG & Strict Delimited CTE Loop Guards**: Replaces heavy network partition algorithms with $O(1)$ natural directory community mapping and executes multi-hop call chain traversals via SQLite `WITH RECURSIVE` queries protected by pipe-delimited cycle guards (`|node|` pattern matching via `instr()`), terminating indirect cycles ($A \rightarrow B \rightarrow C \rightarrow A$) and preventing substring collisions (`auth.js` vs `oauth.js`).
+4. **Smart Checkpoint Auto-Pruning (`BackgroundJanitor`)**: Prevents database bloat via a Smart LRU per Session algorithm that inviolably protects the initial `"init"` checkpoint (point-zero) for factory rollbacks while keeping the $N$ most recent steps and pruning stale intermediate records via `SerializedWriteQueue`.
+5. **Query-Time Self-Healing & Eventual Consistency**: Intercepts vector queries and drops orphan vectors in real-time ($O(1)$ batch lookup) while a background Janitor physically purges orphans asynchronously via set-difference algorithms.
+6. **Agnostic State Checkpointing & Time-Travel**: Persists arbitrary AI agent state dictionaries as JSON blobs under composite primary keys `(agent_id, session_id, checkpoint_id)`, enabling hermetic multi-agent isolation and chronological state rollbacks.
+7. **Bi-Temporal Fact Persistence & Thompson Sampling**: Stores semantic facts with explicit valid and transaction time tracking (`t_valid` / `t_invalid`) with Bayesian reinforcement learning over memory utility.
+8. **Early-Exit Reactive Watcher**: Filters file system events against `.conciergeignore` / `pathspec` rules before opening file descriptors, eliminating I/O bottlenecks.
 
 ---
 
 ## 🛡️ Key Architectural Advantages (Solving Common Memory Pitfalls)
 
-| Pitfall in Traditional Memory | How Concierge Graph v3.8.3 Solves It |
+| Pitfall in Traditional Memory | How Concierge Graph v4.0.0 Solves It |
 | :--- | :--- |
-| **"Database is Locked" Concurrency Crashing** | **`SerializedWriteQueue` (SQLite WAL)**: Single-writer daemon thread serializes writes atomically while serving concurrent reads at sub-5ms latency. |
-| **Runaway LLM Re-indexing Costs** | **Structural Signature Hashing (SSH)**: Internal logic edits update content silently with zero AI token cost. Summarization occurs strictly on-demand (Lazy Summarization JIT) or via free local SLMs. |
+| **"Database is Locked" Concurrency Crashing** | **`SerializedWriteQueue` with Auto-Batching**: Single-writer daemon drains up to 50 writes per atomic transaction with Single-Item Fallback and concurrent sub-5ms reads on SQLite WAL. |
+| **Silent Semantic Drift & Token Waste** | **Dual-Hash Delta Sync (SSH + LBH)**: `DocstringStripper` ignores formatting and docstrings (zero AI token cost), but detects real logic alterations to keep graph memory 100% accurate. |
+| **Infinite CTE Recursion in Circular Graphs** | **Strict Delimited Loop Guard**: Pipe-delimited path accumulators (`\|node\|`) prevent loops in recursive traversals and eliminate substring collision false-positives. |
+| **Unbounded Checkpoint Database Bloat** | **Smart Checkpoint Pruning (Smart LRU)**: Automatically eliminates intermediate step checkpoints while protecting the `"init"` baseline and the $N$ latest steps. |
 | **Stale Memory & Desynchronized Vectors** | **Query-Time Self-Healing + Janitor**: Inactive/deleted files are dropped from vector results in real-time, and background workers purge vector collections via $O(N)$ set difference. |
 | **Heavy RAM Graph Partitioning** | **Frugal GraphRAG Engine**: Uses physical directory topologies ($O(1)$) as natural communities and resolves call chains through SQLite native CTEs with depth and cycle guards. |
-| **Multi-Agent State Collision & Amnesia** | **Agnostic Checkpointing & Time-Travel**: Universal JSON state persistence under composite keys allowing agents to inspect their history and roll back to previous execution steps. |
 | **Proprietary SDK Lock-in** | **Native MCP Standard (30 Tools)**: Operates via Anthropic's Model Context Protocol (JSON-RPC/SSE). Works with Cursor, Windsurf, Claude Desktop, LangChain, or custom swarms. |
 
 ---
@@ -122,10 +124,10 @@ concierge-mcp
 
 ## 🔌 Core MCP Tools Reference (30 Tools)
 
-* **`concierge_mine`**: Ingests a directory with early-exit filtering, AST chunking, and L0/L1/L2 summarization.
+* **`concierge_mine`**: Ingests a directory with early-exit filtering, AST chunking, dual-hash checks (SSH + LBH), and L0/L1/L2 summarization.
 * **`concierge_search`**: Hybrid Search v4 combining dense vectors (50%), FTS5 BM25 (25%), and graph dynamics (25%) with Query-Time Self-Healing.
-* **`concierge_get_call_chain`**: Multi-hop recursive call chain discovery via SQLite CTEs with circular cycle protection.
-* **`agent_save_checkpoint`**: Persists arbitrary AI agent state dictionaries into SQLite WAL.
+* **`concierge_get_call_chain`**: Multi-hop recursive call chain discovery via SQLite CTEs with strict pipe-delimited loop and cycle protection.
+* **`agent_save_checkpoint`**: Persists arbitrary AI agent state dictionaries into SQLite WAL (Smart LRU auto-prunable).
 * **`agent_get_checkpoint`**: Retrieves and decodes stored state dictionaries for a given step.
 * **`agent_list_checkpoints`**: Returns the chronological timeline of checkpoints for Time-Travel Debugging.
 * **`concierge_wakeup`**: Reactivates agent consciousness on session start by returning Context Compass, reference wings, and recent commits.
@@ -140,18 +142,21 @@ concierge-mcp
 
 ## 🧪 Test Suite & Quality Assurance
 
-Concierge Graph features a rigorous automated test suite covering all survival modules and E2E integration with **23/23 tests passing with zero warnings**:
+Concierge Graph features a rigorous automated test suite covering all survival modules, Phase 4 resilience, and E2E integration with **100% passing tests**:
 
 ```bash
-python -m pytest tests/test_e2e_concierge_integration.py \
-                 tests/test_mcp_server_extensions.py \
+python -m pytest tests/test_checkpoint_pruning.py \
+                 tests/test_queue_writer_batching.py \
+                 tests/test_delta_sync_drift.py \
+                 tests/test_graph_rag_loops.py \
                  tests/test_agent_checkpointer.py \
+                 tests/test_delta_sync.py \
                  tests/test_graph_rag_janitor.py \
                  tests/test_vector_reconciler.py \
-                 tests/test_delta_sync.py \
+                 tests/test_mcp_server_extensions.py \
+                 tests/test_e2e_concierge_integration.py \
                  tests/test_dependency_injection.py \
-                 tests/test_concurrency_stress.py \
-                 tests/test_watcher_ignore.py -v --noconftest
+                 tests/test_concurrency_stress.py -v
 ```
 
 ---

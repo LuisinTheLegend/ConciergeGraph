@@ -1,4 +1,4 @@
-# 🚀 Deployment, Configuration & Local-First Security (v3.8.3)
+# 🚀 Deployment, Configuration & Local-First Security (v4.0.0)
 
 > **Complete Operations Guide for Local IDEs, Remote VPS Hosting, Docker Containers, and Tailscale Networking**
 

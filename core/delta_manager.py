@@ -1,10 +1,11 @@
 """
-core/delta_manager.py — SDD-SURVIVAL-04
+core/delta_manager.py — SDD-SURVIVAL-04 / SDD-SURVIVAL-11
 
 Portão de Contenção de Custos de IA — Sincronização Delta.
 
 Discrimina modificações de arquivo entre:
-  - Mudanças de lógica interna (ifs, returns, variáveis) → atualiza base silenciosamente
+  - Mudanças cosméticas (comentários, espaços, docstrings) → ignora totalmente
+  - Mudanças de lógica interna (ifs, returns, variáveis) → marca como DIRTY (SDD-11)
   - Mudanças estruturais (def, class, import) → marca comunidade como DIRTY
 
 A re-sumarização via LLM ocorre exclusivamente sob demanda (Lazy Summarization
@@ -13,17 +14,58 @@ JIT), evitando faturas surpresas de API em alterações triviais de código.
 Conceitos-chave:
   - SSH (Structural Signature Hash): SHA-256 das linhas de assinatura pública
     (def, class, import, from), ignorando todo o miolo de implementação.
+  - LBH (Logical Body Hash): SHA-256 do ast.dump estrutural do código após
+    remoção de docstrings via DocstringStripper, detectando drift semântico
+    mesmo sem mudança de assinatura. (SDD-SURVIVAL-11)
   - Dirty Flag Propagation: arquivo DIRTY → comunidade DIRTY.
   - Community Reconciliation: quando todos os arquivos de uma comunidade
     estão limpos, a comunidade é reconciliada de volta para CLEAN.
 """
 
+import ast
 import hashlib
+import logging
 from typing import Any
 
+logger = logging.getLogger(__name__)
 
 # Prefixos que definem linhas de assinatura estrutural pública
 _STRUCTURAL_PREFIXES = ("def ", "class ", "import ", "from ")
+
+
+class DocstringStripper(ast.NodeTransformer):
+    """
+    Transformador AST que remove docstrings de funções e classes,
+    permitindo que o hash lógico do corpo ignore mudanças documentais.
+    """
+
+    def visit_FunctionDef(self, node):
+        self.generic_visit(node)
+        if node.body and isinstance(node.body[0], ast.Expr):
+            val = node.body[0].value
+            if isinstance(val, ast.Constant) and isinstance(val.value, str):
+                node.body.pop(0)
+        return node
+
+    def visit_AsyncFunctionDef(self, node):
+        # Trata funções assíncronas da mesma forma
+        return self.visit_FunctionDef(node)
+
+    def visit_ClassDef(self, node):
+        self.generic_visit(node)
+        if node.body and isinstance(node.body[0], ast.Expr):
+            val = node.body[0].value
+            if isinstance(val, ast.Constant) and isinstance(val.value, str):
+                node.body.pop(0)
+        return node
+
+    def visit_Module(self, node):
+        self.generic_visit(node)
+        if node.body and isinstance(node.body[0], ast.Expr):
+            val = node.body[0].value
+            if isinstance(val, ast.Constant) and isinstance(val.value, str):
+                node.body.pop(0)
+        return node
 
 
 class DeltaManager:
@@ -36,6 +78,8 @@ class DeltaManager:
         self.db_manager = db_manager
 
     # ── Assinatura Estrutural ──────────────────────────────────────
+
+    _stripper = DocstringStripper()
 
     def calculate_ssh(self, file_content: str) -> str:
         """
@@ -51,35 +95,63 @@ class DeltaManager:
         signature = "\n".join(structural_lines)
         return hashlib.sha256(signature.encode("utf-8")).hexdigest()
 
+    def calculate_lbh(self, file_content: str) -> str:
+        """
+        Calcula o Logical Body Hash (LBH) do código Python:
+        parseia a AST, remove docstrings via DocstringStripper,
+        gera ast.dump estrutural e retorna o SHA-256.
+
+        Ignora comentários, espaços em branco e docstrings.
+        Detecta qualquer mudança de lógica interna (ifs, returns, operadores).
+
+        Retorna string vazia para arquivos não-Python ou com erros de parse.
+        """
+        try:
+            tree = ast.parse(file_content)
+        except SyntaxError:
+            return ""
+        cleaned = self._stripper.visit(tree)
+        dump = ast.dump(cleaned, annotate_fields=False)
+        return hashlib.sha256(dump.encode("utf-8")).hexdigest()
+
     # ── Processamento de Mudança ──────────────────────────────────
 
     def process_file_change(
         self, file_path: str, new_content: str, community_id: str
     ) -> bool:
         """
-        Compara a assinatura estrutural do novo conteúdo com a versão
-        armazenada no banco. Retorna True se houve mudança estrutural
-        (DIRTY), False se apenas lógica interna foi alterada.
+        Compara a assinatura estrutural (SSH) e o hash lógico do corpo (LBH)
+        do novo conteúdo com a versão armazenada no banco.
+
+        Retorna True se houve mudança estrutural ou semântica (DIRTY),
+        False se apenas comentários, espaços ou docstrings foram alterados.
         """
         new_ssh = self.calculate_ssh(new_content)
+        new_lbh = self.calculate_lbh(new_content)
 
         existing = self.db_manager.read_query(
-            "SELECT ssh_hash FROM files WHERE path = ?;", (file_path,)
+            "SELECT ssh_hash, body_hash FROM files WHERE path = ?;", (file_path,)
         )
 
         if not existing:
             # Arquivo novo: é uma adição estrutural ao grafo
-            return self._insert_new_file(file_path, new_content, new_ssh, community_id)
+            return self._insert_new_file(
+                file_path, new_content, new_ssh, new_lbh, community_id
+            )
 
         old_ssh = existing[0][0]
+        old_lbh = existing[0][1]
 
-        if new_ssh == old_ssh:
-            # Mudança estritamente de lógica interna
+        ssh_changed = new_ssh != old_ssh
+        lbh_changed = new_lbh != old_lbh
+
+        if not ssh_changed and not lbh_changed:
+            # Mudança estritamente cosmética (comentários, espaços, docstrings)
             return self._update_content_only(file_path, new_content, community_id)
 
-        # Mudança estrutural detectada
+        # Mudança estrutural e/ou semântica detectada
         return self._update_structural_change(
-            file_path, new_content, new_ssh, community_id
+            file_path, new_content, new_ssh, new_lbh, community_id
         )
 
     # ── Lazy Summarization JIT ────────────────────────────────────
@@ -133,13 +205,14 @@ class DeltaManager:
         file_path: str,
         content: str,
         ssh_hash: str,
+        body_hash: str,
         community_id: str,
     ) -> bool:
         """Registra arquivo novo no grafo e propaga DIRTY para a comunidade."""
         self.db_manager.write_query(
-            "INSERT INTO files (path, content, ssh_hash, is_dirty, community_id) "
-            "VALUES (?, ?, ?, 1, ?);",
-            (file_path, content, ssh_hash, community_id),
+            "INSERT INTO files (path, content, ssh_hash, body_hash, is_dirty, community_id) "
+            "VALUES (?, ?, ?, ?, 1, ?);",
+            (file_path, content, ssh_hash, body_hash, community_id),
         )
         self.db_manager.write_query(
             "UPDATE communities SET is_dirty = 1 WHERE id = ?;",
@@ -176,12 +249,14 @@ class DeltaManager:
         file_path: str,
         content: str,
         ssh_hash: str,
+        body_hash: str,
         community_id: str,
     ) -> bool:
-        """Atualiza arquivo com nova assinatura e propaga DIRTY para a comunidade."""
+        """Atualiza arquivo com nova assinatura/corpo e propaga DIRTY para a comunidade."""
         self.db_manager.write_query(
-            "UPDATE files SET content = ?, ssh_hash = ?, is_dirty = 1 WHERE path = ?;",
-            (content, ssh_hash, file_path),
+            "UPDATE files SET content = ?, ssh_hash = ?, body_hash = ?, is_dirty = 1 "
+            "WHERE path = ?;",
+            (content, ssh_hash, body_hash, file_path),
         )
         self.db_manager.write_query(
             "UPDATE communities SET is_dirty = 1 WHERE id = ?;",

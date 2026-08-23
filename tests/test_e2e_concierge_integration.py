@@ -188,7 +188,8 @@ class TestConciergeSovereignE2EAudit(unittest.TestCase):
         # 2. Inicializa as Tabelas Relacionais do SQLite WAL (DDR e DDL concorrentes)
         self.db_manager.write_query(
             "CREATE TABLE IF NOT EXISTS files ("
-            "path TEXT PRIMARY KEY, content TEXT, ssh_hash TEXT, is_dirty INTEGER, community_id TEXT"
+            "path TEXT PRIMARY KEY, content TEXT, ssh_hash TEXT, "
+            "body_hash TEXT, is_dirty INTEGER, community_id TEXT"
             ");"
         )
         self.db_manager.write_query(

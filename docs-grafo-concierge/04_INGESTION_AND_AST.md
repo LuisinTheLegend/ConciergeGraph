@@ -1,6 +1,6 @@
-# 📥 Ingestion Engine, Tree-sitter AST & Survival Delta Sync (v3.8.3)
+# 📥 Ingestion Engine, Tree-sitter AST & Dual-Hash Delta Sync (v4.0.0)
 
-> **Architectural Specification for Early-Exit Watchers, Code Parsing, Structural Signature Hashing (SSH), Call Graph Generation, and Delta Chunk Caching**
+> **Architectural Specification for Early-Exit Watchers, Code Parsing, Structural Signature Hashing (SSH), Logical Body Hashing (LBH), Call Graph Generation, and Delta Chunk Caching**
 
 ---
 
@@ -11,7 +11,7 @@ The Ingestion Engine is the subsystem responsible for transforming a raw codebas
 ```
  ┌──────────────┐    ┌─────────────┐    ┌──────────────┐    ┌─────────────┐
  │ 1. WATCHER   │ ─► │ 2. DELTA    │ ─► │ 3. PARSE     │ ─► │ 4. CHUNK    │
- │ Early-Exit   │    │ SSH Check   │    │ Tree-sitter  │    │ Delta Cache │
+ │ Early-Exit   │    │ SSH + LBH   │    │ Tree-sitter  │    │ Delta Cache │
  └──────────────┘    └─────────────┘    └──────────────┘    └─────────────┘
                                                                    │
  ┌──────────────┐    ┌─────────────┐    ┌──────────────┐           │
@@ -32,23 +32,48 @@ To ensure zero latency and zero wasted I/O on large developer repositories conta
 
 ---
 
-## 3. Structural Signature Hashing (SSH) & Delta Sync (`core/delta_manager.py`)
+## 3. Dual-Hash Delta Sync: SSH & LBH Semantic Drift Guard (`core/delta_manager.py`)
 
-A major source of unexpected AI costs in market GraphRAG tools is re-indexing entire files and re-generating LLM summaries when a developer simply modifies an internal `if` condition, changes a variable name, or adds a comment.
+A major source of unexpected AI costs in market GraphRAG tools is re-indexing entire files and re-generating LLM summaries when a developer merely modifies a comment, adds a blank line, or runs an automatic code formatter. Conversely, a naive signature-only hash misses deep internal logic changes (Semantic Drift).
 
-Grafo Concierge uses **Structural Signature Hashing (SSH)**:
-1. `DeltaManager.calculate_ssh(file_content)` strips all function bodies and comments, extracting only public structural signature lines:
+Grafo Concierge resolves both problems with a **Dual-Hash Architecture**:
+
+### 3.1 Structural Signature Hashing (SSH)
+`DeltaManager.calculate_ssh(file_content)` extracts public structural signature lines:
+```python
+# Lines matched:
+# def calculate_total(a, b):
+# class PaymentGateway:
+# import os
+# from typing import List
+```
+Computes the SHA-256 hash of consolidated signature lines.
+
+### 3.2 Logical Body Hashing (LBH) via `DocstringStripper`
+To detect internal logic changes without being fooled by comments or docstring edits:
+1. `tree = ast.parse(file_content)` generates the AST (Python AST natively abstracts whitespace, line breaks, and comments).
+2. `DocstringStripper(ast.NodeTransformer)` inspects `FunctionDef`, `AsyncFunctionDef`, `ClassDef`, and `Module` nodes. If the first statement in the body is an `ast.Expr` containing a string literal constant (`ast.Constant`), it is stripped from the AST:
    ```python
-   # Lines matched:
-   # def calculate_total(a, b):
-   # class PaymentGateway:
-   # import os
-   # from typing import List
+   class DocstringStripper(ast.NodeTransformer):
+       def visit_FunctionDef(self, node):
+           self.generic_visit(node)
+           if node.body and isinstance(node.body[0], ast.Expr):
+               val = node.body[0].value
+               if isinstance(val, ast.Constant) and isinstance(val.value, str):
+                   node.body.pop(0)
+           return node
    ```
-2. Computes the SHA-256 hash of consolidated signature lines.
-3. When a file modification event occurs:
-   * **Internal Logic Change (SSH unchanged)**: Content is updated silently in `files.content`. The file's dirty flag is cleared (`is_dirty = 0`). If all files in the community are clean, `communities.is_dirty` is reconciled to `0`. **Zero LLM tokens are spent**.
-   * **Structural Mutation (SSH changed)**: Marks `files.is_dirty = 1` and sets `communities.is_dirty = 1`. AI re-summarization is scheduled lazily (JIT).
+3. `ast.dump(cleaned_tree, annotate_fields=False)` produces a deterministic structural string representation.
+4. `calculate_lbh` returns the SHA-256 hash of this dump.
+
+### 3.3 State Transition Matrix
+
+| Change Type | SSH Changed? | LBH Changed? | Action in SQLite (`files` / `communities`) | Token Cost |
+| :--- | :---: | :---: | :--- | :--- |
+| **Comments / Whitespace / Formatters** | No | No | Content updated silently. `is_dirty` kept `0`. | **0 tokens (100% saved)** |
+| **Docstrings Only** | No | No | Content updated silently. `is_dirty` kept `0`. | **0 tokens (100% saved)** |
+| **Internal Logic Drift** (`==` $\rightarrow$ `!=`, returns) | No | **Yes** | `is_dirty = 1` set on file & community. | Lazy JIT re-summarization |
+| **Signature Mutation** (new func/class/import) | **Yes** | **Yes** | `is_dirty = 1` set on file & community. | Lazy JIT re-summarization |
 
 ---
 
@@ -63,4 +88,4 @@ Grafo Concierge parses code according to its **Abstract Syntax Tree (AST)** usin
 * **`MODULE`**: File-level imports, global variables, and package metadata.
 
 ### Call Graph Generation (`ast_edges`):
-During AST parsing, function calls and external symbol references are extracted. The `ast_edges` table records `(parent_node, child_node)` pairs, enabling recursive multi-hop dependency traversals (`concierge_get_call_chain`).
+During AST parsing, function calls and external symbol references are extracted. The `ast_edges` table records `(parent_node, child_node)` pairs, enabling recursive multi-hop dependency traversals (`concierge_get_call_chain`) with strict loop cycle prevention.

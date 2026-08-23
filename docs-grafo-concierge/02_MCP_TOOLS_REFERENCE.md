@@ -1,4 +1,4 @@
-# 🔌 MCP Tools Reference — Complete 30 Tools Catalog (v3.8.3)
+# 🔌 MCP Tools Reference — Complete 30 Tools Catalog (v4.0.0)
 
 > **Official Specification for Model Context Protocol (MCP) Clients (Cursor, Windsurf, Claude Desktop, Autonomous Agents & External Multi-Agent Swarms)**
 
@@ -30,11 +30,11 @@ Grafo Concierge exposes **30 native tools** via the Model Context Protocol over 
 │   ├── search_symbols
 │   ├── get_implementations
 │   ├── get_callers
-│   └── concierge_get_call_chain         [NEW: SDD-08]
+│   └── concierge_get_call_chain         [Strict CTE Cycle-Guarded]
 ├── 💾 Session Checkpointing & Time-Travel (3 tools)
-│   ├── agent_save_checkpoint            [NEW: SDD-08]
-│   ├── agent_get_checkpoint             [NEW: SDD-08]
-│   └── agent_list_checkpoints           [NEW: SDD-08]
+│   ├── agent_save_checkpoint            [Smart LRU Prunable]
+│   ├── agent_get_checkpoint             [Agnostic JSON Restorer]
+│   └── agent_list_checkpoints           [Chronological Timeline]
 ├── 🧠 Bi-Temporal Cognitive Facts & Feedback (3 tools)
 │   ├── concierge_store_fact
 │   ├── concierge_list_facts
@@ -108,7 +108,7 @@ Removes an associated reference wing from a project.
 ## 2. Ingestion, Context & Sessions
 
 ### `concierge_mine`
-Executes directory ingestion: scans filesystem with early-exit filtering, performs delta-hashing, Tree-sitter AST chunking, prompt armoring, summarization, embedding, and garbage collection.
+Executes directory ingestion: scans filesystem with early-exit filtering, performs dual-hash delta checks (SSH + LBH), Tree-sitter AST chunking, prompt armoring, summarization, embedding, and garbage collection.
 * **Arguments**:
   * `path` (`str`, required): Path of the directory/file to ingest.
   * `project_identifier` (`str`, required): Project UUID or directory name.
@@ -190,8 +190,8 @@ Inspects graph edges to find all caller nodes referencing the specified symbol.
   * `symbol_id` (`int`, required): Numeric ID of the target symbol node.
 * **Return**: `{"success": bool, "symbol_id": int, "callers_count": int, "callers": list[dict]}`
 
-### `concierge_get_call_chain` (NEW)
-Executes recursive call chain discovery via `WITH RECURSIVE` queries over `ast_edges` in SQLite WAL, guarded against circular loops.
+### `concierge_get_call_chain`
+Executes recursive call chain discovery via `WITH RECURSIVE` queries over `ast_edges` in SQLite WAL, equipped with strict pipe-delimited cycle guards (`|node|` pattern matching via `instr()`) preventing infinite loops and substring collisions.
 * **Arguments**:
   * `start_node` (`str`, required): Root file path or symbol identifier (e.g. `core/main.py`).
   * `depth_limit` (`int`, optional): Maximum traversal recursion depth. Default: `5`.
@@ -199,14 +199,14 @@ Executes recursive call chain discovery via `WITH RECURSIVE` queries over `ast_e
 
 ---
 
-## 5. Session Checkpointing & Time-Travel (NEW)
+## 5. Session Checkpointing & Time-Travel
 
 ### `agent_save_checkpoint`
-Persists arbitrary agent state dictionaries as JSON blobs in SQLite WAL under a composite primary key `(agent_id, session_id, checkpoint_id)` via `AgnosticCheckpointer`.
+Persists arbitrary agent state dictionaries as JSON blobs in SQLite WAL under a composite primary key `(agent_id, session_id, checkpoint_id)` via `AgnosticCheckpointer`. Checkpoints are automatically prunable by `BackgroundJanitor`'s Smart LRU algorithm while protecting the `"init"` checkpoint.
 * **Arguments**:
   * `agent_id` (`str`, required): Identifier of the agent (e.g. `nexus_agent`, `hermes`).
   * `session_id` (`str`, required): Unique session run identifier.
-  * `checkpoint_id` (`str`, required): Identifier of the step/checkpoint (e.g. `step_1`, `pre_refactor`).
+  * `checkpoint_id` (`str`, required): Identifier of the step/checkpoint (e.g. `init`, `step_1`, `pre_refactor`).
   * `state_dict` (`dict`, required): Arbitrary Python dictionary containing agent variables, memory, and kanban state.
 * **Return**: `str` (JSON string: `{"success": true, "message": "Checkpoint 'step_1' saved successfully for agent 'nexus_agent'"}`).
 
@@ -219,7 +219,7 @@ Retrieves and decodes the persisted state dictionary for a specific step.
 * **Return**: `dict` (Decoded state dictionary, or `{}` if non-existent).
 
 ### `agent_list_checkpoints`
-Lists the complete chronological history of checkpoints recorded for an agent session, enabling Time-Travel navigation.
+Lists the complete chronological history of checkpoints recorded for an agent session, enabling Time-Travel navigation and rollback capabilities.
 * **Arguments**:
   * `agent_id` (`str`, required): Identifier of the agent.
   * `session_id` (`str`, required): Session run identifier.

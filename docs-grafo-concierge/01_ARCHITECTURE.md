@@ -1,4 +1,4 @@
-# 🏛️ Grafo Concierge — System Architecture (v3.8.3)
+# 🏛️ Grafo Concierge — System Architecture (v4.0.0)
 
 > **The Sovereign Cognitive Memory & Long-Term Memory (LTM) Infrastructure for AI Agents, IDEs & Developer Environments**
 
@@ -8,15 +8,16 @@
 
 **Grafo Concierge** is an open-source, high-performance Long-Term Memory (LTM) server engineered to eliminate LLM context window fragmentation, prompt bloat, codebase amnesia, and runaway cloud API billing.
 
-Under the **Survival Engineering Paradigm (Fatias Verticais de Sobrevivência)**, the system is architected to guarantee local operability with Zero Technical Debt:
-1. **Serialized SQLite WAL Concurrency (`SerializedWriteQueue` / `ConciergeDatabaseManager`)**: Completely eliminates `database is locked` errors by channeling all writes (`INSERT`, `UPDATE`, `DELETE`, `DDL`) through a dedicated single-writer daemon thread while serving read queries concurrently through WAL mode.
-2. **Structural Delta Sync & SSH (`DeltaManager`)**: Differentiates structural code changes (`def`, `class`, `import`, `from`) from internal logic tweaks using SHA-256 Structural Signature Hashes (SSH). Internal logic modifications update content silently without invalidating the knowledge graph or incurring LLM token costs.
+Under the **Survival Engineering Paradigm (Fatias Verticais de Sobrevivência & Resiliência Extrema)**, the system is architected to guarantee local operability with Zero Technical Debt:
+1. **Serialized SQLite WAL Concurrency with Auto-Batching & Single-Item Fallback (`SerializedWriteQueue` / `ConciergeDatabaseManager`)**: Completely eliminates `database is locked` errors by channeling all writes (`INSERT`, `UPDATE`, `DELETE`, `DDL`) through a dedicated single-writer daemon thread. Under heavy concurrency, drains pending writes opportunistically (up to 50 items) in atomic `BEGIN IMMEDIATE ... COMMIT` blocks without artificial latency timers. If a constraint fails, it triggers a non-blocking `ROLLBACK` and executes a **Single-Item Fallback** to rescue all healthy items.
+2. **Dual-Hash Delta Sync: SSH & LBH Semantic Drift Guard (`DeltaManager` / `DocstringStripper`)**: Combines Structural Signature Hashing (SSH) for public signatures (`def`, `class`, `import`, `from`) with Logical Body Hashing (LBH). The LBH cleans AST docstrings via `DocstringStripper(ast.NodeTransformer)` and computes SHA-256 over `ast.dump()`. Internal logic changes (e.g. operators, return values) mark the file as `is_dirty = 1` for accurate graph memory, while cosmetic changes (comments, whitespace, docstrings) maintain `is_dirty = 0`, saving 100% of LLM token costs.
 3. **Lazy Summarization JIT & SLM Offloading (`BackgroundJanitor`)**: Postpones AI re-summarization until context is actively queried, delegating background processing to free local Small Language Models (SLMs via Ollama) during idle cycles.
-4. **Query-Time Self-Healing & Vector Reconciliation (`HybridSearchEngine` / `VectorReconciler`)**: Solves SQLite vs. Qdrant desynchronization without slow, blocking Two-Phase Commits (2PC). Queries automatically filter out orphan vectors in real-time ($O(1)$ lookup), while a background Janitor physically purges orphans via set-difference algorithms.
-5. **Frugal GraphRAG & Recursive CTEs (`GraphRAGEngine`)**: Eliminates RAM-heavy graph clustering algorithms by adopting physical directories as natural community boundaries ($O(1)$ topological mapping) and executing multi-hop call-chain traversals directly in SQLite via `WITH RECURSIVE` queries protected by cycle guards.
-6. **Agnostic State Checkpointing & Time-Travel (`AgnosticCheckpointer`)**: Provides generic, agent-agnostic persistence for arbitrary AI state dictionaries stored as JSON blobs under composite primary keys (`agent_id`, `session_id`, `checkpoint_id`), enabling hermetic isolation and chronological rollback navigation.
-7. **Early-Exit Reactive Watcher (`ConciergeFileSystemHandler`)**: Filters file modification events against `.conciergeignore` / `pathspec` rules *before* hitting disk I/O, protecting the indexing pipeline from `node_modules`, `.env`, and build artifact noise.
-8. **Resource Isolation & Security (`AgentDependencies`)**: Encapsulates workspace paths, database managers, and security boundaries within an immutable frozen dataclass, preventing Path Traversal vulnerabilities.
+4. **Smart Checkpoint Pruning (`BackgroundJanitor.prune_session_checkpoints`)**: Implements an intelligent Smart LRU per Session algorithm that prevents database bloat in `state.db`. Inviolably protects the initial "point zero" checkpoint (`"init"` / earliest timestamp) for hard resets while retaining the last $N$ active steps (default: 10) and purging obsolete intermediate records in paginated batches via `SerializedWriteQueue`.
+5. **Query-Time Self-Healing & Vector Reconciliation (`HybridSearchEngine` / `VectorReconciler`)**: Solves SQLite vs. Qdrant desynchronization without slow, blocking Two-Phase Commits (2PC). Queries automatically filter out orphan vectors in real-time ($O(1)$ lookup), while a background Janitor physically purges orphans via set-difference algorithms.
+6. **Frugal GraphRAG & Strict Delimited CTE Loop Guards (`GraphRAGEngine`)**: Eliminates RAM-heavy graph clustering algorithms by adopting physical directories as natural community boundaries ($O(1)$ topological mapping) and executing multi-hop call-chain traversals directly in SQLite via `WITH RECURSIVE` queries protected by strict pipe-delimited cycle guards (`|node|` matching via `instr()`), preventing indirect loops ($A \rightarrow B \rightarrow C \rightarrow A$) and substring collisions (`auth.js` vs `oauth.js`).
+7. **Agnostic State Checkpointing & Time-Travel (`AgnosticCheckpointer`)**: Provides generic, agent-agnostic persistence for arbitrary AI state dictionaries stored as JSON blobs under composite primary keys (`agent_id`, `session_id`, `checkpoint_id`), enabling hermetic isolation and chronological rollback navigation.
+8. **Early-Exit Reactive Watcher (`ConciergeFileSystemHandler`)**: Filters file modification events against `.conciergeignore` / `pathspec` rules *before* hitting disk I/O, protecting the indexing pipeline from `node_modules`, `.env`, and build artifact noise.
+9. **Resource Isolation & Security (`AgentDependencies`)**: Encapsulates workspace paths, database managers, and security boundaries within an immutable frozen dataclass, preventing Path Traversal vulnerabilities.
 
 ---
 
@@ -34,52 +35,60 @@ Under the **Survival Engineering Paradigm (Fatias Verticais de Sobrevivência)**
 │ - FastMCP Server with stdio & SSE transports (30 Specialized Native Tools)                  │
 │ - Security Middleware: Bearer Token Auth (GRAFO_API_KEY) & CORS                             │
 │ - Early-Exit Reactive File Watcher (pathspec / .conciergeignore)                            │
-│ - SerializedWriteQueue (Single-Writer Daemon Thread for SQLite WAL)                         │
+│ - SerializedWriteQueue (Single-Writer Daemon with Adaptive Batching & Single-Item Fallback) │
 └────────────────────────────────────────┬────────────────────────────────────────────────────┘
                                          │
                                          ▼
 ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-│ 🧠 CORE & SURVIVAL LAYER (core/ middleware, delta_manager, search_engine, graph_rag, ...)   │
-│ - DeltaManager: SHA-256 Structural Signature Hash (SSH) & Lazy Summarization JIT            │
-│ - HybridSearchEngine: Tri-signal score + Query-Time Self-Healing Filter                     │
-│ - GraphRAGEngine: Topological natural communities & SQLite WITH RECURSIVE call chains       │
-│ - AgnosticCheckpointer: Agent-agnostic state blobs & chronological Time-Travel timeline    │
-│ - VectorReconciler & BackgroundJanitor: Offline orphan expurging & SLM local offloading    │
-│ - AgentDependencies: Immutable frozen dataclass container with path traversal defense       │
-│ - Cognitive Fact Engine: Bi-temporal fact consolidation (ADD / UPDATE / DELETE / NOOP)      │
-│ - Probabilistic Retriever: Thompson Sampling over Beta(alpha, beta) memory utility           │
+│ 🧠 CORE & SURVIVAL LAYER (core/)                                                            │
+│ - middleware.py (GrafoConcierge): Central Facade orchestrating all subsystems                │
+│ - delta_manager.py: Dual Hash (SSH Signature + LBH Semantic Drift) & DocstringStripper      │
+│ - hybrid_search.py / search_engine.py: Tri-signal score + Query-Time Self-Healing Filter    │
+│ - graph_rag.py: O(1) Natural communities & SQLite CTE with Strict Delimited Loop Guard      │
+│ - checkpointer.py: Agent-agnostic state blobs & chronological Time-Travel timeline          │
+│ - background_janitor.py: Smart Checkpoint Pruning (Smart LRU) & SLM local offloading        │
+│ - vector_reconciler.py: Background Orphan Expurging via set differences                     │
+│ - dependencies.py: Immutable frozen dataclass container with path traversal defense         │
+│ - memory_extractor.py: Bi-temporal fact consolidation (ADD / UPDATE / DELETE / NOOP)        │
+│ - probabilistic_retriever.py: Thompson Sampling over Beta(alpha, beta) memory utility       │
+│ - project_index.py: Project registry, node/edge CRUD & wing management                     │
+│ - config.py: Centralized configuration loader (env vars, model tiers, paths)                │
 └──────────────────┬──────────────────────────────────────────┬───────────────────────────────┘
                    │                                          │
                    ▼                                          ▼
-┌──────────────────────────────────────┐   ┌──────────────────────────────────────────────────┐
-│ 📥 INGESTION ENGINE (ingestion/)     │   │ 🧹 MAINTENANCE LAYER (services/janitor.py)       │
-│ - ProjectCrawler: Delta Hash Check   │   │ - JanitorService: Autonomous Background Daemon   │
-│ - FileParser: Tree-sitter AST & Tags │   │ - Bidirectional Vector Reconciliation            │
-│ - ZoomSummarizer: L0/L1/L2 Summaries │   │ - Orphan Embedding & Stale Project Pruner       │
-│ - IngestionManager: Batch Pipeline   │   │ - Exponential Recency Decay & VACUUM Maintenance │
-└──────────────────┬───────────────────┘   └──────────────────┬───────────────────────────────┘
-                   │                                          │
-                   ▼                                          ▼
-┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-│ 💾 STORAGE LAYER (storage/ & core/database.py)                                              │
-│ ┌──────────────────────────────────────────────┐ ┌────────────────────────────────────────┐ │
-│ │ SQLite WAL Engine (storage/connection.py)    │ │ Vector Store (core/vector_backend.py)   │ │
-│ │ - SerializedWriteQueue (Single-Writer Daemon)│ │ - ChromaVectorStore (Local Default)     │ │
-│ │ - Thread-Local Read Pool (Concurrent WAL)    │ │ - QdrantVectorStore (Local / Cloud)     │ │
-│ │ - Core + Survival Relational Tables + FTS5   │ │ - EmbeddingManager (MiniLM / Cloud)     │ │
-│ └──────────────────────────────────────────────┘ └────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────┐   ┌──────────────────────────────────────────────────┐
+│ 📥 INGESTION ENGINE (ingestion/)         │   │ 🧹 MAINTENANCE LAYER (services/janitor.py)       │
+│ - ProjectCrawler: Delta Hash Check       │   │ - JanitorService: Autonomous Background Daemon   │
+│ - FileParser: Tree-sitter AST & Tags     │   │ - Bidirectional Vector Reconciliation            │
+│ - ZoomSummarizer: L0/L1/L2 Summaries     │   │ - Smart Checkpoint Pruner (Session-scoped LRU)   │
+│ - IngestionOrchestrator: Batch Pipeline  │   │ - Exponential Recency Decay & VACUUM Maintenance │
+└──────────────────┬───────────────────────┘   └──────────────────┬───────────────────────────────┘
+                   │                                              │
+                   ▼                                              ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ 💾 STORAGE LAYER (storage/)                                                                     │
+│ ┌──────────────────────────────────────────────────┐ ┌────────────────────────────────────────┐ │
+│ │ SQLite WAL Engine                                │ │ Vector Store                           │ │
+│ │ - connection.py: SerializedWriteQueue + ConnMgr  │ │ - base_backend.py: Abstract Interface  │ │
+│ │ - schema.py: DDL Schema Manager (13 tables)      │ │ - vector_store.py: Chroma & Qdrant     │ │
+│ │ - logic.py: Relational Query Logic               │ │ - core/vector_backend.py: Embedding Mgr│ │
+│ │ - semantic_logic.py: Semantic Facts Queries       │ │                                        │ │
+│ │ - store.py: SqliteStore High-Level API           │ │                                        │ │
+│ └──────────────────────────────────────────────────┘ └────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## 3. Storage Layer & Concurrency Engine
 
-### 3.1 `SerializedWriteQueue` (Zero Database Locks)
+### 3.1 `SerializedWriteQueue` (Adaptive Auto-Batching & Single-Item Fallback)
 SQLite in high-concurrency multi-client environments can suffer from `sqlite3.OperationalError: database is locked`.
 
-Grafo Concierge resolves this through a **Single-Writer Serialized Queue** architecture:
-* **Write Operations**: All write mutations (`INSERT`, `UPDATE`, `DELETE`, `DDL`) are submitted to a thread-safe `queue.Queue`. A single dedicated daemon thread (`sqlite-writer`) executes them sequentially inside atomic transactions.
+Grafo Concierge resolves this through a **Single-Writer Serialized Queue** architecture with Phase 4 resilience optimizations:
+* **Single Item Immediate Execution**: If only one write is requested, it executes immediately in its own transaction without any artificial sleep, timer delay, or jitter.
+* **Opportunistic Backlog Draining**: If a backlog accumulates in the queue during agent bursts, the daemon non-blockingly drains up to 50 pending write tasks via `queue.get_nowait()` and executes them in a single atomic batch transaction (`BEGIN IMMEDIATE ... COMMIT`).
+* **Single-Item Fallback on Error**: If a batch fails due to an integrity constraint violation (e.g. unique constraint or invalid SQL), the queue performs a `ROLLBACK` and immediately processes each task individually. All valid writes succeed, while the failing write returns an explicit error to its caller.
 * **Read Operations**: Read queries execute concurrently through `ConciergeDatabaseManager.read_query()` using `PRAGMA journal_mode=WAL` and `PRAGMA busy_timeout=5000`.
 
 ### 3.2 Pluggable Vector Backends
@@ -95,14 +104,15 @@ The relational engine maintains normalized tables for both long-term cognitive g
 
 ```sql
 -- =========================================================================
--- SURVIVAL & DELTA ENGINE TABLES (Fases 1, 2 e 3)
+-- SURVIVAL & DELTA ENGINE TABLES (Fases 1, 2, 3 e 4)
 -- =========================================================================
 
--- 1. Files & Structural Delta Sync
+-- 1. Files & Dual-Hash Delta Sync (SSH + LBH)
 CREATE TABLE IF NOT EXISTS files (
     path         TEXT PRIMARY KEY,
     content      TEXT,
     ssh_hash     TEXT,             -- SHA-256 of structural signature lines
+    body_hash    TEXT,             -- SHA-256 of AST body without docstrings (LBH)
     is_dirty     INTEGER DEFAULT 1,-- 1 = Needs summarization / update, 0 = Clean
     community_id TEXT
 );
@@ -121,7 +131,7 @@ CREATE TABLE IF NOT EXISTS ast_edges (
     UNIQUE(parent_node, child_node)
 );
 
--- 4. Agnostic State Checkpoints & Time-Travel Timeline
+-- 4. Agnostic State Checkpoints & Time-Travel Timeline (Smart LRU Prunable)
 CREATE TABLE IF NOT EXISTS agent_checkpoints (
     agent_id      TEXT,
     session_id    TEXT,
@@ -248,21 +258,37 @@ CREATE VIRTUAL TABLE IF NOT EXISTS nodes_fts USING fts5(
 
 ## 5. Survival Subsystems Breakdown
 
-### 5.1 Delta Manager & Structural Signature Hashing (SSH)
-* `DeltaManager.calculate_ssh(content)` extracts lines starting with `def `, `class `, `import `, or `from `, computing a deterministic SHA-256 hash.
-* If a file's body/internal logic changes without altering its SSH, `process_file_change()` updates `content` in SQLite, clears `files.is_dirty = 0`, and reconciles the community to `0` if all files are clean.
-* If the signature changes, it marks both the file and its community as `is_dirty = 1`.
+### 5.1 Dual-Hash Delta Manager: SSH & LBH Semantic Drift Guard
+* `DeltaManager.calculate_ssh(content)` extracts lines starting with `def `, `class `, `import `, or `from `, computing a deterministic SHA-256 signature hash.
+* `DeltaManager.calculate_lbh(content)` parses the code AST, traverses it with `DocstringStripper(ast.NodeTransformer)` to strip all docstrings from functions/classes/modules, dumps the clean AST via `ast.dump(tree, annotate_fields=False)`, and computes its SHA-256.
+* **Transition Logic**:
+  * If SSH changes **OR** LBH changes: File is marked `is_dirty = 1` and community is marked `is_dirty = 1`.
+  * If only comments, whitespace, formatting, or docstrings changed: `files.is_dirty = 0`, community remains clean, and **100% of LLM token costs are saved**.
 
 ### 5.2 Query-Time Self-Healing & Vector Reconciler
 * `HybridSearchEngine.hybrid_search()` queries the vector store, intercepts candidate IDs, and runs a single parameterized batch query: `SELECT path FROM files WHERE path IN (?, ?, ...);`.
 * Orphan vectors (files deleted from disk/SQLite) are dropped in real-time ($O(1)$ response-time filtering).
 * `VectorReconciler.reconcile_orphans()` performs an asynchronous $O(N)$ set difference (`set(vector_ids) - set(sqlite_paths)`) and deletes orphaned vector records in batches.
 
-### 5.3 Frugal GraphRAG Engine
-* **Natural Communities**: `GraphRAGEngine.get_natural_community()` maps file paths to immediate parent directories (e.g. `core/utils/delta.py` $ightarrow$ `core/utils`), executing in $O(1)$ string operations without loading graphs into RAM.
-* **Recursive Call Chains**: `get_call_chain_recursive()` executes a native `WITH RECURSIVE` query over `ast_edges` with a depth limit parameter and cycle protection (`WHERE node != ?`).
+### 5.3 Frugal GraphRAG with Strict Delimited Loop Guard
+* **Natural Communities**: `GraphRAGEngine.get_natural_community()` maps file paths to immediate parent directories (e.g. `core/utils/delta.py` $\rightarrow$ `core/utils`), executing in $O(1)$ string operations without loading graphs into RAM.
+* **Strict Loop Guard Query**: `get_call_chain_recursive()` executes a `WITH RECURSIVE` CTE accumulating pipe-delimited paths (`|node1|node2|`) and testing `instr(cc.path_visited, '|' || e.child_node || '|') = 0`:
+  ```sql
+  WITH RECURSIVE call_chain(node, depth, path_visited) AS (
+      SELECT ? AS node, 0 AS depth, '|' || ? || '|' AS path_visited
+      UNION ALL
+      SELECT e.child_node AS node,
+             cc.depth + 1 AS depth,
+             cc.path_visited || e.child_node || '|' AS path_visited
+      FROM ast_edges e
+      JOIN call_chain cc ON e.parent_node = cc.node
+      WHERE cc.depth < ?
+        AND instr(cc.path_visited, '|' || e.child_node || '|') = 0
+  ) SELECT DISTINCT node, depth FROM call_chain WHERE node != ?;
+  ```
+  This eliminates infinite cycles ($A \rightarrow B \rightarrow C \rightarrow A$) and prevents substring collisions (`oauth.js` vs `auth.js`).
 
-### 5.4 Agnostic Checkpointer & Time-Travel Debugging
+### 5.4 Agnostic Checkpointer & Smart Checkpoint Pruning
 * `AgnosticCheckpointer` persists and retrieves arbitrary JSON state payloads under `(agent_id, session_id, checkpoint_id)`.
-* Idempotent upsert via `INSERT OR REPLACE`.
+* `BackgroundJanitor.prune_session_checkpoints(session_id, keep_limit=10)` executes Smart LRU pruning: protects checkpoint `"init"` (point-zero) while keeping the $N$ most recent entries and purging stale intermediate records via `SerializedWriteQueue`.
 * `list_checkpoints()` returns a chronological timeline (`ORDER BY created_at ASC`) allowing AI agents to step backwards in time.

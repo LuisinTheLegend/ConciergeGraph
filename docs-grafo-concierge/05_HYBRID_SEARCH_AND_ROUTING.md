@@ -1,6 +1,6 @@
-# 🔍 Hybrid Search v4, Self-Healing & Frugal GraphRAG (v3.8.3)
+# 🔍 Hybrid Search v4, Self-Healing & Frugal GraphRAG (v4.0.0)
 
-> **Mathematical Specification of the Tri-Signal Retrieval Model, Query-Time Self-Healing Filter, and Frugal GraphRAG Multi-Hop Navigation**
+> **Mathematical Specification of the Tri-Signal Retrieval Model, Query-Time Self-Healing Filter, and Frugal GraphRAG with Strict Delimited Loop Guard**
 
 ---
 
@@ -8,7 +8,7 @@
 
 Search in Grafo Concierge (`concierge_search` & `core/hybrid_search.py`) executes via the **Hybrid Search v4** scoring engine:
 
-$$oxed{    ext{Score} = (0.50     imes S_{    ext{vector}}) + (0.25     imes S_{    ext{fts5}}) + (0.25     imes \max(S_{    ext{recency}}, S_{    ext{centrality}}))}$$
+$$\boxed{\text{Score} = (0.50 \times S_{\text{vector}}) + (0.25 \times S_{\text{fts5}}) + (0.25 \times \max(S_{\text{recency}}, S_{\text{centrality}}))}$$
 
 ---
 
@@ -32,25 +32,39 @@ Academic GraphRAG implementations incur excessive costs and RAM consumption thro
 
 ### 3.1 Natural Community Topological Mapping ($O(1)$)
 `GraphRAGEngine.get_natural_community(file_path)` maps files to their immediate parent directories:
-* `core/utils/delta.py` $
-ightarrow$ `core/utils`
-* `main.py` $
-ightarrow$ `root`
+* `core/utils/delta.py` $\rightarrow$ `core/utils`
+* `main.py` $\rightarrow$ `root`
 
-### 3.2 Recursive Multi-Hop Dependency Resolution (SQLite CTE)
-To resolve call chains across multiple files, `get_call_chain_recursive()` executes a native `WITH RECURSIVE` query over `ast_edges` with a depth limit and cycle guard:
+### 3.2 Recursive Multi-Hop Dependency Resolution with Strict Loop Guard
+To resolve call chains across multiple files, `get_call_chain_recursive()` executes a native `WITH RECURSIVE` query over `ast_edges`. Under Phase 4 (Active-SDD #9), it is protected by strict pipe-delimited cycle guards:
 
 ```sql
-WITH RECURSIVE call_chain(node, depth) AS (
-    SELECT child_node, 1 FROM ast_edges WHERE parent_node = ?
-    UNION
-    SELECT e.child_node, cc.depth + 1
+WITH RECURSIVE call_chain(node, depth, path_visited) AS (
+    -- Anchor: Select start node and initialize delimited visited tracker
+    SELECT 
+        ? AS node, 
+        0 AS depth, 
+        '|' || ? || '|' AS path_visited
+    
+    UNION ALL
+    
+    -- Recursive Member: Join with edges and check cycle guard
+    SELECT 
+        e.child_node AS node,
+        cc.depth + 1 AS depth,
+        cc.path_visited || e.child_node || '|' AS path_visited
     FROM ast_edges e
     JOIN call_chain cc ON e.parent_node = cc.node
-    WHERE cc.depth < ?
+    WHERE cc.depth < ?  -- Physical depth limit guard
+      AND instr(cc.path_visited, '|' || e.child_node || '|') = 0  -- Strict Loop Block
 )
-SELECT DISTINCT node FROM call_chain WHERE node != ?;
+SELECT DISTINCT node, depth FROM call_chain
+WHERE node != ?;  -- Exclude root start node from its own dependencies
 ```
+
+#### Why Strict Pipe Delimiters (`|`)?
+* **Zero Substring Collisions**: Searching for `auth.js` inside `'|oauth.js|'` yields `instr('|oauth.js|', '|auth.js|') = 0`, allowing legitimate sibling files to be traversed without false-positive blocks.
+* **Instant Cycle Interruption**: An indirect cycle such as $A \rightarrow B \rightarrow C \rightarrow A$ is blocked immediately when $C$ attempts to visit $A$, terminating recursive expansion without stack overflows or memory spikes.
 
 ---
 
