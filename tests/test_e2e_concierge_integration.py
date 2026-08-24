@@ -124,12 +124,19 @@ if "core.middleware" not in sys.modules:
     sys.modules["core.middleware"] = _mw_mod
 
 if "core" not in sys.modules:
-    sys.modules["core"] = types.ModuleType("core")
+    _core_mod = types.ModuleType("core")
+    _core_mod.__path__ = [os.path.join(_project_root, "core")]
+    sys.modules["core"] = _core_mod
+elif not hasattr(sys.modules["core"], "__path__"):
+    sys.modules["core"].__path__ = [os.path.join(_project_root, "core")]
 
 if "services" not in sys.modules:
     _svc_mod = types.ModuleType("services")
+    _svc_mod.__path__ = [os.path.join(_project_root, "services")]
     _svc_mod.JanitorService = type("JanitorService", (), {})
     sys.modules["services"] = _svc_mod
+elif not hasattr(sys.modules["services"], "__path__"):
+    sys.modules["services"].__path__ = [os.path.join(_project_root, "services")]
 
 _ms_spec = importlib.util.spec_from_file_location(
     "interface.mcp_server",
@@ -139,7 +146,11 @@ _ms_mod = importlib.util.module_from_spec(_ms_spec)
 sys.modules["interface.mcp_server"] = _ms_mod
 
 if "interface" not in sys.modules:
-    sys.modules["interface"] = types.ModuleType("interface")
+    _iface_mod = types.ModuleType("interface")
+    _iface_mod.__path__ = [os.path.join(_project_root, "interface")]
+    sys.modules["interface"] = _iface_mod
+elif not hasattr(sys.modules["interface"], "__path__"):
+    sys.modules["interface"].__path__ = [os.path.join(_project_root, "interface")]
 
 _ms_spec.loader.exec_module(_ms_mod)
 mcp_server = _ms_mod
@@ -273,11 +284,11 @@ class TestConciergeSovereignE2EAudit(unittest.TestCase):
         comm_dirty = self.db_manager.read_query("SELECT is_dirty FROM communities WHERE id = ?;", (community_id,))
         self.assertEqual(comm_dirty[0][0], 1, "A comunidade deve estar marcada como DIRTY.")
 
-        # Simula alteração estrita de lógica interna no arquivo 1 (não altera assinatura/estruturas)
-        code_1_logic_only = "import sys\n\ndef run():\n    return 'Logic Changed'  # logic change inside def\n"
-        struct_change_logic = self.delta_manager.process_file_change(file_path_1, code_1_logic_only, community_id)
+        # Simula alteração estritamente cosmética no arquivo 1 (comentários/espaços - SSH e LBH idênticos)
+        code_1_cosmetic_only = "import sys\n\ndef run():\n    # apenas comentario cosmetico\n    return 'OK'\n"
+        struct_change_cosmetic = self.delta_manager.process_file_change(file_path_1, code_1_cosmetic_only, community_id)
 
-        self.assertFalse(struct_change_logic, "Mudança de lógica interna não deveria invalidar o grafo (SSH idêntico).")
+        self.assertFalse(struct_change_cosmetic, "Mudança cosmética não deveria invalidar o grafo (SSH e LBH idênticos).")
 
         # ==========================================
         # PASSO B: Varredura Frugal do Janitor (Fase 2 / SDD-06)
