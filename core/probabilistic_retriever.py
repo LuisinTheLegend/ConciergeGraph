@@ -3,13 +3,16 @@ core/probabilistic_retriever.py - Grafo Concierge v3.8.0 (Absolute Solidity)
 
 Probabilistic Retrieval Engine (SA-CTS - U-Mem Pattern) with Thompson Sampling.
 Balances exploration and exploitation based on utility metrics (utility_alpha, utility_beta).
+
+SDD-SURVIVAL-15: Substituição do numpy por random.betavariate() nativo,
+eliminando ~30MB de dependência externa sem perda de equivalência matemática.
 """
 
 from __future__ import annotations
 
 import logging
+import random
 from typing import Any, Callable
-import numpy as np
 
 logger = logging.getLogger("grafo-concierge.probabilistic-retriever")
 
@@ -33,8 +36,14 @@ class ThompsonRetriever:
 
     @staticmethod
     def sample_multiplier(alpha: float, beta: float) -> float:
-        """Samples a probabilistic multiplier using numpy's Beta Distribution."""
-        return float(np.random.beta(alpha, beta))
+        """Samples a probabilistic multiplier using Python's native Beta Distribution.
+
+        Parameters are sanitized with max(val, 1e-5) to guarantee strictly
+        positive values as required by random.betavariate (SDD-15).
+        """
+        safe_alpha = max(alpha, 1e-5)
+        safe_beta = max(beta, 1e-5)
+        return random.betavariate(safe_alpha, safe_beta)
 
     def retrieve(
         self,
@@ -79,7 +88,7 @@ class ThompsonRetriever:
             alpha = float(metadata.get("utility_alpha", 1.0))
             beta = float(metadata.get("utility_beta", 1.0))
 
-            # Perform sampling with numpy Beta Distribution
+            # Perform sampling with native Beta Distribution (SDD-15)
             thompson_multiplier = ThompsonRetriever.sample_multiplier(alpha, beta)
             final_score = similarity * thompson_multiplier
 

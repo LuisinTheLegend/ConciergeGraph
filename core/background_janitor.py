@@ -1,8 +1,9 @@
 """
-core/background_janitor.py — SDD-SURVIVAL-06 / SDD-SURVIVAL-12
+core/background_janitor.py — SDD-SURVIVAL-06 / SDD-SURVIVAL-12 / SDD-SURVIVAL-14
 
-Varredor de Resumos em Segundo Plano (SLM Offloading) e
-Auto-Poda Inteligente de Checkpoints (Smart LRU per Session).
+Varredor de Resumos em Segundo Plano (SLM Offloading),
+Auto-Poda Inteligente de Checkpoints (Smart LRU per Session) e
+Throttler Térmico e de IOPS (Hardware-Aware RateGovernor).
 
 Responsabilidades:
   1. Delega a geração de resumos das comunidades DIRTY para modelos locais
@@ -11,6 +12,9 @@ Responsabilidades:
   2. Limpa checkpoints intermediários obsoletos de sessões de agentes,
      preservando o ponto zero ("init") e os N mais recentes, evitando
      o inchaço indefinido do banco state.db. (SDD-12)
+  3. Monitora integridade térmica do host via psutil antes de acionar
+     modelos de linguagem locais (Ollama), garantindo que resumos nunca
+     degradem a experiência do desenvolvedor (DX). (SDD-14)
 
 Fluxo de Resumo (SDD-06):
   1. Localiza comunidades com is_dirty = 1
@@ -23,10 +27,20 @@ Fluxo de Poda (SDD-12):
   2. Protege o primeiro checkpoint (ponto zero imutável)
   3. Mantém os últimos N checkpoints recentes (keep_limit)
   4. Deleta os intermediários obsoletos via SerializedWriteQueue
+
+Fluxo do Throttler Térmico (SDD-14):
+  1. Verifica uso de CPU geral do host (< 40%)
+  2. Verifica período de ociosidade do desenvolvedor (quiet period)
+  3. Rebaixa prioridade do processo Python para background
 """
 
 import logging
+import os
+import sys
+import time
 from typing import Any, Callable, Dict, List, Optional
+
+import psutil
 
 logger = logging.getLogger(__name__)
 
@@ -36,11 +50,12 @@ class BackgroundJanitor:
     Varredor de ociosidade que resume comunidades sujas utilizando
     exclusivamente modelos locais gratuitos (SLM), garantindo faturas
     de API zeradas. Também realiza auto-poda inteligente de checkpoints
-    para evitar inchaço do banco. (SDD-06 / SDD-12)
+    para evitar inchaço do banco. (SDD-06 / SDD-12 / SDD-14)
     """
 
     def __init__(self, db_manager: Any):
         self.db_manager = db_manager
+        self.is_running = False
 
     # ── Resumo de Comunidades (SDD-06) ────────────────────────────
 
@@ -192,4 +207,86 @@ class BackgroundJanitor:
         )
 
         return len(ids_to_delete)
+
+    # ── Throttler Térmico e Hardware-Aware Governor (SDD-14) ──────
+
+    def check_hardware_clearance(
+        self,
+        max_cpu_percent: float = 40.0,
+        quiet_period_seconds: float = 180.0,
+    ) -> bool:
+        """
+        Verifica se a máquina local possui folga térmica e de processamento
+        para execução segura de SLMs locais (Ollama).
+
+        Condições para liberação (todas devem ser verdadeiras):
+          1. CPU geral do host abaixo de max_cpu_percent (média de 0.5s)
+          2. Nenhum arquivo modificado nos últimos quiet_period_seconds
+             (período de ociosidade/idle do desenvolvedor)
+
+        Retorna True se o hardware está liberado, False caso contrário.
+        """
+        # 1. Verifica uso de CPU geral do host
+        current_cpu = psutil.cpu_percent(interval=0.5)
+        if current_cpu > max_cpu_percent:
+            logger.debug(
+                "SDD-14: Hardware clearance negada — CPU em %.1f%% (limite: %.1f%%)",
+                current_cpu,
+                max_cpu_percent,
+            )
+            return False
+
+        # 2. Verifica período de ociosidade (Quiet Period)
+        result = self.db_manager.read_query(
+            "SELECT MAX(last_modified) FROM files;"
+        )
+        latest_change = result[0][0] if result and result[0][0] is not None else 0
+
+        if (time.time() - latest_change) < quiet_period_seconds:
+            logger.debug(
+                "SDD-14: Hardware clearance negada — arquivo modificado há %.1fs "
+                "(quiet period: %.1fs)",
+                time.time() - latest_change,
+                quiet_period_seconds,
+            )
+            return False
+
+        return True
+
+    def process_community_summaries_frugal(self) -> str:
+        """
+        Executa a geração de resumos das comunidades detectadas aplicando
+        rebaixamento de prioridade de processo e travas térmicas.
+
+        Fluxo:
+          1. Rebaixa prioridade do processo Python para background
+             (IDLE_PRIORITY_CLASS no Windows, nice(15) no Unix)
+          2. Verifica barreira de hardware (CPU + quiet period)
+          3. Se aprovado, processa resumos via SLM local
+
+        Retorna:
+          - "skipped_due_to_hardware_constraints" se a barreira bloquear
+          - "success" se processado com sucesso
+        """
+        # Rebaixa prioridade do processo corrente para background
+        try:
+            p = psutil.Process(os.getpid())
+            if sys.platform == "win32":
+                p.nice(psutil.IDLE_PRIORITY_CLASS)
+            else:
+                p.nice(15)
+        except Exception:
+            pass  # Ignora se não houver permissão no SO
+
+        # Executa barreira de hardware
+        if not self.check_hardware_clearance():
+            return "skipped_due_to_hardware_constraints"
+
+        self.is_running = True
+
+        # Processa resumos locais via Ollama...
+        # (Implementação do cliente Ollama será adicionada em SDD futuro)
+
+        self.is_running = False
+        return "success"
 

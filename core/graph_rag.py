@@ -68,3 +68,77 @@ class GraphRAGEngine:
             (start_node, start_node, depth_limit, start_node),
         )
         return [row[0] for row in rows]
+
+    # ── Detecção de Comunidades com Filtro de Supernó (SDD-14) ────
+
+    def detect_logical_communities(
+        self, in_degree_threshold: int = 5
+    ) -> dict:
+        """
+        Agrupa os arquivos do repositório em comunidades baseadas na
+        proximidade de acoplamento AST, filtrando supernós (hubs globais).
+
+        Algoritmo:
+          1. Calcula in-degree de cada nó na tabela ast_edges
+          2. Nós com in-degree > in_degree_threshold são classificados
+             como Supernós e omitidos como pontes de transição
+          3. Arestas limpas (sem supernós) são agrupadas via Union-Find
+             em componentes conectados independentes
+          4. Supernós recebem fallback de diretório (hub_satellite_{dir})
+
+        Retorna dict: {community_key: [file_paths]}
+        """
+        # 1. Identificar supernós (hubs globais) por in-degree
+        supernodes_rows = self.db_manager.read_query(
+            "SELECT child_node, COUNT(*) as in_degree "
+            "FROM ast_edges "
+            "GROUP BY child_node "
+            "HAVING in_degree > ?;",
+            (in_degree_threshold,),
+        )
+        supernodes = {r[0] for r in supernodes_rows}
+
+        # 2. Buscar arestas limpas (excluindo supernós como pontes)
+        all_edges = self.db_manager.read_query(
+            "SELECT parent_node, child_node FROM ast_edges;"
+        )
+        filtered_edges = [
+            (parent, child)
+            for parent, child in all_edges
+            if parent not in supernodes and child not in supernodes
+        ]
+
+        # 3. Agrupamento em Componentes Conectados (Union-Find)
+        parent_map: dict = {}
+
+        def find(node: str) -> str:
+            if parent_map.setdefault(node, node) != node:
+                parent_map[node] = find(parent_map[node])
+            return parent_map[node]
+
+        def union(node1: str, node2: str) -> None:
+            root1 = find(node1)
+            root2 = find(node2)
+            if root1 != root2:
+                parent_map[root1] = root2
+
+        for parent, child in filtered_edges:
+            union(parent, child)
+
+        # 4. Agrupa arquivos por comunidade
+        all_files = [
+            r[0] for r in self.db_manager.read_query("SELECT path FROM files;")
+        ]
+
+        communities: dict = {}
+        for file_path in all_files:
+            if file_path in supernodes:
+                # Supernó → satélite do diretório local (Fallback L2/L1)
+                dir_name = "/".join(file_path.replace("\\", "/").split("/")[:-1]) or "root"
+                community_key = f"hub_satellite_{dir_name}"
+            else:
+                community_key = f"community_{find(file_path)}"
+
+            communities.setdefault(community_key, []).append(file_path)
+
+        return communities

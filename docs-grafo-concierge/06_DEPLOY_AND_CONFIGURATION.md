@@ -78,3 +78,37 @@ services:
 To connect multiple machines (e.g. laptop querying desktop PC running Grafo Concierge):
 1. In `.env`, change `CONCIERGE_BIND_ADDRESS=0.0.0.0`.
 2. Access the server over your secure Tailscale IP (e.g. `http://100.x.y.z:8000/sse`).
+
+---
+
+## 4. Real-Time Telemetry & REST API (`interface/telemetry_api.py`)
+
+In addition to FastMCP, Grafo Concierge exposes a high-performance **FastAPI Telemetry Server** for real-time observability dashboards (e.g., Next.js, Electron, or Web UIs):
+
+### 4.1 Available Endpoints
+
+| Endpoint | Method | Response / Content-Type | Description |
+| :--- | :---: | :--- | :--- |
+| **`/api/telemetry/snapshot`** | `GET` | `application/json` | Full system snapshot: dirty files, Janitor status, self-healing events, and agent checkpoints. |
+| **`/api/telemetry/stream`** | `GET` | `text/event-stream` (SSE) | Persistent real-time event stream emitting system state updates every 2 seconds. |
+| **`/api/janitor/reconcile`** | `POST` | `application/json` | On-demand manual trigger to execute vector reconciliation and cache cleanups. |
+
+### 4.2 Running the Telemetry API
+
+```bash
+# Start the FastAPI telemetry server via Uvicorn
+uvicorn interface.telemetry_api:create_app --factory --host 127.0.0.1 --port 8001 --reload
+```
+
+### 4.3 Next.js Dashboard Integration (SSE Client Example)
+
+```typescript
+// Example Next.js SSE hook for live Grafo Concierge telemetry
+const eventSource = new EventSource("http://127.0.0.1:8001/api/telemetry/stream");
+
+eventSource.onmessage = (event) => {
+  const telemetry = JSON.parse(event.data);
+  console.log("Dirty files count:", telemetry.dirty_files.length);
+  console.log("Janitor active:", telemetry.janitor_status.is_running);
+};
+```

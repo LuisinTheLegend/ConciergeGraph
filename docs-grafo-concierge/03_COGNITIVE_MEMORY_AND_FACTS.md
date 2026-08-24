@@ -164,7 +164,30 @@ During retrieval with `enable_probabilistic=True`:
                 └────────────────────────────────────────────────────────┘
 ```
 
-### 5.2 The Agent Feedback Loop (`concierge_feedback`)
+### 5.2 Zero-NumPy Frugal Implementation (`random.betavariate`)
+Under **Active-SDD #15**, Grafo Concierge completely eliminated the external `numpy` library (~30MB footprint) from its probabilistic ranking engine.
+
+Instead, sampling executes via Python's standard library `random.betavariate()` with defensive input sanitization:
+
+```python
+@staticmethod
+def sample_multiplier(alpha: float, beta: float) -> float:
+    """Samples a probabilistic multiplier using Python's native Beta Distribution.
+
+    Parameters are sanitized with max(val, 1e-5) to guarantee strictly
+    positive values as required by random.betavariate (SDD-15).
+    """
+    safe_alpha = max(alpha, 1e-5)
+    safe_beta = max(beta, 1e-5)
+    return random.betavariate(safe_alpha, safe_beta)
+```
+
+**Benefits**:
+* **Zero Overhead**: Identical statistical properties without loading massive C-extensions in RAM.
+* **Resilient**: Safely handles zero or negative utility edge cases without crashing (`ValueError`).
+* **Deterministic Testing**: Fully reproducible via `random.seed(seed)`.
+
+### 5.3 The Agent Feedback Loop (`concierge_feedback`)
 Agents or IDE hooks close the learning loop by submitting feedback after completing tasks:
 * `concierge_feedback(fact_id=21, was_useful=True)`:
   $$\alpha \leftarrow \alpha + 1.0$$

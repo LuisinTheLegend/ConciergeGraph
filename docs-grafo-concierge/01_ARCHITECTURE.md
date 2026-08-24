@@ -14,10 +14,13 @@ Under the **Survival Engineering Paradigm (Fatias Verticais de Sobrevivência & 
 3. **Lazy Summarization JIT & SLM Offloading (`BackgroundJanitor`)**: Postpones AI re-summarization until context is actively queried, delegating background processing to free local Small Language Models (SLMs via Ollama) during idle cycles.
 4. **Smart Checkpoint Pruning (`BackgroundJanitor.prune_session_checkpoints`)**: Implements an intelligent Smart LRU per Session algorithm that prevents database bloat in `state.db`. Inviolably protects the initial "point zero" checkpoint (`"init"` / earliest timestamp) for hard resets while retaining the last $N$ active steps (default: 10) and purging obsolete intermediate records in paginated batches via `SerializedWriteQueue`.
 5. **Query-Time Self-Healing & Vector Reconciliation (`HybridSearchEngine` / `VectorReconciler`)**: Solves SQLite vs. Qdrant desynchronization without slow, blocking Two-Phase Commits (2PC). Queries automatically filter out orphan vectors in real-time ($O(1)$ lookup), while a background Janitor physically purges orphans via set-difference algorithms.
-6. **Frugal GraphRAG & Strict Delimited CTE Loop Guards (`GraphRAGEngine`)**: Eliminates RAM-heavy graph clustering algorithms by adopting physical directories as natural community boundaries ($O(1)$ topological mapping) and executing multi-hop call-chain traversals directly in SQLite via `WITH RECURSIVE` queries protected by strict pipe-delimited cycle guards (`|node|` matching via `instr()`), preventing indirect loops ($A \rightarrow B \rightarrow C \rightarrow A$) and substring collisions (`auth.js` vs `oauth.js`).
-7. **Agnostic State Checkpointing & Time-Travel (`AgnosticCheckpointer`)**: Provides generic, agent-agnostic persistence for arbitrary AI state dictionaries stored as JSON blobs under composite primary keys (`agent_id`, `session_id`, `checkpoint_id`), enabling hermetic isolation and chronological rollback navigation.
-8. **Early-Exit Reactive Watcher (`ConciergeFileSystemHandler`)**: Filters file modification events against `.conciergeignore` / `pathspec` rules *before* hitting disk I/O, protecting the indexing pipeline from `node_modules`, `.env`, and build artifact noise.
-9. **Resource Isolation & Security (`AgentDependencies`)**: Encapsulates workspace paths, database managers, and security boundaries within an immutable frozen dataclass, preventing Path Traversal vulnerabilities.
+6. **Frugal GraphRAG, Supernode Outlier Filtering & Strict Delimited CTE Loop Guards (`GraphRAGEngine`)**: Eliminates RAM-heavy graph clustering algorithms by combining $O(1)$ topological directory mapping with a **Degree Outlier Filter** that isolates high in-degree supernodes (e.g., `utils.py`) into `hub_satellite_{dir}` clusters to prevent topological collapse, while multi-hop call-chains are traversed in SQLite via `WITH RECURSIVE` queries protected by strict pipe-delimited cycle guards (`|node|` matching via `instr()`).
+7. **Hardware-Aware Thermal Throttling & Rate Governor (`BackgroundJanitor.check_hardware_clearance`)**: Prevents CPU exhaustion and developer distraction by inspecting host CPU utilization ($<40\%$) and active typing quiet periods before triggering background local SLM summarizations, executing at reduced OS priority (`IDLE_PRIORITY_CLASS` on Windows, `nice(15)` on Unix).
+8. **Real-Time Telemetry & SSE Streaming Layer (`interface/telemetry_api.py` / `core/telemetry_schemas.py`)**: Exposes structured Pydantic v2 schemas and low-latency Server-Sent Events (`/api/telemetry/stream`) alongside REST snapshots (`/api/telemetry/snapshot`) and manual reconcile triggers, enabling real-time dashboard observability with zero polling overhead.
+9. **Zero-NumPy Native Bayesian Thompson Sampling (`core/probabilistic_retriever.py`)**: Replaces the 30MB external NumPy dependency with Python's built-in `random.betavariate()` and input parameter sanitization (`max(val, 1e-5)`), delivering exact statistical equivalence and rock-solid memory ranking without footprint bloat.
+10. **Agnostic State Checkpointing & Time-Travel (`AgnosticCheckpointer`)**: Provides generic, agent-agnostic persistence for arbitrary AI state dictionaries stored as JSON blobs under composite primary keys (`agent_id`, `session_id`, `checkpoint_id`), enabling hermetic isolation and chronological rollback navigation.
+11. **Early-Exit Reactive Watcher (`ConciergeFileSystemHandler`)**: Filters file modification events against `.conciergeignore` / `pathspec` rules *before* hitting disk I/O, protecting the indexing pipeline from `node_modules`, `.env`, and build artifact noise.
+12. **Resource Isolation & Security (`AgentDependencies`)**: Encapsulates workspace paths, database managers, and security boundaries within an immutable frozen dataclass, preventing Path Traversal vulnerabilities.
 
 ---
 
@@ -26,31 +29,33 @@ Under the **Survival Engineering Paradigm (Fatias Verticais de Sobrevivência & 
 ```
                     ┌─────────────────────────────────────────────────────────┐
                     │            MCP Clients (Claude Desktop / Cursor)        │
-                    │               External Multi-Agent Swarms               │
+                    │            Next.js Dashboard & Multi-Agent Swarms       │
                     └────────────────────────────┬────────────────────────────┘
-                                                 │  JSON-RPC / SSE (FastMCP)
+                                                 │  JSON-RPC / FastMCP & FastAPI REST/SSE
                                                  ▼
 ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-│ 🌐 INTERFACE LAYER (interface/mcp_server.py, interface/watcher.py, interface/cli.py)        │
-│ - FastMCP Server with stdio & SSE transports (30 Specialized Native Tools)                  │
-│ - Security Middleware: Bearer Token Auth (GRAFO_API_KEY) & CORS                             │
-│ - Early-Exit Reactive File Watcher (pathspec / .conciergeignore)                            │
-│ - SerializedWriteQueue (Single-Writer Daemon with Adaptive Batching & Single-Item Fallback) │
+│ 🌐 INTERFACE & TELEMETRY LAYER (interface/)                                                 │
+│ - mcp_server.py: FastMCP Server with stdio & SSE transports (30 Native Cognitive Tools)    │
+│ - telemetry_api.py: FastAPI REST (/api/telemetry/snapshot, /api/janitor/reconcile) & SSE    │
+│ - watcher.py: Early-Exit Reactive File Watcher (pathspec / .conciergeignore)                │
+│ - queue_writer.py (SerializedWriteQueue): Single-Writer Daemon + Adaptive Auto-Batching     │
+│ - cli.py: Management and operational CLI commands                                          │
 └────────────────────────────────────────┬────────────────────────────────────────────────────┘
                                          │
                                          ▼
 ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
 │ 🧠 CORE & SURVIVAL LAYER (core/)                                                            │
 │ - middleware.py (GrafoConcierge): Central Facade orchestrating all subsystems                │
+│ - telemetry_schemas.py: Pydantic v2 schemas for DirtyFiles, SelfHealing, Checkpoints & State │
 │ - delta_manager.py: Dual Hash (SSH Signature + LBH Semantic Drift) & DocstringStripper      │
 │ - hybrid_search.py / search_engine.py: Tri-signal score + Query-Time Self-Healing Filter    │
-│ - graph_rag.py: O(1) Natural communities & SQLite CTE with Strict Delimited Loop Guard      │
+│ - graph_rag.py: O(1) Natural communities, Supernode Degree Outlier Filter & CTE Loop Guard  │
 │ - checkpointer.py: Agent-agnostic state blobs & chronological Time-Travel timeline          │
-│ - background_janitor.py: Smart Checkpoint Pruning (Smart LRU) & SLM local offloading        │
+│ - background_janitor.py: Hardware-aware Thermal Governor, Smart LRU Pruning & Local SLM    │
 │ - vector_reconciler.py: Background Orphan Expurging via set differences                     │
 │ - dependencies.py: Immutable frozen dataclass container with path traversal defense         │
 │ - memory_extractor.py: Bi-temporal fact consolidation (ADD / UPDATE / DELETE / NOOP)        │
-│ - probabilistic_retriever.py: Thompson Sampling over Beta(alpha, beta) memory utility       │
+│ - probabilistic_retriever.py: Zero-NumPy Thompson Sampling via native random.betavariate()   │
 │ - project_index.py: Project registry, node/edge CRUD & wing management                     │
 │ - config.py: Centralized configuration loader (env vars, model tiers, paths)                │
 └──────────────────┬──────────────────────────────────────────┬───────────────────────────────┘
@@ -75,7 +80,7 @@ Under the **Survival Engineering Paradigm (Fatias Verticais de Sobrevivência & 
 │ │ - semantic_logic.py: Semantic Facts Queries       │ │                                        │ │
 │ │ - store.py: SqliteStore High-Level API           │ │                                        │ │
 │ └──────────────────────────────────────────────────┘ └────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────────────────────────────────────┘
+│ └─────────────────────────────────────────────────────────────────────────────────────────────┘ │
 ```
 
 ---
@@ -114,7 +119,8 @@ CREATE TABLE IF NOT EXISTS files (
     ssh_hash     TEXT,             -- SHA-256 of structural signature lines
     body_hash    TEXT,             -- SHA-256 of AST body without docstrings (LBH)
     is_dirty     INTEGER DEFAULT 1,-- 1 = Needs summarization / update, 0 = Clean
-    community_id TEXT
+    community_id TEXT,
+    last_modified REAL
 );
 
 -- 2. Communities & Frugal GraphRAG
@@ -270,8 +276,13 @@ CREATE VIRTUAL TABLE IF NOT EXISTS nodes_fts USING fts5(
 * Orphan vectors (files deleted from disk/SQLite) are dropped in real-time ($O(1)$ response-time filtering).
 * `VectorReconciler.reconcile_orphans()` performs an asynchronous $O(N)$ set difference (`set(vector_ids) - set(sqlite_paths)`) and deletes orphaned vector records in batches.
 
-### 5.3 Frugal GraphRAG with Strict Delimited Loop Guard
+### 5.3 Frugal GraphRAG: Supernode Outlier Filter & CTE Loop Guards
 * **Natural Communities**: `GraphRAGEngine.get_natural_community()` maps file paths to immediate parent directories (e.g. `core/utils/delta.py` $\rightarrow$ `core/utils`), executing in $O(1)$ string operations without loading graphs into RAM.
+* **Degree Outlier Supernode Filter (`detect_logical_communities`)**:
+  1. Computes node in-degrees over `ast_edges` (`GROUP BY child_node HAVING in_degree > threshold`).
+  2. Files exceeding the threshold (e.g., global utility hubs like `utils.py`) are classified as Supernodes and excluded as transit bridges during connected component formation.
+  3. Clean edges are clustered via Union-Find into independent business communities (`community_{root}`).
+  4. Supernodes receive directory-fallback clusters (`hub_satellite_{dir}`), preventing the collapse of the entire graph into a single monolithic component.
 * **Strict Loop Guard Query**: `get_call_chain_recursive()` executes a `WITH RECURSIVE` CTE accumulating pipe-delimited paths (`|node1|node2|`) and testing `instr(cc.path_visited, '|' || e.child_node || '|') = 0`:
   ```sql
   WITH RECURSIVE call_chain(node, depth, path_visited) AS (
@@ -292,3 +303,24 @@ CREATE VIRTUAL TABLE IF NOT EXISTS nodes_fts USING fts5(
 * `AgnosticCheckpointer` persists and retrieves arbitrary JSON state payloads under `(agent_id, session_id, checkpoint_id)`.
 * `BackgroundJanitor.prune_session_checkpoints(session_id, keep_limit=10)` executes Smart LRU pruning: protects checkpoint `"init"` (point-zero) while keeping the $N$ most recent entries and purging stale intermediate records via `SerializedWriteQueue`.
 * `list_checkpoints()` returns a chronological timeline (`ORDER BY created_at ASC`) allowing AI agents to step backwards in time.
+
+### 5.5 Hardware-Aware Thermal Throttling & Rate Governor
+* `BackgroundJanitor.check_hardware_clearance(max_cpu_percent=40.0, quiet_period_seconds=180.0)` verifies host health before launching local SLMs (Ollama):
+  1. Measures host CPU usage over a 0.5s window via `psutil.cpu_percent(interval=0.5)`. Rejects execution if $\text{CPU} > 40\%$.
+  2. Queries `MAX(last_modified)` from `files`. Rejects execution if files were edited within the quiet period (active typing window).
+* `process_community_summaries_frugal()` automatically lowers process priority (`IDLE_PRIORITY_CLASS` on Windows, `nice(15)` on Unix) to guarantee that background summaries never degrade developer experience (DX).
+
+### 5.6 Real-Time SSE Telemetry & Health Stream
+* `interface/telemetry_api.py` provides FastAPI endpoints for dashboard integrations:
+  * `GET /api/telemetry/snapshot`: Complete JSON snapshot of dirty files, Janitor status, self-healing events, and agent checkpoints using Pydantic v2 schemas.
+  * `GET /api/telemetry/stream`: High-efficiency Server-Sent Events (SSE) streaming state changes every 2 seconds with automatic reconnection support.
+  * `POST /api/janitor/reconcile`: Manual on-demand trigger to execute background vector reconciliation and cache cleanup.
+
+### 5.7 Zero-NumPy Native Bayesian Thompson Sampling
+* `core/probabilistic_retriever.py` uses Python's standard `random.betavariate()` instead of external NumPy packages (~30MB savings):
+  ```python
+  safe_alpha = max(alpha, 1e-5)
+  safe_beta = max(beta, 1e-5)
+  multiplier = random.betavariate(safe_alpha, safe_beta)
+  ```
+* Input sanitization prevents runtime `ValueError` on boundary conditions ($\le 0$), maintaining mathematical equivalence with pure Python speed.

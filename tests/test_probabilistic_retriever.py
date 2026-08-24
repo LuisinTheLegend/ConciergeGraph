@@ -7,7 +7,7 @@ Valida a lógica de explotação e exploração baseada no Thompson Sampling (SA
 from __future__ import annotations
 
 import sqlite3
-import numpy as np
+import random
 import pytest
 
 from storage.schema import SchemaManager
@@ -86,7 +86,7 @@ def test_thompson_retriever_exploration():
     wins_b = 0
     
     # Fixa seed para determinismo do teste amostral
-    np.random.seed(42)
+    random.seed(42)
     
     for _ in range(1000):
         results = retriever.retrieve("query", limit=5, top_k=2)
@@ -135,7 +135,7 @@ def test_thompson_retriever_exploitation():
     wins_a = 0
     wins_b = 0
     
-    np.random.seed(42)
+    random.seed(42)
     
     for _ in range(1000):
         results = retriever.retrieve("query", limit=5, top_k=2)

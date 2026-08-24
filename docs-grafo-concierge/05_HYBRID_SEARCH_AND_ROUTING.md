@@ -28,15 +28,35 @@ Distributed databases often face desynchronization when files are deleted on dis
 
 ## 3. Frugal GraphRAG Engine (`core/graph_rag.py`)
 
-Academic GraphRAG implementations incur excessive costs and RAM consumption through heavy network partition algorithms (e.g. Leiden / Louvain). Grafo Concierge replaces this with two frugal mechanisms:
+Academic GraphRAG implementations incur excessive costs and RAM consumption through heavy network partition algorithms (e.g. Leiden / Louvain). Grafo Concierge replaces this with three frugal mechanisms:
 
 ### 3.1 Natural Community Topological Mapping ($O(1)$)
 `GraphRAGEngine.get_natural_community(file_path)` maps files to their immediate parent directories:
 * `core/utils/delta.py` $\rightarrow$ `core/utils`
 * `main.py` $\rightarrow$ `root`
 
-### 3.2 Recursive Multi-Hop Dependency Resolution with Strict Loop Guard
-To resolve call chains across multiple files, `get_call_chain_recursive()` executes a native `WITH RECURSIVE` query over `ast_edges`. Under Phase 4 (Active-SDD #9), it is protected by strict pipe-delimited cycle guards:
+### 3.2 Degree Outlier Supernode Filtering (`detect_logical_communities`)
+In real-world codebases, generic utility hubs (e.g., `utils.py`, `database.py`, `types.ts`) are imported by nearly every module. Naive community clustering merges the entire graph through these hubs into a single monolithic component, destroying cluster granularity.
+
+Under **Active-SDD #14**, `GraphRAGEngine.detect_logical_communities(in_degree_threshold=5)` implements a **Degree Outlier Filter**:
+1. **Hub Detection**: Analyzes node in-degrees in `ast_edges` (`GROUP BY child_node HAVING in_degree > ?`). Nodes exceeding the threshold are tagged as **Supernodes**.
+2. **Bridge Isolation**: Excludes supernode edges during topological clustering so they do not act as artificial bridges between distinct business domains.
+3. **Union-Find Clustering**: Groups clean edges into disjoint connected components (`community_{root}`).
+4. **Directory Fallback**: Supernodes are isolated as directory satellites (`hub_satellite_{dir}`), maintaining local relevance without collapsing global clusters.
+
+```
+       [auth.py] ──► [routes.py]           [order.py] ──► [checkout.py]
+             │              │                     │               │
+             ▼              ▼                     ▼               ▼
+        ┌─────────────────────────────────────────────────────────────┐
+        │        [utils.py]  (Supernode / In-Degree = 4)              │
+        │        Isolated as `hub_satellite_src`                      │
+        └─────────────────────────────────────────────────────────────┘
+        Cluster A: {auth.py, routes.py}     Cluster B: {order.py, checkout.py}
+```
+
+### 3.3 Recursive Multi-Hop Dependency Resolution with Strict Loop Guard
+To resolve call chains across multiple files, `get_call_chain_recursive()` executes a native `WITH RECURSIVE` query over `ast_edges`. Protected by strict pipe-delimited cycle guards:
 
 ```sql
 WITH RECURSIVE call_chain(node, depth, path_visited) AS (
