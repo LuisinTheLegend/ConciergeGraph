@@ -96,12 +96,15 @@ class GrafoConciergeServer:
             from starlette.middleware.cors import CORSMiddleware
             from starlette.responses import JSONResponse
             
-            api_key = self._gc.config.api_key or os.environ.get("GRAFO_API_KEY")
+            cfg = getattr(self._gc, "config", None)
+            api_key = (getattr(cfg, "api_key", None) if cfg else None) or os.environ.get("GRAFO_API_KEY")
             cors_origins_env = os.environ.get("GRAFO_CORS_ORIGINS")
             if cors_origins_env:
                 origins = [o.strip() for o in cors_origins_env.split(",") if o.strip()]
+            elif cfg and hasattr(cfg, "cors_origins"):
+                origins = list(cfg.cors_origins)
             else:
-                origins = list(self._gc.config.cors_origins)
+                origins = ["*"]
 
             # 1. API Key Authentication Middleware (if configured)
             if api_key:

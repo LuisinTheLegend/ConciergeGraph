@@ -93,6 +93,11 @@ class GrafoConcierge:
 
         logger.info("GrafoConcierge (Fachada) inicializada com sucesso.")
 
+    @property
+    def config(self) -> ConciergeConfig:
+        """Returns the centralized configuration."""
+        return self._config
+
     # ===================================================================
     # REGISTER — Registers a new project
     # ===================================================================
