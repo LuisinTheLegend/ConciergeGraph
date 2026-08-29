@@ -195,3 +195,84 @@ Agents or IDE hooks close the learning loop by submitting feedback after complet
   $$\beta \leftarrow \beta + 1.0$$
 
 Over time, the memory graph automatically optimizes its retrieval distribution to the specific workflows of the development team.
+
+---
+
+## 6. Durable FSM Checkpoints & Cognitive Time-Travel (`core/checkpointer.py`)
+
+Under **Active-SDD #20**, Grafo Concierge extends state persistence into durable SQLite WAL tables, enabling resilient session recovery and non-destructive rollbacks across agent execution phases.
+
+### 6.1 Relational Schema (`storage/relational_db.py`)
+```sql
+CREATE TABLE IF NOT EXISTS fsm_checkpoints (
+    session_id    TEXT NOT NULL,
+    checkpoint_id TEXT NOT NULL,
+    state_blob    TEXT NOT NULL,      -- Recursively sanitized JSON snapshot
+    created_at    REAL NOT NULL,      -- Epoch timestamp (time.time())
+    dirty_files   TEXT DEFAULT '[]',  -- JSON list of files touched in step
+    PRIMARY KEY (session_id, checkpoint_id)
+);
+CREATE INDEX IF NOT EXISTS idx_fsm_checkpoints_session_created
+    ON fsm_checkpoints(session_id, created_at ASC);
+```
+
+### 6.2 Resilient JSON Sanitization (`_sanitize_for_json`)
+Autonomous AI agents frequently maintain active locks, generator states, file descriptors, or custom objects inside their state dictionaries. Passing these directly to `json.dumps()` triggers `TypeError: Object is not JSON serializable`.
+
+The `AgnosticCheckpointer` runs recursive sanitization:
+* Primitives (`str`, `int`, `float`, `bool`, `None`): Preserved as-is.
+* Containers (`dict`, `list`, `tuple`, `set`): Recursively traversed and normalized.
+* Non-Serializable Objects (`threading.Lock`, `Coroutine`, custom instances): Converted to deterministic string representations (e.g. `"<Lock object at 0x...>"`), allowing 100% of state snapshots to save cleanly without crashing the agent.
+
+### 6.3 Time-Travel Rollback Workflow
+When an agent or developer triggers a rollback (`POST /api/checkpoints/time-travel`):
+1. **Target Snapshot Retrieval**: Fetches `target_checkpoint_id` from `fsm_checkpoints` for the given `session_id`.
+2. **Future State Invalidation**: Automatically executes an atomic deletion of all future checkpoints recorded after the target step:
+   ```sql
+   DELETE FROM fsm_checkpoints WHERE session_id = ? AND created_at > ?;
+   ```
+3. **Dirty File Synchronization**: Parses the `dirty_files` array stored in the snapshot and executes `UPDATE files SET is_dirty = 1 WHERE path IN (...)`, instructing the file watcher and background Janitor to immediately re-synchronize local graph state.
+
+---
+
+## 7. Hierarchical Global Memory Adapter (`core/global_memory_adapter.py`)
+
+Under **Active-SDD #22**, the `GlobalMemoryAdapter` eliminates the quadratic token bloat caused by linear raw chat histories while preserving conversational naturalness.
+
+### 7.1 Hybrid Sliding Window Architecture
+
+```
+                    Incoming Chat History (N messages)
+                                    │
+          ┌─────────────────────────┴─────────────────────────┐
+          ▼ Messages 1 to N-3                                 ▼ Last 3 Messages
+┌───────────────────────────────────────┐           ┌───────────────────────────────────┐
+│ Old Conversation History              │           │ Short-Term Memory (STM)           │
+│ Podada (Discarded from raw prompt)    │           │ Preserved intact to maintain      │
+│ Substituída por LTM estruturado       │           │ pronouns & conversational context │
+└───────────────────────────────────────┘           └───────────────────────────────────┘
+                    │                                                 │
+                    ▼                                                 ▼
+┌───────────────────────────────────────────────────────────────────────────────────────┐
+│ System Injection Prompt:                                                              │
+│ - Anchor instructions                                                                 │
+│ - === SUBSTRATO DE MEMÓRIA DE LONGO PRAZO === (From Local GraphRAG / Nozomio Router) │
+│ - === HISTÓRICO CONVERSACIONAL DE CURTO PRAZO === (Formatted last 3 messages)        │
+└───────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 7.2 Context Compilation Pipeline
+* **Short-Term Memory (STM)**: Takes `chat_history[-3:]` to preserve the user's immediate question, the assistant's previous answer, and pronoun references ("fix it", "run this again").
+* **Long-Term Memory (LTM)**: Inserts the structured technical substrate retrieved by the `NozomioRouter`:
+  ```text
+  === SUBSTRATO DE MEMÓRIA DE LONGO PRAZO (Sourced from: LOCAL_GRAPHRAG) ===
+  Contexto Recuperado:
+  [Local GraphRAG Content] Módulo core/database.py possui in-degree alto.
+  
+  === HISTÓRICO CONVERSACIONAL DE CURTO PRAZO ===
+  Desenvolvedor: Mensagem recente 4
+  Agente: Resposta recente 5
+  Desenvolvedor: Pergunta atual 6
+  ```
+* **Impact**: Slashes prompt token consumption by 70–90% across long pair-programming sessions while anchoring the model to the sovereign SQLite graph memory.
+

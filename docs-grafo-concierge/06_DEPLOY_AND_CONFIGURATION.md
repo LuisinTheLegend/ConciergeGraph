@@ -92,6 +92,10 @@ In addition to FastMCP, Grafo Concierge exposes a high-performance **FastAPI Tel
 | **`/api/telemetry/snapshot`** | `GET` | `application/json` | Full system snapshot: dirty files, Janitor status, self-healing events, and agent checkpoints. |
 | **`/api/telemetry/stream`** | `GET` | `text/event-stream` (SSE) | Persistent real-time event stream emitting system state updates every 2 seconds. |
 | **`/api/janitor/reconcile`** | `POST` | `application/json` | On-demand manual trigger to execute vector reconciliation and cache cleanups. |
+| **`/api/checkpoints/{session_id}`** | `GET` | `application/json` | Chronological list of durable FSM checkpoints for a session (Active-SDD #20). |
+| **`/api/checkpoints/time-travel`** | `POST` | `application/json` | Executes time-travel rollback: restores snapshot, purges future steps, flags files as dirty (Active-SDD #20). |
+| **`/api/mcp/state`** | `POST` | `application/json` | Dynamically updates session FSM state (`PLANNING`, `EXECUTION`, etc.) for tool disclosure governance (Active-SDD #21). |
+| **`/api/mcp/state/{session_id}`** | `GET` | `application/json` | Queries the currently active FSM state for a session (Active-SDD #21). |
 
 ### 4.2 Running the Telemetry API
 
@@ -112,3 +116,30 @@ eventSource.onmessage = (event) => {
   console.log("Janitor active:", telemetry.janitor_status.is_running);
 };
 ```
+
+---
+
+## 5. Unified Concurrent DX (`concurrently`)
+
+To streamline developer experience (DX) and eliminate the friction of running separate terminals for backend and frontend during development:
+
+### 5.1 Orchestration Script (`npm run dev:all`)
+The Next.js dashboard frontend (`grafo-dashboard-web`) incorporates `concurrently` to run both services in parallel:
+
+```json
+{
+  "scripts": {
+    "dev": "next dev",
+    "dev:backend": "cd ../GrafoConcierge && python -m uvicorn interface.telemetry_api:app --host 127.0.0.1 --port 8001 --reload",
+    "dev:all": "concurrently -n \"WEB,API\" -c \"cyan,magenta\" \"npm run dev\" \"npm run dev:backend\""
+  }
+}
+```
+
+### 5.2 Usage
+Inside the `grafo-dashboard-web` directory, simply execute:
+```bash
+npm run dev:all
+```
+Both the Next.js visual dashboard (port 3000) and the FastAPI/FastMCP backend (port 8001/8000) start concurrently with unified color-coded terminal logging.
+

@@ -86,8 +86,63 @@ WHERE node != ?;  -- Exclude root start node from its own dependencies
 * **Zero Substring Collisions**: Searching for `auth.js` inside `'|oauth.js|'` yields `instr('|oauth.js|', '|auth.js|') = 0`, allowing legitimate sibling files to be traversed without false-positive blocks.
 * **Instant Cycle Interruption**: An indirect cycle such as $A \rightarrow B \rightarrow C \rightarrow A$ is blocked immediately when $C$ attempts to visit $A$, terminating recursive expansion without stack overflows or memory spikes.
 
+### 3.4 Recursive Multi-Hop Retrieval (`retrieve_multihop_context`)
+Under **Active-SDD #17**, `GraphRAGEngine.retrieve_multihop_context(entry_node, max_depth=3)` combines recursive call chains with community context:
+1. Executes `WITH RECURSIVE` traversal on SQLite WAL from the entry point down to `max_depth`.
+2. Gathers natural community summaries for each discovered dependency.
+3. Formats an integrated topological context block with cycle safety, supplying LLM agents with complete architectural awareness in a single query.
+
 ---
 
-## 4. Lightweight RAM-Saving Mode (`GRAFO_LIGHTWEIGHT_MODE=true`)
+## 4. JIT Intent Classifier (`core/intent_classifier.py`)
+
+Under **Active-SDD #22**, the `IntentClassifier` intercepts developer queries to determine whether retrieval should target the private local codebase or external public knowledge:
+
+```
+                      Developer Query
+                             │
+                             ▼
+┌────────────────────────────────────────────────────────┐
+│ Tier 1: Fast Regex Heuristics (< 1ms)                  │
+│ Matches project keywords (grafo, concierge, sdd, etc.) │
+│ or relative code paths (core/, interface/, .tsx, etc.) │
+└────────────────────────────┬───────────────────────────┘
+                             │ (No match)
+                             ▼
+┌────────────────────────────────────────────────────────┐
+│ Tier 2: Relational Entity Lookup in SQLite WAL         │
+│ Checks if terms match indexed paths in `files` table   │
+└────────────────────────────┬───────────────────────────┘
+                             │ (Ambiguous / No match)
+                             ▼
+┌────────────────────────────────────────────────────────┐
+│ Tier 3: Local SLM Fallback (Ollama qwen2.5-coder:1.5b) │
+│ Binary classification: LOCAL_CODEBASE vs EXTERNAL      │
+└────────────────────────────────────────────────────────┘
+```
+
+* **`LOCAL_CODEBASE`**: Queries concerning internal modules, private architectures, local classes, or commits.
+* **`EXTERNAL_GENERAL`**: Conceptual questions about third-party frameworks (Next.js, React, Tailwind, Python built-ins) without private code dependencies.
+
+---
+
+## 5. Nozomio Federated Knowledge Router (`core/nozomio_router.py`)
+
+The `NozomioRouter` federates search requests between local and remote knowledge providers, enforcing strict privacy boundaries:
+
+### 5.1 Knowledge Resolution Protocol
+
+| Classification | Target Backend | Privacy Flag (`is_private`) | Content Returned |
+| :--- | :--- | :---: | :--- |
+| **`LOCAL_CODEBASE`** | `GraphRAGEngine` (SQLite + Qdrant) | `True` | Sovereign multi-hop call-chains, local class definitions, and internal community summaries. |
+| **`EXTERNAL_GENERAL`** | Federated MCP Client (Public Docs) | `False` | Official Next.js/React framework documentation, syntax guidelines, and cloud references. |
+
+### 5.2 Resilient Fallbacks
+If external MCP documentation servers are unreachable or unconfigured, `NozomioRouter` returns a graceful market-context fallback without throwing exceptions or stalling agent turns.
+
+---
+
+## 6. Lightweight RAM-Saving Mode (`GRAFO_LIGHTWEIGHT_MODE=true`)
 
 When deploying on resource-constrained servers ($4/mo VPS, 512MB RAM), setting `GRAFO_LIGHTWEIGHT_MODE=true` disables neural embeddings completely and routes all discovery through SQLite FTS5 BM25, operating in $< 35\text{MB}$ RAM.
+

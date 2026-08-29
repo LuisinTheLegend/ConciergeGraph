@@ -26,11 +26,13 @@ import time
 from datetime import datetime, timezone
 from typing import AsyncGenerator
 
-from fastapi import BackgroundTasks, Depends, FastAPI
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 
 from core.database import ConciergeDatabaseManager
+from core.mcp_governor import MCPToolGovernor
 from core.telemetry_schemas import (
     AgentSessionSchema,
     CheckpointSchema,
@@ -40,6 +42,9 @@ from core.telemetry_schemas import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Instância singleton global de governança de ferramentas MCP
+mcp_governor = MCPToolGovernor()
 
 # ── Aplicação FastAPI ─────────────────────────────────────────────
 app = FastAPI(
@@ -239,6 +244,96 @@ def trigger_janitor_reconcile(
 
     background_tasks.add_task(_run_reconcile)
     return {"status": "accepted"}
+
+
+# ── Checkpoints & Time-Travel (SDD-SURVIVAL-20) ──────────────────
+
+class TimeTravelRequest(BaseModel):
+    session_id: str
+    target_checkpoint_id: str
+
+
+@app.get("/api/checkpoints/{session_id}")
+async def list_session_checkpoints(
+    session_id: str,
+    db: ConciergeDatabaseManager = Depends(get_db_manager),
+):
+    """Lista a linha do tempo cronológica de checkpoints ativos de uma sessão."""
+    try:
+        query = """
+            SELECT checkpoint_id, state_name, task_id, created_at 
+            FROM fsm_checkpoints 
+            WHERE session_id = ? 
+            ORDER BY created_at ASC;
+        """
+        rows = db.read_query(query, (session_id,))
+        return [
+            {
+                "checkpoint_id": r[0],
+                "state_name": r[1],
+                "task_id": r[2],
+                "created_at": r[3],
+            }
+            for r in rows
+        ]
+    except Exception as e:
+        logger.warning("Falha ao listar checkpoints da sessão %s: %s", session_id, e)
+        return []
+
+
+@app.post("/api/checkpoints/time-travel")
+async def trigger_time_travel(
+    payload: TimeTravelRequest,
+    db: ConciergeDatabaseManager = Depends(get_db_manager),
+):
+    """Dispara a reversão de viagem no tempo cognitivo-relacional para o agente."""
+    from core.checkpointer import AgnosticCheckpointer
+
+    checkpointer = AgnosticCheckpointer(db)
+
+    restored_state = checkpointer.execute_time_travel(
+        payload.session_id, payload.target_checkpoint_id
+    )
+    if not restored_state:
+        raise HTTPException(
+            status_code=404, detail="Sessão ou Checkpoint alvo não localizado."
+        )
+
+    return {
+        "status": "success",
+        "message": f"Time-travel executado com sucesso para o checkpoint {payload.target_checkpoint_id}",
+        "restored_state": restored_state,
+    }
+
+
+# ── MCP Progressive Tool Disclosure (SDD-SURVIVAL-21) ────────────
+
+class FSMStateUpdateRequest(BaseModel):
+    session_id: str
+    state_name: str
+
+
+@app.post("/api/mcp/state")
+async def update_mcp_session_state(payload: FSMStateUpdateRequest):
+    """Atualiza o estado mental da FSM de um agente para gerenciar a ocultação de ferramentas."""
+    try:
+        mcp_governor.set_session_state(payload.session_id, payload.state_name)
+        return {
+            "status": "success",
+            "session_id": payload.session_id,
+            "active_state": mcp_governor.get_session_state(payload.session_id),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/api/mcp/state/{session_id}")
+async def get_mcp_session_state(session_id: str):
+    """Consulta o estado mental corrente registrado para uma sessão."""
+    return {
+        "session_id": session_id,
+        "active_state": mcp_governor.get_session_state(session_id),
+    }
 
 
 # ── Streaming SSE ─────────────────────────────────────────────────

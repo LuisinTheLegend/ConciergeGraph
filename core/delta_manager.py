@@ -92,6 +92,8 @@ class DeltaManager:
             for line in file_content.splitlines()
             if (stripped := line.strip()).startswith(_STRUCTURAL_PREFIXES)
         ]
+        if not structural_lines:
+            return ""
         signature = "\n".join(structural_lines)
         return hashlib.sha256(signature.encode("utf-8")).hexdigest()
 

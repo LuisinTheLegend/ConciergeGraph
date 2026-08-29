@@ -14,7 +14,7 @@ Implementa duas estratégias de custo computacional zero para o GraphRAG local:
 """
 
 import os
-from typing import Any, List
+from typing import Any, Dict, List, Set
 
 
 class GraphRAGEngine:
@@ -25,6 +25,122 @@ class GraphRAGEngine:
 
     def __init__(self, db_manager: Any):
         self.db_manager = db_manager
+        self.db = db_manager
+
+    def _get_edge_columns(self) -> tuple[str, str]:
+        """Detecta dinamicamente se a tabela ast_edges usa parent_node_id ou parent_node."""
+        try:
+            rows = self.db.read_query("PRAGMA table_info(ast_edges);")
+            cols = [r[1] for r in rows]
+            if "parent_node_id" in cols:
+                return "parent_node_id", "child_node_id"
+            if "parent_node" in cols:
+                return "parent_node", "child_node"
+        except Exception:
+            pass
+        return "parent_node_id", "child_node_id"
+
+    # ── Travessia Recursiva Multi-Hop (SDD-17) ────────────────────
+
+    def retrieve_multihop_context(
+        self, entry_node: str, max_depth: int = 3
+    ) -> Dict[str, Any]:
+        """
+        Retorna o contexto estrutural completo ao redor de um arquivo de código,
+        navegando recursivamente pelas dependências AST no SQLite WAL.
+        """
+        if max_depth <= 1:
+            nodes_info = []
+            try:
+                nodes_rows = self.db.read_query(
+                    "SELECT path, community_id, is_dirty FROM files WHERE path = ?;",
+                    (entry_node,),
+                )
+                for r in nodes_rows:
+                    nodes_info.append({
+                        "path": r[0],
+                        "community_id": r[1],
+                        "is_dirty": r[2],
+                    })
+            except Exception:
+                pass
+            return {
+                "entry_node": entry_node,
+                "connected_nodes": nodes_info,
+                "relations": [],
+                "total_hops": max_depth,
+            }
+
+        parent_col, child_col = self._get_edge_columns()
+        max_hops = max_depth - 1
+
+        query = f"""
+            WITH RECURSIVE CallChain AS (
+                SELECT 
+                    {parent_col}, 
+                    {child_col}, 
+                    1 as depth,
+                    '|' || {parent_col} || '|' || {child_col} || '|' as path_visited
+                FROM ast_edges
+                WHERE {parent_col} = ?
+                
+                UNION ALL
+                
+                SELECT 
+                    e.{parent_col}, 
+                    e.{child_col}, 
+                    c.depth + 1,
+                    c.path_visited || e.{child_col} || '|' as path_visited
+                FROM ast_edges e
+                INNER JOIN CallChain c ON e.{parent_col} = c.{child_col}
+                WHERE c.depth < ?
+                  AND instr(c.path_visited, '|' || e.{child_col} || '|') = 0
+            )
+            SELECT DISTINCT {parent_col}, {child_col}, depth 
+            FROM CallChain;
+        """
+
+        try:
+            rows = self.db.read_query(query, (entry_node, max_hops))
+        except Exception as e:
+            # Fallback se a tabela ast_edges não existir ou falhar
+            return {"entry": entry_node, "nodes": [], "edges": [], "error": str(e)}
+
+        visited_nodes: Set[str] = {entry_node}
+        edges_list: List[Dict[str, Any]] = []
+
+        for row in rows:
+            parent, child, depth = row
+            visited_nodes.add(parent)
+            visited_nodes.add(child)
+            edges_list.append({
+                "source": parent,
+                "target": child,
+                "depth": depth,
+            })
+
+        # Recuperar informações dos nós visitados para compor o pacote de contexto
+        nodes_info = []
+        if visited_nodes:
+            placeholders = ",".join(["?"] * len(visited_nodes))
+            nodes_query = f"SELECT path, community_id, is_dirty FROM files WHERE path IN ({placeholders});"
+            try:
+                nodes_rows = self.db.read_query(nodes_query, tuple(visited_nodes))
+                for r in nodes_rows:
+                    nodes_info.append({
+                        "path": r[0],
+                        "community_id": r[1],
+                        "is_dirty": r[2],
+                    })
+            except Exception:
+                pass
+
+        return {
+            "entry_node": entry_node,
+            "connected_nodes": nodes_info,
+            "relations": edges_list,
+            "total_hops": max_depth,
+        }
 
     # ── Mapeamento Topológico ─────────────────────────────────────
 

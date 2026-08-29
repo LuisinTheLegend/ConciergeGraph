@@ -10,7 +10,7 @@ English · [Português (Brasil)](README.pt-BR.md)
 [![Protocol MCP](https://img.shields.io/badge/Protocol-MCP-purple.svg)](https://modelcontextprotocol.io/)
 [![Docker Supported](https://img.shields.io/badge/Docker-Ready-blue)](docker-compose.yml)
 
-Concierge Graph is a high-performance, local-first cognitive memory server designed to solve LLM "amnesia", context window pollution, and runaway cloud API costs. Unlike simple RAG (Retrieval-Augmented Generation) scripts, Concierge Graph acts as a bi-temporal, self-healing memory engine combining relational SQLite WAL persistence with adaptive auto-batching, dual-hash delta sync (SSH + LBH Semantic Drift Guard), frugal GraphRAG with strict loop guards, smart checkpoint auto-pruning, and agnostic state checkpointing with Time-Travel.
+Concierge Graph is a high-performance, local-first cognitive memory server designed to solve LLM "amnesia", context window pollution, and runaway cloud API costs. Operating under the **Survival Engineering & Extreme Resilience Paradigm**, Concierge Graph acts as a sovereign Long-Term Memory (LTM) engine combining relational SQLite WAL persistence with adaptive auto-batching, dual-hash delta sync (SSH + LBH Semantic Drift Guard), frugal GraphRAG with strict loop guards, structural semantic alias tracking, polyglot AST parsing (Python, TypeScript, JavaScript), durable FSM checkpoints with cognitive time-travel, progressive tool disclosure governance, and federated knowledge routing (Nozomio RAG) with a global hybrid memory adapter.
 
 ---
 
@@ -25,15 +25,19 @@ Concierge Graph is a high-performance, local-first cognitive memory server desig
 Concierge Graph is a local-first/VPS daemon that provides:
 1. **Zero-Lock Concurrency & Auto-Batching (`SerializedWriteQueue`)**: Channels all writes through a single-writer daemon on SQLite WAL. Features Adaptive Opportunistic Batching (draining up to 50 queued items in atomic `BEGIN IMMEDIATE ... COMMIT` blocks) and Single-Item Fallback to rescue healthy writes if an integrity constraint fails.
 2. **Dual-Hash Delta Sync (SSH + LBH Semantic Drift Guard)**: Combines Structural Signature Hashes (SSH) with Logical Body Hashes (LBH) using `DocstringStripper(ast.NodeTransformer)`. Catches internal logic changes (`is_dirty = 1`) while safely ignoring comments, docstrings, whitespace, and formatters, saving 100% of LLM token costs.
-3. **Frugal GraphRAG, Supernode Filtering & Strict CTE Loop Guards**: Combines $O(1)$ natural directory community mapping with dynamic **Supernode Degree Outlier Filtering** (`detect_logical_communities`) that isolates utility hubs (e.g., `utils.py`) into `hub_satellite_{dir}` clusters to prevent topological collapse, while multi-hop call chains are traversed via SQLite `WITH RECURSIVE` queries protected by pipe-delimited cycle guards (`|node|` pattern matching via `instr()`).
-4. **Hardware-Aware Thermal Throttling & Rate Governor (`BackgroundJanitor`)**: Inspects host CPU utilization ($< 40\%$) and active typing quiet periods via `psutil` before launching local SLMs (Ollama) in the background with lowered process priority (`IDLE_PRIORITY_CLASS` / `nice(15)`).
-5. **Real-Time Telemetry & SSE Streaming API (`interface/telemetry_api.py`)**: Exposes FastAPI endpoints for live dashboard observability, providing structured Pydantic v2 telemetry snapshots (`/api/telemetry/snapshot`), persistent Server-Sent Events (`/api/telemetry/stream`), and manual reconcile triggers.
-6. **Zero-NumPy Native Bayesian Thompson Sampling (`core/probabilistic_retriever.py`)**: Executes probabilistic memory ranking via Python's built-in `random.betavariate()` with defensive input sanitization (`max(val, 1e-5)`), saving ~30MB without sacrificing statistical precision.
-7. **Smart Checkpoint Auto-Pruning (`BackgroundJanitor`)**: Prevents database bloat via a Smart LRU per Session algorithm that inviolably protects the initial `"init"` checkpoint (point-zero) for factory rollbacks while keeping the $N$ most recent steps and pruning stale intermediate records via `SerializedWriteQueue`.
-8. **Query-Time Self-Healing & Eventual Consistency**: Intercepts vector queries and drops orphan vectors in real-time ($O(1)$ batch lookup) while a background Janitor physically purges orphans asynchronously via set-difference algorithms.
-9. **Agnostic State Checkpointing & Time-Travel**: Persists arbitrary AI agent state dictionaries as JSON blobs under composite primary keys `(agent_id, session_id, checkpoint_id)`, enabling hermetic multi-agent isolation and chronological state rollbacks.
-10. **Bi-Temporal Fact Persistence**: Stores semantic facts with explicit valid and transaction time tracking (`t_valid` / `t_invalid`) with Bayesian reinforcement learning over memory utility.
-11. **Early-Exit Reactive Watcher**: Filters file system events against `.conciergeignore` / `pathspec` rules before opening file descriptors, eliminating I/O bottlenecks.
+3. **Structural Semantic Alias Tracking (`core/alias_tracker.py`)**: Resolves file renames and moves atomically in $< 1\text{s}$ using Structural Semantic Hashing (SSH). Cascades path updates across `ast_edges`, `files`, and `nodes` without rebuilding the graph, while an automated purge timer safely cleans genuine deletions.
+4. **Polyglot AST Parser Factory (`core/parser_factory.py`)**: Extends AST code intelligence to TypeScript and JavaScript (`.ts`, `.tsx`, `.js`, `.jsx`) via Tree-sitter and high-performance lexical fallback, automatically filtering external npm packages and React hook built-ins.
+5. **Frugal GraphRAG, Supernode Filtering & Strict CTE Loop Guards**: Combines $O(1)$ natural directory community mapping with dynamic **Supernode Degree Outlier Filtering** (`detect_logical_communities`) that isolates utility hubs (e.g., `utils.py`) into `hub_satellite_{dir}` clusters to prevent topological collapse, while multi-hop call chains are traversed via SQLite `WITH RECURSIVE` queries protected by pipe-delimited cycle guards (`|node|` pattern matching via `instr()`).
+6. **Durable FSM Checkpoints & Cognitive Time-Travel (`core/checkpointer.py`)**: Persists resilient execution snapshots in `fsm_checkpoints` with recursive sanitization of non-serializable objects and chronological time-travel rollbacks that purge subsequent checkpoints and re-flag rolled-back files as dirty.
+7. **Progressive Tool Disclosure Governance (`core/mcp_governor.py`)**: Cognitive firewall enforcing two-layer tool visibility based on agent FSM states (`PLANNING`, `DISCOVERY`, `EXECUTION`, `TDD_GREEN`, `REFACTORING`, `MAINTENANCE`). Passively filters tool discovery to reduce prompt bloat and actively blocks unauthorized executions at runtime, raising `SecurityException`.
+8. **Federated Knowledge Routing (Nozomio RAG) & Global Hybrid Memory Adapter**: JIT 3-tier Intent Classifier (Regex < 1ms, SQLite entities, Ollama SLM) routes queries between private `LOCAL_GRAPHRAG` (`is_private: True`) and public `EXTERNAL_NOZOMIO_MCP` (`is_private: False`). The `GlobalMemoryAdapter` compiles a mixed sliding window: preserving the last 3 immediate chat messages (STM) combined with a structured Long-Term Memory (LTM) substrate extracted from the graph.
+9. **Hardware-Aware Thermal Throttling & Rate Governor (`BackgroundJanitor`)**: Inspects host CPU utilization ($< 40\%$) and active typing quiet periods via `psutil` before launching local SLMs (Ollama) in the background with lowered process priority (`IDLE_PRIORITY_CLASS` / `nice(15)`).
+10. **Real-Time Telemetry & SSE Streaming API (`interface/telemetry_api.py`)**: Exposes FastAPI endpoints for live dashboard observability, providing structured Pydantic v2 telemetry snapshots (`/api/telemetry/snapshot`), persistent Server-Sent Events (`/api/telemetry/stream`), checkpoint navigation (`/api/checkpoints/*`), tool governance (`/api/mcp/*`), and manual reconcile triggers.
+11. **Zero-NumPy Native Bayesian Thompson Sampling (`core/probabilistic_retriever.py`)**: Executes probabilistic memory ranking via Python's built-in `random.betavariate()` with defensive input sanitization (`max(val, 1e-5)`), saving ~30MB without sacrificing statistical precision.
+12. **Smart Checkpoint Auto-Pruning (`BackgroundJanitor`)**: Prevents database bloat via a Smart LRU per Session algorithm that inviolably protects the initial `"init"` checkpoint (point-zero) for factory rollbacks while keeping the $N$ most recent steps and pruning stale intermediate records via `SerializedWriteQueue`.
+13. **Query-Time Self-Healing & Eventual Consistency**: Intercepts vector queries and drops orphan vectors in real-time ($O(1)$ batch lookup) while a background Janitor physically purges orphans asynchronously via set-difference algorithms.
+14. **Bi-Temporal Fact Persistence**: Stores semantic facts with explicit valid and transaction time tracking (`t_valid` / `t_invalid`) with Bayesian reinforcement learning over memory utility.
+15. **Early-Exit Reactive Watcher**: Filters file system events against `.conciergeignore` / `pathspec` rules before opening file descriptors, eliminating I/O bottlenecks.
 
 ---
 
@@ -43,8 +47,12 @@ Concierge Graph is a local-first/VPS daemon that provides:
 | :--- | :--- |
 | **"Database is Locked" Concurrency Crashing** | **`SerializedWriteQueue` with Auto-Batching**: Single-writer daemon drains up to 50 writes per atomic transaction with Single-Item Fallback and concurrent sub-5ms reads on SQLite WAL. |
 | **Silent Semantic Drift & Token Waste** | **Dual-Hash Delta Sync (SSH + LBH)**: `DocstringStripper` ignores formatting and docstrings (zero AI token cost), but detects real logic alterations to keep graph memory 100% accurate. |
+| **File Renames Destroying Trajectories & Edges** | **Structural Semantic Alias Tracking**: 1-second atomic SSH buffer matches renames, migrating `files`, `ast_edges`, and `nodes` relations without graph rebuilds. |
+| **Single-Language Blind Spots** | **Polyglot Parser Factory**: Native Python AST plus Tree-sitter and lexical parsing for TypeScript/JavaScript/React (`.ts`, `.tsx`, `.js`, `.jsx`) with external package filtering. |
 | **Graph Collapse into Monolithic Component** | **Supernode Degree Outlier Filter**: Dynamically isolates high in-degree hubs (`utils.py`) into `hub_satellite_{dir}` clusters via Union-Find, preserving fine-grained community boundaries. |
-| **CPU Spikes & Fan Noise during Local SLM Tasks** | **Hardware-Aware Thermal Throttler**: Uses `psutil` to verify CPU < 40% and quiet typing periods, executing background local SLM summaries at reduced OS priority. |
+| **Prompt Token Bloat & Premature Code Mutation** | **Progressive Tool Disclosure**: Dynamically hides mutation/dangerous tools in `PLANNING` and unlocks them in `EXECUTION`, raising `SecurityException` on direct call tampering. |
+| **Linear Chat History Token Inflation** | **Global Memory Adapter**: Preserves only the last 3 immediate chat messages (STM) and replaces older history with a structured LTM substrate from the graph, saving 70-90% of tokens. |
+| **Picos de CPU e Ventoinhas com SLMs Locais** | **Throttler Térmico de Hardware**: Usa `psutil` para validar CPU < 40% e período de ociosidade, executando SLMs locais em prioridade rebaixada no SO. |
 | **Heavy External Math Dependencies** | **Zero-NumPy Thompson Sampling**: Replaced NumPy with Python stdlib `random.betavariate()` and sanitization, slashing ~30MB of installation bloat. |
 | **Infinite CTE Recursion in Circular Graphs** | **Strict Delimited Loop Guard**: Pipe-delimited path accumulators (`\|node\|`) prevent loops in recursive traversals and eliminate substring collision false-positives. |
 | **Unbounded Checkpoint Database Bloat** | **Smart Checkpoint Pruning (Smart LRU)**: Automatically eliminates intermediate step checkpoints while protecting the `"init"` baseline and the $N$ latest steps. |
@@ -55,6 +63,7 @@ Concierge Graph is a local-first/VPS daemon that provides:
 
 ## ⚙️ Advanced Engineering Highlights
 
+* ⚡ **Unified Concurrent DX (`npm run dev:all`)**: Orchestrates both Next.js frontend (`grafo-dashboard-web`) and FastAPI/FastMCP backend concurrently with unified colored output via `concurrently`.
 * ⚡ **Lightweight RAM-Saving Mode (`GRAFO_LIGHTWEIGHT_MODE=true`)**: Enables Concierge Graph to run on low-spec edge hardware or $4/mo VPS (512MB RAM) by bypassing heavy vector models and utilizing SQLite FTS5 BM25 search.
 * 📊 **Real-Time SSE Telemetry Stream (`GET /api/telemetry/stream`)**: Pushes live state mutations (dirty files, self-healing events, checkpoints) to Next.js / Electron dashboards with zero polling overhead.
 * 🔒 **Local-First Security Binding (`CONCIERGE_BIND_ADDRESS=127.0.0.1`)**: Binds to localhost by default for public Wi-Fi safety, easily configurable to `0.0.0.0` for secure Tailscale mesh networking.
@@ -155,24 +164,10 @@ concierge-mcp
 
 ## 🧪 Test Suite & Quality Assurance
 
-Concierge Graph features a rigorous automated test suite covering all survival modules, Phase 4 resilience, and E2E integration with **100% passing tests (55 passed, 1 skipped)**:
+Concierge Graph features a rigorous automated test suite covering all survival modules, complete Pilar 2 Cognition, and E2E integration with **100% passing tests (86 passed, 1 skipped out of 87 tests)**:
 
 ```bash
-python -m pytest tests/test_checkpoint_pruning.py \
-                 tests/test_queue_writer_batching.py \
-                 tests/test_delta_sync_drift.py \
-                 tests/test_graph_rag_loops.py \
-                 tests/test_agent_checkpointer.py \
-                 tests/test_delta_sync.py \
-                 tests/test_graph_rag_janitor.py \
-                 tests/test_graph_rag_frugal.py \
-                 tests/test_telemetry_api.py \
-                 tests/test_vector_reconciler.py \
-                 tests/test_mcp_server_extensions.py \
-                 tests/test_e2e_concierge_integration.py \
-                 tests/test_dependency_injection.py \
-                 tests/test_concurrency_stress.py \
-                 tests/test_probabilistic_retriever.py -v
+python -m pytest tests/ -v
 ```
 
 ---

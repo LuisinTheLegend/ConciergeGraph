@@ -13,6 +13,7 @@ Padrão arquitetural:
 """
 
 import sqlite3
+from typing import Optional
 from interface.queue_writer import SerializedWriteQueue
 
 
@@ -22,14 +23,14 @@ class ConciergeDatabaseManager:
     delega todas as mutações e transações de escrita para a SerializedWriteQueue.
     """
 
-    def __init__(self, db_path: str, write_queue: SerializedWriteQueue):
+    def __init__(self, db_path: str, write_queue: Optional[SerializedWriteQueue] = None):
         self.db_path = db_path
         self.write_queue = write_queue
         self._init_tables()
 
     def _init_tables(self):
-        """Cria tabelas via fila de escrita, respeitando o escritor único."""
-        self.write_queue.execute_write(
+        """Cria tabelas via fila de escrita ou conexão direta, respeitando o escritor único."""
+        self.write_query(
             "CREATE TABLE IF NOT EXISTS test_log ("
             "id INTEGER PRIMARY KEY AUTOINCREMENT, "
             "thread_name TEXT, "
@@ -39,14 +40,33 @@ class ConciergeDatabaseManager:
 
     def read_query(self, query: str, params: tuple = ()):
         """Leitura rápida e concorrente direta do banco (sem usar a fila de escrita)."""
-        conn = sqlite3.connect(self.db_path)
-        conn.execute("PRAGMA journal_mode=WAL;")
-        cursor = conn.cursor()
-        cursor.execute(query, params)
-        results = cursor.fetchall()
-        conn.close()
-        return results
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
+        try:
+            conn.execute("PRAGMA journal_mode=WAL;")
+            cursor = conn.cursor()
+            cursor.execute(query, params)
+            results = cursor.fetchall()
+            return results
+        finally:
+            conn.close()
+
+    def execute_write(self, query: str, params: tuple = ()):
+        """Gravação segura delegada para o executor serializado de escrita ou direta."""
+        if self.write_queue is not None:
+            return self.write_queue.execute_write(query, params)
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
+        try:
+            conn.execute("PRAGMA journal_mode=WAL;")
+            cursor = conn.cursor()
+            cursor.execute(query, params)
+            conn.commit()
+            last_id = cursor.lastrowid
+            return True, last_id
+        except Exception as e:
+            return False, str(e)
+        finally:
+            conn.close()
 
     def write_query(self, query: str, params: tuple = ()):
-        """Gravação segura delegada para o executor serializado de escrita."""
-        return self.write_queue.execute_write(query, params)
+        """Gravação segura delegada para execute_write."""
+        return self.execute_write(query, params)

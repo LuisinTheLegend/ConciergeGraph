@@ -21,6 +21,11 @@ Under the **Survival Engineering Paradigm (Fatias Verticais de Sobrevivência & 
 10. **Agnostic State Checkpointing & Time-Travel (`AgnosticCheckpointer`)**: Provides generic, agent-agnostic persistence for arbitrary AI state dictionaries stored as JSON blobs under composite primary keys (`agent_id`, `session_id`, `checkpoint_id`), enabling hermetic isolation and chronological rollback navigation.
 11. **Early-Exit Reactive Watcher (`ConciergeFileSystemHandler`)**: Filters file modification events against `.conciergeignore` / `pathspec` rules *before* hitting disk I/O, protecting the indexing pipeline from `node_modules`, `.env`, and build artifact noise.
 12. **Resource Isolation & Security (`AgentDependencies`)**: Encapsulates workspace paths, database managers, and security boundaries within an immutable frozen dataclass, preventing Path Traversal vulnerabilities.
+13. **Structural Semantic Alias Tracking (`core/alias_tracker.py`)**: Resolves file renames and moves atomically in $< 1\text{s}$ using Structural Semantic Hashing (SSH). Cascades path updates across `ast_edges`, `files`, and `nodes` without rebuilding the graph, while an automated purge timer safely invokes delete callbacks on real deletions to prevent zombie records.
+14. **Polyglot AST Parser Factory (`core/parser_factory.py`, `core/parsers/`)**: Extends codebase intelligence beyond Python to TypeScript and JavaScript (`.ts`, `.tsx`, `.js`, `.jsx`) via Tree-sitter and an ultra-fast lexical fallback parser, extracting classes, functions, and internal imports while filtering external npm dependencies and React built-ins.
+15. **Durable FSM Checkpoints & Cognitive Time-Travel (`storage/relational_db.py`, `core/checkpointer.py`)**: Persists resilient execution snapshots in `fsm_checkpoints` under `(session_id, checkpoint_id)`. Performs recursive JSON sanitization on non-serializable objects and executes clean time-travel rollbacks that purge future checkpoints and re-flag rolled-back files as dirty.
+16. **Progressive Tool Disclosure & FastMCP Security Firewall (`core/mcp_governor.py`)**: Enforces two-layer tool visibility based on agent FSM states (`PLANNING`, `DISCOVERY`, `EXECUTION`, `TDD_GREEN`, `REFACTORING`, `MAINTENANCE`). Passively filters tool discovery to reduce prompt bloat and actively blocks unauthorized executions at runtime, raising `SecurityException`.
+17. **Federated Knowledge Routing (Nozomio RAG) & Global Hybrid Memory Adapter (`core/intent_classifier.py`, `core/nozomio_router.py`, `core/global_memory_adapter.py`)**: JIT Intent Classifier in 3 layers (Regex < 1ms, SQLite relational entities, Ollama SLM fallback) routes queries between private `LOCAL_GRAPHRAG` (`is_private: True`) and public `EXTERNAL_NOZOMIO_MCP` (`is_private: False`). The `GlobalMemoryAdapter` compiles a hybrid sliding window: preserving the last 3 immediate chat messages (STM) combined with a structured Long-Term Memory (LTM) substrate extracted from the graph.
 
 ---
 
@@ -34,9 +39,10 @@ Under the **Survival Engineering Paradigm (Fatias Verticais de Sobrevivência & 
                                                  │  JSON-RPC / FastMCP & FastAPI REST/SSE
                                                  ▼
 ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-│ 🌐 INTERFACE & TELEMETRY LAYER (interface/)                                                 │
+│ 🌐 INTERFACE & GOVERNANCE LAYER (interface/ & core/mcp_governor.py)                         │
 │ - mcp_server.py: FastMCP Server with stdio & SSE transports (30 Native Cognitive Tools)    │
-│ - telemetry_api.py: FastAPI REST (/api/telemetry/snapshot, /api/janitor/reconcile) & SSE    │
+│ - mcp_governor.py (MCPToolGovernor): Progressive Tool Disclosure Matrix & Active Security   │
+│ - telemetry_api.py: FastAPI REST (/api/telemetry/*, /api/checkpoints/*, /api/mcp/*) & SSE  │
 │ - watcher.py: Early-Exit Reactive File Watcher (pathspec / .conciergeignore)                │
 │ - queue_writer.py (SerializedWriteQueue): Single-Writer Daemon + Adaptive Auto-Batching     │
 │ - cli.py: Management and operational CLI commands                                          │
@@ -44,13 +50,17 @@ Under the **Survival Engineering Paradigm (Fatias Verticais de Sobrevivência & 
                                          │
                                          ▼
 ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-│ 🧠 CORE & SURVIVAL LAYER (core/)                                                            │
+│ 🧠 CORE & COGNITIVE SURVIVAL LAYER (core/)                                                  │
 │ - middleware.py (GrafoConcierge): Central Facade orchestrating all subsystems                │
-│ - telemetry_schemas.py: Pydantic v2 schemas for DirtyFiles, SelfHealing, Checkpoints & State │
+│ - intent_classifier.py: JIT 3-tier triage (Regex < 1ms + SQLite entities + Ollama SLM)     │
+│ - nozomio_router.py: Federated Knowledge Router (LOCAL_GRAPHRAG vs EXTERNAL_NOZOMIO_MCP)    │
+│ - global_memory_adapter.py: Hybrid Context Adapter (LTM substrate + Last 3 STM chat msgs)  │
+│ - alias_tracker.py: Atomic File Rename & Move Detection via Structural Semantic Hash (SSH) │
+│ - parser_factory.py: Polyglot parser dispatcher (.py, .ts, .tsx, .js, .jsx)                 │
 │ - delta_manager.py: Dual Hash (SSH Signature + LBH Semantic Drift) & DocstringStripper      │
 │ - hybrid_search.py / search_engine.py: Tri-signal score + Query-Time Self-Healing Filter    │
-│ - graph_rag.py: O(1) Natural communities, Supernode Degree Outlier Filter & CTE Loop Guard  │
-│ - checkpointer.py: Agent-agnostic state blobs & chronological Time-Travel timeline          │
+│ - graph_rag.py: O(1) Natural communities, Supernode Degree Outlier Filter & CTE Cycle Guard│
+│ - checkpointer.py: Durable FSM & Agent Checkpoints with chronological Time-Travel           │
 │ - background_janitor.py: Hardware-aware Thermal Governor, Smart LRU Pruning & Local SLM    │
 │ - vector_reconciler.py: Background Orphan Expurging via set differences                     │
 │ - dependencies.py: Immutable frozen dataclass container with path traversal defense         │
@@ -258,6 +268,18 @@ CREATE VIRTUAL TABLE IF NOT EXISTS nodes_fts USING fts5(
     content='nodes',
     content_rowid='id'
 );
+
+-- 13. Durable FSM Checkpoints & Time-Travel (Active-SDD #20)
+CREATE TABLE IF NOT EXISTS fsm_checkpoints (
+    session_id    TEXT NOT NULL,
+    checkpoint_id TEXT NOT NULL,
+    state_blob    TEXT NOT NULL, -- Sanitized JSON snapshot
+    created_at    REAL NOT NULL, -- Unix timestamp (time.time())
+    dirty_files   TEXT DEFAULT '[]', -- JSON array of modified file paths
+    PRIMARY KEY (session_id, checkpoint_id)
+);
+CREATE INDEX IF NOT EXISTS idx_fsm_checkpoints_session_created
+    ON fsm_checkpoints(session_id, created_at ASC);
 ```
 
 ---
@@ -324,3 +346,46 @@ CREATE VIRTUAL TABLE IF NOT EXISTS nodes_fts USING fts5(
   multiplier = random.betavariate(safe_alpha, safe_beta)
   ```
 * Input sanitization prevents runtime `ValueError` on boundary conditions ($\le 0$), maintaining mathematical equivalence with pure Python speed.
+
+### 5.8 Structural Semantic Alias Tracking (`core/alias_tracker.py`)
+* Solves the **File Rename & Move Anomaly**: When developers rename files (e.g. `auth_service.py` $\rightarrow$ `authentication.py`), standard watchers trigger a `DELETE` followed by a `CREATE`, which naive systems treat as an eviction followed by a re-index. This destroys historical agent trajectories, invalidates edge relations, and causes node duplication.
+* **1-Second Atomic Window**: `AliasTracker.register_deletion()` captures deletions into a temporary buffer (`pending_deletions`). When a creation event arrives, `check_and_resolve_creation()` compares the file's Structural Semantic Hash (SSH). If the SSH matches within 1 second, it resolves as an atomic **Rename / Move**.
+* **Cascading Migration**: `apply_alias_migration()` updates `files`, `ast_edges`, and `nodes` path references in a single atomic SQLite transaction with zero graph rebuilds.
+* **Zombie Prevention**: An asynchronous `threading.Timer` calls `on_purge_callback` upon expiration, ensuring genuine file deletions are safely processed.
+* **Empty Payload Guard**: Rejects 0-byte files with an explicit `EmptyPayloadError` sentinel to avoid false-positive hash collisions on newly touched empty files.
+
+### 5.9 Polyglot AST Parser Factory (`core/parser_factory.py` & `core/parsers/`)
+* **Dynamic Resolution**: `ParserFactory.get_parser_for_file(file_path)` inspects file extensions:
+  * `.py` $\rightarrow$ `PythonParser` (Native Python AST)
+  * `.ts`, `.tsx`, `.js`, `.jsx` $\rightarrow$ `TsJsParser` (Tree-sitter with high-performance regex fallback)
+* **TypeScript & React Intelligence**:
+  * Extracts class declarations, top-level functions, arrow functions, and exported components.
+  * Filters out built-in React hooks (`useState`, `useEffect`, `useMemo`, etc.) to prevent topology pollution.
+  * Distinguishes local relative imports (`./components/Header`) from external npm packages (`next/navigation`, `lucide-react`, `tailwindcss`), indexing only project-internal dependencies.
+  * Computes deterministic Structural Semantic Hashes (SSH) across all supported languages.
+
+### 5.10 Durable FSM Checkpoints & Cognitive Time-Travel (`core/checkpointer.py`)
+* Extends agent state preservation beyond lightweight dictionaries into durable SQLite relational persistence (`storage/relational_db.py`).
+* **Non-Serializable Sanitization**: Recursively inspects state dictionaries, converting locks, threads, coroutines, and custom objects into structured string representations to guarantee 100% JSON-safe serializability.
+* **Time-Travel Rollback Execution**: `execute_time_travel(session_id, target_checkpoint_id)`:
+  1. Loads the target state snapshot from `fsm_checkpoints`.
+  2. Identifies and purges all chronologically subsequent checkpoints (`created_at > target.created_at`) from the timeline.
+  3. Re-flags any rolled-back files recorded in `dirty_files` as `is_dirty = 1` in SQLite WAL, instructing the watcher and Janitor to re-synchronize local graph state.
+
+### 5.11 Progressive Tool Disclosure & FastMCP Firewall (`core/mcp_governor.py`)
+* Acts as a dynamic cognitive firewall between the LLM and the physical runtime environment:
+  * **Layer 1 — Passive Discovery Filter (`filter_tools`)**: Dynamically intercepts FastMCP tool discovery. In exploratory states (`PLANNING`, `DISCOVERY`), tools that write to disk (`LOCAL_MUTATION`) or execute commands (`DANGEROUS`) are hidden from the agent's system prompt, reducing context token overhead and preventing premature code modification.
+  * **Layer 2 — Active Execution Interceptor (`validate_tool_execution`)**: Wraps `call_tool()`. If an agent attempts to invoke a restricted tool directly without transitioning its FSM state, the call is blocked immediately with a `SecurityException`.
+* **State Sensitivity Matrix**:
+  * `PLANNING`, `DISCOVERY`: Only `READ_ONLY` tools + `get_telemetry_snapshot`.
+  * `EXECUTION`, `TDD_GREEN`, `REFACTORING`: Unlocks `LOCAL_MUTATION` tools (`write_file`, `delete_file`, `save_checkpoint`, etc.).
+  * `MAINTENANCE`: Unlocks all tools including `DANGEROUS` (`execute_command`, `reset_collection`, `purge_database`).
+
+### 5.12 Federated Knowledge Routing & Global Hybrid Memory Adapter (`core/`)
+* **IntentClassifier (`core/intent_classifier.py`)**: JIT 3-tier triage pipeline:
+  1. *Regex Heuristics (< 1ms)*: Matches project terminology, directory structures, and file extensions.
+  2. *Relational Entity Validation*: Queries `files` in SQLite WAL to detect mentions of indexed code files.
+  3. *Semantic Fallback*: Calls local Ollama SLM (`qwen2.5-coder:1.5b`) for binary classification between `LOCAL_CODEBASE` and `EXTERNAL_GENERAL`.
+* **NozomioRouter (`core/nozomio_router.py`)**: Delegates `LOCAL_CODEBASE` to local GraphRAG (`is_private: True`) and `EXTERNAL_GENERAL` to federated public documentation MCP servers (`is_private: False`).
+* **GlobalMemoryAdapter (`core/global_memory_adapter.py`)**: Compiles a hybrid context payload: preserves the last 3 immediate chat messages (Short-Term Memory) for conversational continuity, while replacing older chat history with a structured Long-Term Memory (LTM) substrate extracted from the knowledge graph.
+

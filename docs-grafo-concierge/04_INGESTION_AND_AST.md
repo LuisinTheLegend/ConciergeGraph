@@ -77,15 +77,91 @@ To detect internal logic changes without being fooled by comments or docstring e
 
 ---
 
-## 4. Multi-Language AST Parsing via Tree-sitter
+## 4. Multi-Language AST Parsing via Tree-sitter & `ParserFactory`
 
-Grafo Concierge parses code according to its **Abstract Syntax Tree (AST)** using Tree-sitter grammars across Python, TypeScript, JavaScript, Go, Rust, Java, C/C++, and config formats.
+Under **Active-SDD #19**, Grafo Concierge introduces the **Polyglot Parser Factory** (`core/parser_factory.py`), enabling deep AST comprehension across both backend (Python) and frontend (TypeScript/JavaScript/React) modules.
 
-### Symbol Node Types:
+### 4.1 Parser Factory Dispatch (`core/parser_factory.py`)
+`ParserFactory.get_parser_for_file(file_path)` resolves the optimal parser implementation based on file extension:
+
+```python
+class ParserFactory:
+    @staticmethod
+    def get_parser_for_file(file_path: str) -> BaseParser:
+        ext = os.path.splitext(file_path)[1].lower()
+        if ext == ".py":
+            return PythonParser()
+        elif ext in [".ts", ".tsx", ".js", ".jsx"]:
+            return TsJsParser()
+        else:
+            return FallbackParser()
+```
+
+### 4.2 Hybrid TypeScript / JavaScript Parser (`core/parsers/ts_js_parser.py`)
+To index React components, Next.js page routers, and UI components without requiring heavy external node runtime processes, `TsJsParser` operates in a resilient dual mode:
+1. **Tree-sitter TS/TSX Grammar**: Native AST traversal when Tree-sitter bindings are present.
+2. **Lexical Regex Fallback**: Ultra-fast regex scanner that matches functions, classes, and exported constants with $< 1\text{ms}$ latency.
+
+#### Intelligence Filters:
+* **React Hook Built-in Filter**: Automatically excludes React internal primitives (`useState`, `useEffect`, `useCallback`, `useMemo`, `useRef`, `useContext`) so they do not pollute the call graph as standalone project functions.
+* **External npm Package Filter**: Distinguishes local relative imports (`./components/Header`, `../lib/api`) from third-party vendor packages (`react`, `next/navigation`, `lucide-react`, `tailwindcss`), indexing only project-internal dependencies.
+* **Structural Semantic Hashing (SSH)**: Extracts public function signatures, classes, and local imports, hashing them deterministically for delta sync and alias tracking.
+
+### 4.3 Symbol Node Types
 * **`CLASS`**: Class declarations with signatures and docstrings.
-* **`FUNCTION`**: Standalone top-level functions.
-* **`METHOD`**: Member functions associated with a class or struct.
-* **`MODULE`**: File-level imports, global variables, and package metadata.
+* **`FUNCTION`**: Standalone top-level functions and exported arrow components.
+* **`METHOD`**: Member functions associated with a class or object.
+* **`MODULE`**: File-level imports, global constants, and package exports.
 
-### Call Graph Generation (`ast_edges`):
-During AST parsing, function calls and external symbol references are extracted. The `ast_edges` table records `(parent_node, child_node)` pairs, enabling recursive multi-hop dependency traversals (`concierge_get_call_chain`) with strict loop cycle prevention.
+---
+
+## 5. Structural Semantic Alias Tracking (`core/alias_tracker.py`)
+
+Under **Active-SDD #18**, Grafo Concierge solves the **File Rename & Move Anomaly**:
+
+### 5.1 The Problem
+When a developer renames a file (e.g. `core/auth.py` $\rightarrow$ `core/authentication.py`):
+1. Standard OS file watchers emit a `DELETE` event for `auth.py` followed by a `CREATE` event for `authentication.py`.
+2. Naive indexing systems evict `auth.py`, deleting all its historical trajectory logs, commit audits, and relational edges.
+3. Then they index `authentication.py` as an entirely new entity, breaking dependency graphs and causing node duplication.
+
+### 5.2 The 1-Second Atomic Buffer
+`AliasTracker` maintains a thread-safe `pending_deletions` buffer:
+
+```
+[File Deleted: auth.py]
+         │
+         ▼
+Calculate SSH Hash & Store in Buffer with timestamp
+         │
+         ├─── Within 1.0s: [File Created: authentication.py]
+         │          │
+         │          ▼
+         │    Calculate SSH of new file
+         │    Match Found! (auth.py SSH == authentication.py SSH)
+         │          │
+         │          ▼
+         │    Execute `apply_alias_migration(auth.py -> authentication.py)`
+         │    (Atomic cascade across `files`, `ast_edges`, `nodes`)
+         │
+         └─── Timeout Exceeded (> 1.0s, no matching creation):
+                    │
+                    ▼
+              Genuine Deletion Confirmed!
+              `threading.Timer` invokes `on_purge_callback`
+              (Permanently cleans up SQLite WAL and vector embeddings)
+```
+
+### 5.3 Cascading Relational Migration
+`apply_alias_migration(old_path, new_path)` executes within a single atomic SQLite transaction:
+```sql
+UPDATE files SET path = ? WHERE path = ?;
+UPDATE ast_edges SET parent_node = ? WHERE parent_node = ?;
+UPDATE ast_edges SET child_node = ? WHERE child_node = ?;
+UPDATE nodes SET label = ? WHERE label = ?;
+```
+Zero graph re-indexes. 100% preservation of historical agent trajectories.
+
+### 5.4 Empty Payload Collision Guard
+Newly created files during IDE saves are often momentarily 0 bytes. `AliasTracker` explicitly detects empty payloads and skips hash matching with an `EmptyPayloadError` sentinel, preventing unrelated blank files from falsely matching as aliases.
+

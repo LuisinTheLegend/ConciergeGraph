@@ -48,12 +48,13 @@ logger = logging.getLogger("grafo-concierge.mcp")
 
 
 # ---------------------------------------------------------------------------
-# SDD-08: Module-level sentinels for standalone MCP tool functions.
+# SDD-08 / SDD-21: Module-level sentinels for standalone MCP tool functions and governance.
 # These are injectable by tests (setUp) or by the application bootstrap.
 # ---------------------------------------------------------------------------
 db_manager = None        # type: ignore[assignment]
 checkpointer = None      # type: ignore[assignment]
 graph_rag = None         # type: ignore[assignment]
+governor = None          # type: ignore[assignment]
 
 
 # ---------------------------------------------------------------------------
@@ -85,6 +86,35 @@ class GrafoConciergeServer:
             port = int(os.environ.get("GRAFO_PORT", "8000"))
         except ValueError:
             port = 8000
+
+        # Initialize sentinels for checkpoint, graph tools, and governor if not injected
+        global db_manager, checkpointer, graph_rag, governor
+        if governor is None:
+            try:
+                from interface.telemetry_api import mcp_governor
+                governor = mcp_governor
+            except Exception:
+                from core.mcp_governor import MCPToolGovernor
+                governor = MCPToolGovernor()
+
+        self._governor = governor
+
+        if db_manager is None:
+            resolved_db_path = None
+            if hasattr(self._gc, "_store") and hasattr(self._gc._store, "_conn_mgr"):
+                resolved_db_path = str(self._gc._store._conn_mgr._db_path)
+            if not resolved_db_path:
+                resolved_db_path = os.environ.get("GRAFO_DB_PATH", "data/concierge.db")
+            from core.database import ConciergeDatabaseManager
+            db_manager = ConciergeDatabaseManager(resolved_db_path)
+
+        if checkpointer is None and db_manager is not None:
+            from core.checkpointer import AgnosticCheckpointer
+            checkpointer = AgnosticCheckpointer(db_manager)
+
+        if graph_rag is None and db_manager is not None:
+            from core.graph_rag import GraphRAGEngine
+            graph_rag = GraphRAGEngine(db_manager)
 
         # Creates the FastMCP server
         self._mcp = FastMCP("Grafo Concierge", host=host, port=port)
@@ -139,6 +169,8 @@ class GrafoConciergeServer:
         # Registers the tools
         self._register_tools()
 
+        # SDD-21: Configura a governança e ocultação progressiva de ferramentas
+        self._setup_tool_governance()
 
         tool_count = len(self._mcp._tool_manager.list_tools())
         logger.info("GrafoConciergeServer initialized — %d tools registered.", tool_count)
@@ -147,6 +179,37 @@ class GrafoConciergeServer:
     def mcp(self) -> FastMCP:
         """Direct access to FastMCP (for run/mount)."""
         return self._mcp
+
+    @property
+    def governor(self):
+        """Acesso ao MCPToolGovernor ativo no servidor."""
+        return self._governor
+
+    def _setup_tool_governance(self) -> None:
+        """Configura os interceptadores de listagem e execução do FastMCP sob o MCPToolGovernor."""
+        original_tm_call_tool = self._mcp._tool_manager.call_tool
+
+        async def governed_call_tool(name: str, arguments: dict, *args, **kwargs):
+            session_id = (
+                arguments.get("session_id", "default")
+                if isinstance(arguments, dict)
+                else "default"
+            )
+            # Segunda Camada: Validação ativa de execução
+            self._governor.validate_tool_execution(session_id, name)
+            return await original_tm_call_tool(name, arguments, *args, **kwargs)
+
+        self._mcp._tool_manager.call_tool = governed_call_tool
+
+        original_mcp_list_tools = self._mcp.list_tools
+
+        async def governed_list_tools(session_id: Optional[str] = None):
+            tools = await original_mcp_list_tools()
+            if session_id:
+                return self._governor.filter_tools(session_id, tools)
+            return tools
+
+        self._mcp.list_tools = governed_list_tools
 
     # ===================================================================
     # TOOL REGISTRATION
@@ -716,6 +779,102 @@ class GrafoConciergeServer:
         def reset_collection() -> dict:
             """Destroys and recreates the collection of vectors."""
             return server._handle_reset_collection()
+
+        # --- concierge_get_call_chain ---
+        @self._mcp.tool(
+            name="concierge_get_call_chain",
+            description=(
+                "Executes recursive call chain discovery via WITH RECURSIVE queries over ast_edges "
+                "in SQLite WAL with strict cycle guards, returning a flat list of connected nodes."
+            ),
+        )
+        def tool_concierge_get_call_chain(
+            start_node: str,
+            depth_limit: int = 5,
+        ) -> list:
+            """Resolves recursive call chain dependencies via GraphRAGEngine.
+
+            Args:
+                start_node: Root file path or symbol identifier (e.g. core/main.py).
+                depth_limit: Maximum traversal recursion depth. Default: 5.
+
+            Returns:
+                Flat list of connected child file paths, excluding the root start node.
+            """
+            return concierge_get_call_chain(start_node, depth_limit)
+
+        # --- agent_save_checkpoint ---
+        @self._mcp.tool(
+            name="agent_save_checkpoint",
+            description=(
+                "Persists arbitrary AI agent state dictionaries as JSON blobs in SQLite WAL "
+                "under composite primary key (agent_id, session_id, checkpoint_id)."
+            ),
+        )
+        def tool_agent_save_checkpoint(
+            agent_id: str,
+            session_id: str,
+            checkpoint_id: str,
+            state_dict: dict,
+        ) -> str:
+            """Persists agent state in SQLite WAL via AgnosticCheckpointer.
+
+            Args:
+                agent_id: Identifier of the agent (e.g. nexus_agent, hermes).
+                session_id: Unique session run identifier.
+                checkpoint_id: Identifier of the step/checkpoint (e.g. init, step_1).
+                state_dict: Arbitrary dictionary containing agent variables, memory, and state.
+
+            Returns:
+                JSON string with 'success' (bool) and 'message' (str).
+            """
+            return agent_save_checkpoint(agent_id, session_id, checkpoint_id, state_dict)
+
+        # --- agent_get_checkpoint ---
+        @self._mcp.tool(
+            name="agent_get_checkpoint",
+            description=(
+                "Retrieves and decodes the persisted state dictionary for a specific agent step."
+            ),
+        )
+        def tool_agent_get_checkpoint(
+            agent_id: str,
+            session_id: str,
+            checkpoint_id: str,
+        ) -> dict:
+            """Retrieves agent state from SQLite WAL via AgnosticCheckpointer.
+
+            Args:
+                agent_id: Identifier of the agent.
+                session_id: Session run identifier.
+                checkpoint_id: Step identifier.
+
+            Returns:
+                Decoded state dictionary, or {} if not found.
+            """
+            return agent_get_checkpoint(agent_id, session_id, checkpoint_id)
+
+        # --- agent_list_checkpoints ---
+        @self._mcp.tool(
+            name="agent_list_checkpoints",
+            description=(
+                "Returns the chronological timeline of checkpoints for Time-Travel navigation."
+            ),
+        )
+        def tool_agent_list_checkpoints(
+            agent_id: str,
+            session_id: str,
+        ) -> list:
+            """Returns chronological timeline of checkpoints.
+
+            Args:
+                agent_id: Identifier of the agent.
+                session_id: Session run identifier.
+
+            Returns:
+                List of dicts with 'checkpoint_id' and 'created_at' ordered ASC.
+            """
+            return agent_list_checkpoints(agent_id, session_id)
 
     def _resolve_project_identifier(self, project_identifier: str) -> str:
         """Resolves project_identifier (UUID or folder_name) to project_uuid.

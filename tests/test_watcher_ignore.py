@@ -90,6 +90,21 @@ class TestWatcherIgnore(unittest.TestCase):
             "Arquivos legítimos do projeto devem ser aceitos.",
         )
 
+    def test_hydrate_known_hashes_handles_offline_deletions(self):
+        """BUG 4: Garante que hydrate_known_hashes detecta arquivos que sumiram do disco e aciona on_delete_callback."""
+        deleted_called = []
+        self.handler.on_delete_callback = lambda path: deleted_called.append(path)
+
+        class MockDB:
+            def read_query(self, q, params=()):
+                return [("src/deleted_offline.py", "hash_123")]
+
+        # O arquivo 'src/deleted_offline.py' não existe fisicamente no mock project_path
+        self.handler.hydrate_known_hashes(db_manager=MockDB())
+
+        expected_deleted_abs = os.path.abspath(os.path.join(self.handler.project_path, "src/deleted_offline.py"))
+        self.assertIn(expected_deleted_abs, deleted_called)
+
 
 if __name__ == "__main__":
     unittest.main()

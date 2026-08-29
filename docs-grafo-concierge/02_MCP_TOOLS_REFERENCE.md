@@ -298,3 +298,57 @@ Returns exact vector counts in the active vector collection.
 Emergency repair tool that destroys and recreates the physical vector collection.
 * **Arguments**: None.
 * **Return**: `{"success": bool, "message": str}`
+
+---
+
+## 9. Progressive Tool Disclosure Security Matrix (Active-SDD #21)
+
+To prevent LLM context window pollution and protect the codebase against inadvertent modifications during early research phases, Grafo Concierge implements **Progressive Tool Disclosure** through the `MCPToolGovernor` (`core/mcp_governor.py`).
+
+### 9.1 Two-Layer Enforcement Architecture
+
+```
+                    FastMCP Agent Session Request
+                                 │
+          ┌──────────────────────┴──────────────────────┐
+          ▼ (list_tools)                                ▼ (call_tool)
+┌───────────────────────────────────┐       ┌───────────────────────────────────┐
+│ Layer 1: Passive Discovery Filter │       │ Layer 2: Active Runtime Intercept │
+│ Filters returned tools by FSM     │       │ Validates session permission      │
+│ state to contain prompt token cost│       │ Blocks unauthorized execution     │
+└───────────────────────────────────┘       │ with SecurityException            │
+                                            └───────────────────────────────────┘
+```
+
+### 9.2 Tool Sensitivity Classification
+
+All 30 native tools are strictly classified into three risk tiers:
+
+| Sensitivity Tier | Behavioral Rules | Tools Assigned |
+| :--- | :--- | :--- |
+| **`READ_ONLY`** | Non-mutating queries. Safe in all states. Allowed during exploratory phases. | `concierge_list_projects`, `concierge_status`, `concierge_search`, `find_similar`, `search_symbols`, `get_implementations`, `get_callers`, `concierge_get_call_chain`, `agent_get_checkpoint`, `agent_list_checkpoints`, `concierge_list_facts`, `concierge_feedback`, `concierge_get_memory`, `get_full_topology`, `get_trajectories`, `count_embeddings`, `concierge_load`. |
+| **`LOCAL_MUTATION`** | Modifies SQLite relations, writes local files, or creates checkpoints. | `concierge_register`, `update_project`, `delete_project`, `add_reference_wing`, `remove_reference_wing`, `concierge_mine`, `concierge_wakeup`, `concierge_resume`, `concierge_commit`, `agent_save_checkpoint`, `concierge_store_fact`, `concierge_set_memory`. |
+| **`DANGEROUS`** | Irreversible drops, raw terminal execution, or collection resets. | `reset_collection`, and any unclassified external command execution tools (conservative default). |
+
+### 9.3 State Disclosure Matrix
+
+| FSM State | Allowed Categories | Explicit Whitelist | Typical Agent Phase |
+| :--- | :--- | :--- | :--- |
+| **`PLANNING`** (Default) | `READ_ONLY` | `get_telemetry_snapshot` | Requirements gathering, plan writing, architecture review. |
+| **`DISCOVERY`** | `READ_ONLY` | `get_telemetry_snapshot` | AST search, dependency analysis, call graph inspection. |
+| **`EXECUTION`** | `READ_ONLY`, `LOCAL_MUTATION` | `get_telemetry_snapshot` | Implementing code, editing files, saving checkpoints. |
+| **`TDD_GREEN`** | `READ_ONLY`, `LOCAL_MUTATION` | `get_telemetry_snapshot` | Writing minimal implementation to pass failing tests. |
+| **`REFACTORING`** | `READ_ONLY`, `LOCAL_MUTATION` | `get_telemetry_snapshot` | Code cleanup, typing improvements, lint fixes. |
+| **`MAINTENANCE`** | `READ_ONLY`, `LOCAL_MUTATION`, `DANGEROUS` | None (Unrestricted) | Emergency database drops, vacuuming, manual admin operations. |
+
+### 9.4 Dynamic State Management via REST API
+
+Agents and orchestrators dynamically transition the cognitive state of an active session using the Telemetry API:
+* **Update State**: `POST /api/mcp/state` with payload `{"session_id": "session_abc", "state_name": "EXECUTION"}`
+* **Query State**: `GET /api/mcp/state/{session_id}` returns `{"session_id": "session_abc", "active_state": "EXECUTION"}`
+
+If an agent directly calls a tool outside its active state permissions, `validate_tool_execution` immediately raises:
+```python
+SecurityException: "Acesso negado: ferramenta 'agent_save_checkpoint' (categoria 'LOCAL_MUTATION') está bloqueada durante o estado 'PLANNING' da sessão 'session_abc'."
+```
+

@@ -40,45 +40,31 @@ Provides continuous live telemetry for UI dashboards without high-overhead polli
 
 ## 2. Time-Travel Debugging & State Rollback
 
-Using `AgnosticCheckpointer`, external agents can navigate backwards in their execution timeline:
-1. `agent_list_checkpoints(agent_id, session_id)`: Fetches chronological history (`ORDER BY created_at ASC`).
-2. `agent_get_checkpoint(agent_id, session_id, checkpoint_id)`: Loads previous state dictionary for variable restoration and replay.
+Using `AgnosticCheckpointer` and the durable `fsm_checkpoints` relational engine, external agents can navigate backwards in their execution timeline:
+1. `agent_list_checkpoints(agent_id, session_id)` or `GET /api/checkpoints/{session_id}`: Fetches chronological history (`ORDER BY created_at ASC`).
+2. `agent_get_checkpoint(agent_id, session_id, checkpoint_id)`: Loads previous state snapshot for variable restoration and replay.
+3. `POST /api/checkpoints/time-travel`: Executes an atomic rollback to a specified target checkpoint, permanently purging subsequent checkpoints from the timeline and re-flagging modified files recorded in `dirty_files` as `is_dirty = 1` for immediate graph re-synchronization.
 
 ---
 
 ## 3. Automated Test Suite & Master Audit
 
-The repository contains an exhaustive test matrix covering all survival slices, cognitive memory, and advanced retrieval systems with 100% green status (55 passed, 1 skipped):
+The repository contains an exhaustive test matrix covering all survival slices, cognitive memory, and advanced retrieval systems with 100% green status (**86 passed, 1 skipped** out of **87 tests**):
 
 ```bash
-python -m pytest tests/test_checkpoint_pruning.py \
-                 tests/test_queue_writer_batching.py \
-                 tests/test_delta_sync_drift.py \
-                 tests/test_graph_rag_loops.py \
-                 tests/test_agent_checkpointer.py \
-                 tests/test_delta_sync.py \
-                 tests/test_graph_rag_janitor.py \
-                 tests/test_graph_rag_frugal.py \
-                 tests/test_telemetry_api.py \
-                 tests/test_vector_reconciler.py \
-                 tests/test_mcp_server_extensions.py \
-                 tests/test_e2e_concierge_integration.py \
-                 tests/test_dependency_injection.py \
-                 tests/test_concurrency_stress.py \
-                 tests/test_extraction_noop.py \
-                 tests/test_probabilistic_retriever.py \
-                 tests/test_chunk_cache.py \
-                 tests/test_conversational_db.py \
-                 tests/test_ignore.py \
-                 tests/test_lightweight.py \
-                 tests/test_topology.py \
-                 tests/test_watcher_ignore.py -v
+python -m pytest tests/ -v
 ```
 
-### Complete Test Suite Matrix:
+### Complete Test Suite Matrix (87 Tests):
 
 | Suite | Component | Scope & Key Verification |
 | :--- | :--- | :--- |
+| `test_cognitive_routing_memory.py` | `core/intent_classifier.py` / `nozomio_router.py` | JIT 3-tier triage (Regex < 1ms, SQLite entity lookup, Ollama SLM fallback), federated knowledge routing, and hybrid sliding window memory compilation (Active-SDD #22). |
+| `test_progressive_tool_disclosure.py` | `core/mcp_governor.py` | Two-layer cognitive governance: passive tool filtering in `PLANNING` vs `EXECUTION` vs `MAINTENANCE` and active `SecurityException` runtime blocking (Active-SDD #21). |
+| `test_durable_checkpoints_timetravel.py` | `core/checkpointer.py` / `storage` | Durable `fsm_checkpoints` SQLite table, non-serializable object sanitization, chronological future checkpoint purge, and dirty file re-flagging (Active-SDD #20). |
+| `test_multilang_parser.py` | `core/parser_factory.py` / `parsers` | Polyglot parsing for Python, TypeScript, and JavaScript (`.ts`, `.tsx`, `.js`, `.jsx`), Tree-sitter & lexical fallback, npm package filter, React hook filter, and SSH hashing (Active-SDD #19). |
+| `test_alias_tracker.py` | `core/alias_tracker.py` | Atomic file rename/move detection via SSH within 1-second window, cascading relational updates, 0-byte collision guard, and zombie prevention via purge timer (Active-SDD #18). |
+| `test_local_graph_rag_recursion.py` | `core/graph_rag.py` | Multi-hop recursive CTE traversal (`retrieve_multihop_context`), strict cycle detection guard, circular import resilience, and natural community synthesis (Active-SDD #17). |
 | `test_telemetry_api.py` | `interface/telemetry_api.py` | FastAPI REST snapshot, live SSE streaming channel (`text/event-stream`), and manual Janitor reconcile trigger. |
 | `test_graph_rag_frugal.py` | `core/graph_rag.py` / `janitor` | Supernode degree outlier filtering (`hub_satellite_{dir}`) and hardware thermal clearance throttling guard. |
 | `test_checkpoint_pruning.py` | `core/background_janitor.py` | Smart LRU checkpoint auto-poda: protects `"init"` (point-zero) and keeps $N$ recent steps. |
@@ -101,3 +87,4 @@ python -m pytest tests/test_checkpoint_pruning.py \
 | `test_lightweight.py` | `core/hybrid_search.py` | Lightweight FTS5-only mode (`GRAFO_LIGHTWEIGHT_MODE`). |
 | `test_topology.py` | `core/middleware.py` | Full topology graph export and node/edge serialization. |
 | `test_watcher_ignore.py` | `interface/watcher.py` | Early-Exit ignore filtering (`.conciergeignore`, `pathspec`). |
+
