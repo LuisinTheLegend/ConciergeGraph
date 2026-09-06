@@ -1,29 +1,28 @@
 """
 interface/queue_writer.py — SDD-SURVIVAL-10
 
-Fila de Escrita Serializada com Auto-Batching Oportunista e Fallback Atômico.
+Serialized Write Queue with Opportunistic Auto-Batching and Atomic Single-Item Fallback.
 
-Thread daemon dedicada que consome operações de gravação de uma fila
-thread-safe (queue.Queue), garantindo que apenas uma thread escreva no
-SQLite por vez. Elimina completamente erros de "database is locked" em
-cenários de concorrência de múltiplos subagentes.
+Dedicated daemon thread consuming write operations from a thread-safe
+queue (queue.Queue), guaranteeing that only one thread writes to SQLite at any time.
+Completely eliminates "database is locked" errors in multi-subagent concurrency scenarios.
 
-Arquitetura (SDD-SURVIVAL-10):
-  - Conexão física única e persistente na thread escritora (WAL + NORMAL sync)
-  - Threads externas enfileiram escritas via execute_write() e bloqueiam
-    de forma segura até receberem o resultado via response_queue
-  - Auto-Batching Oportunista: se a fila tiver backlog, drena até 50 itens
-    pendentes sem bloquear (get_nowait) e grava todos em uma única transação
-  - Fallback Atômico de Item Único: se a transação em lote falhar, reverte
-    e tenta gravar cada item individualmente, resgatando os saudáveis
-  - Sinal de desligamento gracioso via None na fila
+Architecture (SDD-SURVIVAL-10):
+  - Single persistent physical connection on writer thread (WAL + synchronous=NORMAL)
+  - External threads enqueue writes via execute_write() and block safely
+    until receiving result via response_queue
+  - Opportunistic Auto-Batching: if queue has backlog, drains up to 50 pending
+    items non-blocking (get_nowait) and executes all within a single transaction
+  - Atomic Single-Item Fallback: if batch transaction fails, rolls back and
+    executes each item individually, rescuing healthy writes
+  - Graceful shutdown signal via None sentinel in queue
 """
 
-import queue
 import logging
-import threading
+import queue
 import sqlite3
-from typing import Tuple, Any
+import threading
+from typing import Any, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -32,13 +31,12 @@ _MAX_BATCH_SIZE = 50
 
 class SerializedWriteQueue(threading.Thread):
     """
-    Thread daemon dedicada que consome operações de gravação de uma fila thread-safe,
-    garantindo que apenas uma thread escreva no SQLite por vez e evitando Database Locks.
+    Dedicated daemon thread consuming write operations from a thread-safe queue,
+    guaranteeing that only one thread writes to SQLite at a time, avoiding Database Locks.
 
-    Suporta Auto-Batching Oportunista (SDD-SURVIVAL-10): quando há acúmulo de
-    itens na fila, agrupa-os em uma única transação para maximizar throughput.
-    Em caso de falha no lote, aplica Fallback Atômico de Item Único para
-    resgatar gravações saudáveis.
+    Supports Opportunistic Auto-Batching (SDD-SURVIVAL-10): when items accumulate in queue,
+    groups them into a single transaction to maximize throughput. Upon batch failure,
+    applies Atomic Single-Item Fallback to rescue healthy operations.
     """
 
     def __init__(self, db_path: str):
@@ -47,42 +45,41 @@ class SerializedWriteQueue(threading.Thread):
         self.queue: queue.Queue = queue.Queue()
 
     def run(self):
-        # Conexão persistente e única na thread escritora
+        # Dedicated persistent connection for writer thread
         conn = sqlite3.connect(self.db_path, timeout=30.0)
         conn.execute("PRAGMA journal_mode=WAL;")
         conn.execute("PRAGMA synchronous=NORMAL;")
 
         while True:
-            # ── Passo 1: Aguardar o primeiro item (bloqueante) ────────
+            # ── Step 1: Await first item (blocking) ────────────────────
             task = self.queue.get()
             if task is None:
-                # Sinal de desligamento gracioso
+                # Graceful shutdown sentinel
                 self.queue.task_done()
                 break
 
-            # ── Passo 2: Acúmulo Oportunista (não-bloqueante) ─────────
+            # ── Step 2: Opportunistic Accumulation (non-blocking) ──────
             batch = [task]
             while len(batch) < _MAX_BATCH_SIZE:
                 try:
                     next_item = self.queue.get_nowait()
                     if next_item is None:
-                        # Sinalizador de parada encontrado durante dreno;
-                        # devolve à fila para que o próximo ciclo o capture
+                        # Sentinel found during drain; re-queue for next cycle
                         self.queue.put(None)
                         break
                     batch.append(next_item)
                 except queue.Empty:
                     break
 
-            # ── Passo 3: Gravação Resiliente ──────────────────────────
+            # ── Step 3: Resilient Execution ────────────────────────────
             if len(batch) == 1:
-                # Item único: execução direta sem overhead de transação explícita
+                # Single item: direct execution without explicit transaction overhead
                 self._execute_single(conn, batch[0])
             else:
-                # Lote: transação agrupada com fallback atômico
+                # Batch: grouped transaction with atomic fallback
                 self._execute_batch(conn, batch)
 
-            # Marca todos os itens do lote como processados na fila
+            # Mark all items in batch as processed
             for _ in batch:
                 self.queue.task_done()
 
@@ -91,7 +88,7 @@ class SerializedWriteQueue(threading.Thread):
     def _execute_single(
         self, conn: sqlite3.Connection, task: Tuple
     ) -> None:
-        """Executa uma única gravação em sua própria transação atômica implícita."""
+        """Executes a single write operation in its own implicit atomic transaction."""
         query, params, response_queue = task
         try:
             cursor = conn.cursor()
@@ -106,8 +103,8 @@ class SerializedWriteQueue(threading.Thread):
         self, conn: sqlite3.Connection, batch: list
     ) -> None:
         """
-        Tenta gravar todos os itens do lote em uma única transação agrupada.
-        Se falhar, aplica Single-Item Fallback para resgatar itens saudáveis.
+        Attempts to write all batch items within a single grouped transaction.
+        If it fails, applies Single-Item Fallback to rescue healthy operations.
         """
         try:
             conn.execute("BEGIN IMMEDIATE;")
@@ -118,23 +115,23 @@ class SerializedWriteQueue(threading.Thread):
                 cursor.execute(query, params)
                 results.append((response_queue, cursor.lastrowid))
             conn.commit()
-            # Transação agrupada bem-sucedida: notifica todos os chamadores
+            # Batch transaction succeeded: notify all callers
             for response_queue, lastrowid in results:
                 response_queue.put((True, lastrowid))
         except Exception as batch_error:
-            # ── Fallback Atômico de Item Único ────────────────────
+            # ── Atomic Single-Item Fallback ────────────────────────────
             logger.warning(
-                "Falha na transação em lote (%d itens): %s. "
-                "Iniciando Single-Item Fallback.",
+                "Batch transaction failed (%d items): %s. "
+                "Starting Single-Item Fallback.",
                 len(batch),
                 batch_error,
             )
             try:
                 conn.rollback()
             except Exception:
-                pass  # Rollback defensivo; conexão pode já estar limpa
+                pass  # Defensive rollback
 
-            # Tenta gravar cada item individualmente
+            # Execute each item individually
             for task in batch:
                 self._execute_single(conn, task)
 
@@ -142,11 +139,10 @@ class SerializedWriteQueue(threading.Thread):
         self, query: str, params: Tuple[Any, ...] = ()
     ) -> Tuple[bool, Any]:
         """
-        Ponto de entrada síncrono para threads externas enfileirarem escritas
-        e bloquearem de forma segura até que o resultado seja entregue.
+        Synchronous entry point for external threads to enqueue writes
+        and block safely until the result is delivered.
         """
         response_queue: queue.Queue = queue.Queue()
         self.queue.put((query, params, response_queue))
         success, result = response_queue.get()
         return success, result
-

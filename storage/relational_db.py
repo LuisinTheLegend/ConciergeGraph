@@ -1,15 +1,15 @@
 """
 storage/relational_db.py — SDD-SURVIVAL-20
 
-Schema relacional e operações de persistência para Durable Checkpointing & Time-Travel.
+Relational schema and persistence operations for Durable Checkpointing & Time-Travel.
 
-Define a tabela `fsm_checkpoints` com chave primária composta (session_id, checkpoint_id)
-para isolamento estrito de sessões concorrentes e retenção de snapshots de FSM do agente.
+Defines the `fsm_checkpoints` table with composite primary key (session_id, checkpoint_id)
+for strict concurrent session isolation and agent FSM snapshot retention.
 """
 
 from typing import Any
 
-# SQL DDL para a tabela de checkpoints duráveis de FSM
+# SQL DDL for durable FSM checkpoints table
 FSM_CHECKPOINTS_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS fsm_checkpoints (
     checkpoint_id TEXT NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS fsm_checkpoints (
 
 def init_fsm_checkpoints_schema(db_manager: Any) -> bool:
     """
-    Inicializa a tabela fsm_checkpoints no banco de dados SQLite WAL.
+    Initializes the fsm_checkpoints table in the SQLite WAL database.
     """
     write_fn = getattr(db_manager, "execute_write", getattr(db_manager, "write_query", None))
     if write_fn:

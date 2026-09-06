@@ -129,7 +129,7 @@ class SerializedWriteQueue:
         job = _WriteJob(fn=fn, args=args, kwargs=kwargs)
         self._queue.put(job)
         
-        # Bloqueia até que a thread worker finalize o job
+        # Blocks until worker thread finishes the job
         job.result_event.wait()
         
         if job.error is not None:

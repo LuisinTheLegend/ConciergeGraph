@@ -104,7 +104,7 @@ class TestCognitiveRoutingMemory(unittest.TestCase):
         compiled_prompt = self.memory_adapter.compile_hybrid_context(mock_chat, retrieved_data)
 
         # O bloco de memória de longo prazo (LTM) deve constar
-        self.assertIn("=== SUBSTRATO DE MEMÓRIA DE LONGO PRAZO", compiled_prompt)
+        self.assertIn("=== LONG-TERM MEMORY SUBSTRATE", compiled_prompt)
         self.assertIn("[LTM Context] Classes e arestas", compiled_prompt)
 
         # As mensagens antigas (1, 2, 3) devem ser eliminadas (podadas) para poupar contexto

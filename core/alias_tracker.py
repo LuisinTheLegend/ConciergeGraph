@@ -1,24 +1,24 @@
 """
 core/alias_tracker.py — SDD-SURVIVAL-18 (Hardened & Resilient)
 
-Alias Tracking por Hash Estrutural (SSH) para Preservação de Trajetórias Históricas.
+Structural Signature Hash (SSH) Alias Tracking for Historical Trajectory Preservation.
 
-Intercepta refatorações físicas de renomeação ou movimentação de arquivos na IDE,
-associando deleções e criações que compartilham a mesma assinatura estrutural hash (SSH)
-dentro de um buffer temporal de reconciliação, aplicando migração atômica de caminhos
-sem perda de histórico, conexões topológicas ou checkpoints de agentes.
+Intercepts physical file renames and moves across the workspace, associating deletions
+and creations that share the exact same Structural Signature Hash (SSH) within a temporal
+reconciliation buffer, atomically migrating database paths without losing historical context,
+topological graph edges, or agent checkpoints.
 
-Blindagens aplicadas:
-  - Rejeição estrita de payloads vazios ou boilerplates ("e3b0c4...", "", "deleted_hash")
-  - Timeout assíncrono com expurgo automático: se nenhum arquivo corresponder dentro da
-    janela temporal, invoca on_purge_callback para evitar registros zumbis no SQLite.
-  - Sincronização segura entre threads via threading.Lock e cancelamento de timers.
+Shielding Guarantees:
+  - Strict rejection of empty or boilerplate payloads ("e3b0c4...", "", "deleted_hash").
+  - Asynchronous timeout with automatic purge: if no matching creation occurs within the window,
+    invokes on_purge_callback to avoid orphan zombie records in SQLite.
+  - Thread-safe synchronization via threading.Lock and active timer cancellation.
 """
 
-import time
 import logging
 import threading
-from typing import Dict, Optional, Tuple, Any, Callable, List
+import time
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +28,8 @@ INVALID_HASHES = {EMPTY_SSH_HASH, "deleted_hash", "", None}
 
 class AliasTracker:
     """
-    Rastreador de codinomes (aliases) estruturais temporais para preservação
-    de trajetórias históricas e topologia em operações de renomeação / movimentação.
+    Temporal structural alias tracker preserving historical trajectories
+    and topology during file rename and move operations.
     """
 
     def __init__(
@@ -44,15 +44,15 @@ class AliasTracker:
         self.buffer_window = buffer_window_seconds
         self.on_purge_callback = on_purge_callback
 
-        # Buffer de exclusões pendentes: {old_path: (structural_hash, timestamp_of_deletion)}
+        # Pending deletions buffer: {old_path: (structural_hash, timestamp_of_deletion)}
         self.pending_deletions: Dict[str, Tuple[str, float]] = {}
-        # Timers pendentes para expurgo automático pós-timeout: {old_path: threading.Timer}
+        # Pending timers for post-timeout auto-purge: {old_path: threading.Timer}
         self.pending_timers: Dict[str, threading.Timer] = {}
         self._lock = threading.Lock()
 
     @staticmethod
     def is_valid_hash(structural_hash: Optional[str]) -> bool:
-        """Valida se o hash representa uma estrutura sintática real não trivial."""
+        """Validates whether hash represents a non-trivial syntactic structure."""
         if not structural_hash:
             return False
         if len(structural_hash) < 5:
@@ -63,52 +63,52 @@ class AliasTracker:
 
     def register_deletion(self, path: str, structural_hash: str) -> None:
         """
-        Registra uma deleção pendente no buffer temporal de alias.
-        Se o hash for inválido/vazio, purga imediatamente via callback.
-        Caso contrário, armazena e inicia um timer assíncrono para expurgo em caso de timeout.
+        Registers a pending deletion in temporal alias buffer.
+        If hash is invalid/empty, immediately purges node via callback.
+        Otherwise stores deletion and arms async timer for purge upon timeout.
         """
         if not self.is_valid_hash(structural_hash):
-            logger.debug("[ALIAS-TRACKER] Hash inválido ou vazio para %s. Purgando imediatamente.", path)
+            logger.debug("[ALIAS-TRACKER] Invalid or empty hash for %s. Purging immediately.", path)
             if self.on_purge_callback:
                 try:
                     self.on_purge_callback(path)
                 except Exception as e:
-                    logger.error("[ALIAS-TRACKER] Erro no expurgo imediato de hash inválido para %s: %s", path, e)
+                    logger.error("[ALIAS-TRACKER] Error in immediate purge of invalid hash for %s: %s", path, e)
             return
 
         with self._lock:
-            # Cancela timer anterior se já existia para este caminho
+            # Cancel previous timer if already registered for this path
             old_timer = self.pending_timers.pop(path, None)
             if old_timer:
                 old_timer.cancel()
 
             self.pending_deletions[path] = (structural_hash, time.time())
 
-            # Agenda expurgo assíncrono caso nenhuma criação ocorra na janela
+            # Schedule asynchronous purge if no creation occurs within window
             timer = threading.Timer(self.buffer_window, self._on_timeout_expire, args=[path])
             timer.daemon = True
             timer.start()
             self.pending_timers[path] = timer
 
     def _on_timeout_expire(self, path: str) -> None:
-        """Chamado pelo timer quando a janela de espera expira sem resolução de criação."""
+        """Invoked by timer when buffer window expires without creation resolution."""
         with self._lock:
             self.pending_timers.pop(path, None)
             entry = self.pending_deletions.pop(path, None)
 
         if entry is not None and self.on_purge_callback:
-            logger.info("[ALIAS-TRACKER] Timeout de alias expirado para '%s'. Purgando nó do banco.", path)
+            logger.info("[ALIAS-TRACKER] Alias timeout expired for '%s'. Purging node from database.", path)
             try:
                 self.on_purge_callback(path)
             except Exception as e:
-                logger.error("[ALIAS-TRACKER] Erro ao invocar on_purge_callback no timeout para %s: %s", path, e)
+                logger.error("[ALIAS-TRACKER] Error invoking on_purge_callback on timeout for %s: %s", path, e)
 
     def check_and_resolve_creation(
         self, new_path: str, new_structural_hash: str
     ) -> Optional[str]:
         """
-        Verifica se a criação de um novo arquivo corresponde a um arquivo deletado recentemente
-        com a mesma assinatura estrutural hash (SSH). Retorna o caminho antigo se for um alias.
+        Checks whether creation of a new file matches a recently deleted file
+        sharing identical Structural Signature Hash (SSH). Returns old path if resolved as alias.
         """
         if not self.is_valid_hash(new_structural_hash):
             return None
@@ -125,14 +125,14 @@ class AliasTracker:
                 elif old_hash == new_structural_hash:
                     candidates.append(old_path)
 
-            # Expurgar do buffer os itens expirados
+            # Evict expired items from buffer
             for path in expired_paths:
                 timer = self.pending_timers.pop(path, None)
                 if timer:
                     timer.cancel()
                 self.pending_deletions.pop(path, None)
 
-            # Se houver exatamente um candidato exclusivo, resolvemos o Alias!
+            # If exactly one exclusive candidate matches, resolve the alias!
             if len(candidates) == 1:
                 matched_old_path = candidates[0]
                 timer = self.pending_timers.pop(matched_old_path, None)
@@ -140,18 +140,18 @@ class AliasTracker:
                     timer.cancel()
                 self.pending_deletions.pop(matched_old_path, None)
 
-        # Dispara expurgo para os itens expirados que não casaram
+        # Trigger purge for unmatched expired paths
         for path in expired_paths:
             if self.on_purge_callback:
                 try:
                     self.on_purge_callback(path)
                 except Exception as e:
-                    logger.error("[ALIAS-TRACKER] Erro no expurgo de caminho expirado %s: %s", path, e)
+                    logger.error("[ALIAS-TRACKER] Error in purge of expired path %s: %s", path, e)
 
         return matched_old_path
 
     def purge_expired(self, current_time: Optional[float] = None) -> List[str]:
-        """Purga manualmente todos os itens cujo timeout estourou."""
+        """Manually purges all items whose timeout has expired."""
         if current_time is None:
             current_time = time.time()
         expired: List[str] = []
@@ -169,11 +169,11 @@ class AliasTracker:
                 try:
                     self.on_purge_callback(path)
                 except Exception as e:
-                    logger.error("[ALIAS-TRACKER] Erro ao purgar %s: %s", path, e)
+                    logger.error("[ALIAS-TRACKER] Error purging expired path %s: %s", path, e)
         return expired
 
     def cancel_all_timers(self) -> None:
-        """Cancela todos os timers pendentes (para teardown de testes e shutdown)."""
+        """Cancels all pending timers (for teardown and shutdown)."""
         with self._lock:
             for timer in self.pending_timers.values():
                 try:
@@ -183,10 +183,10 @@ class AliasTracker:
             self.pending_timers.clear()
 
     def apply_alias_migration(self, old_path: str, new_path: str) -> bool:
-        """Executa a mutação atômica do caminho físico de arquivo preservando o histórico."""
+        """Executes atomic mutation of physical file path while preserving historical relations."""
         timestamp = time.time()
 
-        # Descobre colunas de ast_edges (parent_node_id vs parent_node)
+        # Discover ast_edges column names (parent_node_id vs parent_node)
         parent_col = "parent_node_id"
         child_col = "child_node_id"
         try:
@@ -200,7 +200,7 @@ class AliasTracker:
         except Exception:
             pass
 
-        # Descobre tabelas existentes
+        # Discover existing database tables
         existing_tables = set()
         try:
             t_rows = self.db.read_query(
@@ -245,13 +245,13 @@ class AliasTracker:
                 if hasattr(self.db, "execute_write"):
                     success, res = self.db.execute_write(query, params)
                     if not success:
-                        raise Exception(f"Transação falhou: {res}")
+                        raise Exception(f"Transaction failed: {res}")
                 else:
                     self.db.write_query(query, params)
             return True
         except Exception as e:
             logger.error(
-                "[ALIAS-TRACKER] Falha crítica ao migrar alias %s -> %s: %s",
+                "[ALIAS-TRACKER] Critical failure migrating alias %s -> %s: %s",
                 old_path,
                 new_path,
                 e,

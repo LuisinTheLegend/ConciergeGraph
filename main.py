@@ -248,12 +248,12 @@ def main() -> None:
         logger.info("Interrupt received (Ctrl+C) — starting graceful shutdown...")
 
     except Exception as e:
-        logger.critical("Erro fatal durante execução: %s", e, exc_info=True)
+        logger.critical("Fatal error during execution: %s", e, exc_info=True)
         sys.exit(1)
 
     finally:
         # ── Graceful Shutdown ──
-        logger.info("Shutdown gracioso iniciado...")
+        logger.info("Graceful shutdown initiated...")
 
         if janitor is not None:
             try:

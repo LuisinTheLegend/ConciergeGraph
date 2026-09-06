@@ -1,26 +1,26 @@
 """
 core/parsers/ts_js_parser.py — SDD-SURVIVAL-19
 
-Parser Híbrido de TypeScript/JavaScript (TS/JS/JSX/TSX) via Tree-Sitter
-com Fallback Léxico de Alta Performance baseado em Regex.
+Hybrid TypeScript/JavaScript (TS/JS/JSX/TSX) Parser via Tree-Sitter
+with High-Performance Regex-Based Lexical Fallback.
 
-Arquitetura Resiliente:
-  1. Tenta inicializar o Tree-Sitter como motor primário de alta precisão.
-  2. Se a compilação C/C++ falhar ou as gramáticas não estiverem disponíveis,
-     chaveia silenciosamente para o Parser Léxico baseado em Regex.
-  3. O fallback léxico é capaz de extrair 100% dos import/export, assinaturas
-     de funções/classes e resolver aliases do Next.js (@/...) sem exceções.
+Resilient Architecture:
+  1. Attempts to initialize Tree-Sitter as the primary high-precision engine.
+  2. If C/C++ compilation fails or grammars are missing, silently falls back
+     to high-performance regex-based lexical parsing.
+  3. The lexical fallback extracts 100% of import/export statements, function
+     and class signatures, and resolves Next.js aliases (@/...) without exceptions.
 
-Resolvedor de Caminhos (Alias Resolver):
-  - Traduz `@/components/Panel` → `grafo-dashboard-web/components/Panel`
-  - Resolve imports relativos `../utils/math` → caminho normalizado
-  - Filtra pacotes npm externos (react, next, etc.)
+Path and Alias Resolver:
+  - Translates `@/components/Panel` -> `grafo-dashboard-web/components/Panel`
+  - Resolves relative imports `../utils/math` -> normalized relative path
+  - Filters out external npm dependencies (react, next, etc.)
 """
 
-import re
-import os
 import logging
-from typing import Dict, Any, List, Optional
+import os
+import re
+from typing import Any, Dict, List, Optional
 
 from core.parsers.base import BaseASTParser
 
@@ -29,14 +29,14 @@ logger = logging.getLogger(__name__)
 
 class TSJSASTParser(BaseASTParser):
     """
-    Parser de arquivos TypeScript e JavaScript (.ts, .tsx, .js, .jsx).
+    Parser for TypeScript and JavaScript files (.ts, .tsx, .js, .jsx).
 
-    Utiliza Tree-Sitter como motor primário e Regex como fallback léxico.
-    Integra-se com o Alias Resolver para traduzir caminhos de imports
-    do Next.js antes de gerar arestas no grafo AST.
+    Uses Tree-Sitter as primary engine with Regex as resilient lexical fallback.
+    Integrates with Alias Resolver to translate Next.js import paths
+    before emitting edges in the AST knowledge graph.
     """
 
-    # ── Regex Compilados (alto desempenho) ───────────────────────────
+    # ── Compiled Regular Expressions (High Performance) ─────────────
 
     # ES6 imports: import ... from "module" | import "module"
     # CommonJS: const x = require("module")
@@ -49,16 +49,16 @@ class TSJSASTParser(BaseASTParser):
     # Classes: class ClassName { ... }
     _CLASS_PATTERN = re.compile(r'class\s+([\w\d_]+)')
 
-    # Funções nomeadas: function foo(...) { ... }
+    # Named functions: function foo(...) { ... }
     # Arrow functions: const foo = (...) => { ... }
-    # Arrow functions de parâmetro único: const foo = x => { ... }
+    # Single-param arrow functions: const foo = x => { ... }
     _FUNCTION_PATTERN = re.compile(
         r'(?:function\s+([\w\d_]+))'
         r'|'
         r'(?:(?:export\s+)?const\s+([\w\d_]+)\s*=\s*(?:\([^)]*\)|[\w\d_]+)\s*=>)'
     )
 
-    # Hooks e builtins do React que devem ser ignorados como funções do projeto
+    # React hooks and built-ins to ignore as application functions
     _REACT_BUILTINS = frozenset({
         "React", "useState", "useEffect", "useRef", "useMemo",
         "useCallback", "useContext", "useReducer", "useLayoutEffect",
@@ -66,87 +66,85 @@ class TSJSASTParser(BaseASTParser):
         "useTransition", "useId", "useSyncExternalStore",
     })
 
-    # Extensões JS/TS válidas para resolução implícita de caminhos
+    # Valid JS/TS file extensions for implicit path resolution
     _JS_TS_EXTENSIONS = ('.tsx', '.ts', '.jsx', '.js')
 
     def __init__(self, project_root: str = ""):
         self.project_root = project_root
         self.tree_sitter_active = False
 
-        # Tentativa de carregar o Tree-Sitter de forma protegida
+        # Protected initialization of Tree-Sitter
         try:
             import tree_sitter  # noqa: F401
             from tree_sitter_languages import get_language, get_parser
 
-            self.ts_lang = get_language('tsx')  # JSX/TSX usam gramática TSX
+            self.ts_lang = get_language('tsx')  # JSX/TSX share TSX grammar
             self.ts_parser = get_parser('tsx')
             self.tree_sitter_active = True
-            logger.info("[TSJS-PARSER] Tree-Sitter inicializado com sucesso (gramática TSX).")
+            logger.info("[TSJS-PARSER] Tree-Sitter initialized successfully (TSX grammar).")
         except Exception as e:
-            # Silencioso: Chaveia automaticamente para o Lexical Fallback
+            # Silent fallback: Automatically switches to Lexical Fallback
             self.tree_sitter_active = False
             logger.info(
-                "[TSJS-PARSER] Tree-Sitter indisponível (%s). "
-                "Utilizando Lexical Fallback de alta performance.",
+                "[TSJS-PARSER] Tree-Sitter unavailable (%s). "
+                "Using high-performance Lexical Fallback.",
                 type(e).__name__,
             )
 
-    # ── Interface Pública ────────────────────────────────────────────
+    # ── Public Interface ─────────────────────────────────────────────
 
     def parse(self, file_path: str, code_content: str) -> Dict[str, Any]:
         """
-        Analisa o arquivo JS/TS/JSX/TSX e retorna classes, funções,
-        imports lógicos resolvidos e a assinatura estrutural (SSH).
+        Parses JS/TS/JSX/TSX file content and returns classes, functions,
+        resolved logical imports, and Structural Signature Hash (SSH).
         """
         if self.tree_sitter_active:
             try:
                 return self._parse_via_tree_sitter(file_path, code_content)
             except Exception as e:
                 logger.warning(
-                    "[TSJS-PARSER] Tree-Sitter falhou em runtime para %s (%s). "
-                    "Usando fallback léxico.",
+                    "[TSJS-PARSER] Tree-Sitter failed at runtime for %s (%s). "
+                    "Falling back to lexical parser.",
                     file_path, type(e).__name__,
                 )
 
         return self._parse_via_lexical_fallback(file_path, code_content)
 
-    # ── Tree-Sitter (Motor Primário) ─────────────────────────────────
+    # ── Tree-Sitter (Primary Engine) ─────────────────────────────────
 
     def _parse_via_tree_sitter(self, file_path: str, code_content: str) -> Dict[str, Any]:
         """
-        Parser preciso usando o compilador AST do Tree-Sitter.
+        AST parser using Tree-Sitter compiler.
 
-        Delega a extração de entidades para o fallback léxico (que é
-        ultra-preciso em JS/TS) combinando-a com validação estrutural
-        do Tree-Sitter para garantir integridade da árvore.
+        Delegates entity extraction to lexical fallback (ultra-fast for JS/TS)
+        combined with Tree-Sitter structural validation to ensure tree integrity.
         """
         tree = self.ts_parser.parse(bytes(code_content, "utf8"))
         root_node = tree.root_node
 
-        # Se o Tree-Sitter detectar erros de parsing, registra mas continua
+        # Log syntax errors if detected by Tree-Sitter, then continue
         if root_node.has_error:
             logger.debug(
-                "[TSJS-PARSER] Tree-Sitter detectou erros de sintaxe em %s. "
-                "Combinando com fallback léxico.",
+                "[TSJS-PARSER] Tree-Sitter detected syntax errors in %s. "
+                "Merging with lexical fallback.",
                 file_path,
             )
 
-        # Como o fallback léxico é ultra-preciso em JS/TS, combinamos a
-        # estrutura do Tree-Sitter com os mapeamentos de caminhos.
+        # Merge structural validation with path resolution mappings
         return self._parse_via_lexical_fallback(file_path, code_content)
 
-    # ── Lexical Fallback (Motor de Alta Resiliência) ──────────────────
+    # ── Lexical Fallback (High-Resilience Engine) ─────────────────────
 
     def _parse_via_lexical_fallback(self, file_path: str, code_content: str) -> Dict[str, Any]:
         """
-        Mapeador léxico de alta performance baseado em Regex.
-        Varre imports ES6 e require() traduzindo caminhos e aliases do Next.js.
+        High-performance regex-based lexical mapper.
+        Scans ES6 imports and require() translating paths and Next.js aliases.
         """
         classes: List[str] = []
         functions: List[str] = []
         imports: List[str] = []
 
-        # ── 1. Extração de Imports ───────────────────────────────────
+        # ── 1. Import Extraction ─────────────────────────────────────
         for match in self._IMPORT_PATTERN.finditer(code_content):
             module_path = match.group(1) or match.group(2)
             if module_path:
@@ -154,19 +152,19 @@ class TSJSASTParser(BaseASTParser):
                 if resolved_path:
                     imports.append(resolved_path)
 
-        # ── 2. Extração de Classes ───────────────────────────────────
+        # ── 2. Class Extraction ──────────────────────────────────────
         for match in self._CLASS_PATTERN.finditer(code_content):
             classes.append(match.group(1))
 
-        # ── 3. Extração de Funções (nomeadas + arrow) ────────────────
+        # ── 3. Function Extraction (Named + Arrow) ───────────────────
         for match in self._FUNCTION_PATTERN.finditer(code_content):
             func_name = match.group(1) or match.group(2)
             if func_name and func_name not in self._REACT_BUILTINS:
                 functions.append(func_name)
 
-        # ── 4. Geração da Assinatura Estrutural Hash (SSH) ───────────
-        # Combina classes, funções e imports em uma string estrita de
-        # arquitetura. Mudanças de lógica interna não alteram o SSH.
+        # ── 4. Structural Signature Hash (SSH) Generation ────────────
+        # Combines classes, functions, and imports into strict architectural signature.
+        # Internal body logic changes do NOT alter the SSH.
         structural_signature = (
             f"IMPS:{','.join(sorted(imports))}"
             f"|CLS:{','.join(sorted(classes))}"
@@ -184,39 +182,38 @@ class TSJSASTParser(BaseASTParser):
 
     def resolve_alias_path(self, current_file: str, import_string: str) -> str:
         """
-        Resolve caminhos relativos e aliases configurados do Next.js
-        (ex: '@/components/...') para o caminho relativo real do arquivo
-        dentro do monorepo.
+        Resolves relative paths and Next.js aliases (e.g. '@/components/...')
+        to the actual monorepo-relative file path.
 
-        Filtragem:
-          - Pacotes npm nativos/externos (react, next, etc.) → retorna ""
-          - Alias '@/...' → traduzido para o diretório do frontend
-          - Import relativo './' ou '../' → normalizado via os.path
+        Filtering:
+          - Native / external npm packages (react, next, etc.) -> returns ""
+          - Alias '@/...' -> translated to frontend root directory
+          - Relative import './' or '../' -> normalized via os.path
 
         Args:
-            current_file:  caminho relativo do arquivo que contém o import.
-            import_string: string do import tal qual aparece no código-fonte.
+            current_file:  Relative path of file containing the import.
+            import_string: Raw import string from source code.
 
         Returns:
-            Caminho relativo normalizado (UNIX-style) ou "" se for externo.
+            Normalized relative path (UNIX-style) or "" if external.
         """
-        # Ignorar pacotes npm nativos ou externos do node_modules
+        # Ignore external/native npm packages from node_modules
         if not import_string.startswith('.') and not import_string.startswith('@/'):
             return ""
 
         current_dir = os.path.dirname(current_file)
         target_path = ""
 
-        # ── 1. Alias padrão do Next.js: '@/...' ─────────────────────
+        # ── 1. Next.js Default Alias: '@/...' ────────────────────────
         if import_string.startswith('@/'):
-            # Converte '@/components/...' para 'grafo-dashboard-web/components/...'
-            # Assume que @ mapeia para a raiz do projeto frontend
+            # Convert '@/components/...' to 'grafo-dashboard-web/components/...'
+            # Assume @ maps to frontend project root
             clean_import = import_string[2:]
 
-            # Detecta a raiz do frontend a partir do current_file
+            # Detect frontend root from current_file
             frontend_root = self._detect_frontend_root(current_file)
 
-            # Tenta resolver com a raiz detectada
+            # Attempt resolution with detected root
             for possible_root in [frontend_root, "."]:
                 test_path = os.path.join(possible_root, clean_import)
                 if os.path.exists(test_path) or any(
@@ -229,12 +226,12 @@ class TSJSASTParser(BaseASTParser):
             if not target_path:
                 target_path = os.path.join(frontend_root, clean_import)
 
-        # ── 2. Import relativo clássico: './' ou '../' ───────────────
+        # ── 2. Standard Relative Import: './' or '../' ───────────────
         else:
             target_path = os.path.normpath(os.path.join(current_dir, import_string))
 
-        # ── 3. Resolução de extensões implícitas ─────────────────────
-        # Se o caminho não tiver extensão, tenta encontrar o arquivo físico
+        # ── 3. Implicit Extension Resolution ─────────────────────────
+        # If path lacks extension, locate matching physical file
         if not os.path.splitext(target_path)[1]:
             for ext in self._JS_TS_EXTENSIONS:
                 if os.path.exists(target_path + ext):
@@ -245,25 +242,24 @@ class TSJSASTParser(BaseASTParser):
                     target_path = index_path
                     break
 
-        # Normaliza para padrão UNIX/Web (separadores forward slash)
+        # Normalize to UNIX/Web style forward slashes
         return target_path.replace("\\", "/")
 
-    # ── Helpers Internos ─────────────────────────────────────────────
+    # ── Internal Helpers ─────────────────────────────────────────────
 
     def _detect_frontend_root(self, current_file: str) -> str:
         """
-        Detecta a raiz do frontend a partir do caminho do arquivo atual.
+        Detects frontend root directory based on current file path.
 
-        Se o arquivo está dentro de 'grafo-dashboard-web/', extrai essa raiz.
-        Caso contrário, assume 'grafo-dashboard-web' como padrão.
+        If file is located within 'grafo-dashboard-web/', extracts that prefix.
+        Otherwise falls back to 'grafo-dashboard-web'.
         """
-        # Normaliza para forward slashes para matching consistente
+        # Normalize to forward slashes for consistent matching
         normalized = current_file.replace("\\", "/")
 
-        # Tenta detectar a raiz do frontend pelo padrão do caminho
         if "grafo-dashboard-web/" in normalized:
             idx = normalized.index("grafo-dashboard-web/")
             return normalized[:idx + len("grafo-dashboard-web")]
 
-        # Fallback padrão
+        # Default fallback
         return "grafo-dashboard-web"

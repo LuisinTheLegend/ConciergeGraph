@@ -108,11 +108,11 @@ class SemanticExtractor:
                 raw_response = self.llm.generate(prompt, max_tokens=300)
                 parsed = self._extract_json_with_fallback(raw_response)
             except Exception as e:
-                logger.error("Falha ao chamar LLM para avaliar o fato '%s': %s", new_fact, e)
+                logger.error("Failed to invoke LLM to evaluate fact '%s': %s", new_fact, e)
                 parsed = None
 
             if not parsed or "action" not in parsed:
-                logger.warning("Falha ao parsear decisão estruturada para o fato '%s'. Executando ADD.", new_fact)
+                logger.warning("Failed to parse structured decision for fact '%s'. Executing ADD.", new_fact)
                 fact_id = insert_semantic_fact(conn, scope_type, scope_id, new_fact)
                 results.append({
                     "fact": new_fact,

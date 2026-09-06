@@ -208,7 +208,7 @@ class GitignoreParser:
             self._patterns.append(stripped)
 
         logger.debug(
-            "GitignoreParser.add_patterns: +%d entradas → %d padrões totais.",
+            "GitignoreParser.add_patterns: +%d entries → %d total patterns.",
             len(patterns), len(self._patterns),
         )
 
@@ -708,15 +708,15 @@ class ProjectCrawler:
                     )
 
         except Exception as e:
-            logger.error("Falha na detecção de nós deletados (GC): %s", e)
+            logger.error("Failed to detect deleted nodes (GC): %s", e)
 
         if orphan_ids:
             logger.warning(
-                "Garbage Collection: %d nós órfãos detectados no projeto %s.",
+                "Garbage Collection: %d orphan nodes detected in project %s.",
                 len(orphan_ids), project_uuid,
             )
         else:
-            logger.debug("Garbage Collection: nenhum nó órfão detectado.")
+            logger.debug("Garbage Collection: no orphan nodes detected.")
 
         return orphan_ids
 

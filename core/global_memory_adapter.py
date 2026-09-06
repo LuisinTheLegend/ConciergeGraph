@@ -1,30 +1,29 @@
 """
 core/global_memory_adapter.py — SDD-SURVIVAL-22
 
-Adaptador de Memória Global Hierárquica (LTM + STM).
+Hierarchical Global Memory Adapter (LTM + STM).
 
-Substitui a passagem ineficiente do histórico linear bruto de mensagens
-(chat history) na janela de contexto por um compilado semântico estruturado:
+Replaces inefficient linear chat history passing with a structured semantic composite:
 
-  - STM (Short-Term Memory): Janela deslizante das últimas 3 mensagens brutas
-    do chat, preservando referências de pronomes e fluxo conversacional imediato.
-  - LTM (Long-Term Memory): Substrato estruturado de entidades e resumos
-    extraídos das tabelas de relacionamento e comunidades do Grafo Concierge.
+  - STM (Short-Term Memory): Sliding window of the latest 3 raw chat messages,
+    preserving conversational pronouns and immediate flow.
+  - LTM (Long-Term Memory): Structured substrate of entities, facts, and community
+    summaries extracted from Concierge Graph SQLite/Qdrant backends.
 
-Política: Janela Deslizante de Contexto Misto (Hybrid Sliding Window).
+Policy: Hybrid Sliding Window Context Injection.
 """
 
 import logging
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
-# Número de mensagens recentes do chat a preservar intactas na janela de curto prazo
+# Number of recent chat messages preserved intact in short-term window
 STM_WINDOW_SIZE = 3
 
 
 class GlobalMemoryAdapter:
-    """Injetor de contexto dinâmico com janela deslizante mista LTM + STM."""
+    """Dynamic context injector with hybrid LTM + STM sliding window."""
 
     def __init__(self, db_manager):
         self.db = db_manager
@@ -35,51 +34,51 @@ class GlobalMemoryAdapter:
         retrieved_knowledge: Dict[str, Any],
     ) -> str:
         """
-        Compila o payload final de contexto para o agente.
+        Compiles final context payload for the agent.
 
-        Conserva as últimas STM_WINDOW_SIZE mensagens brutas do chat e substitui
-        o histórico antigo por resumos estruturados extraídos do Grafo.
+        Retains the latest STM_WINDOW_SIZE raw chat messages and replaces
+        older conversation history with structured graph summaries.
 
         Args:
-            chat_history: Lista de dicts com 'role' ('user'|'assistant') e 'content'.
-            retrieved_knowledge: Dict com 'source' e 'context' (saída do NozomioRouter).
+            chat_history: List of dicts with 'role' ('user'|'assistant') and 'content'.
+            retrieved_knowledge: Dict with 'source' and 'context' (output from NozomioRouter).
 
         Returns:
-            String compilada pronta para injeção como system/context no prompt do agente.
+            Compiled string ready for injection into system/context prompt.
         """
-        # 1. Recupera as últimas N interações conversacionais (STM)
+        # 1. Retrieve latest conversational turns (STM)
         if len(chat_history) > STM_WINDOW_SIZE:
             recent_chat_history = chat_history[-STM_WINDOW_SIZE:]
         else:
             recent_chat_history = chat_history
 
-        # 2. Prepara o Bloco de Memória de Longo Prazo Estruturada (LTM)
+        # 2. Prepare Structured Long-Term Memory block (LTM)
         source = retrieved_knowledge.get("source", "UNKNOWN")
         context = retrieved_knowledge.get("context", "")
         ltm_block = (
-            f"=== SUBSTRATO DE MEMÓRIA DE LONGO PRAZO (Sourced from: {source}) ===\n"
-            f"Contexto Recuperado:\n{context}\n"
+            f"=== LONG-TERM MEMORY SUBSTRATE (Sourced from: {source}) ===\n"
+            f"Retrieved Context:\n{context}\n"
         )
 
-        # 3. Monta a instrução de ancoragem de contexto
+        # 3. Assemble grounding instruction
         system_injection = (
-            "Você é o agente executor e tem acesso à sua Memória de Longo Prazo (LTM) consolidada e "
-            "ao histórico de conversação de curto prazo. Utilize o LTM abaixo como sua única e estrita "
-            "fonte de verdade técnica sobre o projeto, ignorando especulações.\n\n"
+            "You are the executing agent with access to consolidated Long-Term Memory (LTM) "
+            "and short-term conversation history. Use the LTM below as your primary technical "
+            "source of truth regarding the project.\n\n"
             f"{ltm_block}\n"
-            "=== HISTÓRICO CONVERSACIONAL DE CURTO PRAZO ===\n"
+            "=== SHORT-TERM CONVERSATION HISTORY ===\n"
         )
 
-        # 4. Concatena o histórico recente formatado
+        # 4. Format and append recent chat turns
         chat_str = ""
         for msg in recent_chat_history:
-            role = "Desenvolvedor" if msg.get("role") == "user" else "Agente"
+            role = "Developer" if msg.get("role") == "user" else "Agent"
             chat_str += f"{role}: {msg.get('content', '')}\n"
 
         compiled = system_injection + chat_str
 
         logger.debug(
-            "GlobalMemoryAdapter: Compilado contexto híbrido — LTM source=%s, STM msgs=%d, total chars=%d",
+            "GlobalMemoryAdapter: Compiled hybrid context — LTM source=%s, STM msgs=%d, total chars=%d",
             source, len(recent_chat_history), len(compiled)
         )
 

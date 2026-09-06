@@ -1,25 +1,24 @@
 """
 core/delta_manager.py — SDD-SURVIVAL-04 / SDD-SURVIVAL-11
 
-Portão de Contenção de Custos de IA — Sincronização Delta.
+Cost Containment Gateway — Delta Synchronization.
 
-Discrimina modificações de arquivo entre:
-  - Mudanças cosméticas (comentários, espaços, docstrings) → ignora totalmente
-  - Mudanças de lógica interna (ifs, returns, variáveis) → marca como DIRTY (SDD-11)
-  - Mudanças estruturais (def, class, import) → marca comunidade como DIRTY
+Discriminates file modifications between:
+  - Cosmetic changes (comments, whitespaces, docstrings) -> completely ignored
+  - Internal logic changes (ifs, returns, variables) -> marked as DIRTY (SDD-11)
+  - Structural changes (def, class, import) -> marks community as DIRTY
 
-A re-sumarização via LLM ocorre exclusivamente sob demanda (Lazy Summarization
-JIT), evitando faturas surpresas de API em alterações triviais de código.
+Re-summarization via LLM occurs exclusively on-demand (Lazy Summarization JIT),
+preventing unexpected cloud API bills during trivial code modifications.
 
-Conceitos-chave:
-  - SSH (Structural Signature Hash): SHA-256 das linhas de assinatura pública
-    (def, class, import, from), ignorando todo o miolo de implementação.
-  - LBH (Logical Body Hash): SHA-256 do ast.dump estrutural do código após
-    remoção de docstrings via DocstringStripper, detectando drift semântico
-    mesmo sem mudança de assinatura. (SDD-SURVIVAL-11)
-  - Dirty Flag Propagation: arquivo DIRTY → comunidade DIRTY.
-  - Community Reconciliation: quando todos os arquivos de uma comunidade
-    estão limpos, a comunidade é reconciliada de volta para CLEAN.
+Key Concepts:
+  - SSH (Structural Signature Hash): SHA-256 of public signature lines
+    (def, class, import, from), ignoring implementation bodies.
+  - LBH (Logical Body Hash): SHA-256 of structural AST dump after removing
+    docstrings via DocstringStripper, detecting semantic drift even without signature alterations. (SDD-11)
+  - Dirty Flag Propagation: DIRTY file -> DIRTY community.
+  - Community Reconciliation: when all files in a community are clean,
+    the community is reconciled back to CLEAN.
 """
 
 import ast
@@ -29,14 +28,14 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-# Prefixos que definem linhas de assinatura estrutural pública
+# Prefixes defining public structural signature lines
 _STRUCTURAL_PREFIXES = ("def ", "class ", "import ", "from ")
 
 
 class DocstringStripper(ast.NodeTransformer):
     """
-    Transformador AST que remove docstrings de funções e classes,
-    permitindo que o hash lógico do corpo ignore mudanças documentais.
+    AST transformer that strips docstrings from functions and classes,
+    allowing the logical body hash to ignore documentation changes.
     """
 
     def visit_FunctionDef(self, node):
@@ -48,7 +47,7 @@ class DocstringStripper(ast.NodeTransformer):
         return node
 
     def visit_AsyncFunctionDef(self, node):
-        # Trata funções assíncronas da mesma forma
+        # Treat async functions identically to standard functions
         return self.visit_FunctionDef(node)
 
     def visit_ClassDef(self, node):
@@ -70,22 +69,22 @@ class DocstringStripper(ast.NodeTransformer):
 
 class DeltaManager:
     """
-    Gerencia a sincronização delta entre alterações físicas de arquivos
-    e o estado estrutural do grafo de comunidades no SQLite WAL.
+    Manages delta synchronization between physical file modifications
+    and the structural state of the community graph in SQLite WAL.
     """
 
     def __init__(self, db_manager: Any):
         self.db_manager = db_manager
 
-    # ── Assinatura Estrutural ──────────────────────────────────────
+    # ── Structural Signatures ──────────────────────────────────────
 
     _stripper = DocstringStripper()
 
     def calculate_ssh(self, file_content: str) -> str:
         """
-        Extrai linhas de assinatura estrutural (def, class, import, from),
-        ignorando lógica interna, comentários e espaços em branco.
-        Retorna um hash SHA-256 determinístico da assinatura consolidada.
+        Extracts structural signature lines (def, class, import, from),
+        ignoring internal implementation, comments, and whitespace.
+        Returns a deterministic SHA-256 hash of consolidated signature.
         """
         structural_lines = [
             stripped
@@ -99,14 +98,14 @@ class DeltaManager:
 
     def calculate_lbh(self, file_content: str) -> str:
         """
-        Calcula o Logical Body Hash (LBH) do código Python:
-        parseia a AST, remove docstrings via DocstringStripper,
-        gera ast.dump estrutural e retorna o SHA-256.
+        Calculates the Logical Body Hash (LBH) of Python code:
+        parses AST, strips docstrings via DocstringStripper,
+        generates structural ast.dump, and returns SHA-256.
 
-        Ignora comentários, espaços em branco e docstrings.
-        Detecta qualquer mudança de lógica interna (ifs, returns, operadores).
+        Ignores comments, whitespace, and docstrings.
+        Detects any internal logic modification (ifs, returns, operators).
 
-        Retorna string vazia para arquivos não-Python ou com erros de parse.
+        Returns empty string for non-Python files or parse syntax errors.
         """
         try:
             tree = ast.parse(file_content)
@@ -116,17 +115,17 @@ class DeltaManager:
         dump = ast.dump(cleaned, annotate_fields=False)
         return hashlib.sha256(dump.encode("utf-8")).hexdigest()
 
-    # ── Processamento de Mudança ──────────────────────────────────
+    # ── Change Processing ──────────────────────────────────────────
 
     def process_file_change(
         self, file_path: str, new_content: str, community_id: str
     ) -> bool:
         """
-        Compara a assinatura estrutural (SSH) e o hash lógico do corpo (LBH)
-        do novo conteúdo com a versão armazenada no banco.
+        Compares structural signature (SSH) and logical body hash (LBH)
+        of new content against stored database records.
 
-        Retorna True se houve mudança estrutural ou semântica (DIRTY),
-        False se apenas comentários, espaços ou docstrings foram alterados.
+        Returns True if structural or semantic change occurred (DIRTY),
+        False if only cosmetic comments, whitespaces, or docstrings were modified.
         """
         new_ssh = self.calculate_ssh(new_content)
         new_lbh = self.calculate_lbh(new_content)
@@ -136,7 +135,7 @@ class DeltaManager:
         )
 
         if not existing:
-            # Arquivo novo: é uma adição estrutural ao grafo
+            # New file: structural addition to graph
             return self._insert_new_file(
                 file_path, new_content, new_ssh, new_lbh, community_id
             )
@@ -148,38 +147,38 @@ class DeltaManager:
         lbh_changed = new_lbh != old_lbh
 
         if not ssh_changed and not lbh_changed:
-            # Mudança estritamente cosmética (comentários, espaços, docstrings)
+            # Strictly cosmetic modification (comments, whitespace, docstrings)
             return self._update_content_only(file_path, new_content, community_id)
 
-        # Mudança estrutural e/ou semântica detectada
+        # Structural and/or semantic change detected
         return self._update_structural_change(
             file_path, new_content, new_ssh, new_lbh, community_id
         )
 
-    # ── Lazy Summarization JIT ────────────────────────────────────
+    # ── Lazy Summarization JIT ─────────────────────────────────────
 
     def compile_community_summary_jit(
         self, community_id: str, cloud_llm_mock_callback
     ) -> str:
         """
-        Retorna resumo do cache local se a comunidade está limpa.
-        Se estiver DIRTY, consolida o conteúdo dos arquivos, aciona
-        o callback da LLM, salva o resultado e limpa as flags.
+        Returns cached summary if community is clean.
+        If DIRTY, consolidates file contents, triggers LLM callback,
+        saves result, and reconciles dirty flags.
         """
         community = self.db_manager.read_query(
             "SELECT is_dirty, summary_text FROM communities WHERE id = ?;",
             (community_id,),
         )
         if not community:
-            raise ValueError(f"Comunidade não encontrada: {community_id}")
+            raise ValueError(f"Community not found: {community_id}")
 
         is_dirty, summary_text = community[0]
 
-        # Cache hit: comunidade limpa com resumo existente
+        # Cache hit: clean community with existing summary
         if is_dirty == 0 and summary_text:
             return summary_text
 
-        # Cache miss: recompilação sob demanda
+        # Cache miss: on-demand recompilation
         files = self.db_manager.read_query(
             "SELECT content FROM files WHERE community_id = ?;",
             (community_id,),
@@ -188,7 +187,7 @@ class DeltaManager:
 
         new_summary = cloud_llm_mock_callback(payload)
 
-        # Persiste o novo resumo e reconcilia flags
+        # Persist new summary and reconcile flags
         self.db_manager.write_query(
             "UPDATE communities SET summary_text = ?, is_dirty = 0 WHERE id = ?;",
             (new_summary, community_id),
@@ -200,7 +199,7 @@ class DeltaManager:
 
         return new_summary
 
-    # ── Operações internas de banco ───────────────────────────────
+    # ── Internal Database Operations ───────────────────────────────
 
     def _insert_new_file(
         self,
@@ -210,7 +209,7 @@ class DeltaManager:
         body_hash: str,
         community_id: str,
     ) -> bool:
-        """Registra arquivo novo no grafo e propaga DIRTY para a comunidade."""
+        """Records new file into graph and propagates DIRTY flag to community."""
         self.db_manager.write_query(
             "INSERT INTO files (path, content, ssh_hash, body_hash, is_dirty, community_id) "
             "VALUES (?, ?, ?, ?, 1, ?);",
@@ -226,15 +225,14 @@ class DeltaManager:
         self, file_path: str, content: str, community_id: str
     ) -> bool:
         """
-        Atualiza apenas o conteúdo (mudança de lógica interna).
-        Limpa o dirty flag do arquivo e reconcilia a comunidade se
-        todos os seus arquivos estiverem limpos.
+        Updates content only (internal logic/cosmetic change).
+        Clears dirty flag for file and reconciles community if all its files are clean.
         """
         self.db_manager.write_query(
             "UPDATE files SET content = ?, is_dirty = 0 WHERE path = ?;",
             (content, file_path),
         )
-        # Reconciliação de comunidade: limpa se nenhum arquivo restante é DIRTY
+        # Community reconciliation: clears dirty flag if no remaining file is DIRTY
         dirty_count = self.db_manager.read_query(
             "SELECT COUNT(*) FROM files WHERE community_id = ? AND is_dirty = 1;",
             (community_id,),
@@ -254,7 +252,7 @@ class DeltaManager:
         body_hash: str,
         community_id: str,
     ) -> bool:
-        """Atualiza arquivo com nova assinatura/corpo e propaga DIRTY para a comunidade."""
+        """Updates file with new signature/body and propagates DIRTY to community."""
         self.db_manager.write_query(
             "UPDATE files SET content = ?, ssh_hash = ?, body_hash = ?, is_dirty = 1 "
             "WHERE path = ?;",

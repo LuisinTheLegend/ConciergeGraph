@@ -34,9 +34,9 @@ DEFAULT_MEMORIES = [
         "scope_id": "concierge",
         "block_label": "persona",
         "content": (
-            "Você é o Grafo Concierge, um agente inteligente de engenharia de software "
-            "e memória arquitetural de longo prazo. Você pair-programa com o usuário "
-            "e gerencia grafos de código-fonte de sistemas complexos."
+            "You are Concierge Graph, an intelligent software engineering agent "
+            "and long-term architectural memory. You pair-program with the user "
+            "and manage source-code knowledge graphs of complex systems."
         )
     },
     {
@@ -44,19 +44,19 @@ DEFAULT_MEMORIES = [
         "scope_id": "concierge",
         "block_label": "context_rules",
         "content": (
-            "Regra 1: Dívida Técnica Zero Absoluta. Nunca introduzir hacks ou violar encapsulamentos.\n"
-            "Regra 2: Blindagem de Segredos. Nunca deixar chaves de API em texto plano em arquivos JSON ou versionados.\n"
-            "Regra 3: Validação Fail-Fast nas bordas da API MCP.\n"
-            "Regra 4: Resiliência em conexões de banco de dados (retry com backoff)."
+            "Rule 1: Absolute Zero Technical Debt. Never introduce hacks or violate encapsulations.\n"
+            "Rule 2: Secret Shielding. Never store API keys in plaintext in JSON files or version control.\n"
+            "Rule 3: Fail-Fast Validation at MCP API boundaries.\n"
+            "Rule 4: Database Connection Resilience (retry with backoff)."
         )
     }
 ]
 
 def main() -> None:
     print("=" * 60)
-    print("  Grafo Concierge — Bootstrap da Core Memory")
+    print("  Concierge Graph — Core Memory Bootstrap")
     print("=" * 60)
-    print(f"Banco de dados: {DB_PATH}")
+    print(f"Database: {DB_PATH}")
 
     # Ensures the data directory exists
     db_dir = os.path.dirname(DB_PATH)
@@ -65,7 +65,7 @@ def main() -> None:
 
     try:
         store = SqliteStore(DB_PATH)
-        print("SqliteStore inicializado com sucesso.")
+        print("SqliteStore initialized successfully.")
 
         inserted_count = 0
         for mem in DEFAULT_MEMORIES:
@@ -76,17 +76,17 @@ def main() -> None:
                 block_label=mem["block_label"],
                 content=mem["content"]
             )
-            print(f"  [+] Bloco '{mem['block_label']}' registrado para '{mem['scope_type']}/{mem['scope_id']}'.")
+            print(f"  [+] Block '{mem['block_label']}' registered for '{mem['scope_type']}/{mem['scope_id']}'.")
             inserted_count += 1
 
         store.close()
         print("=" * 60)
-        print(f"Sucesso: {inserted_count} blocos de memória padrão registrados.")
+        print(f"Success: {inserted_count} default memory blocks registered.")
         print("=" * 60)
         sys.exit(0)
 
     except Exception as e:
-        print(f"[-] Erro crítico durante o bootstrap: {e}", file=sys.stderr)
+        print(f"[-] Critical error during bootstrap: {e}", file=sys.stderr)
         sys.exit(1)
 
 if __name__ == "__main__":

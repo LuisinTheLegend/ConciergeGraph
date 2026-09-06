@@ -1,12 +1,12 @@
 """
 core/parsers/__init__.py — SDD-SURVIVAL-19
 
-Pacote de parsers multilinguagem do Grafo Concierge.
+Polyglot parser package for Concierge Graph.
 
-Exporta a interface base e os parsers especializados:
-    - BaseASTParser      → Interface abstrata comum
-    - PythonASTParser    → Parser Python via módulo 'ast' nativo
-    - TSJSASTParser      → Parser TS/JS/JSX/TSX via Tree-Sitter + Regex Fallback
+Exports base interface and specialized AST parsers:
+    - BaseASTParser      → Common abstract parser interface
+    - PythonASTParser    → Python parser via native 'ast' module
+    - TSJSASTParser      → TS/JS/JSX/TSX parser via Tree-Sitter + Regex Fallback
 """
 
 from core.parsers.base import BaseASTParser

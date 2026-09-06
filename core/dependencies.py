@@ -1,40 +1,39 @@
 """
 core/dependencies.py — SDD-SURVIVAL-03
 
-Contêiner de Injeção de Dependências Estrita (AgentDependencies).
+Strict Dependency Injection Container (AgentDependencies).
 
-Centraliza todos os recursos sensíveis e variáveis de ambiente do agente
-em um contêiner imutável fortemente tipado (frozen dataclass), eliminando
-acoplamento de conexões globais soltas e viabilizando mocks perfeitos
-para testes offline.
+Centralizes all sensitive resources and environment configurations in an
+immutable strongly-typed container (frozen dataclass), eliminating loose global
+connection coupling and enabling clean mocks for offline testing.
 
-Recursos encapsulados:
-  - db_manager:     Instância de ConciergeDatabaseManager (SDD-SURVIVAL-02)
-  - workspace_path: Caminho físico absoluto do projeto do usuário
-  - rate_governor:  Controlador opcional de taxa de requisições LLM
-  - security_guard: Validador opcional de permissões e sandboxing
+Encapsulated Resources:
+  - db_manager:     ConciergeDatabaseManager instance (SDD-SURVIVAL-02)
+  - workspace_path: Absolute physical root path of user project
+  - rate_governor:  Optional LLM request rate governor
+  - security_guard: Optional permissions and sandboxing validator
 """
 
 from dataclasses import dataclass
-from typing import Any, Optional
 import os
+from typing import Any, Optional
 
 
 @dataclass(frozen=True)
 class AgentDependencies:
     """
-    Contêiner imutável que centraliza os recursos de infraestrutura local,
-    garantindo isolamento total de conexões e facilitando injeção em testes.
+    Immutable container centralizing local infrastructure resources,
+    guaranteeing connection isolation and facilitating test injection.
     """
 
-    db_manager: Any  # Instância de ConciergeDatabaseManager
+    db_manager: Any  # ConciergeDatabaseManager instance
     workspace_path: str
     rate_governor: Optional[Any] = None
     security_guard: Optional[Any] = None
 
     def __post_init__(self):
-        # Validação estrita de segurança no bootstrap de recursos
+        # Strict security validation during resource bootstrap
         if not os.path.exists(self.workspace_path):
             raise ValueError(
-                f"Caminho do workspace inválido ou inexistente: {self.workspace_path}"
+                f"Invalid or non-existent workspace path: {self.workspace_path}"
             )

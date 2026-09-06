@@ -1,16 +1,16 @@
 """
-core/graph_rag.py — SDD-SURVIVAL-06
+core/graph_rag.py — SDD-SURVIVAL-06 / SDD-SURVIVAL-17
 
-Detecção de Comunidades Heurística e Busca Multi-Hop (GraphRAG Frugal).
+Heuristic Community Detection and Multi-Hop Search (Frugal GraphRAG).
 
-Implementa duas estratégias de custo computacional zero para o GraphRAG local:
+Implements two zero-computational-overhead strategies for local GraphRAG:
 
-  1. Mapeamento Topológico: O diretório pai imediato do arquivo é assumido
-     como a partição de comunidade natural (sem algoritmos de rede em RAM).
+  1. Topological Mapping: The immediate parent directory of a file is assumed
+     to be its natural community partition (zero RAM network clustering overhead).
 
-  2. Multi-Hop Relacional via CTE Recursivo: Varre a árvore de chamadas
-     de métodos (ast_edges) diretamente no SQLite WAL em milissegundos,
-     sem carregar grafos inteiros na memória.
+  2. Relational Multi-Hop via Recursive CTE: Traverses the method and import call
+     tree (ast_edges) directly inside SQLite WAL in sub-milliseconds,
+     without loading whole graphs into process memory.
 """
 
 import os
@@ -19,8 +19,8 @@ from typing import Any, Dict, List, Set
 
 class GraphRAGEngine:
     """
-    Motor de grafos frugal que mapeia comunidades por topologia de diretórios
-    e resolve cadeias de dependência via CTEs recursivos no SQLite WAL.
+    Frugal graph engine that partitions communities via directory topology
+    and resolves dependency chains via recursive CTEs in SQLite WAL.
     """
 
     def __init__(self, db_manager: Any):
@@ -28,7 +28,7 @@ class GraphRAGEngine:
         self.db = db_manager
 
     def _get_edge_columns(self) -> tuple[str, str]:
-        """Detecta dinamicamente se a tabela ast_edges usa parent_node_id ou parent_node."""
+        """Dynamically detects whether ast_edges uses parent_node_id or parent_node."""
         try:
             rows = self.db.read_query("PRAGMA table_info(ast_edges);")
             cols = [r[1] for r in rows]
@@ -40,14 +40,14 @@ class GraphRAGEngine:
             pass
         return "parent_node_id", "child_node_id"
 
-    # ── Travessia Recursiva Multi-Hop (SDD-17) ────────────────────
+    # ── Recursive Multi-Hop Traversal (SDD-17) ─────────────────────
 
     def retrieve_multihop_context(
         self, entry_node: str, max_depth: int = 3
     ) -> Dict[str, Any]:
         """
-        Retorna o contexto estrutural completo ao redor de um arquivo de código,
-        navegando recursivamente pelas dependências AST no SQLite WAL.
+        Returns full structural context around a source file,
+        recursively navigating AST dependencies inside SQLite WAL.
         """
         if max_depth <= 1:
             nodes_info = []
@@ -103,7 +103,7 @@ class GraphRAGEngine:
         try:
             rows = self.db.read_query(query, (entry_node, max_hops))
         except Exception as e:
-            # Fallback se a tabela ast_edges não existir ou falhar
+            # Fallback if ast_edges table does not exist or fails
             return {"entry": entry_node, "nodes": [], "edges": [], "error": str(e)}
 
         visited_nodes: Set[str] = {entry_node}
@@ -119,7 +119,7 @@ class GraphRAGEngine:
                 "depth": depth,
             })
 
-        # Recuperar informações dos nós visitados para compor o pacote de contexto
+        # Retrieve file metadata for visited nodes to assemble context payload
         nodes_info = []
         if visited_nodes:
             placeholders = ",".join(["?"] * len(visited_nodes))
@@ -142,32 +142,32 @@ class GraphRAGEngine:
             "total_hops": max_depth,
         }
 
-    # ── Mapeamento Topológico ─────────────────────────────────────
+    # ── Topological Mapping ────────────────────────────────────────
 
     def get_natural_community(self, file_path: str) -> str:
         """
-        Extrai o diretório pai imediato do arquivo como comunidade natural.
+        Extracts immediate parent directory of file as its natural community.
 
-        Custo computacional: O(1) — simples operação de string.
-        Exemplos:
-          - 'core/utils/delta.py' → 'core/utils'
-          - 'main.py'             → 'root'
+        Computational cost: O(1) string operation.
+        Examples:
+          - 'core/utils/delta.py' -> 'core/utils'
+          - 'main.py'             -> 'root'
         """
         parent = os.path.dirname(file_path.replace("\\", "/"))
         return parent if parent else "root"
 
-    # ── Multi-Hop via CTE Recursivo ───────────────────────────────
+    # ── Multi-Hop via Recursive CTE ────────────────────────────────
 
     def get_call_chain_recursive(
         self, start_node: str, depth_limit: int = 5
     ) -> List[str]:
         """
-        Executa travessia recursiva sobre a tabela ast_edges no SQLite WAL
-        usando WITH RECURSIVE, retornando todos os nós filhos conectados
-        ao nó raiz até o limite de profundidade especificado.
+        Executes recursive traversal across ast_edges table in SQLite WAL
+        using WITH RECURSIVE, returning all child nodes connected to root
+        up to specified depth limit.
 
-        Não inclui o nó raiz na resposta — apenas dependências transitivas.
-        Nós de subgrafos desconectados são automaticamente excluídos.
+        Excludes the root node from response — returns only transitive dependencies.
+        Disconnected subgraphs are automatically ignored.
         """
         rows = self.db_manager.read_query(
             "WITH RECURSIVE call_chain(node, depth, path_visited) AS ("
@@ -185,26 +185,26 @@ class GraphRAGEngine:
         )
         return [row[0] for row in rows]
 
-    # ── Detecção de Comunidades com Filtro de Supernó (SDD-14) ────
+    # ── Community Detection with Super-Node Filtering (SDD-14) ─────
 
     def detect_logical_communities(
         self, in_degree_threshold: int = 5
     ) -> dict:
         """
-        Agrupa os arquivos do repositório em comunidades baseadas na
-        proximidade de acoplamento AST, filtrando supernós (hubs globais).
+        Groups repository files into communities based on AST coupling
+        proximity, filtering out super-nodes (global hubs).
 
-        Algoritmo:
-          1. Calcula in-degree de cada nó na tabela ast_edges
-          2. Nós com in-degree > in_degree_threshold são classificados
-             como Supernós e omitidos como pontes de transição
-          3. Arestas limpas (sem supernós) são agrupadas via Union-Find
-             em componentes conectados independentes
-          4. Supernós recebem fallback de diretório (hub_satellite_{dir})
+        Algorithm:
+          1. Computes in-degree for each node in ast_edges table
+          2. Nodes with in-degree > in_degree_threshold are classified
+             as Super-Nodes and omitted as bridge transitions
+          3. Clean edges (excluding super-nodes) are grouped via Union-Find
+             into independent connected components
+          4. Super-nodes receive directory satellite fallback (hub_satellite_{dir})
 
-        Retorna dict: {community_key: [file_paths]}
+        Returns dict: {community_key: [file_paths]}
         """
-        # 1. Identificar supernós (hubs globais) por in-degree
+        # 1. Identify super-nodes (global hubs) by in-degree
         supernodes_rows = self.db_manager.read_query(
             "SELECT child_node, COUNT(*) as in_degree "
             "FROM ast_edges "
@@ -214,7 +214,7 @@ class GraphRAGEngine:
         )
         supernodes = {r[0] for r in supernodes_rows}
 
-        # 2. Buscar arestas limpas (excluindo supernós como pontes)
+        # 2. Query clean edges (excluding super-nodes as bridges)
         all_edges = self.db_manager.read_query(
             "SELECT parent_node, child_node FROM ast_edges;"
         )
@@ -224,7 +224,7 @@ class GraphRAGEngine:
             if parent not in supernodes and child not in supernodes
         ]
 
-        # 3. Agrupamento em Componentes Conectados (Union-Find)
+        # 3. Grouping into Connected Components (Union-Find)
         parent_map: dict = {}
 
         def find(node: str) -> str:
@@ -241,7 +241,7 @@ class GraphRAGEngine:
         for parent, child in filtered_edges:
             union(parent, child)
 
-        # 4. Agrupa arquivos por comunidade
+        # 4. Group files by community
         all_files = [
             r[0] for r in self.db_manager.read_query("SELECT path FROM files;")
         ]
@@ -249,7 +249,7 @@ class GraphRAGEngine:
         communities: dict = {}
         for file_path in all_files:
             if file_path in supernodes:
-                # Supernó → satélite do diretório local (Fallback L2/L1)
+                # Super-node -> local directory satellite (L2/L1 fallback)
                 dir_name = "/".join(file_path.replace("\\", "/").split("/")[:-1]) or "root"
                 community_key = f"hub_satellite_{dir_name}"
             else:

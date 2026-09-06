@@ -1,26 +1,26 @@
 """
 core/search_engine.py — SDD-SURVIVAL-05
 
-Motor de Busca Híbrida com Auto-Cura Vetorial (Query-Time Filter).
+Hybrid Search Engine with Self-Healing Vector Validation (Query-Time Filter).
 
-Intercepta os resultados brutos do banco vetorial (Qdrant) e executa
-uma validação concorrente rápida no SQLite WAL para descartar vetores
-órfãos em tempo de execução, garantindo consistência imediata para o
-agente sem travas bloqueantes (Two-Phase Commit).
+Intercepts raw results from vector database (Qdrant) and executes
+a fast concurrent validation against SQLite WAL to discard orphan
+vectors at runtime, guaranteeing immediate consistency for the agent
+without blocking distributed transactions (Two-Phase Commit).
 
-Fluxo:
-  1. Busca vetorial bruta → lista de {id, score}
-  2. SELECT concorrente no SQLite → conjunto de paths existentes
-  3. Filtro de interseção → apenas resultados com respaldo relacional
+Flow:
+  1. Raw vector search -> list of {id, score}
+  2. Concurrent SELECT in SQLite -> set of existing file paths
+  3. Intersection filter -> only results backed by relational records
 """
 
-from typing import Any, List, Dict
+from typing import Any, Dict, List
 
 
 class HybridSearchEngine:
     """
-    Executa busca híbrida com auto-cura: cruza resultados vetoriais
-    com a base relacional SQLite WAL para descartar órfãos em tempo real.
+    Executes hybrid search with self-healing: cross-references vector
+    results against relational SQLite WAL to discard orphan records in real time.
     """
 
     def __init__(self, db_manager: Any, vector_db: Any):
@@ -31,27 +31,27 @@ class HybridSearchEngine:
         self, query_text: str, limit: int = 5
     ) -> List[Dict[str, Any]]:
         """
-        Busca híbrida com filtro de auto-cura (Query-Time Filter).
+        Hybrid search with query-time self-healing filter.
 
-        Retorna apenas resultados vetoriais cujo ID existe de fato
-        na tabela relacional 'files' do SQLite WAL.
+        Returns only vector results whose ID actually exists
+        in SQLite WAL 'files' relational table.
         """
-        # 1. Busca vetorial bruta
+        # 1. Raw vector search
         raw_results = self.vector_db.search(query_text, limit=limit)
         if not raw_results:
             return []
 
-        # 2. Extrai IDs candidatos e valida contra o SQLite
+        # 2. Extract candidate IDs and validate against SQLite
         candidate_ids = [result["id"] for result in raw_results]
         valid_ids = self._validate_against_sqlite(candidate_ids)
 
-        # 3. Filtra: mantém apenas resultados com respaldo relacional
+        # 3. Filter: retain only results backed by relational records
         return [r for r in raw_results if r["id"] in valid_ids]
 
     def _validate_against_sqlite(self, candidate_ids: List[str]) -> set:
         """
-        Executa SELECT concorrente rápido no SQLite WAL para verificar
-        quais IDs candidatos ainda existem na base relacional.
+        Executes fast concurrent SELECT in SQLite WAL to verify
+        which candidate IDs still exist in relational store.
         """
         placeholders = ",".join("?" for _ in candidate_ids)
         rows = self.db_manager.read_query(

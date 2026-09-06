@@ -1,20 +1,20 @@
 """
 core/checkpointer.py — SDD-SURVIVAL-07 / SDD-SURVIVAL-20
 
-Persistência de Checkpoints e Time-Travel Agnóstico para Estados e Sessões de Agentes.
+Checkpoint Persistence and Agent State/Session Time-Travel.
 
-Cartucho de salvamento genérico que persiste dicionários de estado e snapshots de FSM
-de qualquer agente de IA como JSON stringizado no SQLite WAL, isolado por
-chave primária composta (session_id, checkpoint_id) em fsm_checkpoints e
-(agent_id, session_id, checkpoint_id) em agent_checkpoints.
+Generic cartridge persisting state dictionaries and FSM snapshots of any AI agent
+as stringified JSON in SQLite WAL, isolated by composite primary key:
+(session_id, checkpoint_id) in fsm_checkpoints, and
+(agent_id, session_id, checkpoint_id) in agent_checkpoints.
 
-Princípios de design:
-  - Zero acoplamento: não conhece variáveis ou FSMs de agentes específicos
-  - Isolamento hermético: chave composta garante separação total entre
-    agentes, sessões e linhas do tempo concorrentes
-  - Resiliência JSON: sanitiza objetos complexos não serializáveis (locks, sockets)
-  - Time-Travel Determinístico: ordenação cronológica crescente viabiliza rollback
-    cognitivo e marca arquivos associados como dirty para re-sincronização no disco
+Design Invariants:
+  - Zero coupling: agnostic of specific agent variables or FSM structures
+  - Hermetic isolation: composite key ensures total isolation between
+    concurrent agents, sessions, and branching timelines
+  - JSON resilience: sanitizes complex non-serializable objects (locks, sockets)
+  - Deterministic Time-Travel: chronological ordering enables cognitive rollback
+    and marks associated task files as dirty for edge re-synchronization
 """
 
 import json
@@ -27,22 +27,21 @@ logger = logging.getLogger(__name__)
 
 class AgnosticCheckpointer:
     """
-    Gerenciador de estados agnóstico que persiste e recupera dicionários
-    de variáveis de IA como blobs JSON no SQLite WAL, viabilizando
-    Time-Travel Debugging e isolamento multi-agente.
+    Agnostic state manager that persists and retrieves AI variable dictionaries
+    as JSON blobs in SQLite WAL, powering Time-Travel Debugging and multi-agent isolation.
     """
 
     def __init__(self, db_manager: Any):
         self.db_manager = db_manager
         self.db = db_manager
 
-    # ── Sanitização de Objetos Não-Serializáveis ──────────────────
+    # ── Non-Serializable Object Sanitization ───────────────────────
 
     @staticmethod
     def _sanitize_for_json(obj: Any) -> Any:
         """
-        Converte recursivamente objetos não-serializáveis em strings representativas,
-        garantindo persistência resiliente sem falhas de runtime.
+        Recursively converts non-serializable objects into representative strings,
+        guaranteeing resilient persistence without runtime exceptions.
         """
         if isinstance(obj, dict):
             return {str(k): AgnosticCheckpointer._sanitize_for_json(v) for k, v in obj.items()}
@@ -55,7 +54,7 @@ class AgnosticCheckpointer:
         else:
             return str(obj)
 
-    # ── Gravação de Estado (SDD-20 & SDD-07 Híbrido) ──────────────
+    # ── State Recording (SDD-20 & SDD-07 Hybrid) ───────────────────
 
     def save_checkpoint(
         self,
@@ -63,12 +62,12 @@ class AgnosticCheckpointer:
         **kwargs,
     ) -> bool:
         """
-        Salva atomicamente o snapshot completo de variáveis e estado mental
-        da FSM do agente no SQLite WAL.
+        Atomically saves complete snapshot of agent variables and FSM mental state
+        into SQLite WAL.
 
-        Suporta tanto a assinatura estendida FSM (SDD-20):
+        Supports both extended FSM signature (SDD-20):
             save_checkpoint(session_id, checkpoint_id, agent_id, state_name, shared_state, task_id=None)
-        quanto a assinatura agnóstica legada (SDD-07):
+        and legacy agnostic signature (SDD-07):
             save_checkpoint(agent_id, session_id, checkpoint_id, state_dict)
         """
         is_sdd20 = (
@@ -79,7 +78,7 @@ class AgnosticCheckpointer:
         )
 
         if is_sdd20:
-            # Assinatura SDD-20
+            # SDD-20 Signature
             if len(args) >= 5:
                 session_id = args[0]
                 checkpoint_id = args[1]
@@ -95,7 +94,7 @@ class AgnosticCheckpointer:
                 shared_state = kwargs.get("shared_state", args[4] if len(args) > 4 else {})
                 task_id = kwargs.get("task_id")
 
-            # Sanitização segura de objetos não-serializáveis (ex: locks, sockets)
+            # Resilient sanitization of complex objects (e.g. locks, sockets)
             try:
                 shared_state_json = json.dumps(shared_state, ensure_ascii=False)
             except (TypeError, ValueError):
@@ -117,7 +116,7 @@ class AgnosticCheckpointer:
             )
             return bool(success)
         else:
-            # Assinatura legada SDD-07
+            # Legacy SDD-07 Signature
             if len(args) >= 4:
                 agent_id = args[0]
                 session_id = args[1]
@@ -144,11 +143,11 @@ class AgnosticCheckpointer:
             )
             return bool(success)
 
-    # ── Recuperação de Estado (SDD-20) ───────────────────────────
+    # ── State Retrieval (SDD-20) ───────────────────────────────────
 
     def load_checkpoint(self, session_id: str, checkpoint_id: str) -> Optional[Dict[str, Any]]:
         """
-        Recupera e desserializa o snapshot de variáveis de um checkpoint específico da FSM.
+        Retrieves and deserializes variable snapshot for a specific FSM checkpoint.
         """
         query = "SELECT state_name, shared_state_blob, agent_id, task_id FROM fsm_checkpoints WHERE session_id = ? AND checkpoint_id = ?;"
         read_fn = getattr(self.db, "read_query")
@@ -171,20 +170,20 @@ class AgnosticCheckpointer:
             "shared_state": shared_state,
         }
 
-    # ── Time-Travel Operacional (SDD-20) ─────────────────────────
+    # ── Operational Time-Travel (SDD-20) ───────────────────────────
 
     def execute_time_travel(self, session_id: str, target_checkpoint_id: str) -> Optional[Dict[str, Any]]:
         """
-        Executa a reversão física e cognitiva (Time-Travel) para um checkpoint anterior.
-        Deleta checkpoints futuros criados após o alvo para preservar o determinismo cronológico linear.
-        Marca o arquivo associado à tarefa (task_id) como sujo (is_dirty = 1) no banco relacional.
+        Executes physical and cognitive rollback (Time-Travel) to an earlier checkpoint.
+        Deletes future checkpoints created after the target to maintain linear determinism.
+        Marks task file (task_id) as dirty (is_dirty = 1) in relational store for re-indexing.
         """
-        # 1. Recupera os dados do checkpoint alvo
+        # 1. Retrieve target checkpoint data
         target_data = self.load_checkpoint(session_id, target_checkpoint_id)
         if not target_data:
             return None
 
-        # 2. Busca data de criação do checkpoint de destino
+        # 2. Retrieve creation timestamp of destination checkpoint
         time_query = "SELECT created_at, task_id FROM fsm_checkpoints WHERE session_id = ? AND checkpoint_id = ?;"
         read_fn = getattr(self.db, "read_query")
         time_rows = read_fn(time_query, (session_id, target_checkpoint_id))
@@ -192,13 +191,13 @@ class AgnosticCheckpointer:
             return None
         created_at, task_id = time_rows[0]
 
-        # 3. Transação Atômica: Remove os checkpoints "futuros" e marca o arquivo associado como sujo
+        # 3. Atomic Transaction: Delete "future" checkpoints and mark associated file as dirty
         queries = [
             ("DELETE FROM fsm_checkpoints WHERE session_id = ? AND created_at > ?;", (session_id, created_at)),
         ]
 
         if task_id:
-            # Força re-indexação do arquivo associado na borda (Watcher/DeltaManager)
+            # Force edge re-indexing for associated file (Watcher/DeltaManager)
             queries.append(("UPDATE files SET is_dirty = 1, last_modified = ? WHERE path = ?;", (time.time(), task_id)))
 
         write_fn = getattr(self.db, "execute_write", getattr(self.db, "write_query", None))
@@ -207,10 +206,10 @@ class AgnosticCheckpointer:
                 write_fn(q, params)
             return target_data
         except Exception as e:
-            logger.error("[TIME-TRAVEL] Falha de reversão no SQLite WAL: %s", str(e))
+            logger.error("[TIME-TRAVEL] Rollback failure in SQLite WAL: %s", str(e))
             return None
 
-    # ── Métodos Legados SDD-07 ────────────────────────────────────
+    # ── Legacy SDD-07 Methods ──────────────────────────────────────
 
     def get_checkpoint(
         self,
@@ -219,10 +218,10 @@ class AgnosticCheckpointer:
         checkpoint_id: str,
     ) -> Dict[str, Any]:
         """
-        Recupera o estado salvo sob a chave composta (agent_id, session_id, checkpoint_id)
-        e decodifica o JSON de volta para dicionário Python.
+        Retrieves saved state under composite key (agent_id, session_id, checkpoint_id)
+        and decodes JSON back to Python dict.
 
-        Retorna {} se o checkpoint não existir (fail-safe agnóstico).
+        Returns {} if checkpoint does not exist (agnostic fail-safe).
         """
         rows = self.db_manager.read_query(
             "SELECT state_blob FROM agent_checkpoints "
@@ -239,10 +238,10 @@ class AgnosticCheckpointer:
         session_id: str,
     ) -> List[Dict[str, str]]:
         """
-        Lista todos os checkpoints de um agente/sessão ordenados
-        cronologicamente (created_at ASC), viabilizando Time-Travel.
+        Lists all checkpoints for an agent/session ordered chronologically
+        (created_at ASC), enabling Time-Travel navigation.
 
-        Retorna lista de dicionários com checkpoint_id e created_at.
+        Returns list of dicts with checkpoint_id and created_at.
         """
         rows = self.db_manager.read_query(
             "SELECT checkpoint_id, created_at FROM agent_checkpoints "

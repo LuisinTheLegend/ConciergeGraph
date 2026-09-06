@@ -1,10 +1,10 @@
 """
 core/janitor.py — SDD-SURVIVAL-12
 
-Módulo de re-exportação para manter compatibilidade com a especificação
-do Active-SDD #12 (import path: core.janitor).
+Re-export module to maintain backward compatibility with
+Active-SDD #12 specification (import path: core.janitor).
 
-O BackgroundJanitor é implementado em core/background_janitor.py.
+BackgroundJanitor is implemented in core/background_janitor.py.
 """
 
 from core.background_janitor import BackgroundJanitor

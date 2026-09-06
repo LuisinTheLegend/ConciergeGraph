@@ -199,12 +199,12 @@ class ProjectIndex:
         primary = self.get_primary_wing(project_uuid)
         if wing == primary:
             logger.warning(
-                "Reference Wing '%s' é idêntica à Primary Wing — ignorando.", wing
+                "Reference Wing '%s' is identical to Primary Wing — ignoring.", wing
             )
             return
 
         self._store.add_reference_wing(project_uuid, wing)
-        logger.info("Reference Wing adicionada: projeto=%s, wing='%s'", project_uuid, wing)
+        logger.info("Reference Wing added: project=%s, wing='%s'", project_uuid, wing)
 
     def remove_reference_wing(self, project_uuid: str, wing: str) -> None:
         """Removes a Reference Wing from the project.

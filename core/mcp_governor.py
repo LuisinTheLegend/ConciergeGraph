@@ -1,16 +1,16 @@
 """
 core/mcp_governor.py — SDD-SURVIVAL-21
 
-Ocultação Progressiva de Ferramentas (Progressive Tool Disclosure) no Servidor FastMCP.
+Progressive Tool Disclosure on FastMCP Server.
 
-Atua como um firewall cognitivo dinâmico para os agentes de IA, interceptando
-e filtrando as ferramentas listadas e executadas com base no estado atual da
-sua máquina de estados finitos (FSM).
+Acts as a dynamic cognitive firewall for AI agents, intercepting
+and filtering disclosed and executed tools based on the current state
+of their finite state machine (FSM).
 
-Camadas de Proteção:
-  1. filter_tools: Filtro passivo na listagem (Discovery/Context Window Optimization).
-  2. validate_tool_execution: Portão ativo de execução que barra injeção direta de comandos
-     e levanta SecurityException em caso de violação de escopo.
+Protection Layers:
+  1. filter_tools: Passive listing filter (Discovery/Context Window Optimization).
+  2. validate_tool_execution: Active execution barrier that blocks direct command injection
+     and raises SecurityException upon scope violations.
 """
 
 import logging
@@ -20,21 +20,21 @@ logger = logging.getLogger(__name__)
 
 
 class SecurityException(Exception):
-    """Exceção levantada quando um agente tenta burlar a governança de ferramentas."""
+    """Exception raised when an agent attempts to bypass tool governance rules."""
     pass
 
 
 class MCPToolGovernor:
     """
-    Controlador de governança e divulgação progressiva de ferramentas do FastMCP.
+    FastMCP progressive tool disclosure and governance controller.
     """
 
     def __init__(self, default_state: str = "PLANNING"):
         self.default_state = default_state
-        # Dicionário de sessões ativas: {session_id: current_fsm_state}
+        # Active session state dict: {session_id: current_fsm_state}
         self.sessions_state: Dict[str, str] = {}
 
-        # Definição estrita da Matriz de Visibilidade
+        # Strict Visibility Matrix Definition
         self.TOOL_DISCLOSURE_MATRIX: Dict[str, Dict[str, List[str]]] = {
             "PLANNING": {
                 "allowed_categories": ["READ_ONLY"],
@@ -62,7 +62,7 @@ class MCPToolGovernor:
             },
         }
 
-        # Classificação estática das ferramentas conhecidas do sistema
+        # Static tool classification catalog
         self.TOOL_CLASSIFICATION: Dict[str, str] = {
             # READ_ONLY
             "get_full_topology": "READ_ONLY",
@@ -112,29 +112,29 @@ class MCPToolGovernor:
         }
 
     def set_session_state(self, session_id: str, state_name: str) -> None:
-        """Define o estado ativo da máquina de estados (FSM) de uma sessão."""
+        """Sets active FSM state for a session."""
         upper_state = state_name.upper()
         if upper_state in self.TOOL_DISCLOSURE_MATRIX:
             self.sessions_state[session_id] = upper_state
         else:
             logger.warning(
-                "[MCP-GOVERNOR] Estado desconhecido '%s' para sessão '%s'. Mantendo estado atual.",
+                "[MCP-GOVERNOR] Unknown state '%s' for session '%s'. Preserving current state.",
                 state_name,
                 session_id,
             )
 
     def get_session_state(self, session_id: str) -> str:
-        """Recupera o estado atual de uma sessão (ou retorna default_state por padrão)."""
+        """Retrieves active state of a session (or returns default_state)."""
         return self.sessions_state.get(session_id, self.default_state)
 
     def filter_tools(
         self, session_id: str, tools_list: List[Union[Dict[str, Any], Any]]
     ) -> List[Union[Dict[str, Any], Any]]:
         """
-        Primeira Camada (Passiva): Filtra a lista de ferramentas retornada para o agente
-        com base nas regras do seu estado FSM corrente.
+        Passive Layer (Discovery): Filters tool catalog disclosed to agent
+        based on active FSM state rules.
 
-        Suporta tanto dicionários (ex: `{'name': 'write_file'}`) quanto objetos Tool.
+        Supports both dictionaries (e.g. `{'name': 'write_file'}`) and Tool instances.
         """
         current_state = self.get_session_state(session_id)
         rules = self.TOOL_DISCLOSURE_MATRIX.get(
@@ -160,8 +160,8 @@ class MCPToolGovernor:
 
     def validate_tool_execution(self, session_id: str, tool_name: str) -> bool:
         """
-        Segunda Camada (Ativa): Intercepta chamadas de execução e lança SecurityException
-        caso uma ferramenta bloqueada tente ser executada.
+        Active Layer (Execution): Intercepts tool execution and raises SecurityException
+        if a blocked tool is invoked.
         """
         current_state = self.get_session_state(session_id)
         rules = self.TOOL_DISCLOSURE_MATRIX.get(
@@ -173,6 +173,6 @@ class MCPToolGovernor:
             return True
 
         raise SecurityException(
-            f"Acesso negado: ferramenta '{tool_name}' (categoria '{category}') "
-            f"está bloqueada durante o estado '{current_state}' da sessão '{session_id}'."
+            f"Access denied: tool '{tool_name}' (category '{category}') "
+            f"is blocked during state '{current_state}' for session '{session_id}'."
         )

@@ -226,7 +226,7 @@ class RevisorCritico:
 
         # Without LLM -> heuristic approval
         result.approved = True
-        result.reason = "Aprovado por validação heurística (sem LLM disponível)."
+        result.reason = "Approved by heuristic validation (no LLM available)."
         result.technical_changes = draft.get("technical_changes", "")
         result.updated_pointers = draft.get("updated_pointers", [])
         logger.info("Heuristic audit APPROVED (no LLM mode).")
@@ -562,15 +562,15 @@ class RevisorCritico:
 
         if source_level > target_level:
             reason = (
-                f"CONTAMINAÇÃO BLOQUEADA: dados de projeto {source_privacy} "
-                f"não podem fluir para contexto {target_privacy}. "
-                f"Projeto fonte: '{source_project.get('folder_name', '?')}', "
-                f"projeto destino: '{target_project.get('folder_name', '?')}'."
+                f"CONTAMINATION BLOCKED: project data with privacy level {source_privacy} "
+                f"cannot flow into context with privacy level {target_privacy}. "
+                f"Source project: '{source_project.get('folder_name', '?')}', "
+                f"target project: '{target_project.get('folder_name', '?')}'."
             )
             logger.warning(reason)
             return False, reason
 
-        return True, "OK — sem risco de contaminação."
+        return True, "OK — no contamination risk."
 
     # ===================================================================
     # UTILITIES

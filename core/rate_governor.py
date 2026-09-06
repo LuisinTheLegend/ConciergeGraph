@@ -1,24 +1,24 @@
 """
 core/rate_governor.py — SDD-SURVIVAL-23
 
-RateGovernor com Tráfego Prioritário (HTTP 429 Isolation & Queue Freezing).
+RateGovernor with Priority Traffic (HTTP 429 Isolation & Queue Freezing).
 
-Thread daemon de controle de taxa com fila de prioridade tripla:
-  1 (HIGH)   — Decisões FSM síncronas do Hermes, chat direto com o usuário.
-  2 (MEDIUM) — Ferramentas de subagentes, análises não-bloqueantes.
-  3 (LOW)    — Consolidações do Janitor, cálculo de comunidades do GraphRAG.
+Daemon worker thread regulating rate limits with a three-tier priority queue:
+  1 (HIGH)   — Synchronous FSM decisions from Hermes, direct chat with user.
+  2 (MEDIUM) — Subagent tools, non-blocking analysis routines.
+  3 (LOW)    — Janitor background cleanups, GraphRAG community detection.
 
-Sob aproximação de estouro de cota (RPM/TPM), o governador congela
-reativamente as filas inferiores:
-  - LOW congelada se consumo ≥ 85%
-  - MEDIUM congelada se consumo ≥ 95%
-  - HIGH nunca é congelada
+When quota thresholds (RPM/TPM) approach exhaustion, the governor reactively
+freezes lower-priority queues:
+  - LOW frozen if usage >= 85%
+  - MEDIUM frozen if usage >= 95%
+  - HIGH is never frozen
 
-Bypass fast-path: chamadas HIGH com tráfego verde (< 50%) executam
-inline em < 1ms sem enfileiramento.
+Fast-path bypass: HIGH requests under green traffic (< 50%) execute
+inline in < 1ms without queueing overhead.
 
-Aging anti-starvation: tarefas LOW paradas por > 5 minutos (configurável)
-recebem upgrade temporário para MEDIUM se uso médio cair abaixo de 75%.
+Anti-starvation aging: LOW tasks queued for longer than aging_threshold_secs (configurable)
+receive temporary promotion to MEDIUM if overall consumption drops below 75%.
 """
 
 import logging
@@ -32,12 +32,12 @@ logger = logging.getLogger(__name__)
 
 class PriorityRequest:
     """
-    Requisição encapsulada com prioridade, callback de resultado e metadados.
+    Encapsulated request with priority, result callback channel, and metadata.
 
-    Prioridades:
-      1 = HIGH   (Hermes / Chat Direto)
-      2 = MEDIUM (Subagentes)
-      3 = LOW    (Janitor / GraphRAG background)
+    Priorities:
+      1 = HIGH   (Hermes / Direct User Chat)
+      2 = MEDIUM (Subagents / Auxiliary Tasks)
+      3 = LOW    (Janitor / Background GraphRAG)
     """
 
     def __init__(
@@ -51,11 +51,11 @@ class PriorityRequest:
         self.task_fn = task_fn
         self.timestamp = timestamp
         self.session_id = session_id
-        # Canal de resultado síncrono bloqueante: (success: bool, result_or_exc)
+        # Synchronous blocking result channel: (success: bool, result_or_exc)
         self.future_result: queue.Queue = queue.Queue(maxsize=1)
 
     def __lt__(self, other: "PriorityRequest") -> bool:
-        """Compara por prioridade; em empate, a mais antiga executa primeiro (FIFO)."""
+        """Compares by priority; upon tie, earlier timestamp executes first (FIFO)."""
         if self.priority == other.priority:
             return self.timestamp < other.timestamp
         return self.priority < other.priority
@@ -63,14 +63,14 @@ class PriorityRequest:
 
 class RateGovernor(threading.Thread):
     """
-    Thread daemon de governança de taxa com fila de prioridade tripla.
+    Daemon rate governance thread with a three-tier priority queue.
 
-    Parâmetros:
-      rpm_limit            — Requisições por minuto permitidas na janela.
-      tpm_limit            — Tokens por minuto permitidos na janela.
-      check_window_seconds — Tamanho da janela deslizante em segundos.
-      aging_threshold_secs — Tempo (s) após o qual uma tarefa LOW sofre
-                             upgrade temporário para MEDIUM (anti-starvation).
+    Parameters:
+      rpm_limit            — Permitted requests per minute within moving window.
+      tpm_limit            — Permitted tokens per minute within moving window.
+      check_window_seconds — Moving window duration in seconds.
+      aging_threshold_secs — Time in seconds after which a LOW task receives
+                             temporary promotion to MEDIUM (anti-starvation).
     """
 
     def __init__(
@@ -86,47 +86,47 @@ class RateGovernor(threading.Thread):
         self.window_seconds = check_window_seconds
         self.aging_threshold_secs = aging_threshold_secs
 
-        # Fila de prioridade thread-safe
+        # Thread-safe priority queue
         self.request_queue: queue.PriorityQueue = queue.PriorityQueue()
         self.lock = threading.Lock()
         self.running = True
 
-        # Histórico deslizante para cálculo de cotas: list of (timestamp, tokens_used)
+        # Sliding window history: list of (timestamp, tokens_used)
         self.history: List[Tuple[float, int]] = []
 
-        # Flags de congelamento ativo
+        # Active freezing flags
         self.low_priority_frozen = False
         self.medium_priority_frozen = False
 
-    # ── Registro de Consumo ───────────────────────────────────────
+    # ── Usage Reporting ────────────────────────────────────────────
 
     def report_usage(self, tokens_used: int) -> None:
         """
-        Registra uma chamada de API realizada com sucesso e seus tokens consumidos.
+        Records a completed API invocation and its consumed tokens.
 
-        Deve ser invocado pelo executor externo após cada chamada de LLM para
-        que as métricas de janela deslizante reflitam o consumo real.
+        Must be invoked by external callers after every LLM request
+        so that moving window metrics accurately reflect real consumption.
         """
         with self.lock:
             self.history.append((time.time(), tokens_used))
             self._recalculate_frozen_states()
 
-    # ── Métricas de Janela Deslizante ─────────────────────────────
+    # ── Sliding Window Metrics ─────────────────────────────────────
 
     def get_current_metrics(self) -> Dict[str, Any]:
         """
-        Calcula o uso corrente de RPM e TPM dentro da janela móvel.
+        Calculates current RPM and TPM utilization within moving window.
 
-        Retorna dicionário com:
-          - current_rpm, current_tpm (contagens absolutas)
-          - rpm_percentage, tpm_percentage (percentuais de ocupação)
-          - low_priority_frozen, medium_priority_frozen (flags booleanas)
-          - queue_backlog (tamanho da fila pendente)
+        Returns dict with:
+          - current_rpm, current_tpm (absolute counts)
+          - rpm_percentage, tpm_percentage (utilization percentages)
+          - low_priority_frozen, medium_priority_frozen (boolean flags)
+          - queue_backlog (pending queue size)
         """
         now = time.time()
         cutoff = now - self.window_seconds
 
-        # Limpa registros antigos fora da janela deslizante
+        # Evict records outside sliding window
         self.history = [item for item in self.history if item[0] >= cutoff]
 
         current_requests = len(self.history)
@@ -149,85 +149,85 @@ class RateGovernor(threading.Thread):
             "queue_backlog": self.request_queue.qsize(),
         }
 
-    # ── Recálculo Interno de Congelamento ─────────────────────────
+    # ── Internal Freezing Recomputation ────────────────────────────
 
     def _recalculate_frozen_states(self) -> None:
         """
-        Determina o congelamento reativo das filas baseando-se no percentual
-        máximo de ocupação entre RPM e TPM.
+        Determines reactive queue freezing based on maximum percentage
+        utilization between RPM and TPM.
 
         Thresholds:
-          - ≥ 85% → congela LOW
-          - ≥ 95% → congela MEDIUM (LOW já congelada)
-          - <  85% → libera ambas
+          - >= 85% -> freeze LOW
+          - >= 95% -> freeze MEDIUM (LOW already frozen)
+          - <  85% -> unfreeze both
         """
         metrics = self.get_current_metrics()
         max_pct = max(metrics["rpm_percentage"], metrics["tpm_percentage"])
 
-        # Congelamento da fila LOW (Janitor) se ultrapassar 85%
+        # Freeze LOW queue (Janitor) if exceeding 85%
         self.low_priority_frozen = max_pct >= 85.0
 
-        # Congelamento da fila MEDIUM (Subagentes) se ultrapassar 95%
+        # Freeze MEDIUM queue (Subagents) if exceeding 95%
         self.medium_priority_frozen = max_pct >= 95.0
 
-    # ── Submissão de Requisições ──────────────────────────────────
+    # ── Request Submission ─────────────────────────────────────────
 
     def submit_request(
         self, priority: int, session_id: str, task_fn: Callable[[], Any]
     ) -> Any:
         """
-        Envia uma tarefa para execução controlada no governador.
-        Retorna o resultado de forma síncrona/bloqueante para quem chama.
+        Submits a task for governed execution.
+        Returns the result synchronously / blocking to the caller.
 
-        Bypass fast-path: requisições HIGH com tráfego verde (< 50%) executam
-        inline sem passar pela fila daemon, eliminando qualquer lag perceptível.
+        Fast-path bypass: HIGH requests under green traffic (< 50%) execute
+        inline without entering the daemon queue, eliminating observable latency.
         """
-        # Fast-path: fura a fila instantaneamente se HIGH e tráfego verde
+        # Fast-path: bypass queue instantly if HIGH and green traffic
         with self.lock:
             metrics = self.get_current_metrics()
         max_pct = max(metrics["rpm_percentage"], metrics["tpm_percentage"])
 
         if priority == 1 and max_pct < 50.0:
-            # Execução inline síncrona em < 1ms
+            # Inline synchronous execution in < 1ms
             result = task_fn()
             return result
 
-        # Enfileira para a thread consumidora daemon
+        # Enqueue for daemon consumer thread
         req = PriorityRequest(priority, task_fn, time.time(), session_id)
         self.request_queue.put(req)
 
-        # Bloqueia aguardando a thread consumidora despachar o resultado
+        # Block waiting for consumer thread to dispatch result
         success, result_or_exc = req.future_result.get()
         if success:
             return result_or_exc
         raise result_or_exc
 
-    # ── Loop Consumidor Daemon ────────────────────────────────────
+    # ── Daemon Consumer Loop ───────────────────────────────────────
 
     def run(self) -> None:
         """
-        Consumidor contínuo das filas respeitando o throttling dinâmico.
+        Continuous consumer loop processing requests respecting dynamic throttling.
 
-        Aplica aging anti-starvation: se uma tarefa LOW espera por mais de
-        aging_threshold_secs, ela recebe upgrade temporário para MEDIUM
-        (desde que o consumo esteja abaixo de 75%).
+        Applies anti-starvation aging: if a LOW task waits for more than
+        aging_threshold_secs, it receives temporary promotion to MEDIUM
+        (provided overall usage is below 75%).
         """
         while self.running:
             if self.request_queue.empty():
                 time.sleep(0.05)
                 continue
 
-            # Atualiza flags de congelamento antes de consumir
+            # Update freezing flags before consuming
             with self.lock:
                 self._recalculate_frozen_states()
 
-            # Retira o item com maior prioridade (menor número)
+            # Retrieve highest priority item (lowest integer)
             try:
                 req = self.request_queue.get(timeout=0.1)
             except queue.Empty:
                 continue
 
-            # ── Aging anti-starvation ─────────────────────────────
+            # ── Anti-starvation Aging ──────────────────────────────
             if req.priority == 3:
                 age = time.time() - req.timestamp
                 if age >= self.aging_threshold_secs:
@@ -237,32 +237,32 @@ class RateGovernor(threading.Thread):
                         metrics["rpm_percentage"], metrics["tpm_percentage"]
                     )
                     if max_pct < 75.0:
-                        # Upgrade temporário: executa mesmo com LOW frozen
+                        # Temporary promotion: execute even if LOW is frozen
                         logger.info(
-                            "[RATE-GOVERNOR] Aging upgrade: tarefa LOW da sessão '%s' "
-                            "promovida após %.1fs na fila.",
+                            "[RATE-GOVERNOR] Aging upgrade: LOW task from session '%s' "
+                            "promoted after %.1fs in queue.",
                             req.session_id,
                             age,
                         )
-                        # Cai direto para execução (bypass freeze check)
+                        # Fall through directly to execution (bypass freeze check)
                     else:
-                        # Ainda sob pressão: re-enfileira
+                        # Still under load: re-enqueue
                         self.request_queue.put(req)
                         time.sleep(0.5)
                         continue
                 elif self.low_priority_frozen:
-                    # Re-enfileira o item congelado e aguarda alívio de cotas
+                    # Re-enqueue frozen item and wait for quota relief
                     self.request_queue.put(req)
                     time.sleep(0.5)
                     continue
 
-            # ── Congelamento MEDIUM ───────────────────────────────
+            # ── MEDIUM Queue Freezing ──────────────────────────────
             if req.priority == 2 and self.medium_priority_frozen:
                 self.request_queue.put(req)
                 time.sleep(0.5)
                 continue
 
-            # ── Execução segura ───────────────────────────────────
+            # ── Safe Execution ─────────────────────────────────────
             try:
                 result = req.task_fn()
                 req.future_result.put((True, result))
@@ -270,11 +270,11 @@ class RateGovernor(threading.Thread):
                 req.future_result.put((False, e))
             finally:
                 self.request_queue.task_done()
-                # Pequeno espaçamento antirrefluxo de requisições de rede
+                # Subtle spacing to avoid socket connection bursts
                 time.sleep(0.02)
 
-    # ── Shutdown Graceful ─────────────────────────────────────────
+    # ── Graceful Shutdown ──────────────────────────────────────────
 
     def shutdown(self) -> None:
-        """Para o loop consumidor de forma segura."""
+        """Safely terminates consumer worker loop."""
         self.running = False

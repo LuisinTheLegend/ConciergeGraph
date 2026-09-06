@@ -4,8 +4,8 @@ core/probabilistic_retriever.py - Grafo Concierge v3.8.0 (Absolute Solidity)
 Probabilistic Retrieval Engine (SA-CTS - U-Mem Pattern) with Thompson Sampling.
 Balances exploration and exploitation based on utility metrics (utility_alpha, utility_beta).
 
-SDD-SURVIVAL-15: Substituição do numpy por random.betavariate() nativo,
-eliminando ~30MB de dependência externa sem perda de equivalência matemática.
+SDD-SURVIVAL-15: Replaced numpy with native random.betavariate(),
+eliminating ~30MB external dependency without loss of mathematical equivalence.
 """
 
 from __future__ import annotations

@@ -1,19 +1,19 @@
 """
 interface/watcher.py — SDD-SURVIVAL-01 (Hardened & Resilient)
 
-Monitor de Arquivos Reativo com Filtro Precoce de Ignorados (Early Exit) e
-Rastreamento Atômico de Codinomes (Alias Tracking).
+Reactive File Watcher with Early Ignore Filtering (Early Exit) and
+Atomic Alias Tracking.
 
-Captura eventos de gravação no sistema de arquivos local e aplica
-regras de descarte precoce baseadas nos padrões do .conciergeignore,
-utilizando pathspec (Git Wildmatch) para correspondência ultra-rápida.
+Captures write events on the local file system and applies
+early discard rules based on .conciergeignore patterns,
+using pathspec (Git Wildmatch) for ultra-fast matching.
 
-Blindagens aplicadas:
-  - Proteção de Zumbis: se um arquivo deletado não casar no AliasTracker,
-    o expurgo por timeout dispara automaticamente on_delete_callback.
-  - Proteção de Startup e Offline Deletions: hydrate_known_hashes detecta arquivos
-    removidos enquanto o servidor estava offline e os limpa via deleção fria.
-  - Tratamento robusto contra FileNotFoundError em eventos concorrentes.
+Hardening protections applied:
+  - Zombie Protection: if a deleted file does not match in AliasTracker,
+    timeout purge automatically triggers on_delete_callback.
+  - Startup and Offline Deletion Protection: hydrate_known_hashes detects files
+    removed while the server was offline and purges them via cold deletion.
+  - Robust handling against FileNotFoundError in concurrent events.
 """
 
 import os
@@ -27,9 +27,9 @@ logger = logging.getLogger(__name__)
 
 class ConciergeFileSystemHandler(FileSystemEventHandler):
     """
-    Captura eventos de gravação no sistema de arquivos local e aplica
-    regras de descarte precoce (Early Exit) baseadas no arquivo de ignore,
-    além de integrar com o AliasTracker para reconciliação de movimentações (SDD-18).
+    Captures write events on the local filesystem and applies early exit
+    rules based on the ignore spec, integrating with AliasTracker
+    for move/rename reconciliation (SDD-18).
     """
 
     def __init__(
@@ -54,29 +54,29 @@ class ConciergeFileSystemHandler(FileSystemEventHandler):
             self._connect_alias_purge_callback()
 
     def _connect_alias_purge_callback(self) -> None:
-        """Conecta o expurgo de timeout do AliasTracker ao on_delete_callback."""
+        """Connects AliasTracker timeout purge to on_delete_callback."""
         def _purge_alias_wrapper(purged_rel_path: str):
             p_abs = os.path.join(self.project_path, purged_rel_path)
             if self.on_delete_callback:
                 try:
-                    logger.info("[WATCHER] Expurgo de alias acionando deleção real de: %s", p_abs)
+                    logger.info("[WATCHER] Alias purge triggering physical deletion of: %s", p_abs)
                     self.on_delete_callback(p_abs)
                 except Exception as e:
-                    logger.error("[WATCHER] Falha no expurgo assíncrono de %s: %s", p_abs, e)
+                    logger.error("[WATCHER] Async purge failed for %s: %s", p_abs, e)
         self.alias_tracker.on_purge_callback = _purge_alias_wrapper
 
     def set_alias_tracker(self, alias_tracker) -> None:
-        """Permite injeção ou atualização do AliasTracker com reconexão de callback."""
+        """Allows injection or update of AliasTracker with callback reconnection."""
         self.alias_tracker = alias_tracker
         if self.alias_tracker and self.on_delete_callback:
             self._connect_alias_purge_callback()
 
     def hydrate_known_hashes(self, db_manager: Any = None, initial_paths: Optional[List[str]] = None) -> None:
         """
-        Hidrata o cache _known_hashes a partir do banco relacional ou lista de arquivos.
-        Se um arquivo listado no banco não existir fisicamente no disco (deleção offline),
-        captura o FileNotFoundError e aciona a deleção fria (on_delete_callback) para limpar
-        registros órfãos, ou utiliza o hash do banco como backup seguro.
+        Hydrates _known_hashes cache from relational database or file list.
+        If a file listed in the database does not physically exist on disk (offline deletion),
+        catches FileNotFoundError and triggers cold deletion (on_delete_callback) to clean
+        orphan records, or uses the database hash as safe backup.
         """
         paths_to_check = set()
         db_hashes = {}
@@ -115,15 +115,15 @@ class ConciergeFileSystemHandler(FileSystemEventHandler):
                 elif rel_path in db_hashes:
                     self._known_hashes[rel_path] = db_hashes[rel_path]
             except (FileNotFoundError, OSError):
-                # Deleção offline detectada na inicialização
-                logger.info("[WATCHER] Arquivo ausente detectado no startup (deleção offline): %s", abs_path)
+                # Offline deletion detected at startup
+                logger.info("[WATCHER] Missing file detected at startup (offline deletion): %s", abs_path)
                 if self.on_delete_callback:
                     try:
                         self.on_delete_callback(abs_path)
                     except Exception as e:
-                        logger.error("[WATCHER] Erro ao limpar arquivo deletado offline %s: %s", abs_path, e)
+                        logger.error("[WATCHER] Error cleaning offline deleted file %s: %s", abs_path, e)
             except Exception as e:
-                logger.debug("[WATCHER] Erro não fatal ao hidratar hash de %s: %s", abs_path, e)
+                logger.debug("[WATCHER] Non-fatal error hydrating hash for %s: %s", abs_path, e)
                 if rel_path in db_hashes:
                     self._known_hashes[rel_path] = db_hashes[rel_path]
 
@@ -134,7 +134,7 @@ class ConciergeFileSystemHandler(FileSystemEventHandler):
         abs_path = os.path.abspath(event.src_path)
         rel_path = os.path.relpath(abs_path, self.project_path)
 
-        # 🛡️ Portão de Segurança / Descarte Precoce (Early Exit)
+        # 🛡️ Security Gate / Early Exit Discard
         if self.ignore_spec.match_file(rel_path):
             return
 
@@ -142,14 +142,14 @@ class ConciergeFileSystemHandler(FileSystemEventHandler):
             try:
                 self._known_hashes[rel_path] = self.hash_calculator(abs_path)
             except (FileNotFoundError, OSError):
-                # Arquivo removido no meio da escrita concorrente
+                # File removed during concurrent write
                 if self.on_delete_callback:
                     self.on_delete_callback(abs_path)
                 return
             except Exception:
                 pass
 
-        # Passou pelo portão: executa o callback de processamento delta
+        # Passed security gate: trigger valid delta processing callback
         self.on_valid_change_callback(abs_path)
 
     def on_created(self, event):
@@ -201,7 +201,7 @@ class ConciergeFileSystemHandler(FileSystemEventHandler):
             except Exception:
                 pass
 
-        # Fallback: busca último hash persistido no banco
+        # Fallback: retrieve last persisted hash from database
         if not structural_hash and self.alias_tracker and hasattr(self.alias_tracker, "db") and self.alias_tracker.db:
             try:
                 rows = self.alias_tracker.db.read_query(
@@ -213,7 +213,7 @@ class ConciergeFileSystemHandler(FileSystemEventHandler):
             except Exception:
                 pass
 
-        # Verifica se o hash é válido para tentativa de reconciliação de alias
+        # Verify whether the hash is valid for alias reconciliation attempt
         is_eligible = (
             structural_hash
             and getattr(self.alias_tracker, "is_valid_hash", lambda h: True)(structural_hash)

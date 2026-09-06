@@ -222,7 +222,7 @@ class ActionHooks:
         })
         result["audit"] = audit.to_dict()
 
-        # 2. Grava commit (mesmo se partial_audit, para não perder dados)
+        # 2. Saves commit (even if partial_audit, to prevent data loss)
         if audit.approved:
             commit_id = self._gc.commit_memory(
                 project_uuid=project_uuid,
@@ -234,9 +234,9 @@ class ActionHooks:
             result["commit_id"] = commit_id
         else:
             result["commit_id"] = None
-            logger.warning("on_done: commit REJEITADO — %s", audit.reason)
+            logger.warning("on_done: commit REJECTED — %s", audit.reason)
 
-        # 3. Registra trajetória episódica (se houve erro)
+        # 3. Records episodic trajectory (if error occurred)
         if outcome.get("erro_encontrado"):
             try:
                 trajectory_id = self._gc.store.create_trajectory(
@@ -248,10 +248,10 @@ class ActionHooks:
                 )
                 result["trajectory_id"] = trajectory_id
                 logger.info(
-                    "Trajetória episódica registrada: id=%d", trajectory_id,
+                    "Episodic trajectory registered: id=%d", trajectory_id,
                 )
             except Exception as e:
-                logger.error("Falha ao registrar trajetória: %s", e)
+                logger.error("Failed to register trajectory: %s", e)
                 result["trajectory_id"] = None
 
         logger.info(

@@ -571,13 +571,13 @@ class FileParser:
             armored = self._apply_prompt_armor(block_text)
             tokens = self._estimate_tokens(block_text)
 
-            # Obtém chamadas específicas deste escopo
+            # Retrieves scope-specific calls
             calls = list(calls_map.get(ast_node, set()))
 
             # If it exceeds max_tokens, subdivides (except module to simplify)
             if tokens > self._max_tokens and ctype != ChunkType.MODULE:
                 sub_chunks = self._split_oversized(block_text, rel_path, file_hash, ctype, name, start, chunk_idx)
-                # Copia chamadas para sub-chunks
+                # Copies calls to sub-chunks
                 for sc in sub_chunks:
                     sc.calls = calls
                 chunks.extend(sub_chunks)

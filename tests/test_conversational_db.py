@@ -119,13 +119,13 @@ def test_qdrant_vector_store_payload_validation():
         invalid_payload = valid_payload.copy()
         invalid_payload.pop(missing_key)
         
-        with pytest.raises(ValueError, match="exige a chave"):
+        with pytest.raises(ValueError, match=r"(requires key|exige a chave)"):
             store._validate_payload(invalid_payload)
 
     # 3. escopo inválido
     invalid_scope_payload = valid_payload.copy()
     invalid_scope_payload["scope_type"] = "project" # inválido
-    with pytest.raises(ValueError, match="scope_type inválido"):
+    with pytest.raises(ValueError, match=r"(Invalid scope_type|scope_type inválido)"):
         store._validate_payload(invalid_scope_payload)
 
 

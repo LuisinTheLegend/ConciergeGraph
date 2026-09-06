@@ -525,7 +525,7 @@ class IngestionManager:
         if not chunks:
             return 0
 
-        # Coleta nós existentes no projeto para cachear diretórios e mapear símbolos globais
+        # Collects existing nodes in project to cache directories and map global symbols
         try:
             existing_nodes = self._store.get_nodes_by_project(project_uuid)
         except Exception as e:
@@ -871,9 +871,9 @@ class IngestionManager:
             try:
                 l1 = self._summarizer.summarize_l1(cluster_l0s, cluster_label)
                 l1_summaries.append(l1)
-                logger.debug("L1 gerado: %s (%d L0s)", cluster_label, len(cluster_l0s))
+                logger.debug("L1 generated: %s (%d L0s)", cluster_label, len(cluster_l0s))
             except Exception as e:
-                logger.error("L1 falhou para cluster %s: %s", cluster_label, e)
+                logger.error("L1 failed for cluster %s: %s", cluster_label, e)
 
         # Generate L2 (Compass)
         project = self._store.get_project(project_uuid)
@@ -881,9 +881,9 @@ class IngestionManager:
 
         try:
             l2 = self._summarizer.summarize_l2(l1_summaries, project_name)
-            logger.info("Bússola L2 gerada: %s", l2.summary[:80])
+            logger.info("L2 Compass generated: %s", l2.summary[:80])
         except Exception as e:
-            logger.error("L2 (Bússola) falhou para %s: %s", project_name, e)
+            logger.error("L2 (Compass) failed for %s: %s", project_name, e)
             l2 = SummaryResult(level=ZoomLevel.L2, summary="", source_label=project_name)
 
         result = {
@@ -893,7 +893,7 @@ class IngestionManager:
         }
 
         logger.info(
-            "ZOOM GEAR concluído: %d L1 gerados, Bússola L2 = %.60s...",
+            "ZOOM GEAR completed: %d L1 generated, L2 Compass = %.60s...",
             len(l1_summaries), l2.summary,
         )
 

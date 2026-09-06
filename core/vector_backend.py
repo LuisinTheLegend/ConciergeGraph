@@ -153,21 +153,21 @@ class QdrantVectorStore(BaseVectorBackend):
             for r in required:
                 if r not in metadata:
                     raise ValueError(
-                        f"Payload de 'episodic_memory' exige a chave '{r}' para indexação temporal."
+                        f"'episodic_memory' payload requires key '{r}' for temporal indexing."
                     )
             # Scope type must be one of the permitted scopes
             scope_type = metadata["scope_type"]
             valid_scopes = {"user", "session", "agent", "org"}
             if scope_type not in valid_scopes:
                 raise ValueError(
-                    f"scope_type inválido '{scope_type}'. Aceitos: {sorted(valid_scopes)}"
+                    f"Invalid scope_type '{scope_type}'. Accepted: {sorted(valid_scopes)}"
                 )
         else:
             # Default code/AST collection requires node_id and project_uuid
             if "node_id" not in metadata:
-                raise ValueError("metadata deve conter 'node_id' (int).")
+                raise ValueError("metadata must contain 'node_id' (int).")
             if "project_uuid" not in metadata:
-                raise ValueError("metadata deve conter 'project_uuid' (str).")
+                raise ValueError("metadata must contain 'project_uuid' (str).")
 
     # ===================================================================
     # IMPLEMENTATION OF BaseVectorBackend CONTRACT

@@ -1,41 +1,41 @@
 """
 core/parsers/python_parser.py — SDD-SURVIVAL-19
 
-Parser Python nativo utilizando o módulo `ast` da stdlib.
+Native Python AST parser using stdlib `ast` module.
 
-Extrai classes, funções (incluindo async) e imports (import/from) de
-arquivos .py, gerando a assinatura estrutural (SSH) compatível com o
-formato do DeltaManager existente.
+Extracts classes, functions (including async), and imports (import/from) from
+.py files, generating a Structural Signature Hash (SSH) compatible with
+the existing DeltaManager format.
 """
 
 import ast
 import hashlib
 import logging
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
 from core.parsers.base import BaseASTParser
 
 logger = logging.getLogger(__name__)
 
-# Prefixos de assinatura estrutural (consistente com delta_manager.py)
+# Structural signature line prefixes (consistent with delta_manager.py)
 _STRUCTURAL_PREFIXES = ("def ", "class ", "import ", "from ")
 
 
 class PythonASTParser(BaseASTParser):
     """
-    Parser de arquivos Python (.py) via módulo `ast` nativo.
+    Python (.py) source parser using native stdlib `ast` module.
 
-    Estratégia de extração:
+    Extraction strategy:
       - Classes:   ast.ClassDef
-      - Funções:   ast.FunctionDef + ast.AsyncFunctionDef
+      - Functions: ast.FunctionDef + ast.AsyncFunctionDef
       - Imports:   ast.Import + ast.ImportFrom
-      - SSH:       SHA-256 das linhas com prefixos estruturais
+      - SSH:       SHA-256 of lines matching structural prefixes
     """
 
     def parse(self, file_path: str, code_content: str) -> Dict[str, Any]:
         """
-        Analisa um arquivo Python e retorna classes, funções, imports
-        e a assinatura estrutural hash (SSH).
+        Parses a Python file and returns classes, functions, imports,
+        and Structural Signature Hash (SSH).
         """
         classes: List[str] = []
         functions: List[str] = []
@@ -45,7 +45,7 @@ class PythonASTParser(BaseASTParser):
             tree = ast.parse(code_content)
         except SyntaxError:
             logger.warning(
-                "[PYTHON-PARSER] SyntaxError ao parsear %s — retornando extração vazia.",
+                "[PYTHON-PARSER] SyntaxError parsing %s — returning empty extraction.",
                 file_path,
             )
             return {
@@ -67,7 +67,7 @@ class PythonASTParser(BaseASTParser):
                 if node.module:
                     imports.append(node.module)
 
-        # SSH: linhas de assinatura estrutural (compatível com DeltaManager)
+        # SSH: structural signature lines (compatible with DeltaManager)
         structural_lines = [
             stripped
             for line in code_content.splitlines()

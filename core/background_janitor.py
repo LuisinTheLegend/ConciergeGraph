@@ -1,37 +1,37 @@
 """
 core/background_janitor.py — SDD-SURVIVAL-06 / SDD-SURVIVAL-12 / SDD-SURVIVAL-14
 
-Varredor de Resumos em Segundo Plano (SLM Offloading),
-Auto-Poda Inteligente de Checkpoints (Smart LRU per Session) e
-Throttler Térmico e de IOPS (Hardware-Aware RateGovernor).
+Background Community Summarizer (SLM Offloading),
+Smart Checkpoint Pruning (Smart LRU per Session), and
+Thermal & IOPS Throttler (Hardware-Aware RateGovernor).
 
-Responsabilidades:
-  1. Delega a geração de resumos das comunidades DIRTY para modelos locais
-     gratuitos (SLM via Ollama) durante períodos de ociosidade, blindando
-     o usuário contra custos de tokens na nuvem. (SDD-06)
-  2. Limpa checkpoints intermediários obsoletos de sessões de agentes,
-     preservando o ponto zero ("init") e os N mais recentes, evitando
-     o inchaço indefinido do banco state.db. (SDD-12)
-  3. Monitora integridade térmica do host via psutil antes de acionar
-     modelos de linguagem locais (Ollama), garantindo que resumos nunca
-     degradem a experiência do desenvolvedor (DX). (SDD-14)
+Responsibilities:
+  1. Offloads DIRTY community summary generation to free local models
+     (SLM via Ollama) during idle periods, protecting the user from cloud
+     token costs. (SDD-06)
+  2. Cleans up obsolete intermediate agent session checkpoints while
+     preserving the immutable point-zero ("init") and the N most recent snapshots,
+     preventing unbounded growth in state.db. (SDD-12)
+  3. Monitors host thermal integrity via psutil before invoking local SLMs
+     (Ollama), guaranteeing that background summarization never degrades
+     developer experience (DX). (SDD-14)
 
-Fluxo de Resumo (SDD-06):
-  1. Localiza comunidades com is_dirty = 1
-  2. Para cada: agrupa conteúdo dos arquivos associados
-  3. Dispara callback da SLM local gratuita
-  4. Persiste resumo, limpa flags, retorna log de auditoria
+Summarization Flow (SDD-06):
+  1. Identifies communities where is_dirty = 1
+  2. For each: aggregates associated file contents
+  3. Dispatches local free SLM callback
+  4. Persists summary, resets dirty flags, returns audit log
 
-Fluxo de Poda (SDD-12):
-  1. Identifica todos os checkpoints de uma sessão ordenados cronologicamente
-  2. Protege o primeiro checkpoint (ponto zero imutável)
-  3. Mantém os últimos N checkpoints recentes (keep_limit)
-  4. Deleta os intermediários obsoletos via SerializedWriteQueue
+Pruning Flow (SDD-12):
+  1. Identifies all checkpoints for a session ordered chronologically
+  2. Protects the initial checkpoint (immutable point-zero)
+  3. Retains the latest N checkpoints (keep_limit)
+  4. Deletes intermediate obsolete checkpoints via SerializedWriteQueue
 
-Fluxo do Throttler Térmico (SDD-14):
-  1. Verifica uso de CPU geral do host (< 40%)
-  2. Verifica período de ociosidade do desenvolvedor (quiet period)
-  3. Rebaixa prioridade do processo Python para background
+Thermal Throttler Flow (SDD-14):
+  1. Checks overall host CPU usage (< 40%)
+  2. Verifies developer idle period (quiet period)
+  3. Lowers Python process scheduling priority to background
 """
 
 import logging
@@ -47,35 +47,34 @@ logger = logging.getLogger(__name__)
 
 class BackgroundJanitor:
     """
-    Varredor de ociosidade que resume comunidades sujas utilizando
-    exclusivamente modelos locais gratuitos (SLM), garantindo faturas
-    de API zeradas. Também realiza auto-poda inteligente de checkpoints
-    para evitar inchaço do banco. (SDD-06 / SDD-12 / SDD-14)
+    Idle-time janitor that summarizes dirty communities utilizing exclusively
+    free local models (SLM), guaranteeing zero cloud API bills. Also performs
+    smart checkpoint auto-pruning to prevent database bloat. (SDD-06 / SDD-12 / SDD-14)
     """
 
     def __init__(self, db_manager: Any):
         self.db_manager = db_manager
         self.is_running = False
 
-    # ── Resumo de Comunidades (SDD-06) ────────────────────────────
+    # ── Community Summarization (SDD-06) ───────────────────────────
 
     def run_idle_summarization(
         self, local_slm_callback: Callable[[str], str]
     ) -> Dict[str, str]:
         """
-        Processa todas as comunidades DIRTY em segundo plano.
+        Processes all DIRTY communities in the background.
 
-        Para cada comunidade suja:
-          - Agrupa o conteúdo dos arquivos associados
-          - Dispara o callback gratuito da SLM local
-          - Persiste o novo resumo no banco
-          - Reseta flags is_dirty para 0
+        For each dirty community:
+          - Aggregates content of associated files
+          - Dispatches free local SLM callback
+          - Persists new summary into database
+          - Resets is_dirty flags to 0
 
-        Retorna um log de auditoria: {community_id: summary_gerado}
+        Returns audit log: {community_id: generated_summary}
         """
         audit_log: Dict[str, str] = {}
 
-        # Localiza todas as comunidades sujas
+        # Locate all dirty communities
         dirty_communities = self.db_manager.read_query(
             "SELECT id FROM communities WHERE is_dirty = 1;"
         )
@@ -90,20 +89,20 @@ class BackgroundJanitor:
         self, community_id: str, local_slm_callback: Callable[[str], str]
     ) -> str:
         """
-        Agrupa conteúdo dos arquivos da comunidade, gera resumo via SLM
-        local e persiste o resultado limpando as flags de sujeira.
+        Aggregates community file contents, generates summary via local SLM,
+        and persists result while resetting dirty flags.
         """
-        # Agrupa conteúdo de todos os arquivos da comunidade
+        # Aggregate content of all files in the community
         files = self.db_manager.read_query(
             "SELECT content FROM files WHERE community_id = ?;",
             (community_id,),
         )
         payload = "\n".join(row[0] for row in files)
 
-        # Dispara a SLM local gratuita
+        # Dispatch free local SLM
         new_summary = local_slm_callback(payload)
 
-        # Persiste resumo e reconcilia flags
+        # Persist summary and reconcile flags
         self.db_manager.write_query(
             "UPDATE communities SET summary_text = ?, is_dirty = 0 WHERE id = ?;",
             (new_summary, community_id),
@@ -115,7 +114,7 @@ class BackgroundJanitor:
 
         return new_summary
 
-    # ── Auto-Poda de Checkpoints (SDD-12) ─────────────────────────
+    # ── Checkpoint Auto-Pruning (SDD-12) ───────────────────────────
 
     def prune_session_checkpoints(
         self,
@@ -123,17 +122,17 @@ class BackgroundJanitor:
         keep_limit: int = 10,
     ) -> int:
         """
-        Executa a auto-poda inteligente de checkpoints por sessão.
+        Executes smart checkpoint pruning per session.
 
-        Algoritmo Smart LRU per Session:
-          1. Identifica todos os checkpoints da sessão ordenados por created_at
-          2. Protege o primeiro checkpoint (ponto zero / "init") — imutável
-          3. Dos restantes, preserva os últimos `keep_limit` mais recentes
-          4. Deleta fisicamente os intermediários obsoletos
+        Smart LRU per Session Algorithm:
+          1. Identifies all session checkpoints ordered by created_at
+          2. Protects the first checkpoint (point zero / "init") — immutable
+          3. From remaining, retains the latest `keep_limit` snapshots
+          4. Physically deletes intermediate obsolete checkpoints
 
-        Se session_id for None, processa todas as sessões existentes.
+        If session_id is None, processes all existing sessions.
 
-        Retorna o total de checkpoints eliminados.
+        Returns total number of deleted checkpoints.
         """
         total_pruned = 0
 
@@ -152,12 +151,12 @@ class BackgroundJanitor:
 
     def _prune_single_session(self, session_id: str, keep_limit: int) -> int:
         """
-        Executa a poda de uma sessão individual.
+        Executes pruning for an individual session.
 
-        Identifica os checkpoint_ids que devem ser preservados (ponto zero +
-        os N mais recentes) e deleta todos os outros intermediários.
+        Identifies checkpoint_ids that must be preserved (point zero +
+        the N most recent) and deletes all other intermediate records.
         """
-        # Seleciona todos os checkpoints da sessão em ordem cronológica
+        # Select all session checkpoints in chronological order
         all_checkpoints = self.db_manager.read_query(
             "SELECT checkpoint_id FROM agent_checkpoints "
             "WHERE session_id = ? "
@@ -170,26 +169,26 @@ class BackgroundJanitor:
 
         all_ids = [row[0] for row in all_checkpoints]
 
-        # Protege o primeiro checkpoint (ponto zero imutável)
+        # Protect initial checkpoint (immutable point zero)
         init_checkpoint = all_ids[0]
         remaining = all_ids[1:]
 
-        # Dos restantes, preserva os últimos keep_limit
+        # From remaining, preserve latest keep_limit
         if len(remaining) <= keep_limit:
-            # Nada a podar — todos cabem no limite
+            # Nothing to prune — all fit within limit
             return 0
 
-        # IDs a preservar: init + últimos keep_limit
+        # IDs to preserve: init + latest keep_limit
         recent_ids = remaining[-keep_limit:]
         preserve_set = {init_checkpoint} | set(recent_ids)
 
-        # IDs a eliminar: todos que não estão no conjunto de preservação
+        # IDs to delete: all that are not in preserve set
         ids_to_delete = [cid for cid in all_ids if cid not in preserve_set]
 
         if not ids_to_delete:
             return 0
 
-        # Deleta em lote via SerializedWriteQueue
+        # Batch delete via SerializedWriteQueue
         placeholders = ", ".join("?" for _ in ids_to_delete)
         self.db_manager.write_query(
             f"DELETE FROM agent_checkpoints "
@@ -198,8 +197,8 @@ class BackgroundJanitor:
         )
 
         logger.info(
-            "SDD-12: Poda de sessão '%s' concluída — %d checkpoints eliminados, "
-            "%d preservados (1 init + %d recentes).",
+            "SDD-12: Session '%s' pruning complete — %d checkpoints deleted, "
+            "%d preserved (1 init + %d recent).",
             session_id,
             len(ids_to_delete),
             len(preserve_set),
@@ -208,7 +207,7 @@ class BackgroundJanitor:
 
         return len(ids_to_delete)
 
-    # ── Throttler Térmico e Hardware-Aware Governor (SDD-14) ──────
+    # ── Thermal Throttler & Hardware-Aware Governor (SDD-14) ────────
 
     def check_hardware_clearance(
         self,
@@ -216,27 +215,27 @@ class BackgroundJanitor:
         quiet_period_seconds: float = 180.0,
     ) -> bool:
         """
-        Verifica se a máquina local possui folga térmica e de processamento
-        para execução segura de SLMs locais (Ollama).
+        Verifies whether local host has thermal and compute headroom
+        for safe local SLM execution (Ollama).
 
-        Condições para liberação (todas devem ser verdadeiras):
-          1. CPU geral do host abaixo de max_cpu_percent (média de 0.5s)
-          2. Nenhum arquivo modificado nos últimos quiet_period_seconds
-             (período de ociosidade/idle do desenvolvedor)
+        Clearance conditions (all must be True):
+          1. Host overall CPU usage below max_cpu_percent (0.5s sample average)
+          2. No file modified within the last quiet_period_seconds
+             (developer idle period)
 
-        Retorna True se o hardware está liberado, False caso contrário.
+        Returns True if hardware clearance is granted, False otherwise.
         """
-        # 1. Verifica uso de CPU geral do host
+        # 1. Check overall host CPU usage
         current_cpu = psutil.cpu_percent(interval=0.5)
         if current_cpu > max_cpu_percent:
             logger.debug(
-                "SDD-14: Hardware clearance negada — CPU em %.1f%% (limite: %.1f%%)",
+                "SDD-14: Hardware clearance denied — CPU at %.1f%% (threshold: %.1f%%)",
                 current_cpu,
                 max_cpu_percent,
             )
             return False
 
-        # 2. Verifica período de ociosidade (Quiet Period)
+        # 2. Check idle period (Quiet Period)
         result = self.db_manager.read_query(
             "SELECT MAX(last_modified) FROM files;"
         )
@@ -244,7 +243,7 @@ class BackgroundJanitor:
 
         if (time.time() - latest_change) < quiet_period_seconds:
             logger.debug(
-                "SDD-14: Hardware clearance negada — arquivo modificado há %.1fs "
+                "SDD-14: Hardware clearance denied — file modified %.1fs ago "
                 "(quiet period: %.1fs)",
                 time.time() - latest_change,
                 quiet_period_seconds,
@@ -255,20 +254,20 @@ class BackgroundJanitor:
 
     def process_community_summaries_frugal(self) -> str:
         """
-        Executa a geração de resumos das comunidades detectadas aplicando
-        rebaixamento de prioridade de processo e travas térmicas.
+        Executes summary generation for detected communities applying process
+        priority demotion and thermal throttling.
 
-        Fluxo:
-          1. Rebaixa prioridade do processo Python para background
-             (IDLE_PRIORITY_CLASS no Windows, nice(15) no Unix)
-          2. Verifica barreira de hardware (CPU + quiet period)
-          3. Se aprovado, processa resumos via SLM local
+        Flow:
+          1. Lowers current Python process priority to background
+             (IDLE_PRIORITY_CLASS on Windows, nice(15) on Unix)
+          2. Verifies hardware clearance barrier (CPU + quiet period)
+          3. If cleared, processes summaries via local SLM
 
-        Retorna:
-          - "skipped_due_to_hardware_constraints" se a barreira bloquear
-          - "success" se processado com sucesso
+        Returns:
+          - "skipped_due_to_hardware_constraints" if blocked by barrier
+          - "success" if processed successfully
         """
-        # Rebaixa prioridade do processo corrente para background
+        # Demote current process priority to background
         try:
             p = psutil.Process(os.getpid())
             if sys.platform == "win32":
@@ -276,17 +275,16 @@ class BackgroundJanitor:
             else:
                 p.nice(15)
         except Exception:
-            pass  # Ignora se não houver permissão no SO
+            pass  # Ignore if OS lacks permission
 
-        # Executa barreira de hardware
+        # Execute hardware barrier
         if not self.check_hardware_clearance():
             return "skipped_due_to_hardware_constraints"
 
         self.is_running = True
 
-        # Processa resumos locais via Ollama...
-        # (Implementação do cliente Ollama será adicionada em SDD futuro)
+        # Process local summaries via Ollama...
+        # (Ollama client implementation to be integrated in future SDD)
 
         self.is_running = False
         return "success"
-

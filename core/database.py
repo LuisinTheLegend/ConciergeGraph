@@ -1,26 +1,27 @@
 """
 core/database.py — SDD-SURVIVAL-02
 
-Orquestrador de Conexão Híbrida SQLite.
+SQLite Hybrid Connection Orchestrator.
 
-Gerencia leituras concorrentes diretas (SELECT) e delega todas as mutações
-(INSERT, UPDATE, DELETE) para a SerializedWriteQueue, garantindo performance
-híbrida e estabilidade absoluta em modo WAL.
+Manages direct concurrent reads (SELECT) and delegates all mutations
+(INSERT, UPDATE, DELETE) to SerializedWriteQueue, ensuring hybrid performance
+and absolute stability under WAL mode.
 
-Padrão arquitetural:
-  - Leituras: conexão efêmera local por chamada (concorrência total)
-  - Escritas: delegação síncrona para thread dedicada (zero locks)
+Architectural Pattern:
+  - Reads: Local ephemeral connection per query (full concurrency)
+  - Writes: Synchronous delegation to dedicated thread (zero locking)
 """
 
 import sqlite3
 from typing import Optional
+
 from interface.queue_writer import SerializedWriteQueue
 
 
 class ConciergeDatabaseManager:
     """
-    Gerencia a leitura síncrona concorrente direta do arquivo SQLite e
-    delega todas as mutações e transações de escrita para a SerializedWriteQueue.
+    Manages direct concurrent reads from SQLite file while delegating
+    all mutations and write transactions to SerializedWriteQueue.
     """
 
     def __init__(self, db_path: str, write_queue: Optional[SerializedWriteQueue] = None):
@@ -29,7 +30,7 @@ class ConciergeDatabaseManager:
         self._init_tables()
 
     def _init_tables(self):
-        """Cria tabelas via fila de escrita ou conexão direta, respeitando o escritor único."""
+        """Creates tables via write queue or direct connection, respecting single-writer rule."""
         self.write_query(
             "CREATE TABLE IF NOT EXISTS test_log ("
             "id INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -39,7 +40,7 @@ class ConciergeDatabaseManager:
         )
 
     def read_query(self, query: str, params: tuple = ()):
-        """Leitura rápida e concorrente direta do banco (sem usar a fila de escrita)."""
+        """Fast concurrent read query directly from database (bypasses write queue)."""
         conn = sqlite3.connect(self.db_path, timeout=30.0)
         try:
             conn.execute("PRAGMA journal_mode=WAL;")
@@ -51,7 +52,7 @@ class ConciergeDatabaseManager:
             conn.close()
 
     def execute_write(self, query: str, params: tuple = ()):
-        """Gravação segura delegada para o executor serializado de escrita ou direta."""
+        """Safe write operation delegated to serialized writer or direct connection."""
         if self.write_queue is not None:
             return self.write_queue.execute_write(query, params)
         conn = sqlite3.connect(self.db_path, timeout=30.0)
@@ -68,5 +69,5 @@ class ConciergeDatabaseManager:
             conn.close()
 
     def write_query(self, query: str, params: tuple = ()):
-        """Gravação segura delegada para execute_write."""
+        """Safe write query delegating to execute_write."""
         return self.execute_write(query, params)

@@ -1,19 +1,19 @@
 """
 core/security_guard.py — SDD-SURVIVAL-24
 
-Guarda de Fronteira e Classificador de Perigo (Vanguard Bounds Guard).
+Boundary Guard and Hazard Classifier (Vanguard Bounds Guard).
 
-Implementa duas barreiras de segurança complementares:
-  1. is_safe_path: Barreira física intransponível que impede qualquer leitura
-     ou escrita de arquivos fora do diretório raiz normalizado do monorepo.
-     Previne Path Traversal (../../etc/passwd) mesmo sob alucinação do agente.
-  2. classify_command: Classificador de comandos de terminal em três níveis
-     de risco (SAFE, WARNING, CRITICAL), alimentando o GatingInterceptor.
+Implements two complementary security barriers:
+  1. is_safe_path: Physical barrier preventing reading or writing files outside
+     the normalized root directory of the monorepo.
+     Prevents Path Traversal (../../etc/passwd) even under agent hallucination.
+  2. classify_command: Terminal command classifier with three risk tiers
+     (SAFE, WARNING, CRITICAL), feeding into GatingInterceptor.
 
-Segurança:
-  - Normalização via os.path.realpath() resolve symlinks e traversals.
-  - Blacklist regex para comandos intrinsecamente destrutivos (rm -rf /, mkfs, dd).
-  - Zero-trust: caminhos vazios ou inválidos são considerados seguros (noop).
+Security Invariants:
+  - Normalization via os.path.realpath() resolves symlinks and traversals.
+  - Blacklist regex for inherently destructive commands (rm -rf /, mkfs, dd).
+  - Zero-trust: empty or missing paths are treated as safe no-ops.
 """
 
 import logging
@@ -26,25 +26,25 @@ logger = logging.getLogger(__name__)
 
 class SecurityGuard:
     """
-    Guarda de fronteira de segurança com validação física de caminhos
-    e classificação de comandos de terminal.
+    Security boundary guard with physical path validation
+    and terminal command classification.
 
-    Parâmetros:
-      project_root — Diretório raiz do monorepo. Normalizado via realpath()
-                     para resolver symlinks e caminhos relativos.
+    Parameters:
+      project_root — Root directory of the monorepo. Normalized via realpath()
+                     to resolve symlinks and relative path segments.
     """
 
     def __init__(self, project_root: str):
-        # Normaliza o caminho do monorepo para checagem absoluta de limites
+        # Normalize monorepo path for absolute boundary enforcement
         self.project_root = os.path.realpath(project_root)
 
-        # Padrões conhecidos de comandos intrinsecamente destrutivos
+        # Blacklisted patterns for inherently destructive commands
         self.blacklisted_patterns = re.compile(
             r"(\brm\s+-rf\s+/|\b(mkfs|dd\s+if|shutdown|reboot|systemctl|userdel|iptables)\b)",
             re.IGNORECASE,
         )
 
-        # Termos que indicam comandos de infraestrutura/empacotamento (WARNING)
+        # Terms indicating infrastructure, build, or package installation commands (WARNING)
         self.warning_terms: List[str] = [
             "npm install",
             "pip install",
@@ -55,24 +55,23 @@ class SecurityGuard:
 
     def is_safe_path(self, target_path: str) -> bool:
         """
-        Garante que nenhum arquivo seja lido ou editado fora das dependências
-        físicas do monorepo (Prevenção absoluta de Path Traversal).
+        Ensures no file is read or modified outside the physical monorepo boundaries
+        (Absolute Path Traversal Prevention).
 
-        Normaliza o caminho de destino via os.path.realpath() e compara com
-        o diretório raiz do projeto. Caminhos vazios são tratados como noop
-        seguro (sem arquivo alvo = sem risco).
+        Normalizes destination path via os.path.realpath() and validates against
+        project root directory. Empty paths are treated as safe no-ops
+        (no target path = no hazard).
 
-        Retorna:
-          True  — se o caminho está dentro do monorepo ou é vazio/nulo.
-          False — se o caminho normalizado está fora do monorepo.
+        Returns:
+          True  — if path is within monorepo or is empty/null.
+          False — if normalized path falls outside monorepo boundaries.
         """
         if not target_path:
             return True
         try:
             absolute_target = os.path.realpath(target_path)
-            # Verifica se o caminho físico de destino inicia com o caminho do monorepo
-            # Adiciona os.sep para evitar falsos positivos parciais
-            # (ex: /home/user/project-evil vs /home/user/project)
+            # Verify target path starts with project root + separator
+            # to prevent partial string collisions (e.g. /home/user/project-evil vs /home/user/project)
             return absolute_target.startswith(
                 self.project_root + os.sep
             ) or absolute_target == self.project_root
@@ -81,21 +80,21 @@ class SecurityGuard:
 
     def classify_command(self, command: str) -> str:
         """
-        Classifica comandos de terminal em três níveis de risco:
+        Classifies terminal commands into three risk levels:
 
-          CRITICAL — Comandos banidos sumariamente (rm -rf /, mkfs, dd if, etc.).
-                     Bloqueados em TODOS os modos de gating, incluindo auto-approve.
-          WARNING  — Comandos de infraestrutura (npm install, docker, pytest, build).
-                     Requerem aprovação humana no modo 'ask'.
-          SAFE     — Todos os demais comandos (ls, cat, echo, git status, etc.).
-                     Liberados automaticamente.
+          CRITICAL — Inherently banned commands (rm -rf /, mkfs, dd if, etc.).
+                     Blocked across ALL gating modes, including auto-approve.
+          WARNING  — Infrastructure/build commands (npm install, docker, pytest, build).
+                     Require human developer approval under 'ask' mode.
+          SAFE     — All other safe commands (ls, cat, echo, git status, etc.).
+                     Executed automatically.
 
-        Retorna: "CRITICAL", "WARNING" ou "SAFE".
+        Returns: "CRITICAL", "WARNING", or "SAFE".
         """
         if self.blacklisted_patterns.search(command):
             return "CRITICAL"
 
-        # Comandos de empacotamento, infraestrutura ou compilação local
+        # Packaging, infrastructure, or compilation commands
         if any(term in command for term in self.warning_terms):
             return "WARNING"
 

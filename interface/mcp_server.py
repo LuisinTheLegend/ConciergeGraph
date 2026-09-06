@@ -169,7 +169,7 @@ class GrafoConciergeServer:
         # Registers the tools
         self._register_tools()
 
-        # SDD-21: Configura a governança e ocultação progressiva de ferramentas
+        # SDD-21: Configures tool governance and progressive disclosure
         self._setup_tool_governance()
 
         tool_count = len(self._mcp._tool_manager.list_tools())
@@ -182,11 +182,11 @@ class GrafoConciergeServer:
 
     @property
     def governor(self):
-        """Acesso ao MCPToolGovernor ativo no servidor."""
+        """Access to the active MCPToolGovernor on the server."""
         return self._governor
 
     def _setup_tool_governance(self) -> None:
-        """Configura os interceptadores de listagem e execução do FastMCP sob o MCPToolGovernor."""
+        """Configures FastMCP listing and execution interceptors under MCPToolGovernor."""
         original_tm_call_tool = self._mcp._tool_manager.call_tool
 
         async def governed_call_tool(name: str, arguments: dict, *args, **kwargs):
@@ -195,7 +195,7 @@ class GrafoConciergeServer:
                 if isinstance(arguments, dict)
                 else "default"
             )
-            # Segunda Camada: Validação ativa de execução
+            # Second Layer: Active execution validation
             self._governor.validate_tool_execution(session_id, name)
             return await original_tm_call_tool(name, arguments, *args, **kwargs)
 

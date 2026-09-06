@@ -91,7 +91,7 @@ class GrafoConcierge:
             SemanticExtractor(llm_adapter) if llm_adapter else None
         )
 
-        logger.info("GrafoConcierge (Fachada) inicializada com sucesso.")
+        logger.info("GrafoConcierge (Facade) initialized successfully.")
 
     @property
     def config(self) -> ConciergeConfig:
@@ -127,7 +127,7 @@ class GrafoConcierge:
         # Checks if already exists
         try:
             existing = self._store.get_project(folder_name)
-            logger.info("Projeto já existe: '%s' → %s", folder_name, existing["uuid"])
+            logger.info("Project already exists: '%s' → %s", folder_name, existing["uuid"])
             return existing["uuid"]
         except Exception:
             pass
@@ -181,7 +181,7 @@ class GrafoConcierge:
 
         resume = project.get("summary", "")
         if not resume:
-            resume = f"Projeto '{project.get('folder_name', 'unknown')}' — sem Bússola de Contexto definida."
+            resume = f"Project '{project.get('folder_name', 'unknown')}' — no Context Compass defined."
 
         # Include active semantic facts for the project scope
         semantic_facts: list[dict] = []
@@ -190,7 +190,7 @@ class GrafoConcierge:
             if folder_name:
                 semantic_facts = self.list_facts("user", folder_name)
         except Exception as e:
-            logger.warning("Falha ao carregar fatos semânticos no wake_up: %s", e)
+            logger.warning("Failed to load semantic facts on wake_up: %s", e)
 
         result = {
             "project": project,
@@ -202,7 +202,7 @@ class GrafoConcierge:
         }
 
         logger.info(
-            "Wake-up: projeto=%s, commits=%d, ref_wings=%d, semantic_facts=%d",
+            "Wake-up: project=%s, commits=%d, ref_wings=%d, semantic_facts=%d",
             project_uuid, len(recent_commits), len(ref_wings), len(semantic_facts),
         )
         return result
@@ -241,7 +241,7 @@ class GrafoConcierge:
                 wing = self._project_index.auto_categorize_project(project_uuid)
                 result_dict["auto_categorized_wing"] = wing
             except Exception as e:
-                logger.warning("Auto-categorização falhou: %s", e)
+                logger.warning("Auto-categorization failed: %s", e)
 
         return result_dict
 
@@ -325,10 +325,10 @@ class GrafoConcierge:
                 try:
                     self._store.touch_node_commit(nid)
                 except Exception as e:
-                    logger.warning("Falha ao tocar recência do nó %d: %s", nid, e)
+                    logger.warning("Failed to update recency for node %d: %s", nid, e)
 
         logger.info(
-            "Commit registrado: id=%d, projeto=%s, fase='%s', nós_afetados=%d",
+            "Commit registered: id=%d, project=%s, phase='%s', affected_nodes=%d",
             commit_id, project_uuid, phase, len(node_ids or []),
         )
         return commit_id
@@ -354,10 +354,10 @@ class GrafoConcierge:
         if not resume:
             stats = self._store.get_project_stats(project_uuid)
             resume = (
-                f"Projeto '{project.get('folder_name', 'unknown')}' "
-                f"com {stats.get('total_nodes', 0)} nós e "
-                f"{stats.get('total_edges', 0)} arestas. "
-                f"Ala: {project.get('primary_wing', 'geral')}."
+                f"Project '{project.get('folder_name', 'unknown')}' "
+                f"with {stats.get('total_nodes', 0)} nodes and "
+                f"{stats.get('total_edges', 0)} edges. "
+                f"Wing: {project.get('primary_wing', 'general')}."
             )
 
         return resume
@@ -392,7 +392,7 @@ class GrafoConcierge:
             "edges_out": edges_out,
         }
 
-        logger.debug("Lazy Load: nó=%d, arestas=%d", node_id, len(edges_out))
+        logger.debug("Lazy Load: node=%d, edges=%d", node_id, len(edges_out))
         return result
 
     # ===================================================================
@@ -414,13 +414,13 @@ class GrafoConcierge:
             if nodes:
                 doc_ids = [f"node_{n['id']}" for n in nodes]
                 self._vector.delete_batch(doc_ids)
-                logger.info("Vetores removidos: %d embeddings do projeto %s", len(doc_ids), project_uuid)
+                logger.info("Vectors removed: %d embeddings from project %s", len(doc_ids), project_uuid)
         except Exception as e:
-            logger.warning("Falha ao limpar vetores do projeto %s: %s", project_uuid, e)
+            logger.warning("Failed to clean vectors from project %s: %s", project_uuid, e)
 
         # Remove from SQLite (CASCADE handles nodes, edges, etc.)
         self._store.delete_project(project_uuid)
-        logger.info("Projeto removido: %s", project_uuid)
+        logger.info("Project removed: %s", project_uuid)
 
     # ===================================================================
     # SIMILAR — Projects in the same wing
@@ -722,7 +722,7 @@ class GrafoConcierge:
                       privacy_level, summary).
         """
         self._store.update_project(project_uuid, **fields)
-        logger.info("update_project: %s → campos=%s", project_uuid, list(fields.keys()))
+        logger.info("update_project: %s → fields=%s", project_uuid, list(fields.keys()))
 
     def add_reference_wing(self, project_uuid: str, wing_name: str) -> None:
         """Associates a Reference Wing to the project.
@@ -776,5 +776,5 @@ class GrafoConcierge:
         """
         result = self._vector.reset_collection()
         if result:
-            logger.warning("reset_collection: coleção vetorial destruída e recriada.")
+            logger.warning("reset_collection: vector collection destroyed and recreated.")
         return result
