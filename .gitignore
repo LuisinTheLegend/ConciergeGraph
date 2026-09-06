@@ -27,6 +27,11 @@ dist/
 *.cert
 *.crt
 
+# ⚙️ Regras de Exclusão Locais do Grafo Concierge
+.conciergeignore
+!.conciergeignore.example
+
+
 # 🗄️ PERSISTÊNCIA LOCAL (Propriedade Intelectual & Bancos de Dados)
 # Evita terminantemente que bancos físicos ou índices vetoriais locais subam para o repositório público.
 data/

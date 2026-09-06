@@ -1,0 +1,67 @@
+# =============================================================================
+# Grafo Concierge - Ingestion & Watcher Exclusion Rules (.conciergeignore.example)
+# =============================================================================
+# WHAT IS THIS FILE?
+# ------------------
+# .conciergeignore defines custom exclusion rules specifically for Grafo Concierge.
+# It uses standard .gitignore / pathspec syntax.
+#
+# WHY USE .conciergeignore INSTEAD OF JUST .gitignore?
+# ----------------------------------------------------
+# 1. Grafo Concierge automatically respects your project's .gitignore and built-in
+#    defaults (like .git/, node_modules/, __pycache__/, .env*).
+# 2. However, there may be files that you DO want tracked in Git, but DO NOT want
+#    indexed into the Grafo Concierge Knowledge Graph / Vector Memory.
+#    Examples: large test fixtures, generated documentation, minified bundles,
+#    benchmark datasets, or third-party vendored code.
+# 3. Excluding unneeded files saves vector embedding costs, accelerates AST parsing,
+#    and keeps agent search results razor-sharp without semantic noise.
+# 4. The Early-Exit Reactive Watcher filters filesystem events against these rules
+#    before hitting disk I/O, preventing CPU spikes.
+#
+# USAGE:
+# ------
+# Copy this file to '.conciergeignore' in your project root:
+#   cp .conciergeignore.example .conciergeignore
+# =============================================================================
+
+# ── 1. Large Test Fixtures & Mock Datasets ──
+# Keep in git for tests, but exclude from AI graph indexing
+tests/fixtures/
+tests/data/
+*.mock.json
+*.fixtures.*
+*.sample.*
+
+# ── 2. Heavy Data, Models & Dumps ──
+*.csv
+*.tsv
+*.parquet
+*.feather
+*.h5
+*.onnx
+*.pkl
+*.dump
+*.sql.gz
+
+# ── 3. Build Artifacts & Minified Bundles ──
+*.min.js
+*.min.css
+*.bundle.js
+*.map
+static/vendor/
+public/assets/
+
+# ── 4. Documentation Assets & Media ──
+docs/assets/
+docs/images/
+*.pdf
+*.drawio
+
+# ── 5. Scratch & One-off Scripts ──
+# Prevent scratch files from cluttering the agent's architectural memory
+scratch/
+experiments/
+sandbox/
+_scratch_*
+tmp_*.py
