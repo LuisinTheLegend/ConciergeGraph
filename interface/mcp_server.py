@@ -8,6 +8,10 @@ v3.8 REFACTOR: Now consumes exclusively the Central Facade
 (core.middleware.GrafoConcierge) instead of instantiating loose internal
 dependencies. All business logic has been moved to core/.
 
+v3.8.1 DRY REFACTOR: Extracted @_mcp_handler decorator eliminating timing/
+error boilerplate duplicated across 24 handler methods. Added _validate_scope()
+and aligned _handle_mine with _resolve_project_identifier().
+
 Tools exposed (6 tools — aligned with Architecture v3.8):
     concierge_mine     → Project ingestion (crawl → parse → store)
     concierge_search   → Hybrid Search v4 with Strict Scoping
@@ -33,11 +37,12 @@ Architecture:
 
 from __future__ import annotations
 
+import functools
 import logging
 import os
 import time
 import traceback
-from typing import Optional
+from typing import Callable, Optional
 
 from mcp.server.fastmcp import FastMCP
 
@@ -58,6 +63,55 @@ governor = None          # type: ignore[assignment]
 
 
 # ---------------------------------------------------------------------------
+# _mcp_handler — decorator for all _handle_* methods
+# ---------------------------------------------------------------------------
+
+def _mcp_handler(tool_name: str) -> Callable:
+    """Decorator factory that wraps a _handle_* method with timing + error envelope.
+
+    Injects automatically into every decorated handler:
+      - Timing: ``"duration_seconds"`` key added to the returned dict.
+      - Error envelope: on any unhandled exception returns
+        ``{"success": False, "error": str(e), "duration_seconds": ...}``
+        and logs via ``logger.error``.
+      - ``"success": True`` set via ``setdefault`` when not already present.
+
+    The handler body only needs to return the success payload dict.
+    It does NOT need to manage ``t0``, ``elapsed``, or ``except Exception``.
+
+    Args:
+        tool_name: Name of the MCP tool (used in the error log message).
+    """
+    def decorator(fn: Callable) -> Callable:
+        @functools.wraps(fn)
+        def wrapper(self, *args, **kwargs) -> dict:
+            t0 = time.perf_counter()
+            try:
+                result = fn(self, *args, **kwargs)
+                elapsed = time.perf_counter() - t0
+                if isinstance(result, dict):
+                    result.setdefault("success", True)
+                    result["duration_seconds"] = round(elapsed, 3)
+                    return result
+                # Scalar / non-dict return — wrap transparently
+                return {
+                    "success": True,
+                    "result": result,
+                    "duration_seconds": round(elapsed, 3),
+                }
+            except Exception as e:
+                elapsed = time.perf_counter() - t0
+                logger.error("%s FAILED: %s", tool_name, e)
+                return {
+                    "success": False,
+                    "error": str(e),
+                    "duration_seconds": round(elapsed, 3),
+                }
+        return wrapper
+    return decorator
+
+
+# ---------------------------------------------------------------------------
 # GrafoConciergeServer — Encapsulation of FastMCP + Central Facade
 # ---------------------------------------------------------------------------
 
@@ -71,6 +125,9 @@ class GrafoConciergeServer:
         concierge: Instance of the GrafoConcierge Central Facade.
         janitor: Instance of JanitorService (autonomous maintenance).
     """
+
+    # Valid scope types for semantic facts and core memory operations.
+    _VALID_SCOPES: frozenset[str] = frozenset({"user", "session", "agent", "org"})
 
     def __init__(
         self,
@@ -897,83 +954,72 @@ class GrafoConciergeServer:
                 "Please list available projects using concierge_list_projects."
             )
 
+    def _validate_scope(self, scope_type: str, scope_id: str) -> None:
+        """Validates scope_type against the allowed set and scope_id for non-emptiness.
+
+        Args:
+            scope_type: Must be one of _VALID_SCOPES ('user', 'session', 'agent', 'org').
+            scope_id: Must be a non-empty, non-whitespace string.
+
+        Raises:
+            ValueError: If scope_type is unrecognized or scope_id is blank.
+        """
+        if scope_type not in self._VALID_SCOPES:
+            raise ValueError(
+                f"Invalid scope_type '{scope_type}'. "
+                f"Must be one of: {sorted(self._VALID_SCOPES)}"
+            )
+        if not scope_id or not scope_id.strip():
+            raise ValueError("scope_id cannot be empty.")
+
     # ===================================================================
     # HANDLER: concierge_list_projects
     # ===================================================================
 
+    @_mcp_handler("concierge_list_projects")
     def _handle_list_projects(self) -> dict:
         """Handler for concierge_list_projects."""
-        t0 = time.perf_counter()
-        try:
-            projects = self._gc.store.list_projects()
-            formatted = {}
-            for p in projects:
-                name = p["folder_name"]
-                updated = p["updated_at"][:10] if p["updated_at"] else ""
-                formatted[name] = {"uuid": p["uuid"], "updated_at": updated}
-            
-            elapsed = time.perf_counter() - t0
-            return {
-                "success": True,
-                "projects": formatted,
-                "duration_seconds": round(elapsed, 3),
-            }
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("concierge_list_projects FAILED: %s", e)
-            return {
-                "success": False,
-                "error": str(e),
-                "projects": {},
-                "duration_seconds": round(elapsed, 3),
-            }
+        projects = self._gc.store.list_projects()
+        formatted = {}
+        for p in projects:
+            name = p["folder_name"]
+            updated = p["updated_at"][:10] if p["updated_at"] else ""
+            formatted[name] = {"uuid": p["uuid"], "updated_at": updated}
+        return {"projects": formatted}
 
     # ===================================================================
     # HANDLER: concierge_register
     # ===================================================================
 
+    @_mcp_handler("concierge_register")
     def _handle_register(
         self, project_path: str, wing: str, privacy_level: str, summary: Optional[str]
     ) -> dict:
         """Handler for concierge_register — delegates to Facade."""
-        t0 = time.perf_counter()
+        folder_name = os.path.basename(project_path.strip(r"\/")) or project_path
 
-        try:
-            folder_name = os.path.basename(project_path.strip(r"\/")) or project_path
-            
-            project_uuid = self._gc.register_project(
-                folder_name=folder_name,
-                wing=wing,
-                privacy_level=privacy_level,
-                summary=summary or f"Project registered via MCP: {folder_name}",
-            )
+        project_uuid = self._gc.register_project(
+            folder_name=folder_name,
+            wing=wing,
+            privacy_level=privacy_level,
+            summary=summary or f"Project registered via MCP: {folder_name}",
+        )
 
-            elapsed = time.perf_counter() - t0
-            logger.info(
-                "concierge_register OK: %s → %s (wing=%s, privacy=%s), %.3fs",
-                folder_name, project_uuid, wing, privacy_level, elapsed,
-            )
+        logger.info(
+            "concierge_register OK: %s → %s (wing=%s, privacy=%s)",
+            folder_name, project_uuid, wing, privacy_level,
+        )
 
-            return {
-                "success": True,
-                "project_uuid": project_uuid,
-                "folder_name": folder_name,
-                "wing": wing,
-                "privacy_level": privacy_level,
-                "duration_seconds": round(elapsed, 3),
-            }
-
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("concierge_register FAILED: %s", e)
-            return {
-                "success": False,
-                "error": str(e),
-                "duration_seconds": round(elapsed, 3),
-            }
+        return {
+            "success": True,
+            "project_uuid": project_uuid,
+            "folder_name": folder_name,
+            "wing": wing,
+            "privacy_level": privacy_level,
+        }
 
     # ===================================================================
-    # HANDLER: concierge_mine
+    # HANDLER: concierge_mine  (manual — error dict includes traceback + path)
     # ===================================================================
 
     def _handle_mine(
@@ -983,36 +1029,18 @@ class GrafoConciergeServer:
         t0 = time.perf_counter()
 
         try:
-            import uuid
-            is_uuid = False
+            # Resolve project: existing UUID/name → auto-register if not found
             try:
-                uuid.UUID(project_identifier)
-                is_uuid = True
+                project_uuid = self._resolve_project_identifier(project_identifier)
+                project = self._gc.store.get_project(project_uuid)
+                project_name = project.get("folder_name", project_identifier)
             except ValueError:
-                pass
-
-            if is_uuid:
-                project_uuid = project_identifier
-                try:
-                    project = self._gc.store.get_project(project_uuid)
-                    project_name = project["folder_name"]
-                except Exception:
-                    project_name = os.path.basename(path.rstrip(r"\/")) or project_uuid
-                    # Registers if it does not exist
-                    self._gc.register_project(
-                        folder_name=project_name,
-                        summary=f"Project ingested from: {path}",
-                    )
-            else:
-                try:
-                    project = self._gc.store.get_project(project_identifier)
-                    project_uuid = project["uuid"]
-                    project_name = project["folder_name"]
-                except Exception:
-                    raise ValueError(
-                        f"Project '{project_identifier}' not found. "
-                        "Please list available projects using concierge_list_projects."
-                    )
+                # Project not found → auto-register under the path's basename
+                project_name = os.path.basename(path.rstrip(r"\/")) or project_identifier
+                project_uuid = self._gc.register_project(
+                    folder_name=project_name,
+                    summary=f"Project ingested from: {path}",
+                )
 
             # Signals Idle-Lock for the Janitor
             if self._janitor:
@@ -1025,11 +1053,13 @@ class GrafoConciergeServer:
                     self._janitor.signal_mine_end()
 
             elapsed = time.perf_counter() - t0
-            result["project_uuid"] = project_uuid
-            result["project_name"] = project_name
-            result["path"] = path
-            result["duration_seconds"] = round(elapsed, 3)
-            result["success"] = True
+            result.update({
+                "success": True,
+                "project_uuid": project_uuid,
+                "project_name": project_name,
+                "path": path,
+                "duration_seconds": round(elapsed, 3),
+            })
 
             logger.info(
                 "concierge_mine OK: %s → %d files, %d nodes, %.2fs",
@@ -1051,7 +1081,7 @@ class GrafoConciergeServer:
             }
 
     # ===================================================================
-    # HANDLER: concierge_search
+    # HANDLER: concierge_search  (manual — error dict includes query + results)
     # ===================================================================
 
     def _handle_search(
@@ -1144,6 +1174,7 @@ class GrafoConciergeServer:
     # HANDLER: concierge_commit
     # ===================================================================
 
+    @_mcp_handler("concierge_commit")
     def _handle_commit(
         self,
         project_uuid: str,
@@ -1153,403 +1184,230 @@ class GrafoConciergeServer:
         node_ids: Optional[list[int]],
     ) -> dict:
         """Handler for concierge_commit — delegates to Facade."""
-        t0 = time.perf_counter()
-
-        try:
-            commit_id = self._gc.commit_memory(
-                project_uuid=project_uuid,
-                phase=phase,
-                technical_changes=technical_changes,
-                updated_pointers=updated_pointers,
-                node_ids=node_ids,
-            )
-
-            elapsed = time.perf_counter() - t0
-
-            logger.info(
-                "concierge_commit OK: id=%d, project=%s, phase='%s', %.3fs",
-                commit_id, project_uuid, phase, elapsed,
-            )
-
-            return {
-                "success": True,
-                "commit_id": commit_id,
-                "project_uuid": project_uuid,
-                "phase": phase,
-                "duration_seconds": round(elapsed, 3),
-            }
-
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("concierge_commit FAILED: %s", e)
-            return {
-                "success": False,
-                "error": str(e),
-                "project_uuid": project_uuid,
-                "duration_seconds": round(elapsed, 3),
-            }
+        commit_id = self._gc.commit_memory(
+            project_uuid=project_uuid,
+            phase=phase,
+            technical_changes=technical_changes,
+            updated_pointers=updated_pointers,
+            node_ids=node_ids,
+        )
+        logger.info(
+            "concierge_commit OK: id=%d, project=%s, phase='%s'",
+            commit_id, project_uuid, phase,
+        )
+        return {
+            "success": True,
+            "commit_id": commit_id,
+            "project_uuid": project_uuid,
+            "phase": phase,
+        }
 
     # ===================================================================
     # HANDLER: concierge_wakeup
     # ===================================================================
 
+    @_mcp_handler("concierge_wakeup")
     def _handle_wakeup(self, project_uuid: str) -> dict:
         """Handler for concierge_wakeup — delegates to Facade."""
-        t0 = time.perf_counter()
-
-        try:
-            result = self._gc.wake_up(project_uuid)
-            elapsed = time.perf_counter() - t0
-
-            result["success"] = True
-            result["duration_seconds"] = round(elapsed, 3)
-
-            logger.info(
-                "concierge_wakeup OK: project=%s, %.3fs", project_uuid, elapsed,
-            )
-            return result
-
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("concierge_wakeup FAILED: %s", e)
-            return {
-                "success": False,
-                "error": str(e),
-                "project_uuid": project_uuid,
-                "duration_seconds": round(elapsed, 3),
-            }
+        result = self._gc.wake_up(project_uuid)
+        result["success"] = True
+        logger.info("concierge_wakeup OK: project=%s", project_uuid)
+        return result
 
     # ===================================================================
     # HANDLER: concierge_resume
     # ===================================================================
 
+    @_mcp_handler("concierge_resume")
     def _handle_resume(self, project_uuid: str) -> dict:
         """Handler for concierge_resume — delegates to Facade."""
-        t0 = time.perf_counter()
-
-        try:
-            resume = self._gc.get_resume(project_uuid)
-            project = self._gc.store.get_project(project_uuid)
-            stats = self._gc.store.get_project_stats(project_uuid)
-            elapsed = time.perf_counter() - t0
-
-            logger.info(
-                "concierge_resume OK: project=%s, %.3fs", project_uuid, elapsed,
-            )
-
-            return {
-                "success": True,
-                "project_uuid": project_uuid,
-                "folder_name": project.get("folder_name", ""),
-                "primary_wing": project.get("primary_wing", "geral"),
-                "resume": resume,
-                "stats": stats,
-                "duration_seconds": round(elapsed, 3),
-            }
-
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("concierge_resume FAILED: %s", e)
-            return {
-                "success": False,
-                "error": str(e),
-                "project_uuid": project_uuid,
-                "duration_seconds": round(elapsed, 3),
-            }
+        resume = self._gc.get_resume(project_uuid)
+        project = self._gc.store.get_project(project_uuid)
+        stats = self._gc.store.get_project_stats(project_uuid)
+        logger.info("concierge_resume OK: project=%s", project_uuid)
+        return {
+            "success": True,
+            "project_uuid": project_uuid,
+            "folder_name": project.get("folder_name", ""),
+            "primary_wing": project.get("primary_wing", "geral"),
+            "resume": resume,
+            "stats": stats,
+        }
 
     # ===================================================================
     # HANDLER: concierge_load
     # ===================================================================
 
+    @_mcp_handler("concierge_load")
     def _handle_load(self, node_id: int) -> dict:
         """Handler for concierge_load — delegates to Facade."""
-        t0 = time.perf_counter()
-
-        try:
-            result = self._gc.lazy_load(node_id)
-            elapsed = time.perf_counter() - t0
-
-            logger.info(
-                "concierge_load OK: node_id=%d, %.3fs", node_id, elapsed,
-            )
-
-            return {
-                "success": True,
-                "node": result,
-                "duration_seconds": round(elapsed, 3),
-            }
-
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("concierge_load FAILED: %s", e)
-            return {
-                "success": False,
-                "error": str(e),
-                "node_id": node_id,
-                "duration_seconds": round(elapsed, 3),
-            }
+        result = self._gc.lazy_load(node_id)
+        logger.info("concierge_load OK: node_id=%d", node_id)
+        return {"success": True, "node": result}
 
     # ===================================================================
     # HANDLER: concierge_status
     # ===================================================================
 
+    @_mcp_handler("concierge_status")
     def _handle_status(self, project_uuid: Optional[str]) -> dict:
         """Handler for concierge_status — delegates to Facade + components."""
-        t0 = time.perf_counter()
+        status: dict = {
+            "success": True,
+            "system": "Grafo Concierge v3.8.0",
+            "components": {},
+        }
 
+        # --- SQLite Health ---
         try:
-            status: dict = {
-                "success": True,
-                "system": "Grafo Concierge v3.8.0",
-                "components": {},
+            projects = self._gc.store.list_projects()
+            status["components"]["sqlite"] = {
+                "status": "healthy",
+                "total_projects": len(projects),
+            }
+        except Exception as e:
+            status["components"]["sqlite"] = {
+                "status": "degraded",
+                "error": str(e),
             }
 
-            # --- SQLite Health ---
+        # --- Janitor ---
+        if self._janitor:
+            last = self._janitor.last_reports
+            janitor_status = {
+                "status": "active" if self._janitor.is_running else "idle",
+                "total_runs": len(last),
+            }
+            if last:
+                janitor_status["last_report"] = last[-1].to_dict()
+            status["components"]["janitor"] = janitor_status
+        else:
+            status["components"]["janitor"] = {"status": "not_configured"}
+
+        # --- Project Stats (if UUID provided) ---
+        if project_uuid:
             try:
-                projects = self._gc.store.list_projects()
-                status["components"]["sqlite"] = {
-                    "status": "healthy",
-                    "total_projects": len(projects),
-                }
+                project_status = self._gc.status(project_uuid)
+                status["project"] = project_status
             except Exception as e:
-                status["components"]["sqlite"] = {
-                    "status": "degraded",
+                status["project"] = {
+                    "uuid": project_uuid,
                     "error": str(e),
                 }
 
-            # --- Janitor ---
-            if self._janitor:
-                last = self._janitor.last_reports
-                janitor_status = {
-                    "status": "active" if self._janitor.is_running else "idle",
-                    "total_runs": len(last),
-                }
-                if last:
-                    janitor_status["last_report"] = last[-1].to_dict()
-                status["components"]["janitor"] = janitor_status
-            else:
-                status["components"]["janitor"] = {"status": "not_configured"}
-
-            # --- Project Stats (if UUID provided) ---
-            if project_uuid:
-                try:
-                    project_status = self._gc.status(project_uuid)
-                    status["project"] = project_status
-                except Exception as e:
-                    status["project"] = {
-                        "uuid": project_uuid,
-                        "error": str(e),
-                    }
-
-            elapsed = time.perf_counter() - t0
-            status["duration_seconds"] = round(elapsed, 3)
-
-            logger.info("concierge_status OK in %.3fs", elapsed)
-            return status
-
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("concierge_status FAILED: %s", e)
-            return {
-                "success": False,
-                "error": str(e),
-                "duration_seconds": round(elapsed, 3),
-            }
+        logger.info("concierge_status OK")
+        return status
 
     # ===================================================================
     # HANDLER: search_symbols
     # ===================================================================
 
+    @_mcp_handler("search_symbols")
     def _handle_search_symbols(self, query: str, project_uuid: Optional[str] = None) -> dict:
         """Handler for search_symbols."""
-        t0 = time.perf_counter()
-        try:
-            results = self._gc.store.fts_search(query, project_uuid=project_uuid)
-            formatted = []
-            for r in results:
-                formatted.append({
-                    "id": r["id"],
-                    "label": r["label"],
-                    "node_type": r["node_type"],
-                    "file_path": r.get("label", ""),
-                    "summary": r.get("summary", ""),
-                })
-            elapsed = time.perf_counter() - t0
-            return {
-                "success": True,
-                "symbols": formatted,
-                "duration_seconds": round(elapsed, 3),
+        results = self._gc.store.fts_search(query, project_uuid=project_uuid)
+        formatted = [
+            {
+                "id": r["id"],
+                "label": r["label"],
+                "node_type": r["node_type"],
+                "file_path": r.get("label", ""),
+                "summary": r.get("summary", ""),
             }
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("search_symbols FAILED: %s", e)
-            return {
-                "success": False,
-                "error": str(e),
-                "duration_seconds": round(elapsed, 3),
-            }
+            for r in results
+        ]
+        return {"success": True, "symbols": formatted}
 
     # ===================================================================
     # HANDLER: get_implementations
     # ===================================================================
 
+    @_mcp_handler("get_implementations")
     def _handle_get_implementations(self, symbol_id: int) -> dict:
         """Handler for get_implementations — delegates to Central Facade."""
-        t0 = time.perf_counter()
-        try:
-            impl = self._gc.get_implementations(symbol_id)
-            elapsed = time.perf_counter() - t0
-            return {
-                "success": True,
-                "symbol_id": symbol_id,
-                "label": impl.get("label", ""),
-                "type": impl.get("type", ""),
-                "implementation": impl.get("content", ""),
-                "project_uuid": impl.get("project_uuid", ""),
-                "duration_seconds": round(elapsed, 3),
-            }
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("get_implementations FAILED: %s", e)
-            return {
-                "success": False,
-                "error": str(e),
-                "duration_seconds": round(elapsed, 3),
-            }
+        impl = self._gc.get_implementations(symbol_id)
+        return {
+            "success": True,
+            "symbol_id": symbol_id,
+            "label": impl.get("label", ""),
+            "type": impl.get("type", ""),
+            "implementation": impl.get("content", ""),
+            "project_uuid": impl.get("project_uuid", ""),
+        }
 
     # ===================================================================
     # HANDLER: get_callers
     # ===================================================================
 
+    @_mcp_handler("get_callers")
     def _handle_get_callers(self, symbol_id: int) -> dict:
         """Handler for get_callers."""
-        t0 = time.perf_counter()
-        try:
-            edges = self._gc.store.get_edges_to(symbol_id)
-            callers = []
-            for edge in edges:
-                try:
-                    source_node = self._gc.store.get_node(edge["source_id"])
-                    callers.append({
-                        "id": source_node["id"],
-                        "label": source_node["label"],
-                        "node_type": source_node["node_type"],
-                        "relation_type": edge["relation_type"],
-                    })
-                except Exception:
-                    pass
-            elapsed = time.perf_counter() - t0
-            return {
-                "success": True,
-                "symbol_id": symbol_id,
-                "callers": callers,
-                "duration_seconds": round(elapsed, 3),
-            }
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("get_callers FAILED: %s", e)
-            return {
-                "success": False,
-                "error": str(e),
-                "duration_seconds": round(elapsed, 3),
-            }
+        edges = self._gc.store.get_edges_to(symbol_id)
+        callers = []
+        for edge in edges:
+            try:
+                source_node = self._gc.store.get_node(edge["source_id"])
+                callers.append({
+                    "id": source_node["id"],
+                    "label": source_node["label"],
+                    "node_type": source_node["node_type"],
+                    "relation_type": edge["relation_type"],
+                })
+            except Exception:
+                pass
+        return {"success": True, "symbol_id": symbol_id, "callers": callers}
 
     # ===================================================================
     # HANDLER: concierge_store_fact
     # ===================================================================
 
+    @_mcp_handler("concierge_store_fact")
     def _handle_store_fact(
         self, scope_type: str, scope_id: str, fact_statement: str,
     ) -> dict:
         """Handler for concierge_store_fact — delegates to Facade with fail-fast validation."""
-        t0 = time.perf_counter()
-        try:
-            valid_scopes = {"user", "session", "agent", "org"}
-            if scope_type not in valid_scopes:
-                raise ValueError(f"Invalid scope_type '{scope_type}'. Must be one of: {valid_scopes}")
-            if not scope_id or not scope_id.strip():
-                raise ValueError("scope_id cannot be empty.")
-            if not fact_statement or not fact_statement.strip():
-                raise ValueError("fact_statement cannot be empty.")
+        self._validate_scope(scope_type, scope_id)
+        if not fact_statement or not fact_statement.strip():
+            raise ValueError("fact_statement cannot be empty.")
 
-            results = self._gc.store_fact(
-                scope_type=scope_type,
-                scope_id=scope_id,
-                fact_statement=fact_statement,
-            )
-            elapsed = time.perf_counter() - t0
-
-            logger.info(
-                "concierge_store_fact OK: scope=%s/%s, decisions=%d, %.3fs",
-                scope_type, scope_id, len(results), elapsed,
-            )
-
-            return {
-                "success": True,
-                "scope_type": scope_type,
-                "scope_id": scope_id,
-                "decisions": results,
-                "duration_seconds": round(elapsed, 3),
-            }
-
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("concierge_store_fact FAILED: %s", e)
-            return {
-                "success": False,
-                "error": str(e),
-                "scope_type": scope_type,
-                "scope_id": scope_id,
-                "duration_seconds": round(elapsed, 3),
-            }
+        results = self._gc.store_fact(
+            scope_type=scope_type,
+            scope_id=scope_id,
+            fact_statement=fact_statement,
+        )
+        logger.info(
+            "concierge_store_fact OK: scope=%s/%s, decisions=%d",
+            scope_type, scope_id, len(results),
+        )
+        return {
+            "success": True,
+            "scope_type": scope_type,
+            "scope_id": scope_id,
+            "decisions": results,
+        }
 
     # ===================================================================
     # HANDLER: concierge_list_facts
     # ===================================================================
 
+    @_mcp_handler("concierge_list_facts")
     def _handle_list_facts(
         self, scope_type: str, scope_id: str,
     ) -> dict:
         """Handler for concierge_list_facts — delegates to Facade."""
-        t0 = time.perf_counter()
-        try:
-            valid_scopes = {"user", "session", "agent", "org"}
-            if scope_type not in valid_scopes:
-                raise ValueError(f"Invalid scope_type '{scope_type}'. Must be one of: {valid_scopes}")
-            if not scope_id or not scope_id.strip():
-                raise ValueError("scope_id cannot be empty.")
-
-            facts = self._gc.list_facts(
-                scope_type=scope_type,
-                scope_id=scope_id,
-            )
-            elapsed = time.perf_counter() - t0
-
-            logger.info(
-                "concierge_list_facts OK: scope=%s/%s, count=%d, %.3fs",
-                scope_type, scope_id, len(facts), elapsed,
-            )
-
-            return {
-                "success": True,
-                "scope_type": scope_type,
-                "scope_id": scope_id,
-                "facts_count": len(facts),
-                "facts": facts,
-                "duration_seconds": round(elapsed, 3),
-            }
-
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("concierge_list_facts FAILED: %s", e)
-            return {
-                "success": False,
-                "error": str(e),
-                "scope_type": scope_type,
-                "scope_id": scope_id,
-                "facts": [],
-                "duration_seconds": round(elapsed, 3),
-            }
+        self._validate_scope(scope_type, scope_id)
+        facts = self._gc.list_facts(scope_type=scope_type, scope_id=scope_id)
+        logger.info(
+            "concierge_list_facts OK: scope=%s/%s, count=%d",
+            scope_type, scope_id, len(facts),
+        )
+        return {
+            "success": True,
+            "scope_type": scope_type,
+            "scope_id": scope_id,
+            "facts_count": len(facts),
+            "facts": facts,
+        }
 
     # ===================================================================
     # RUN — Server initialization
@@ -1579,6 +1437,7 @@ class GrafoConciergeServer:
     # HANDLER: concierge_set_memory
     # ===================================================================
 
+    @_mcp_handler("concierge_set_memory")
     def _handle_set_memory(
         self,
         scope_type: str,
@@ -1587,52 +1446,35 @@ class GrafoConciergeServer:
         content: str,
     ) -> dict:
         """Handler for concierge_set_memory — delegates to Facade with fail-fast validation."""
-        t0 = time.perf_counter()
-        try:
-            valid_scopes = {"user", "session", "agent", "org"}
-            if scope_type not in valid_scopes:
-                raise ValueError(f"Invalid scope_type '{scope_type}'. Must be one of: {valid_scopes}")
-            if not scope_id or not scope_id.strip():
-                raise ValueError("scope_id cannot be empty.")
-            if not block_label or not block_label.strip():
-                raise ValueError("block_label cannot be empty.")
-            if not content or not content.strip():
-                raise ValueError("content cannot be empty.")
+        self._validate_scope(scope_type, scope_id)
+        if not block_label or not block_label.strip():
+            raise ValueError("block_label cannot be empty.")
+        if not content or not content.strip():
+            raise ValueError("content cannot be empty.")
 
-            memory_id = self._gc.set_core_memory(
-                scope_type=scope_type,
-                scope_id=scope_id,
-                block_label=block_label,
-                content=content,
-            )
-            elapsed = time.perf_counter() - t0
-            logger.info(
-                "concierge_set_memory OK: scope=%s/%s, label=%s, id=%s, %.3fs",
-                scope_type, scope_id, block_label, memory_id, elapsed,
-            )
-            return {
-                "success": True,
-                "memory_id": memory_id,
-                "scope_type": scope_type,
-                "scope_id": scope_id,
-                "block_label": block_label,
-                "duration_seconds": round(elapsed, 3),
-            }
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("concierge_set_memory FAILED: %s", e)
-            return {
-                "success": False,
-                "error": str(e),
-                "scope_type": scope_type,
-                "scope_id": scope_id,
-                "duration_seconds": round(elapsed, 3),
-            }
+        memory_id = self._gc.set_core_memory(
+            scope_type=scope_type,
+            scope_id=scope_id,
+            block_label=block_label,
+            content=content,
+        )
+        logger.info(
+            "concierge_set_memory OK: scope=%s/%s, label=%s, id=%s",
+            scope_type, scope_id, block_label, memory_id,
+        )
+        return {
+            "success": True,
+            "memory_id": memory_id,
+            "scope_type": scope_type,
+            "scope_id": scope_id,
+            "block_label": block_label,
+        }
 
     # ===================================================================
     # HANDLER: concierge_get_memory
     # ===================================================================
 
+    @_mcp_handler("concierge_get_memory")
     def _handle_get_memory(
         self,
         scope_type: str,
@@ -1640,144 +1482,86 @@ class GrafoConciergeServer:
         block_label: Optional[str],
     ) -> dict:
         """Handler for concierge_get_memory — delegates to Facade with fail-fast validation."""
-        t0 = time.perf_counter()
-        try:
-            valid_scopes = {"user", "session", "agent", "org"}
-            if scope_type not in valid_scopes:
-                raise ValueError(f"Invalid scope_type '{scope_type}'. Must be one of: {valid_scopes}")
-            if not scope_id or not scope_id.strip():
-                raise ValueError("scope_id cannot be empty.")
-
-            blocks = self._gc.get_core_memory_blocks(
-                scope_type=scope_type,
-                scope_id=scope_id,
-                block_label=block_label,
-            )
-            elapsed = time.perf_counter() - t0
-            logger.info(
-                "concierge_get_memory OK: scope=%s/%s, label=%s, blocks=%d, %.3fs",
-                scope_type, scope_id, block_label or '*', len(blocks), elapsed,
-            )
-            return {
-                "success": True,
-                "scope_type": scope_type,
-                "scope_id": scope_id,
-                "block_label": block_label,
-                "blocks": blocks,
-                "duration_seconds": round(elapsed, 3),
-            }
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("concierge_get_memory FAILED: %s", e)
-            return {
-                "success": False,
-                "error": str(e),
-                "scope_type": scope_type,
-                "scope_id": scope_id,
-                "duration_seconds": round(elapsed, 3),
-            }
+        self._validate_scope(scope_type, scope_id)
+        blocks = self._gc.get_core_memory_blocks(
+            scope_type=scope_type,
+            scope_id=scope_id,
+            block_label=block_label,
+        )
+        logger.info(
+            "concierge_get_memory OK: scope=%s/%s, label=%s, blocks=%d",
+            scope_type, scope_id, block_label or '*', len(blocks),
+        )
+        return {
+            "success": True,
+            "scope_type": scope_type,
+            "scope_id": scope_id,
+            "block_label": block_label,
+            "blocks": blocks,
+        }
 
     # ===================================================================
     # HANDLER: concierge_feedback
     # ===================================================================
 
+    @_mcp_handler("concierge_feedback")
     def _handle_feedback(self, fact_id: int, was_useful: bool) -> dict:
         """Handler for concierge_feedback — triggers Bayesian learning."""
-        t0 = time.perf_counter()
-        try:
-            self._gc.update_fact_utility(fact_id=fact_id, was_useful=was_useful)
-            elapsed = time.perf_counter() - t0
-            updated_field = "utility_alpha" if was_useful else "utility_beta"
-            logger.info(
-                "concierge_feedback OK: fact_id=%d, was_useful=%s, %s+1, %.3fs",
-                fact_id, was_useful, updated_field, elapsed,
-            )
-            return {
-                "success": True,
-                "fact_id": fact_id,
-                "was_useful": was_useful,
-                "updated_field": updated_field,
-                "message": f"{updated_field} incremented for fact {fact_id}.",
-                "duration_seconds": round(elapsed, 3),
-            }
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("concierge_feedback FAILED: %s", e)
-            return {
-                "success": False,
-                "fact_id": fact_id,
-                "error": str(e),
-                "duration_seconds": round(elapsed, 3),
-            }
+        self._gc.update_fact_utility(fact_id=fact_id, was_useful=was_useful)
+        updated_field = "utility_alpha" if was_useful else "utility_beta"
+        logger.info(
+            "concierge_feedback OK: fact_id=%d, was_useful=%s, %s+1",
+            fact_id, was_useful, updated_field,
+        )
+        return {
+            "success": True,
+            "fact_id": fact_id,
+            "was_useful": was_useful,
+            "updated_field": updated_field,
+            "message": f"{updated_field} incremented for fact {fact_id}.",
+        }
 
     # ===================================================================
     # HANDLER: get_full_topology
     # ===================================================================
 
+    @_mcp_handler("get_full_topology")
     def _handle_get_full_topology(self, project_identifier: Optional[str] = None) -> dict:
         """Handler for get_full_topology."""
-        t0 = time.perf_counter()
-        try:
-            project_uuid = None
-            if project_identifier:
-                project_uuid = self._resolve_project_identifier(project_identifier)
+        project_uuid = None
+        if project_identifier:
+            project_uuid = self._resolve_project_identifier(project_identifier)
 
-            topology = self._gc.get_full_topology(project_uuid)
-            elapsed = time.perf_counter() - t0
-            logger.info(
-                "get_full_topology OK: project=%s, nodes=%d, edges=%d, %.3fs",
-                project_identifier or "ALL",
-                len(topology.get("nodes", [])),
-                len(topology.get("edges", [])),
-                elapsed,
-            )
-            return {
-                "success": True,
-                "nodes": topology.get("nodes", []),
-                "edges": topology.get("edges", []),
-                "duration_seconds": round(elapsed, 3),
-            }
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("get_full_topology FAILED: %s", e)
-            return {
-                "success": False,
-                "error": str(e),
-                "nodes": [],
-                "edges": [],
-                "duration_seconds": round(elapsed, 3),
-            }
+        topology = self._gc.get_full_topology(project_uuid)
+        logger.info(
+            "get_full_topology OK: project=%s, nodes=%d, edges=%d",
+            project_identifier or "ALL",
+            len(topology.get("nodes", [])),
+            len(topology.get("edges", [])),
+        )
+        return {
+            "success": True,
+            "nodes": topology.get("nodes", []),
+            "edges": topology.get("edges", []),
+        }
 
     # ===================================================================
     # HANDLER: delete_project
     # ===================================================================
 
+    @_mcp_handler("delete_project")
     def _handle_delete_project(self, project_identifier: str) -> dict:
         """Handler for delete_project."""
-        t0 = time.perf_counter()
-        try:
-            project_uuid = self._resolve_project_identifier(project_identifier)
-            self._gc.delete_project(project_uuid)
-            elapsed = time.perf_counter() - t0
-            logger.info("delete_project OK: %s in %.3fs", project_uuid, elapsed)
-            return {
-                "success": True,
-                "project_uuid": project_uuid,
-                "duration_seconds": round(elapsed, 3),
-            }
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("delete_project FAILED: %s — %s", project_identifier, e)
-            return {
-                "success": False,
-                "error": str(e),
-                "duration_seconds": round(elapsed, 3),
-            }
+        project_uuid = self._resolve_project_identifier(project_identifier)
+        self._gc.delete_project(project_uuid)
+        logger.info("delete_project OK: %s", project_uuid)
+        return {"success": True, "project_uuid": project_uuid}
 
     # ===================================================================
     # HANDLER: update_project
     # ===================================================================
 
+    @_mcp_handler("update_project")
     def _handle_update_project(
         self,
         project_identifier: str,
@@ -1787,95 +1571,57 @@ class GrafoConciergeServer:
         summary: Optional[str] = None,
     ) -> dict:
         """Handler for update_project."""
-        t0 = time.perf_counter()
-        try:
-            project_uuid = self._resolve_project_identifier(project_identifier)
-            fields = {}
-            if folder_name is not None:
-                fields["folder_name"] = folder_name
-            if primary_wing is not None:
-                fields["primary_wing"] = primary_wing
-            if privacy_level is not None:
-                fields["privacy_level"] = privacy_level
-            if summary is not None:
-                fields["summary"] = summary
+        project_uuid = self._resolve_project_identifier(project_identifier)
+        fields = {}
+        if folder_name is not None:
+            fields["folder_name"] = folder_name
+        if primary_wing is not None:
+            fields["primary_wing"] = primary_wing
+        if privacy_level is not None:
+            fields["privacy_level"] = privacy_level
+        if summary is not None:
+            fields["summary"] = summary
 
-            self._gc.update_project(project_uuid, **fields)
-            elapsed = time.perf_counter() - t0
-            logger.info("update_project OK: %s with fields=%s in %.3fs", project_uuid, list(fields.keys()), elapsed)
-            return {
-                "success": True,
-                "project_uuid": project_uuid,
-                "updated_fields": list(fields.keys()),
-                "duration_seconds": round(elapsed, 3),
-            }
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("update_project FAILED: %s — %s", project_identifier, e)
-            return {
-                "success": False,
-                "error": str(e),
-                "duration_seconds": round(elapsed, 3),
-            }
+        self._gc.update_project(project_uuid, **fields)
+        logger.info(
+            "update_project OK: %s with fields=%s",
+            project_uuid, list(fields.keys()),
+        )
+        return {
+            "success": True,
+            "project_uuid": project_uuid,
+            "updated_fields": list(fields.keys()),
+        }
 
     # ===================================================================
     # HANDLER: add_reference_wing
     # ===================================================================
 
+    @_mcp_handler("add_reference_wing")
     def _handle_add_reference_wing(self, project_identifier: str, wing_name: str) -> dict:
         """Handler for add_reference_wing."""
-        t0 = time.perf_counter()
-        try:
-            project_uuid = self._resolve_project_identifier(project_identifier)
-            self._gc.add_reference_wing(project_uuid, wing_name)
-            elapsed = time.perf_counter() - t0
-            logger.info("add_reference_wing OK: %s -> %s in %.3fs", project_uuid, wing_name, elapsed)
-            return {
-                "success": True,
-                "project_uuid": project_uuid,
-                "wing_name": wing_name,
-                "duration_seconds": round(elapsed, 3),
-            }
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("add_reference_wing FAILED: %s — %s", project_identifier, e)
-            return {
-                "success": False,
-                "error": str(e),
-                "duration_seconds": round(elapsed, 3),
-            }
+        project_uuid = self._resolve_project_identifier(project_identifier)
+        self._gc.add_reference_wing(project_uuid, wing_name)
+        logger.info("add_reference_wing OK: %s -> %s", project_uuid, wing_name)
+        return {"success": True, "project_uuid": project_uuid, "wing_name": wing_name}
 
     # ===================================================================
     # HANDLER: remove_reference_wing
     # ===================================================================
 
+    @_mcp_handler("remove_reference_wing")
     def _handle_remove_reference_wing(self, project_identifier: str, wing_name: str) -> dict:
         """Handler for remove_reference_wing."""
-        t0 = time.perf_counter()
-        try:
-            project_uuid = self._resolve_project_identifier(project_identifier)
-            self._gc.remove_reference_wing(project_uuid, wing_name)
-            elapsed = time.perf_counter() - t0
-            logger.info("remove_reference_wing OK: %s -> %s in %.3fs", project_uuid, wing_name, elapsed)
-            return {
-                "success": True,
-                "project_uuid": project_uuid,
-                "wing_name": wing_name,
-                "duration_seconds": round(elapsed, 3),
-            }
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("remove_reference_wing FAILED: %s — %s", project_identifier, e)
-            return {
-                "success": False,
-                "error": str(e),
-                "duration_seconds": round(elapsed, 3),
-            }
+        project_uuid = self._resolve_project_identifier(project_identifier)
+        self._gc.remove_reference_wing(project_uuid, wing_name)
+        logger.info("remove_reference_wing OK: %s -> %s", project_uuid, wing_name)
+        return {"success": True, "project_uuid": project_uuid, "wing_name": wing_name}
 
     # ===================================================================
     # HANDLER: find_similar
     # ===================================================================
 
+    @_mcp_handler("find_similar")
     def _handle_find_similar(
         self,
         project_identifier: str,
@@ -1884,112 +1630,64 @@ class GrafoConciergeServer:
         all_wings: bool = False,
     ) -> dict:
         """Handler for find_similar."""
-        t0 = time.perf_counter()
-        try:
-            project_uuid = self._resolve_project_identifier(project_identifier)
-            similar = self._gc.find_similar(
-                project_uuid=project_uuid,
-                limit=limit,
-                include_references=include_references,
-                all_wings=all_wings,
-            )
-            elapsed = time.perf_counter() - t0
-            logger.info("find_similar OK: %s (limit=%d) in %.3fs", project_uuid, limit, elapsed)
-            return {
-                "success": True,
-                "project_uuid": project_uuid,
-                "similar_projects": similar,
-                "duration_seconds": round(elapsed, 3),
-            }
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("find_similar FAILED: %s — %s", project_identifier, e)
-            return {
-                "success": False,
-                "error": str(e),
-                "duration_seconds": round(elapsed, 3),
-            }
+        project_uuid = self._resolve_project_identifier(project_identifier)
+        similar = self._gc.find_similar(
+            project_uuid=project_uuid,
+            limit=limit,
+            include_references=include_references,
+            all_wings=all_wings,
+        )
+        logger.info("find_similar OK: %s (limit=%d)", project_uuid, limit)
+        return {
+            "success": True,
+            "project_uuid": project_uuid,
+            "similar_projects": similar,
+        }
 
     # ===================================================================
     # HANDLER: get_trajectories
     # ===================================================================
 
+    @_mcp_handler("get_trajectories")
     def _handle_get_trajectories(self, project_identifier: str) -> dict:
         """Handler for get_trajectories."""
-        t0 = time.perf_counter()
-        try:
-            project_uuid = self._resolve_project_identifier(project_identifier)
-            trajectories = self._gc.get_trajectories(project_uuid)
-            elapsed = time.perf_counter() - t0
-            logger.info("get_trajectories OK: %s in %.3fs", project_uuid, elapsed)
-            return {
-                "success": True,
-                "project_uuid": project_uuid,
-                "trajectories": trajectories,
-                "duration_seconds": round(elapsed, 3),
-            }
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("get_trajectories FAILED: %s — %s", project_identifier, e)
-            return {
-                "success": False,
-                "error": str(e),
-                "duration_seconds": round(elapsed, 3),
-            }
+        project_uuid = self._resolve_project_identifier(project_identifier)
+        trajectories = self._gc.get_trajectories(project_uuid)
+        logger.info("get_trajectories OK: %s", project_uuid)
+        return {
+            "success": True,
+            "project_uuid": project_uuid,
+            "trajectories": trajectories,
+        }
 
     # ===================================================================
     # HANDLER: count_embeddings
     # ===================================================================
 
+    @_mcp_handler("count_embeddings")
     def _handle_count_embeddings(self, project_identifier: Optional[str] = None) -> dict:
         """Handler for count_embeddings."""
-        t0 = time.perf_counter()
-        try:
-            project_uuid = None
-            if project_identifier:
-                project_uuid = self._resolve_project_identifier(project_identifier)
+        project_uuid = None
+        if project_identifier:
+            project_uuid = self._resolve_project_identifier(project_identifier)
 
-            count = self._gc.count_embeddings(project_uuid)
-            elapsed = time.perf_counter() - t0
-            logger.info("count_embeddings OK: project=%s, count=%d in %.3fs", project_uuid or "ALL", count, elapsed)
-            return {
-                "success": True,
-                "project_uuid": project_uuid,
-                "count": count,
-                "duration_seconds": round(elapsed, 3),
-            }
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("count_embeddings FAILED: %s — %s", project_identifier, e)
-            return {
-                "success": False,
-                "error": str(e),
-                "duration_seconds": round(elapsed, 3),
-            }
+        count = self._gc.count_embeddings(project_uuid)
+        logger.info(
+            "count_embeddings OK: project=%s, count=%d",
+            project_uuid or "ALL", count,
+        )
+        return {"success": True, "project_uuid": project_uuid, "count": count}
 
     # ===================================================================
     # HANDLER: reset_collection
     # ===================================================================
 
+    @_mcp_handler("reset_collection")
     def _handle_reset_collection(self) -> dict:
         """Handler for reset_collection."""
-        t0 = time.perf_counter()
-        try:
-            success = self._gc.reset_collection()
-            elapsed = time.perf_counter() - t0
-            logger.info("reset_collection OK: %s in %.3fs", success, elapsed)
-            return {
-                "success": success,
-                "duration_seconds": round(elapsed, 3),
-            }
-        except Exception as e:
-            elapsed = time.perf_counter() - t0
-            logger.error("reset_collection FAILED: %s", e)
-            return {
-                "success": False,
-                "error": str(e),
-                "duration_seconds": round(elapsed, 3),
-            }
+        success = self._gc.reset_collection()
+        logger.info("reset_collection OK: %s", success)
+        return {"success": success}
 
 
 # ===================================================================
