@@ -23,7 +23,7 @@ import re
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from ingestion.crawler import CrawlResult, FileCategory
 
