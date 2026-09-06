@@ -107,6 +107,36 @@ class TestTelemetryAPI(unittest.TestCase):
                     self.assertIn("dirty_queue", payload)
                     break
 
+    def test_get_gating_config(self):
+        """Valida que GET /api/gating/config retorna o modo e a raiz do projeto."""
+        response = self.client.get("/api/gating/config")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("active_mode", data)
+        self.assertIn("project_root", data)
+        self.assertIn(data["active_mode"], ["plan-only", "ask", "auto-approve"])
+
+    def test_update_gating_config_transitions(self):
+        """Valida a transição dinâmica de modo e a rejeição de modos inválidos."""
+        # Transição válida para auto-approve
+        resp = self.client.post("/api/gating/config", json={"mode": "auto-approve"})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()["new_mode"], "auto-approve")
+
+        # Verifica persistência no GET
+        get_resp = self.client.get("/api/gating/config")
+        self.assertEqual(get_resp.json()["active_mode"], "auto-approve")
+
+        # Transição válida de volta para ask
+        resp_ask = self.client.post("/api/gating/config", json={"mode": "ask"})
+        self.assertEqual(resp_ask.status_code, 200)
+        self.assertEqual(resp_ask.json()["new_mode"], "ask")
+
+        # Modo inválido deve retornar 400
+        resp_inv = self.client.post("/api/gating/config", json={"mode": "yolo-mode"})
+        self.assertEqual(resp_inv.status_code, 400)
+
 
 if __name__ == "__main__":
     unittest.main()
+

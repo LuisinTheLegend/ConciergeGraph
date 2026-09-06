@@ -1,5 +1,5 @@
 """
-interface/telemetry_api.py — SDD-SURVIVAL-13
+interface/telemetry_api.py — SDD-SURVIVAL-13 / SDD-SURVIVAL-23 / SDD-SURVIVAL-24
 
 Camada de API REST e Telemetria em Tempo Real (FastAPI / SSE).
 
@@ -11,6 +11,10 @@ Rotas:
     GET  /api/telemetry/snapshot  → Snapshot consolidado do estado do sistema
     POST /api/janitor/reconcile   → Disparo manual do reconciliador de órfãos
     GET  /api/telemetry/stream    → Canal SSE persistente de telemetria
+    GET  /api/governor/metrics    → Métricas em tempo real do RateGovernor (SDD-23)
+    POST /api/governor/report     → Reporte de consumo de tokens pós-chamada (SDD-23)
+    GET  /api/gating/config       → Config e modo de gating ativo (SDD-24)
+    POST /api/gating/config       → Altera o modo de gating dinamicamente (SDD-24)
 
 Segurança:
     - Bind padrão em 127.0.0.1 (loopback seguro)
@@ -32,7 +36,10 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from core.database import ConciergeDatabaseManager
+from core.gating_interceptor import GatingInterceptor
 from core.mcp_governor import MCPToolGovernor
+from core.rate_governor import RateGovernor
+from core.security_guard import SecurityGuard
 from core.telemetry_schemas import (
     AgentSessionSchema,
     CheckpointSchema,
@@ -45,6 +52,16 @@ logger = logging.getLogger(__name__)
 
 # Instância singleton global de governança de ferramentas MCP
 mcp_governor = MCPToolGovernor()
+
+# Singleton daemon do RateGovernor (SDD-SURVIVAL-23)
+# Cotas padrão: 60 RPM, 40000 TPM, janela de 60s
+rate_governor_service = RateGovernor(rpm_limit=60, tpm_limit=40000)
+rate_governor_service.start()
+
+# Singletons de Segurança e Gating Adaptativo (SDD-SURVIVAL-24)
+# project_root = "." será resolvido via os.path.realpath() no SecurityGuard
+security_guard_service = SecurityGuard(project_root=".")
+gating_interceptor_service = GatingInterceptor(security_guard_service)
 
 # ── Aplicação FastAPI ─────────────────────────────────────────────
 app = FastAPI(
@@ -334,6 +351,77 @@ async def get_mcp_session_state(session_id: str):
         "session_id": session_id,
         "active_state": mcp_governor.get_session_state(session_id),
     }
+
+
+# ── RateGovernor Quota Telemetry (SDD-SURVIVAL-23) ────────────────
+
+class TokenReportPayload(BaseModel):
+    """Schema de reporte de consumo de tokens pós-chamada de API."""
+    tokens_used: int
+
+
+@app.get("/api/governor/metrics")
+async def get_governor_metrics():
+    """
+    GET /api/governor/metrics
+
+    Consulta o status em tempo real de ocupação de cotas (RPM/TPM),
+    backlog de requisições na fila e flags de congelamento das filas
+    LOW e MEDIUM.
+    """
+    return rate_governor_service.get_current_metrics()
+
+
+@app.post("/api/governor/report")
+async def report_token_usage(payload: TokenReportPayload):
+    """
+    POST /api/governor/report
+
+    Permite que executores de subagentes reportem o consumo real de
+    tokens pós-chamada de LLM para atualização das métricas de janela
+    deslizante do governador.
+    """
+    rate_governor_service.report_usage(payload.tokens_used)
+    return {"status": "success", "metrics": rate_governor_service.get_current_metrics()}
+
+
+# ── Adaptive Gating Security (SDD-SURVIVAL-24) ─────────────────
+
+class GatingModePayload(BaseModel):
+    """Schema de alteração do modo de gating adaptativo."""
+    mode: str
+
+
+@app.get("/api/gating/config")
+async def get_gating_config():
+    """
+    GET /api/gating/config
+
+    Consulta as configurações e restrições ativas de segurança,
+    incluindo o modo de gating corrente e o project_root normalizado.
+    """
+    return {
+        "active_mode": gating_interceptor_service.current_mode,
+        "project_root": security_guard_service.project_root,
+    }
+
+
+@app.post("/api/gating/config")
+async def update_gating_config(payload: GatingModePayload):
+    """
+    POST /api/gating/config
+
+    Altera dinamicamente o nível de autonomia do monorepo.
+    Modos válidos: plan-only, ask, auto-approve.
+    """
+    mode = payload.mode.lower()
+    if mode not in ("plan-only", "ask", "auto-approve"):
+        raise HTTPException(
+            status_code=400,
+            detail="Modo inválido. Escolha entre: plan-only, ask, auto-approve.",
+        )
+    gating_interceptor_service.set_gating_mode(mode)
+    return {"status": "success", "new_mode": gating_interceptor_service.current_mode}
 
 
 # ── Streaming SSE ─────────────────────────────────────────────────
