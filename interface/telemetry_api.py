@@ -1,5 +1,5 @@
 """
-interface/telemetry_api.py — SDD-SURVIVAL-13 / SDD-SURVIVAL-23 / SDD-SURVIVAL-24
+interface/telemetry_api.py — SDD-SURVIVAL-13 / SDD-SURVIVAL-23 / SDD-SURVIVAL-24 / SDD-SURVIVAL-25
 
 REST API Layer and Real-Time Telemetry (FastAPI / SSE).
 
@@ -14,6 +14,10 @@ Routes:
     POST /api/governor/report     → Post-call token consumption reporting (SDD-23)
     GET  /api/gating/config       → Active gating configuration and mode (SDD-24)
     POST /api/gating/config       → Dynamically changes gating autonomy mode (SDD-24)
+    GET  /api/hsm/state/{id}       → Active hierarchical state and History Node (SDD-25)
+    POST /api/hsm/transition        → Triggers HSM sub-state transition (SDD-25)
+    POST /api/hsm/resume/{id}       → Restores session from History Node (SDD-25)
+    GET  /api/hsm/tree              → Full HSM state tree topology (SDD-25)
 
 Security:
     - Default bind to 127.0.0.1 (secure loopback)
@@ -61,6 +65,28 @@ rate_governor_service.start()
 # project_root = "." will be resolved via os.path.realpath() in SecurityGuard
 security_guard_service = SecurityGuard(project_root=".")
 gating_interceptor_service = GatingInterceptor(security_guard_service)
+
+# HSM singleton (SDD-SURVIVAL-25) — Lazy-initialized to avoid circular imports
+# Actual instance is created on first access via get_hsm_service()
+_hsm_service_instance = None
+
+
+def get_hsm_service():
+    """Lazy singleton accessor for the HSM engine. Requires db_manager to be set."""
+    global _hsm_service_instance
+    if _hsm_service_instance is None:
+        from core.checkpointer import AgnosticCheckpointer
+        from core.hsm_engine import HierarchicalStateMachine
+
+        db = get_db_manager()
+        checkpointer = AgnosticCheckpointer(db)
+        _hsm_service_instance = HierarchicalStateMachine(
+            db_manager=db,
+            checkpointer=checkpointer,
+            mcp_governor=mcp_governor,
+        )
+    return _hsm_service_instance
+
 
 # ── FastAPI Application ─────────────────────────────────────────────
 app = FastAPI(
@@ -418,6 +444,90 @@ async def update_gating_config(payload: GatingModePayload):
         )
     gating_interceptor_service.set_gating_mode(mode)
     return {"status": "success", "new_mode": gating_interceptor_service.current_mode}
+
+
+# ── Hierarchical State Machine (SDD-SURVIVAL-25) ──────────────────
+
+class HSMTransitionRequest(BaseModel):
+    """HSM transition request payload."""
+    session_id: str
+    target_path: str
+    agent_id: str
+    shared_state: dict
+    task_id: str | None = None
+
+
+@app.get("/api/hsm/state/{session_id}")
+async def get_hsm_state(session_id: str):
+    """
+    GET /api/hsm/state/{session_id}
+
+    Returns the active hierarchical qualified state and History Node
+    for the given session.
+    """
+    hsm = get_hsm_service()
+    return {
+        "session_id": session_id,
+        "current_full_path": hsm.get_current_state(session_id),
+        "super_state": hsm.get_super_state(session_id),
+        "history_node": hsm.history_nodes.get(session_id),
+    }
+
+
+@app.post("/api/hsm/transition")
+async def trigger_hsm_transition(payload: HSMTransitionRequest):
+    """
+    POST /api/hsm/transition
+
+    Executes a hierarchical sub-state transition, persists the checkpoint,
+    and updates the session's Deep History Node (H*).
+    """
+    hsm = get_hsm_service()
+    try:
+        success = hsm.transition_to(
+            session_id=payload.session_id,
+            target_path=payload.target_path,
+            agent_id=payload.agent_id,
+            shared_state=payload.shared_state,
+            task_id=payload.task_id,
+        )
+        return {
+            "status": "success",
+            "saved": success,
+            "new_state": payload.target_path,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/hsm/resume/{session_id}")
+async def resume_session_hsm(session_id: str):
+    """
+    POST /api/hsm/resume/{session_id}
+
+    Restores the session from its most recent Deep History Node (H*),
+    re-activating the exact sub-state where the agent last stopped.
+    """
+    hsm = get_hsm_service()
+    restored = hsm.resume_from_history_node(session_id)
+    if not restored:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No History Node found for session '{session_id}'.",
+        )
+    return {"status": "success", "restored_state": restored}
+
+
+@app.get("/api/hsm/tree")
+async def get_hsm_tree():
+    """
+    GET /api/hsm/tree
+
+    Returns the full HSM state tree topology as a serializable dictionary,
+    including all super-states, sub-states, and MCP governance categories.
+    """
+    hsm = get_hsm_service()
+    return {"state_tree": hsm.get_state_tree()}
 
 
 # ── Streaming SSE ─────────────────────────────────────────────────

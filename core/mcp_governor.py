@@ -60,6 +60,14 @@ class MCPToolGovernor:
                 "allowed_categories": ["READ_ONLY", "LOCAL_MUTATION", "DANGEROUS"],
                 "allowed_tools": [],
             },
+            "STALL": {
+                "allowed_categories": ["READ_ONLY"],
+                "allowed_tools": ["get_telemetry_snapshot"],
+            },
+            "SUCCESS": {
+                "allowed_categories": ["READ_ONLY"],
+                "allowed_tools": ["get_telemetry_snapshot"],
+            },
         }
 
         # Static tool classification catalog
