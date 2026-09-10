@@ -29,8 +29,13 @@ class MCPToolGovernor:
     FastMCP progressive tool disclosure and governance controller.
     """
 
-    def __init__(self, default_state: str = "PLANNING"):
-        self.default_state = default_state
+    def __init__(self, default_state: Optional[str] = None):
+        import os
+        if default_state is not None:
+            self.default_state = default_state.upper()
+        else:
+            env_default = os.environ.get("GRAFO_DEFAULT_STATE", "EXECUTION")
+            self.default_state = env_default.upper()
         # Active session state dict: {session_id: current_fsm_state}
         self.sessions_state: Dict[str, str] = {}
 
@@ -92,6 +97,7 @@ class MCPToolGovernor:
             "get_callers": "READ_ONLY",
             "count_embeddings": "READ_ONLY",
             "concierge_get_call_chain": "READ_ONLY",
+            "concierge_set_state": "READ_ONLY",
             "agent_get_checkpoint": "READ_ONLY",
             "agent_list_checkpoints": "READ_ONLY",
 

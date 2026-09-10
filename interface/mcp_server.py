@@ -412,6 +412,32 @@ class GrafoConciergeServer:
                 updated_pointers, node_ids,
             )
 
+        # --- concierge_set_state ---
+        @self._mcp.tool(
+            name="concierge_set_state",
+            description=(
+                "Transitions agent mental state in MCPToolGovernor between PLANNING, "
+                "EXECUTION, and MAINTENANCE to regulate progressive tool disclosure."
+            ),
+        )
+        def concierge_set_state(
+            state_name: str,
+            session_id: str = "default",
+        ) -> dict:
+            """Transitions session FSM state.
+
+            Args:
+                state_name: Target state (e.g. PLANNING, EXECUTION, MAINTENANCE).
+                session_id: Target session identifier (default: 'default').
+            """
+            upper_state = state_name.upper()
+            server._governor.set_session_state(session_id, upper_state)
+            return {
+                "success": True,
+                "session_id": session_id,
+                "active_state": server._governor.get_session_state(session_id),
+            }
+
         # --- concierge_wakeup ---
         @self._mcp.tool(
             name="concierge_wakeup",
