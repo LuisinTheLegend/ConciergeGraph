@@ -1,7 +1,7 @@
 """
 agent/run_agent.py — SDD-SURVIVAL-26
 
-Hermes Cognitive Loop Runner coupled with Hierarchical State Machine (HSM).
+Cognitive Loop Runner coupled with Hierarchical State Machine (HSM).
 
 Features:
     - Deep History Node restoration on initialization (zero token loss on resume).
@@ -25,9 +25,9 @@ from agent.agent_prompts import DynamicPromptBuilder
 logger = logging.getLogger(__name__)
 
 
-class HermesAgentRunner:
+class CognitiveAgentRunner:
     """
-    Cognitive loop runner for Hermes agent coupled to Hierarchical State Machine (HSM).
+    Cognitive loop runner coupled to Hierarchical State Machine (HSM).
     """
 
     def __init__(
@@ -51,12 +51,12 @@ class HermesAgentRunner:
         self.prompt_builder = prompt_builder or DynamicPromptBuilder(mcp_governor=mcp_gov)
 
         logger.info(
-            "[HERMES-RUNNER] Initialized runner with max_substate_turns=%d",
+            "[COGNITIVE-RUNNER] Initialized runner with max_substate_turns=%d",
             self.max_substate_turns,
         )
 
     def initialize_session(
-        self, session_id: str, agent_id: str = "HermesAgent"
+        self, session_id: str, agent_id: str = "CognitiveAgent"
     ) -> str:
         """
         Initializes or restores an agent session.
@@ -75,7 +75,7 @@ class HermesAgentRunner:
                 f"[HSM-RESUME] Sessao {session_id} restaurada do History Node no sub-estado: {active_path}"
             )
             logger.info(
-                "[HERMES-RUNNER] Session '%s' restored from History Node at '%s'.",
+                "[COGNITIVE-RUNNER] Session '%s' restored from History Node at '%s'.",
                 session_id,
                 active_path,
             )
@@ -95,7 +95,7 @@ class HermesAgentRunner:
         self.current_substate_turn_count = 0
         self.session_turn_counts[session_id] = 0
         logger.info(
-            "[HERMES-RUNNER] New session '%s' initialized at '%s'.",
+            "[COGNITIVE-RUNNER] New session '%s' initialized at '%s'.",
             session_id,
             initial_path,
         )
@@ -105,7 +105,7 @@ class HermesAgentRunner:
         self,
         session_id: str,
         target_path: str,
-        agent_id: str = "HermesAgent",
+        agent_id: str = "CognitiveAgent",
         shared_state: Optional[Dict[str, Any]] = None,
         task_id: Optional[str] = None,
     ) -> bool:
@@ -123,7 +123,7 @@ class HermesAgentRunner:
             self.current_substate_turn_count = 0
             self.session_turn_counts[session_id] = 0
             logger.info(
-                "[HERMES-RUNNER] State transitioned to '%s' (turn counter reset)",
+                "[COGNITIVE-RUNNER] State transitioned to '%s' (turn counter reset)",
                 target_path,
             )
         return success
@@ -132,7 +132,7 @@ class HermesAgentRunner:
         self,
         session_id: str,
         user_input: str,
-        agent_id: str = "HermesAgent",
+        agent_id: str = "CognitiveAgent",
         target_transition: Optional[str] = None,
         shared_state: Optional[Dict[str, Any]] = None,
         task_id: Optional[str] = None,
@@ -163,7 +163,7 @@ class HermesAgentRunner:
                 f"Pausando em STALL.ERROR_PAUSE."
             )
             logger.warning(
-                "[HERMES-RUNNER] Circuit Breaker triggered at '%s' (turns=%d > max=%d).",
+                "[COGNITIVE-RUNNER] Circuit Breaker triggered at '%s' (turns=%d > max=%d).",
                 current_path,
                 self.current_substate_turn_count,
                 self.max_substate_turns,
@@ -227,7 +227,7 @@ class HermesAgentRunner:
         Executes a tool call through the triple governance pipeline:
             1. MCPToolGovernor: State-based disclosure and access check.
             2. GatingInterceptor: Monorepo boundaries & autonomy regime.
-            3. RateGovernor: Priority-based rate-limited queueing (Hermes = HIGH / 1).
+            3. RateGovernor: Priority-based rate-limited queueing (Priority 1 = HIGH).
         """
         args = arguments or {}
         dummy_fn = execute_fn or (lambda: {"status": "success", "tool": tool_name})
@@ -260,3 +260,7 @@ class HermesAgentRunner:
         if inspect.iscoroutinefunction(dummy_fn):
             return await dummy_fn()
         return _run_with_governor()
+
+
+# Backward compatibility alias
+HermesAgentRunner = CognitiveAgentRunner

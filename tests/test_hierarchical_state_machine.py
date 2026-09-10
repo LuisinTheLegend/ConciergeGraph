@@ -228,24 +228,24 @@ class TestHSMTransition:
         success = hsm.transition_to(
             session_id="sess_001",
             target_path="EXECUTION.TDD_GREEN",
-            agent_id="HermesAgent",
+            agent_id="CognitiveAgent",
             shared_state={"active_test": "test_core.py"},
         )
         assert success is True
 
     def test_transition_updates_active_state(self, hsm):
         """Active state should reflect the last transition."""
-        hsm.transition_to("sess_001", "EXECUTION.TDD_GREEN", "Hermes", {})
+        hsm.transition_to("sess_001", "EXECUTION.TDD_GREEN", "PrimaryAgent", {})
         assert hsm.get_current_state("sess_001") == "EXECUTION.TDD_GREEN"
 
     def test_transition_syncs_mcp_governor(self, hsm, mcp_governor):
         """Transition should synchronize MCPToolGovernor with the super-state."""
-        hsm.transition_to("sess_001", "EXECUTION.TDD_GREEN", "Hermes", {})
+        hsm.transition_to("sess_001", "EXECUTION.TDD_GREEN", "PrimaryAgent", {})
         assert mcp_governor.get_session_state("sess_001") == "EXECUTION"
 
     def test_transition_to_maintenance_syncs_governor(self, hsm, mcp_governor):
         """Transitioning to MAINTENANCE sub-state should sync governor."""
-        hsm.transition_to("sess_001", "MAINTENANCE.PURGE_CACHE", "Hermes", {})
+        hsm.transition_to("sess_001", "MAINTENANCE.PURGE_CACHE", "PrimaryAgent", {})
         assert mcp_governor.get_session_state("sess_001") == "MAINTENANCE"
 
     def test_transition_persists_checkpoint(self, hsm, db_manager):
@@ -253,7 +253,7 @@ class TestHSMTransition:
         hsm.transition_to(
             session_id="sess_cp",
             target_path="PLANNING.DISCOVERY",
-            agent_id="Hermes",
+            agent_id="PrimaryAgent",
             shared_state={"step": 1},
             task_id="test.py",
         )
@@ -267,7 +267,7 @@ class TestHSMTransition:
 
     def test_transition_records_history_node(self, hsm):
         """Transition should record a Deep History Node (H*) for the session."""
-        hsm.transition_to("sess_h", "EXECUTION.REFACTORING", "Hermes", {"step": 3})
+        hsm.transition_to("sess_h", "EXECUTION.REFACTORING", "PrimaryAgent", {"step": 3})
         assert "sess_h" in hsm.history_nodes
         full_path, checkpoint_id, timestamp = hsm.history_nodes["sess_h"]
         assert full_path == "EXECUTION.REFACTORING"
@@ -277,30 +277,30 @@ class TestHSMTransition:
     def test_invalid_transition_raises_error(self, hsm):
         """Transitioning to an invalid path should raise IllegalHSMTransitionError."""
         with pytest.raises(IllegalHSMTransitionError, match="Invalid qualified state path"):
-            hsm.transition_to("sess_001", "EXECUTION.INVALID_SUBSTATE", "Hermes", {})
+            hsm.transition_to("sess_001", "EXECUTION.INVALID_SUBSTATE", "PrimaryAgent", {})
 
     def test_multiple_transitions_update_state(self, hsm):
         """Sequential transitions should update to the latest state."""
-        hsm.transition_to("sess_multi", "PLANNING.DISCOVERY", "Hermes", {})
+        hsm.transition_to("sess_multi", "PLANNING.DISCOVERY", "PrimaryAgent", {})
         assert hsm.get_current_state("sess_multi") == "PLANNING.DISCOVERY"
 
-        hsm.transition_to("sess_multi", "EXECUTION.CODE_GEN", "Hermes", {})
+        hsm.transition_to("sess_multi", "EXECUTION.CODE_GEN", "PrimaryAgent", {})
         assert hsm.get_current_state("sess_multi") == "EXECUTION.CODE_GEN"
 
-        hsm.transition_to("sess_multi", "EXECUTION.TDD_GREEN", "Hermes", {})
+        hsm.transition_to("sess_multi", "EXECUTION.TDD_GREEN", "PrimaryAgent", {})
         assert hsm.get_current_state("sess_multi") == "EXECUTION.TDD_GREEN"
 
     def test_transition_without_governor(self, hsm_no_governor):
         """Transition should work fine without MCPToolGovernor."""
         success = hsm_no_governor.transition_to(
-            "sess_ng", "STALL.AWAITING_HUMAN", "Hermes", {}
+            "sess_ng", "STALL.AWAITING_HUMAN", "PrimaryAgent", {}
         )
         assert success is True
         assert hsm_no_governor.get_current_state("sess_ng") == "STALL.AWAITING_HUMAN"
 
     def test_transition_to_super_state_directly(self, hsm):
         """Transitioning to a super-state (not leaf) should also work."""
-        success = hsm.transition_to("sess_super", "EXECUTION", "Hermes", {})
+        success = hsm.transition_to("sess_super", "EXECUTION", "PrimaryAgent", {})
         assert success is True
         assert hsm.get_current_state("sess_super") == "EXECUTION"
 
@@ -316,7 +316,7 @@ class TestHistoryNodeResume:
         hsm.transition_to(
             session_id="sess_resume",
             target_path="EXECUTION.REFACTORING",
-            agent_id="HermesAgent",
+            agent_id="CognitiveAgent",
             shared_state={"refactor_step": 3},
             task_id="core/hsm_engine.py",
         )
@@ -335,7 +335,7 @@ class TestHistoryNodeResume:
         hsm.transition_to(
             session_id="sess_wal",
             target_path="PLANNING.ARCHITECTURE",
-            agent_id="Hermes",
+            agent_id="PrimaryAgent",
             shared_state={"arch_doc": "v2"},
         )
 
@@ -355,7 +355,7 @@ class TestHistoryNodeResume:
 
     def test_resume_syncs_mcp_governor(self, hsm, mcp_governor):
         """Resume should re-synchronize MCPToolGovernor with the restored super-state."""
-        hsm.transition_to("sess_gov_resume", "MAINTENANCE.RECONCILE", "Hermes", {})
+        hsm.transition_to("sess_gov_resume", "MAINTENANCE.RECONCILE", "PrimaryAgent", {})
         hsm.active_session_states.clear()
 
         hsm.resume_from_history_node("sess_gov_resume")
@@ -374,7 +374,7 @@ class TestSessionIntrospection:
 
     def test_get_super_state(self, hsm):
         """get_super_state should return the parent super-state name."""
-        hsm.transition_to("sess_sp", "EXECUTION.TDD_GREEN", "Hermes", {})
+        hsm.transition_to("sess_sp", "EXECUTION.TDD_GREEN", "PrimaryAgent", {})
         assert hsm.get_super_state("sess_sp") == "EXECUTION"
 
     def test_get_super_state_unknown_returns_planning(self, hsm):
@@ -478,7 +478,7 @@ class TestHSMTelemetryAPI:
         api_client.post("/api/hsm/transition", json={
             "session_id": "resume_sess",
             "target_path": "EXECUTION.TDD_GREEN",
-            "agent_id": "Hermes",
+            "agent_id": "PrimaryAgent",
             "shared_state": {"test": "unit"},
         })
 
@@ -507,7 +507,7 @@ class TestHSMTelemetryAPI:
         api_client.post("/api/hsm/transition", json={
             "session_id": "query_sess",
             "target_path": "MAINTENANCE.RECONCILE",
-            "agent_id": "Hermes",
+            "agent_id": "PrimaryAgent",
             "shared_state": {},
         })
 

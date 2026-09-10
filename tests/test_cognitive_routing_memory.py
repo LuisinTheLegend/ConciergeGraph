@@ -1,13 +1,12 @@
 """
 tests/test_cognitive_routing_memory.py — SDD-SURVIVAL-22
 
-Suíte de testes TDD para Roteamento de Conhecimento Externo (Nozomio RAG)
-e Adaptador de Memória Global Hierárquica.
+TDD Test Suite for Federated Knowledge Routing and Global Memory Adapter.
 
-Valida isoladamente:
-  1. Classificação sintática rápida (regex) e por entidades do banco relacional.
-  2. Direcionamento correto do roteador Nozomio (LOCAL_GRAPHRAG vs EXTERNAL_NOZOMIO_MCP).
-  3. Fidelidade da montagem da janela deslizante mista de memória (LTM + STM).
+Validates in isolation:
+  1. Fast syntactic triage (regex) and relational database entity lookup.
+  2. Accurate query routing (LOCAL_GRAPHRAG vs EXTERNAL_FEDERATED_MCP).
+  3. Strict fidelity of hybrid memory sliding window compilation (LTM + STM).
 """
 
 import unittest
@@ -16,20 +15,20 @@ import os
 
 from core.database import ConciergeDatabaseManager
 from core.intent_classifier import IntentClassifier
-from core.nozomio_router import NozomioRouter
+from core.federated_knowledge_router import FederatedKnowledgeRouter, EXTERNAL_FEDERATED_MCP
 from core.global_memory_adapter import GlobalMemoryAdapter
 
 
 class MockGraphRAGEngine:
-    """Mock do GraphRAG Engine local para testes isolados."""
+    """In-memory mock of local GraphRAG Engine for isolated testing."""
     def retrieve_multihop_context(self, query: str) -> str:
-        return "[Local GraphRAG Content] Módulo core/database.py possui in-degree alto."
+        return "[Local GraphRAG Content] Module core/database.py has high in-degree."
 
 
 class MockExternalMCP:
-    """Mock de servidor MCP federado de documentação pública."""
+    """In-memory mock of federated public documentation MCP server."""
     def query_docs(self, query: str) -> str:
-        return "[External NextJS Doc] Next.js 15 usa o App Router por padrão."
+        return "[External NextJS Doc] Next.js 15 uses App Router by default."
 
 
 class TestCognitiveRoutingMemory(unittest.TestCase):
@@ -37,7 +36,7 @@ class TestCognitiveRoutingMemory(unittest.TestCase):
         self.db_fd, self.db_path = tempfile.mkstemp()
         self.db_manager = ConciergeDatabaseManager(self.db_path)
 
-        # Cria tabela 'files' para o teste heurístico de entidades
+        # Create 'files' table for relational entity lookup heuristic
         self.db_manager.write_query(
             "CREATE TABLE IF NOT EXISTS files ("
             "path TEXT PRIMARY KEY, community_id TEXT, is_dirty INTEGER, last_modified REAL"
@@ -50,7 +49,7 @@ class TestCognitiveRoutingMemory(unittest.TestCase):
         self.classifier = IntentClassifier(self.db_manager)
         self.graph_rag = MockGraphRAGEngine()
         self.external_mcp = MockExternalMCP()
-        self.router = NozomioRouter(self.db_manager, self.graph_rag, self.external_mcp)
+        self.router = FederatedKnowledgeRouter(self.db_manager, self.graph_rag, self.external_mcp)
         self.memory_adapter = GlobalMemoryAdapter(self.db_manager)
 
     def tearDown(self):
@@ -58,63 +57,63 @@ class TestCognitiveRoutingMemory(unittest.TestCase):
         os.unlink(self.db_path)
 
     def test_should_classify_local_query_syntactically_and_by_db_entities(self):
-        """Valida que consultas contendo caminhos, termos chaves ou classes conhecidas são LOCAL_CODEBASE"""
-        # Heurística de palavra-chave (Regex)
-        res_keyword = self.classifier.classify_query("Como funciona a fila de escrita do SQLite WAL?")
+        """Validates that queries with paths, project keywords, or indexed entities resolve to LOCAL_CODEBASE."""
+        # Keyword heuristic (Regex)
+        res_keyword = self.classifier.classify_query("How does the SQLite WAL write queue work?")
         self.assertEqual(res_keyword, "LOCAL_CODEBASE")
 
-        # Heurística de arquivos cadastrados no SQLite (entidade relacional)
-        res_db = self.classifier.classify_query("Qual a lógica implementada no database.py do projeto?")
+        # Relational entity heuristic (file registered in SQLite)
+        res_db = self.classifier.classify_query("What logic is implemented in database.py?")
         self.assertEqual(res_db, "LOCAL_CODEBASE")
 
-        # Consulta puramente genérica deve cair no Fallback Externo
-        res_external = self.classifier.classify_query("Quais os benefícios do uso de CSS Grid sobre Flexbox?")
+        # Purely conceptual query falls back to external documentation
+        res_external = self.classifier.classify_query("What are the architectural benefits of CSS Grid over Flexbox?")
         self.assertEqual(res_external, "EXTERNAL_GENERAL")
 
     def test_should_route_and_resolve_correct_knowledge_source(self):
-        """Valida que o roteador direciona de forma fidedigna as requisições com base na intenção"""
-        # Fluxo Local
-        info_local = self.router.resolve_knowledge("Como o banco é iniciado?", "LOCAL_CODEBASE")
+        """Validates that the router reliably dispatches requests based on intent classification."""
+        # Local Codebase Route
+        info_local = self.router.resolve_knowledge("How is the database initialized?", "LOCAL_CODEBASE")
         self.assertEqual(info_local["source"], "LOCAL_GRAPHRAG")
         self.assertTrue(info_local["is_private"])
         self.assertIn("database.py", info_local["context"])
 
-        # Fluxo Externo
-        info_ext = self.router.resolve_knowledge("Como criar uma rota dinâmica no NextJS?", "EXTERNAL_GENERAL")
-        self.assertEqual(info_ext["source"], "EXTERNAL_NOZOMIO_MCP")
+        # External Public Route
+        info_ext = self.router.resolve_knowledge("How do dynamic routes work in NextJS?", "EXTERNAL_GENERAL")
+        self.assertEqual(info_ext["source"], EXTERNAL_FEDERATED_MCP)
         self.assertFalse(info_ext["is_private"])
         self.assertIn("App Router", info_ext["context"])
 
     def test_should_compile_hybrid_context_with_sliding_window(self):
-        """Valida que a janela de contexto herda apenas as últimas 3 interações de chat brutos + bloco LTM"""
+        """Validates that the context window retains strictly the last 3 raw chat turns + LTM substrate."""
         mock_chat = [
-            {"role": "user", "content": "Mensagem muito antiga 1"},
-            {"role": "assistant", "content": "Resposta muito antiga 2"},
-            {"role": "user", "content": "Mensagem antiga de teste 3"},
-            {"role": "user", "content": "Mensagem recente 4"},
-            {"role": "assistant", "content": "Resposta recente 5"},
-            {"role": "user", "content": "Pergunta atual 6"}
+            {"role": "user", "content": "Very old message 1"},
+            {"role": "assistant", "content": "Very old response 2"},
+            {"role": "user", "content": "Old test message 3"},
+            {"role": "user", "content": "Recent message 4"},
+            {"role": "assistant", "content": "Recent response 5"},
+            {"role": "user", "content": "Current question 6"}
         ]
 
         retrieved_data = {
             "source": "LOCAL_GRAPHRAG",
-            "context": "[LTM Context] Classes e arestas indexadas do watcher."
+            "context": "[LTM Context] Indexed classes and call edges from file watcher."
         }
 
         compiled_prompt = self.memory_adapter.compile_hybrid_context(mock_chat, retrieved_data)
 
-        # O bloco de memória de longo prazo (LTM) deve constar
+        # Long-Term Memory (LTM) substrate must be injected
         self.assertIn("=== LONG-TERM MEMORY SUBSTRATE", compiled_prompt)
-        self.assertIn("[LTM Context] Classes e arestas", compiled_prompt)
+        self.assertIn("[LTM Context] Indexed classes and call edges", compiled_prompt)
 
-        # As mensagens antigas (1, 2, 3) devem ser eliminadas (podadas) para poupar contexto
-        self.assertNotIn("Mensagem muito antiga 1", compiled_prompt)
-        self.assertNotIn("Mensagem antiga de teste 3", compiled_prompt)
+        # Older messages (1, 2, 3) must be pruned to conserve context tokens
+        self.assertNotIn("Very old message 1", compiled_prompt)
+        self.assertNotIn("Old test message 3", compiled_prompt)
 
-        # As últimas 3 interações (4, 5, 6) devem estar preservadas na janela de conversação de curto prazo
-        self.assertIn("Mensagem recente 4", compiled_prompt)
-        self.assertIn("Resposta recente 5", compiled_prompt)
-        self.assertIn("Pergunta atual 6", compiled_prompt)
+        # The 3 most recent interactions (4, 5, 6) must be preserved in STM
+        self.assertIn("Recent message 4", compiled_prompt)
+        self.assertIn("Recent response 5", compiled_prompt)
+        self.assertIn("Current question 6", compiled_prompt)
 
 
 if __name__ == "__main__":

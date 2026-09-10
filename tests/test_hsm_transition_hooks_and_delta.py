@@ -168,7 +168,7 @@ class TestHSMTransitionHooksIntegration(unittest.TestCase):
         result = self.hsm.transition_to(
             session_id="sess_hooks",
             target_path="EXECUTION.CODE_GEN",
-            agent_id="Hermes",
+            agent_id="PrimaryAgent",
             shared_state={},
         )
 
@@ -197,7 +197,7 @@ class TestHSMTransitionHooksIntegration(unittest.TestCase):
         result = self.hsm.transition_to(
             session_id="sess_intra",
             target_path="EXECUTION.TDD_GREEN",
-            agent_id="Hermes",
+            agent_id="PrimaryAgent",
             shared_state={},
         )
 
@@ -225,7 +225,7 @@ class TestHSMTransitionHooksIntegration(unittest.TestCase):
         result = self.hsm.transition_to(
             session_id="sess_fail",
             target_path="EXECUTION.CODE_GEN",
-            agent_id="Hermes",
+            agent_id="PrimaryAgent",
             shared_state={},
         )
 
@@ -249,7 +249,7 @@ class TestHSMTransitionHooksIntegration(unittest.TestCase):
         result = self.hsm.transition_to(
             session_id="sess_enter_fail",
             target_path="EXECUTION.CODE_GEN",
-            agent_id="Hermes",
+            agent_id="PrimaryAgent",
             shared_state={},
         )
 
@@ -267,7 +267,7 @@ class TestHSMTransitionHooksIntegration(unittest.TestCase):
         result = self.hsm.transition_to(
             session_id="sess_clean",
             target_path="EXECUTION.TDD_GREEN",
-            agent_id="Hermes",
+            agent_id="PrimaryAgent",
             shared_state={"step": 1},
         )
 
@@ -340,7 +340,7 @@ class TestHSMDeltaValidationOnResume(unittest.TestCase):
         self.hsm.checkpointer.save_checkpoint(
             session_id="sess_stale",
             checkpoint_id="cp_old",
-            agent_id="Hermes",
+            agent_id="PrimaryAgent",
             state_name="EXECUTION.CODE_GEN",
             shared_state={"step": 1},
             task_id=file_path,
@@ -381,7 +381,7 @@ class TestHSMDeltaValidationOnResume(unittest.TestCase):
         self.hsm.checkpointer.save_checkpoint(
             session_id="sess_fresh",
             checkpoint_id="cp_fresh",
-            agent_id="Hermes",
+            agent_id="PrimaryAgent",
             state_name="EXECUTION.TDD_GREEN",
             shared_state={"step": 2},
             task_id=file_path,
@@ -411,7 +411,7 @@ class TestHSMDeltaValidationOnResume(unittest.TestCase):
         self.hsm.checkpointer.save_checkpoint(
             session_id="sess_cosmetic",
             checkpoint_id="cp_cosmetic",
-            agent_id="Hermes",
+            agent_id="PrimaryAgent",
             state_name="EXECUTION.REFACTORING",
             shared_state={"step": 3},
             task_id=file_path,
@@ -438,7 +438,7 @@ class TestHSMDeltaValidationOnResume(unittest.TestCase):
         self.hsm.checkpointer.save_checkpoint(
             session_id="sess_compat",
             checkpoint_id="cp_compat",
-            agent_id="Hermes",
+            agent_id="PrimaryAgent",
             state_name="PLANNING.ARCHITECTURE",
             shared_state={"phase": "design"},
         )
@@ -459,7 +459,7 @@ class TestHSMDeltaValidationOnResume(unittest.TestCase):
         self.hsm.checkpointer.save_checkpoint(
             session_id="sess_missing",
             checkpoint_id="cp_missing",
-            agent_id="Hermes",
+            agent_id="PrimaryAgent",
             state_name="EXECUTION.CODE_GEN",
             shared_state={"step": 5},
             task_id=nonexistent_path,
@@ -485,7 +485,7 @@ class TestHSMDeltaValidationOnResume(unittest.TestCase):
         self.hsm.checkpointer.save_checkpoint(
             session_id="sess_mem",
             checkpoint_id="cp_mem",
-            agent_id="Hermes",
+            agent_id="PrimaryAgent",
             state_name="EXECUTION.TDD_GREEN",
             shared_state={"step": 7},
             task_id=file_path,

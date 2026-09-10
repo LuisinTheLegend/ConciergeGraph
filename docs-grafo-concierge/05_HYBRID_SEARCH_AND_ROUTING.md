@@ -1,6 +1,6 @@
-# 🔍 Hybrid Search v4, Self-Healing & Frugal GraphRAG (v4.0.0)
+# 🔍 Hybrid Search v4, Self-Healing & Frugal GraphRAG (v4.2.0)
 
-> **Mathematical Specification of the Tri-Signal Retrieval Model, Query-Time Self-Healing Filter, and Frugal GraphRAG with Strict Delimited Loop Guard**
+> **Mathematical Specification of the Tri-Signal Retrieval Model, Query-Time Self-Healing Filter, Frugal GraphRAG with Strict Delimited Loop Guard, Federated Routing, and Priority Rate Governance**
 
 ---
 
@@ -9,6 +9,10 @@
 Search in Grafo Concierge (`concierge_search` & `core/hybrid_search.py`) executes via the **Hybrid Search v4** scoring engine:
 
 $$\boxed{\text{Score} = (0.50 \times S_{\text{vector}}) + (0.25 \times S_{\text{fts5}}) + (0.25 \times \max(S_{\text{recency}}, S_{\text{centrality}}))}$$
+
+* **$S_{\text{vector}}$ (50%)**: Cosine similarity between query embedding and code chunk vectors in Qdrant (or FAISS fallback). Captures deep conceptual and functional meaning.
+* **$S_{\text{fts5}}$ (25%)**: Exact token BM25 score from SQLite FTS5 table with prefix matching (`*`). Guarantees zero missed exact symbol, variable, or route hits.
+* **$\max(S_{\text{recency}}, S_{\text{centrality}})$ (25%)**: Dynamic contextual boost prioritizing either recently modified files (recency decay) or foundational structural hubs (PageRank / Degree centrality in AST edges).
 
 ---
 
@@ -21,7 +25,7 @@ Distributed databases often face desynchronization when files are deleted on dis
    ```sql
    SELECT path FROM files WHERE path IN (?, ?, ?, ...);
    ```
-3. **Instant Orphan Descarte**: Drops any vector result whose file path no longer exists in SQLite WAL.
+3. **Instant Orphan Discard**: Drops any vector result whose file path no longer exists in SQLite WAL.
 4. **Result**: The AI agent receives a 100% consistent response in $< 5\text{ms}$ with zero zombie files.
 
 ---
@@ -126,9 +130,9 @@ Under **Active-SDD #22**, the `IntentClassifier` intercepts developer queries to
 
 ---
 
-## 5. Nozomio Federated Knowledge Router (`core/nozomio_router.py`)
+## 5. Federated Knowledge Router (`core/federated_knowledge_router.py`)
 
-The `NozomioRouter` federates search requests between local and remote knowledge providers, enforcing strict privacy boundaries:
+The `FederatedKnowledgeRouter` federates search requests between local and remote knowledge providers, enforcing strict privacy boundaries:
 
 ### 5.1 Knowledge Resolution Protocol
 
@@ -137,12 +141,38 @@ The `NozomioRouter` federates search requests between local and remote knowledge
 | **`LOCAL_CODEBASE`** | `GraphRAGEngine` (SQLite + Qdrant) | `True` | Sovereign multi-hop call-chains, local class definitions, and internal community summaries. |
 | **`EXTERNAL_GENERAL`** | Federated MCP Client (Public Docs) | `False` | Official Next.js/React framework documentation, syntax guidelines, and cloud references. |
 
-### 5.2 Resilient Fallbacks
-If external MCP documentation servers are unreachable or unconfigured, `NozomioRouter` returns a graceful market-context fallback without throwing exceptions or stalling agent turns.
+### 5.2 Transition & Backward Compatibility Shim (`core/nozomio_router.py`)
+In earlier internal revisions, the router was named `nozomio_router.py`. To preserve 100% backward compatibility with legacy tooling, `core/nozomio_router.py` acts as a zero-overhead transition shim:
+```python
+# core/nozomio_router.py
+from core.federated_knowledge_router import (
+    FederatedKnowledgeRouter,
+    FederatedKnowledgeRouter as NozomioRouter,
+    EXTERNAL_FEDERATED_MCP,
+)
+EXTERNAL_NOZOMIO_MCP = EXTERNAL_FEDERATED_MCP
+__all__ = ["FederatedKnowledgeRouter", "NozomioRouter", "EXTERNAL_FEDERATED_MCP", "EXTERNAL_NOZOMIO_MCP"]
+```
 
 ---
 
-## 6. Lightweight RAM-Saving Mode (`GRAFO_LIGHTWEIGHT_MODE=true`)
+## 6. Rate Governor Integration & Search Priority Triage (`core/rate_governor.py`)
+
+Under **Active-SDD #23 / #24**, heavy search routines and background graph clustering operations are integrated into the **Rate Governor Priority Queue**:
+
+### 6.1 Search Task Prioritization
+
+| Traffic Tier | Typical Routine | Priority Level | Freezing Behavior |
+| :--- | :--- | :---: | :--- |
+| **Tier 1 (HIGH)** | Interactive User Search, Primary Agent FSM context queries | `1` | **Never frozen.** Inline fast-path execution when usage $< 50\%$. |
+| **Tier 2 (MEDIUM)** | Subagent background symbol lookups, auxiliary tool queries | `2` | **Frozen at $\ge 95\%$** moving window quota consumption. |
+| **Tier 3 (LOW)** | Background GraphRAG re-clustering, batch embedding extraction | `3` | **Frozen at $\ge 85\%$** moving window quota consumption. |
+
+### 6.2 Anti-Starvation Aging
+If background search or clustering jobs are queued at Tier 3 for $> 300\text{s}$ (configurable via `aging_threshold_secs`), the governor temporarily promotes them to Tier 2 once overall moving window utilization drops below $75\%$, preventing indefinite starvation.
+
+---
+
+## 7. Lightweight RAM-Saving Mode (`GRAFO_LIGHTWEIGHT_MODE=true`)
 
 When deploying on resource-constrained servers ($4/mo VPS, 512MB RAM), setting `GRAFO_LIGHTWEIGHT_MODE=true` disables neural embeddings completely and routes all discovery through SQLite FTS5 BM25, operating in $< 35\text{MB}$ RAM.
-

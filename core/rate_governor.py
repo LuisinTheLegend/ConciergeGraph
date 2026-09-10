@@ -4,7 +4,7 @@ core/rate_governor.py — SDD-SURVIVAL-23
 RateGovernor with Priority Traffic (HTTP 429 Isolation & Queue Freezing).
 
 Daemon worker thread regulating rate limits with a three-tier priority queue:
-  1 (HIGH)   — Synchronous FSM decisions from Hermes, direct chat with user.
+  1 (HIGH)   — Synchronous FSM decisions from Primary Agent, direct chat with user.
   2 (MEDIUM) — Subagent tools, non-blocking analysis routines.
   3 (LOW)    — Janitor background cleanups, GraphRAG community detection.
 
@@ -35,7 +35,7 @@ class PriorityRequest:
     Encapsulated request with priority, result callback channel, and metadata.
 
     Priorities:
-      1 = HIGH   (Hermes / Direct User Chat)
+      1 = HIGH   (Primary Agent / Direct User Chat)
       2 = MEDIUM (Subagents / Auxiliary Tasks)
       3 = LOW    (Janitor / Background GraphRAG)
     """

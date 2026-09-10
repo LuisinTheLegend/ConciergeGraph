@@ -1,6 +1,6 @@
-# 🚀 Deployment, Configuration & Local-First Security (v4.0.0)
+# 🚀 Deployment, Configuration & Local-First Security (v4.2.0)
 
-> **Complete Operations Guide for Local IDEs, Remote VPS Hosting, Docker Containers, and Tailscale Networking**
+> **Complete Operations Guide for Local IDEs, Remote VPS Hosting, Docker Containers, Tailscale Networking, FastAPI Telemetry Endpoints, and the Next.js Cockpit**
 
 ---
 
@@ -19,6 +19,10 @@
 | **`GRAFO_LLM_API_KEY`** | `str` | `None` | API key for LLM summarization and semantic fact extraction. |
 | **`GRAFO_LLM_MODEL`** | `str` | `gemini-2.0-flash` | LLM model identifier. |
 | **`GRAFO_LLM_BASE_URL`** | `str` | `None` | Custom base URL for Ollama or self-hosted OpenAI-compatible APIs. |
+| **`GRAFO_RPM_LIMIT`** | `int` | `60` | Requests Per Minute quota for sliding window rate governance (SDD-23). |
+| **`GRAFO_TPM_LIMIT`** | `int` | `40000` | Tokens Per Minute quota for sliding window rate governance (SDD-23). |
+| **`GRAFO_SLIDING_WINDOW_SEC`**| `int` | `60` | Duration in seconds of Rate Governor sliding usage window. |
+| **`GRAFO_GATING_MODE`** | `str` | `plan-only` | Autonomy gating mode: `plan-only`, `ask`, or `auto-approve` (SDD-24). |
 | **`GRAFO_LIGHTWEIGHT_MODE`** | `bool`| `false` | When `true`, disables vector models to run in <35MB RAM via FTS5. |
 | **`GRAFO_HOST`** | `str` | `127.0.0.1` | Network interface for FastMCP SSE server (`0.0.0.0` for VPS). |
 | **`GRAFO_PORT`** | `int` | `8000` | HTTP / SSE port for remote MCP server. |
@@ -51,6 +55,9 @@ services:
       - GRAFO_VECTOR_BACKEND=${GRAFO_VECTOR_BACKEND:-chroma}
       - GRAFO_API_KEY=${GRAFO_API_KEY:-}
       - GRAFO_CORS_ORIGINS=${GRAFO_CORS_ORIGINS:-*}
+      - GRAFO_RPM_LIMIT=${GRAFO_RPM_LIMIT:-60}
+      - GRAFO_TPM_LIMIT=${GRAFO_TPM_LIMIT:-40000}
+      - GRAFO_GATING_MODE=${GRAFO_GATING_MODE:-plan-only}
     volumes:
       - ./data:/app/data
     healthcheck:
@@ -83,48 +90,49 @@ To connect multiple machines (e.g. laptop querying desktop PC running Grafo Conc
 
 ## 4. Real-Time Telemetry & REST API (`interface/telemetry_api.py`)
 
-In addition to FastMCP, Grafo Concierge exposes a high-performance **FastAPI Telemetry Server** for real-time observability dashboards (e.g., Next.js, Electron, or Web UIs):
+In addition to FastMCP, Grafo Concierge exposes a high-performance **FastAPI Telemetry Server** for real-time observability dashboards (e.g., Next.js 16 Cockpit, Electron, or terminal observers):
 
-### 4.1 Available Endpoints
+### 4.1 Master Endpoints Matrix (15 Total Endpoints)
 
-| Endpoint | Method | Response / Content-Type | Description |
+| Category | Method | Path | Description |
 | :--- | :---: | :--- | :--- |
-| **`/api/telemetry/snapshot`** | `GET` | `application/json` | Full system snapshot: dirty files, Janitor status, self-healing events, and agent checkpoints. |
-| **`/api/telemetry/stream`** | `GET` | `text/event-stream` (SSE) | Persistent real-time event stream emitting system state updates every 2 seconds. |
-| **`/api/janitor/reconcile`** | `POST` | `application/json` | On-demand manual trigger to execute vector reconciliation and cache cleanups. |
-| **`/api/checkpoints/{session_id}`** | `GET` | `application/json` | Chronological list of durable FSM checkpoints for a session (Active-SDD #20). |
-| **`/api/checkpoints/time-travel`** | `POST` | `application/json` | Executes time-travel rollback: restores snapshot, purges future steps, flags files as dirty (Active-SDD #20). |
-| **`/api/mcp/state`** | `POST` | `application/json` | Dynamically updates session FSM state (`PLANNING`, `EXECUTION`, etc.) for tool disclosure governance (Active-SDD #21). |
-| **`/api/mcp/state/{session_id}`** | `GET` | `application/json` | Queries the currently active FSM state for a session (Active-SDD #21). |
+| **System Telemetry** | `GET` | `/api/telemetry/snapshot` | Consolidated snapshot of system state: dirty files, Janitor status, self-healing events, checkpoints. |
+| **System Telemetry** | `GET` | `/api/telemetry/stream` | Persistent Server-Sent Events (SSE) stream emitting updates whenever volatile DB hash changes. |
+| **Janitor** | `POST` | `/api/janitor/reconcile` | Triggers background reconciliation of orphan vectors against SQLite WAL via FastAPI BackgroundTasks. |
+| **Rate Governor** | `GET` | `/api/governor/metrics` | Real-time moving window quota occupancy (RPM/TPM), queue backlog, and freezing flags. |
+| **Rate Governor** | `POST` | `/api/governor/report` | Allows subagent executors to report actual tokens used post-LLM call to update sliding window metrics. |
+| **Adaptive Gating** | `GET` | `/api/gating/config` | Returns active security configuration, autonomy mode (`plan-only`/`ask`/`auto-approve`), and project root. |
+| **Adaptive Gating** | `POST` | `/api/gating/config` | Dynamically updates monorepo autonomy mode with runtime boundary validation. |
+| **HSM Engine** | `GET` | `/api/hsm/state/{session_id}` | Queries the active hierarchical qualified state (`PLANNING.SCOPING`) and History Node for a session. |
+| **HSM Engine** | `POST` | `/api/hsm/transition` | Executes a sub-state transition, fires lifecycle hooks (`on_exit`/`on_enter`), and persists checkpoint. |
+| **HSM Engine** | `POST` | `/api/hsm/resume/{session_id}` | Restores session from Deep History Node ($H^*$) with runtime dual-hash code drift validation. |
+| **HSM Engine** | `GET` | `/api/hsm/tree` | Returns the complete hierarchical state tree topology as a serializable dictionary. |
+| **Cognitive Memory** | `GET` | `/api/checkpoints/{session_id}` | Lists chronological timeline of active checkpoints for an agent session. |
+| **Cognitive Memory** | `POST` | `/api/checkpoints/time-travel` | Triggers cognitive-relational time-travel rollback: restores state, purges future steps, marks dirty files. |
+| **Tool Governance** | `POST` | `/api/mcp/state` | Updates session mental state to trigger progressive tool disclosure re-scoping. |
+| **Tool Governance** | `GET` | `/api/mcp/state/{session_id}` | Queries current registered mental state and active tool disclosure profile for a session. |
 
 ### 4.2 Running the Telemetry API
 
 ```bash
 # Start the FastAPI telemetry server via Uvicorn
-uvicorn interface.telemetry_api:create_app --factory --host 127.0.0.1 --port 8001 --reload
-```
-
-### 4.3 Next.js Dashboard Integration (SSE Client Example)
-
-```typescript
-// Example Next.js SSE hook for live Grafo Concierge telemetry
-const eventSource = new EventSource("http://127.0.0.1:8001/api/telemetry/stream");
-
-eventSource.onmessage = (event) => {
-  const telemetry = JSON.parse(event.data);
-  console.log("Dirty files count:", telemetry.dirty_files.length);
-  console.log("Janitor active:", telemetry.janitor_status.is_running);
-};
+uvicorn interface.telemetry_api:app --host 127.0.0.1 --port 8001 --reload
 ```
 
 ---
 
-## 5. Unified Concurrent DX (`concurrently`)
+## 5. Next.js 16 Passive Observability Cockpit (`grafo-dashboard-web/`)
 
-To streamline developer experience (DX) and eliminate the friction of running separate terminals for backend and frontend during development:
+Under **Active-SDD #28**, Grafo Concierge features a dedicated **Next.js 16 (App Router)** cockpit designed for real-time passive monitoring:
 
-### 5.1 Orchestration Script (`npm run dev:all`)
-The Next.js dashboard frontend (`grafo-dashboard-web`) incorporates `concurrently` to run both services in parallel:
+### 5.1 Architecture & 2x2 Grid Layout
+* **Top-Left (`CodeGraphViewer.tsx`)**: Interactive 2D Force-Directed Graph of files and AST dependency edges. Files with `is_dirty = 1` are highlighted with a 60fps pulsating amber glow.
+* **Top-Right (`QuotaGauges.tsx`)**: High-precision circular gauges for RPM (60 limit) and TPM (40,000 limit) featuring dynamic color gradients (Cyan $\rightarrow$ Amber $\rightarrow$ Crimson) and freezing indicators (`LOW_FROZEN`, `MEDIUM_FROZEN`).
+* **Bottom-Left (`HSMStateTree.tsx`)**: Interactive collapsible tree of the Hierarchical State Machine showing active super-states, sub-states, Deep History Nodes ($H^*$), and a 1-click **"Resume Session"** trigger.
+* **Bottom-Right (`HealingFeed.tsx`)**: Real-time chronological audit terminal streaming Janitor reconciliation events, WAL transactions, and circuit breaker trip notifications.
+
+### 5.2 Unified Concurrent DX (`npm run dev:all`)
+The Next.js dashboard project includes `concurrently` orchestration:
 
 ```json
 {
@@ -136,10 +144,4 @@ The Next.js dashboard frontend (`grafo-dashboard-web`) incorporates `concurrentl
 }
 ```
 
-### 5.2 Usage
-Inside the `grafo-dashboard-web` directory, simply execute:
-```bash
-npm run dev:all
-```
-Both the Next.js visual dashboard (port 3000) and the FastAPI/FastMCP backend (port 8001/8000) start concurrently with unified color-coded terminal logging.
-
+Simply run `npm run dev:all` to launch both the Next.js visual cockpit (`http://localhost:3000`) and the FastAPI telemetry server (`http://localhost:8001`) with synchronized terminal outputs.

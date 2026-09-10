@@ -1,4 +1,4 @@
-# 🧠 Cognitive Memory, Bi-Temporal Facts & Reinforcement (v4.0.0)
+# 🧠 Cognitive Memory, Bi-Temporal Facts & Reinforcement (v4.2.0)
 
 > **Architectural Deep-Dive into Bi-Temporal Persistence, Scoped Core Memory, and Bayesian Thompson Sampling**
 
@@ -256,14 +256,14 @@ Under **Active-SDD #22**, the `GlobalMemoryAdapter` eliminates the quadratic tok
 ┌───────────────────────────────────────────────────────────────────────────────────────┐
 │ System Injection Prompt:                                                              │
 │ - Anchor instructions                                                                 │
-│ - === SUBSTRATO DE MEMÓRIA DE LONGO PRAZO === (From Local GraphRAG / Nozomio Router) │
+│ - === SUBSTRATO DE MEMÓRIA DE LONGO PRAZO === (From Local GraphRAG / Federated Router)│
 │ - === HISTÓRICO CONVERSACIONAL DE CURTO PRAZO === (Formatted last 3 messages)        │
 └───────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### 7.2 Context Compilation Pipeline
 * **Short-Term Memory (STM)**: Takes `chat_history[-3:]` to preserve the user's immediate question, the assistant's previous answer, and pronoun references ("fix it", "run this again").
-* **Long-Term Memory (LTM)**: Inserts the structured technical substrate retrieved by the `NozomioRouter`:
+* **Long-Term Memory (LTM)**: Inserts the structured technical substrate retrieved by the `FederatedKnowledgeRouter`:
   ```text
   === SUBSTRATO DE MEMÓRIA DE LONGO PRAZO (Sourced from: LOCAL_GRAPHRAG) ===
   Contexto Recuperado:
@@ -275,4 +275,31 @@ Under **Active-SDD #22**, the `GlobalMemoryAdapter` eliminates the quadratic tok
   Desenvolvedor: Pergunta atual 6
   ```
 * **Impact**: Slashes prompt token consumption by 70–90% across long pair-programming sessions while anchoring the model to the sovereign SQLite graph memory.
+
+---
+
+## 8. HSM State Context & Deep History Node ($H^*$) Coupling (`core/hsm_engine.py`)
+
+Under **Active-SDD #25, #26 e #27**, cognitive persistence extends beyond isolated memory facts to encompass the **exact execution phase** of the agent through the `HSMStateContext`:
+
+### 8.1 State Context Architecture
+
+```python
+class HSMStateContext:
+    session_id: str
+    current_full_path: str      # e.g., "EXECUTION.TDD_GREEN"
+    history_node: Optional[Tuple[str, str, float]]  # (state_path, checkpoint_id, timestamp)
+    turn_count: int             # Consecutive turns in current sub-state (Circuit Breaker)
+    max_turns: int = 5          # Hard limit before tripping into STALL
+```
+
+### 8.2 Checkpoint Synchronization
+* Whenever the agent saves a progress checkpoint via `agent_save_checkpoint`, the HSM engine binds the durable `fsm_checkpoints` entry with the qualified state path.
+* The **Deep History Node ($H^*$)** records this tuple in SQLite memory.
+* When resuming an interrupted session, `HermesAgentRunner.initialize_session()` restores:
+  1. The durable variable state snapshot from `fsm_checkpoints`.
+  2. The exact sub-state path (`EXECUTION.CODE_GEN`) instead of blindly resetting to `PLANNING`.
+  3. The turn counter, preserving anti-loop protection.
+* This ensures complete cognitive continuity across IDE restarts, network interruptions, or multi-day development tasks.
+
 

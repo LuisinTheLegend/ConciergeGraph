@@ -1,15 +1,17 @@
 """
 tests/test_telemetry_api.py — SDD-SURVIVAL-13
 
-Suíte de Testes TDD para a Camada de API REST e Telemetria em Tempo Real.
+TDD Test Suite for the REST API Layer and Real-Time Telemetry.
 
-Valida que as rotas estão funcionando de forma consistente e que o canal
-de streaming SSE entrega os dados de alteração de forma assíncrona.
+Validates that routes operate consistently and that the SSE streaming channel
+delivers change payloads asynchronously.
 
-Testes:
-    1. test_get_telemetry_snapshot — Snapshot consolida contadores do SQLite
-    2. test_janitor_manual_reconcile_trigger — Janitor retorna 'accepted'
-    3. test_telemetry_stream_sse_emits_updates — SSE transmite payload válido
+Tests:
+    1. test_get_telemetry_snapshot — Snapshot aggregates SQLite counters
+    2. test_janitor_manual_reconcile_trigger — Janitor returns 'accepted'
+    3. test_telemetry_stream_sse_emits_updates — SSE broadcasts valid payload
+    4. test_get_gating_config — Returns active gating configuration
+    5. test_update_gating_config_transitions — Dynamic mode switching & validation
 """
 
 import unittest
@@ -31,7 +33,7 @@ class TestTelemetryAPI(unittest.TestCase):
         self.write_queue.start()
         self.db_manager = ConciergeDatabaseManager(self.db_path, self.write_queue)
 
-        # Cria as tabelas mínimas necessárias para o Snapshot de Telemetria
+        # Create minimal required tables for Telemetry Snapshot
         self.db_manager.write_query(
             "CREATE TABLE IF NOT EXISTS files ("
             "path TEXT PRIMARY KEY, community_id TEXT, is_dirty INTEGER, last_modified REAL"
@@ -45,7 +47,7 @@ class TestTelemetryAPI(unittest.TestCase):
         )
         time.sleep(0.1)
 
-        # Injeta o db_manager de teste na aplicação FastAPI
+        # Inject test db_manager into FastAPI application dependency container
         app.dependency_overrides[get_db_manager] = lambda: self.db_manager
         self.client = TestClient(app)
 
@@ -57,15 +59,15 @@ class TestTelemetryAPI(unittest.TestCase):
         app.dependency_overrides.clear()
 
     def test_get_telemetry_snapshot(self):
-        """Valida se o snapshot consolida os contadores do SQLite com sucesso"""
-        # Insere dados de controle
+        """Validates that the snapshot aggregates SQLite counters accurately."""
+        # Insert control data
         self.db_manager.write_query(
             "INSERT INTO files (path, community_id, is_dirty, last_modified) VALUES (?, ?, ?, ?);",
             ("src/core.py", "core_module", 1, time.time())
         )
         self.db_manager.write_query(
             "INSERT INTO agent_checkpoints (agent_id, session_id, checkpoint_id, timestamp) VALUES (?, ?, ?, ?);",
-            ("NexusAgent", "session_001", "init", time.time())
+            ("CognitiveAgent", "session_001", "init", time.time())
         )
         time.sleep(0.1)
 
@@ -80,14 +82,14 @@ class TestTelemetryAPI(unittest.TestCase):
         self.assertEqual(data["agent_sessions"][0]["session_id"], "session_001")
 
     def test_janitor_manual_reconcile_trigger(self):
-        """Valida que o acionamento do Janitor retorna resposta aceita síncrona"""
+        """Validates that triggering the Janitor returns an accepted status immediately."""
         response = self.client.post("/api/janitor/reconcile")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["status"], "accepted")
 
     def test_telemetry_stream_sse_emits_updates(self):
-        """Valida que o canal SSE transmite o snapshot validado na inicialização"""
-        # Abre a stream SSE usando o cliente de teste
+        """Validates that the SSE channel streams the initial validated snapshot."""
+        # Open SSE stream using test client
         with self.client.stream("GET", "/api/telemetry/stream") as response:
             self.assertEqual(response.status_code, 200)
             self.assertTrue(
@@ -95,20 +97,20 @@ class TestTelemetryAPI(unittest.TestCase):
                 f"Expected text/event-stream, got {response.headers['content-type']}"
             )
 
-            # Lê o primeiro evento transmitido
+            # Read first emitted event
             for line in response.iter_lines():
                 if line.startswith("data:"):
                     json_str = line.replace("data: ", "").strip()
                     payload = json.loads(json_str)
 
-                    # O Payload SSE deve conter a estrutura de dados de telemetria
+                    # SSE payload must contain telemetry data structure
                     self.assertIn("integrity_score", payload)
                     self.assertIn("sqlite_total_files", payload)
                     self.assertIn("dirty_queue", payload)
                     break
 
     def test_get_gating_config(self):
-        """Valida que GET /api/gating/config retorna o modo e a raiz do projeto."""
+        """Validates that GET /api/gating/config returns current mode and project root."""
         response = self.client.get("/api/gating/config")
         self.assertEqual(response.status_code, 200)
         data = response.json()
@@ -117,26 +119,25 @@ class TestTelemetryAPI(unittest.TestCase):
         self.assertIn(data["active_mode"], ["plan-only", "ask", "auto-approve"])
 
     def test_update_gating_config_transitions(self):
-        """Valida a transição dinâmica de modo e a rejeição de modos inválidos."""
-        # Transição válida para auto-approve
+        """Validates dynamic mode transitions and rejection of invalid modes."""
+        # Valid transition to auto-approve
         resp = self.client.post("/api/gating/config", json={"mode": "auto-approve"})
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()["new_mode"], "auto-approve")
 
-        # Verifica persistência no GET
+        # Verify persistence via GET
         get_resp = self.client.get("/api/gating/config")
         self.assertEqual(get_resp.json()["active_mode"], "auto-approve")
 
-        # Transição válida de volta para ask
+        # Valid transition back to ask
         resp_ask = self.client.post("/api/gating/config", json={"mode": "ask"})
         self.assertEqual(resp_ask.status_code, 200)
         self.assertEqual(resp_ask.json()["new_mode"], "ask")
 
-        # Modo inválido deve retornar 400
+        # Invalid mode must return HTTP 400
         resp_inv = self.client.post("/api/gating/config", json={"mode": "yolo-mode"})
         self.assertEqual(resp_inv.status_code, 400)
 
 
 if __name__ == "__main__":
     unittest.main()
-

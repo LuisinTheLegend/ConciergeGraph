@@ -41,7 +41,7 @@ class GlobalMemoryAdapter:
 
         Args:
             chat_history: List of dicts with 'role' ('user'|'assistant') and 'content'.
-            retrieved_knowledge: Dict with 'source' and 'context' (output from NozomioRouter).
+            retrieved_knowledge: Dict with 'source' and 'context' (output from FederatedKnowledgeRouter).
 
         Returns:
             Compiled string ready for injection into system/context prompt.

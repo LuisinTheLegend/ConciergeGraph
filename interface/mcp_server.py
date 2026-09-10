@@ -877,7 +877,7 @@ class GrafoConciergeServer:
             """Persists agent state in SQLite WAL via AgnosticCheckpointer.
 
             Args:
-                agent_id: Identifier of the agent (e.g. nexus_agent, hermes).
+                agent_id: Identifier of the agent (e.g. primary_agent, cognitive_agent).
                 session_id: Unique session run identifier.
                 checkpoint_id: Identifier of the step/checkpoint (e.g. init, step_1).
                 state_dict: Arbitrary dictionary containing agent variables, memory, and state.

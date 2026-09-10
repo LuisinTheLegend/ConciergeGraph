@@ -58,6 +58,9 @@ _colossus_workspace/
 _test_*_tmp/
 colossus_report.json
 relatorio_stress_test_v2.txt
+
+# 🌐 Frontend Web Dashboard (repositório independente / junção local)
+grafo-dashboard-web/
 plano_stress_test_v2.txt
 
 # 📦 Dependências Javascript / Node.js

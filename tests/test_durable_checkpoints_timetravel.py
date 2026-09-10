@@ -1,14 +1,14 @@
 """
 tests/test_durable_checkpoints_timetravel.py — SDD-SURVIVAL-20
 
-Suíte de testes TDD para Durable Checkpoints & Lógica de Time-Travel.
+TDD Test Suite for Durable Checkpoints & Cognitive Time-Travel Logic.
 
-Valida:
-  1. Serialização segura de variáveis complexas e sanitização de objetos não-serializáveis.
-  2. Execução determinística de Time-Travel:
-     - Expurgando checkpoints futuros para manter a linha do tempo cronológica linear.
-     - Marcando o arquivo associado à tarefa (task_id) como is_dirty = 1 no SQLite WAL.
-  3. Endpoints REST da Telemetry API:
+Validates:
+  1. Safe serialization of complex variables and recursive sanitization of non-serializable objects.
+  2. Deterministic execution of Time-Travel:
+     - Purging future checkpoints to preserve linear chronological timeline continuity.
+     - Marking task-associated files (task_id) as is_dirty = 1 in SQLite WAL.
+  3. Telemetry API REST Endpoints:
      - GET /api/checkpoints/{session_id}
      - POST /api/checkpoints/time-travel
 """
@@ -30,7 +30,7 @@ class TestDurableCheckpointsTimeTravel(unittest.TestCase):
         self.db_manager = ConciergeDatabaseManager(self.db_path)
         self.checkpointer = AgnosticCheckpointer(self.db_manager)
 
-        # Criação dos schemas necessários para os testes
+        # Create necessary schemas for test execution
         self.db_manager.write_query(
             "CREATE TABLE IF NOT EXISTS files ("
             "path TEXT PRIMARY KEY, community_id TEXT, is_dirty INTEGER, last_modified REAL"
@@ -44,7 +44,7 @@ class TestDurableCheckpointsTimeTravel(unittest.TestCase):
             ");"
         )
 
-        # Override da dependência do FastAPI para testes de endpoints
+        # Override FastAPI dependency injection for API endpoint tests
         app.dependency_overrides[get_db_manager] = lambda: self.db_manager
         self.client = TestClient(app)
 
@@ -61,81 +61,81 @@ class TestDurableCheckpointsTimeTravel(unittest.TestCase):
             pass
 
     def test_should_save_and_load_complex_state_checkpoint(self):
-        """Valida se dados lógicos e não-serializáveis sofrem limpeza e gravação segura."""
+        """Validates that logical and non-serializable objects undergo sanitization and safe persistence."""
         complex_variables = {
             "token_count": 4200,
-            "system_prompt": "Identidade Canônica",
-            "active_lock": object(),  # Objeto não-serializável em JSON clássico!
+            "system_prompt": "Canonical Identity",
+            "active_lock": object(),  # Non-serializable object in standard JSON!
             "status_list": ["PLANNING", "DISCOVERY"],
         }
 
-        # 1. Salva o checkpoint na sessão
+        # 1. Save checkpoint for the session
         success = self.checkpointer.save_checkpoint(
             session_id="session_001",
             checkpoint_id="init_state",
-            agent_id="HermesAgent",
+            agent_id="CognitiveAgent",
             state_name="PLANNING",
             shared_state=complex_variables,
             task_id="src/core.py",
         )
         self.assertTrue(success)
 
-        # 2. Recupera o checkpoint
+        # 2. Retrieve checkpoint
         data = self.checkpointer.load_checkpoint("session_001", "init_state")
         self.assertIsNotNone(data)
-        self.assertEqual(data["agent_id"], "HermesAgent")
+        self.assertEqual(data["agent_id"], "CognitiveAgent")
         self.assertEqual(data["state_name"], "PLANNING")
         self.assertEqual(data["task_id"], "src/core.py")
 
-        # O objeto complexo (object()) deve ter sofrido stringificação segura
+        # The non-serializable object (object()) must have undergone defensive string conversion
         self.assertIn("active_lock", data["shared_state"])
         self.assertTrue(isinstance(data["shared_state"]["active_lock"], str))
         self.assertEqual(data["shared_state"]["token_count"], 4200)
 
     def test_should_execute_time_travel_and_purge_future_checkpoints(self):
-        """Valida se o Time-Travel remove checkpoints futuros e marca arquivos como sujos."""
-        # Inserir arquivo
+        """Validates that Time-Travel purges future checkpoints and marks affected files as dirty."""
+        # Insert target file
         self.db_manager.write_query(
             "INSERT INTO files (path, community_id, is_dirty) VALUES ('src/core.py', 'core', 0);"
         )
 
-        # Grava Checkpoint 1 (Passado)
+        # Save Checkpoint 1 (Past)
         self.checkpointer.save_checkpoint(
-            "session_abc", "cp_1", "Hermes", "PLANNING", {"x": 10}, "src/core.py"
+            "session_abc", "cp_1", "PrimaryAgent", "PLANNING", {"x": 10}, "src/core.py"
         )
-        time.sleep(1.1)  # Pausa garantidora de cronologia para o 'created_at' do SQLite
+        time.sleep(1.1)  # Ensure SQLite created_at timestamp differentiation
 
-        # Grava Checkpoint 2 (Futuro)
+        # Save Checkpoint 2 (Future)
         self.checkpointer.save_checkpoint(
-            "session_abc", "cp_2", "Hermes", "EXECUTION", {"x": 20}, "src/core.py"
+            "session_abc", "cp_2", "PrimaryAgent", "EXECUTION", {"x": 20}, "src/core.py"
         )
 
-        # Valida que existem 2 checkpoints salvos
+        # Verify 2 checkpoints exist in database
         checkpoints_count = self.db_manager.read_query(
             "SELECT COUNT(*) FROM fsm_checkpoints WHERE session_id = 'session_abc';"
         )[0][0]
         self.assertEqual(checkpoints_count, 2)
 
-        # Dispara Viagem no Tempo para o cp_1 (Passado)
+        # Trigger Time-Travel rollback to cp_1 (Past)
         restored = self.checkpointer.execute_time_travel("session_abc", "cp_1")
         self.assertIsNotNone(restored)
         self.assertEqual(restored["shared_state"]["x"], 10)
 
-        # Checkpoint cp_2 (futuro) deve ter sido expurgado cronologicamente
+        # Checkpoint cp_2 (future) must be chronologically purged
         remaining_count = self.db_manager.read_query(
             "SELECT COUNT(*) FROM fsm_checkpoints WHERE session_id = 'session_abc';"
         )[0][0]
         self.assertEqual(remaining_count, 1)
 
-        # O arquivo 'src/core.py' associado ao checkpoint deve ter sido marcado como sujo (is_dirty = 1) para re-sincronizar
+        # Associated file 'src/core.py' must be flagged dirty (is_dirty = 1) for graph re-synchronization
         file_dirty = self.db_manager.read_query(
             "SELECT is_dirty FROM files WHERE path = 'src/core.py';"
         )[0][0]
         self.assertEqual(file_dirty, 1)
 
     def test_telemetry_api_checkpoints_endpoints(self):
-        """Valida os endpoints REST /api/checkpoints/{session_id} e /api/checkpoints/time-travel."""
-        # 1. Salva 2 checkpoints via checkpointer
+        """Validates REST endpoints /api/checkpoints/{session_id} and /api/checkpoints/time-travel."""
+        # 1. Save 2 checkpoints via checkpointer
         self.checkpointer.save_checkpoint(
             "sess_rest", "cp_start", "RestAgent", "IDLE", {"state": "init"}, "src/app.py"
         )
@@ -144,7 +144,7 @@ class TestDurableCheckpointsTimeTravel(unittest.TestCase):
             "sess_rest", "cp_mid", "RestAgent", "RUNNING", {"state": "mid"}, "src/app.py"
         )
 
-        # 2. Testa listagem de checkpoints da sessão
+        # 2. Test listing session checkpoints
         resp_list = self.client.get("/api/checkpoints/sess_rest")
         self.assertEqual(resp_list.status_code, 200)
         items = resp_list.json()
@@ -152,7 +152,7 @@ class TestDurableCheckpointsTimeTravel(unittest.TestCase):
         self.assertEqual(items[0]["checkpoint_id"], "cp_start")
         self.assertEqual(items[1]["checkpoint_id"], "cp_mid")
 
-        # 3. Testa disparo de time-travel via POST
+        # 3. Test triggering time-travel via POST
         resp_tt = self.client.post(
             "/api/checkpoints/time-travel",
             json={"session_id": "sess_rest", "target_checkpoint_id": "cp_start"},
@@ -162,7 +162,7 @@ class TestDurableCheckpointsTimeTravel(unittest.TestCase):
         self.assertEqual(data["status"], "success")
         self.assertEqual(data["restored_state"]["checkpoint_id"], "cp_start")
 
-        # 4. Testa time-travel para checkpoint inexistente (retorna 404)
+        # 4. Test time-travel for nonexistent checkpoint (returns 404)
         resp_404 = self.client.post(
             "/api/checkpoints/time-travel",
             json={"session_id": "sess_rest", "target_checkpoint_id": "cp_ghost"},

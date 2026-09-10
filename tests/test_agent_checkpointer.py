@@ -1,15 +1,15 @@
 """
 tests/test_agent_checkpointer.py — SDD-SURVIVAL-07
 
-Suíte de Testes TDD para Persistência de Checkpoints e Time-Travel Agnóstico.
+TDD Test Suite for Agnostic State Checkpointing and Time-Travel.
 
-Valida os quatro contratos de isolamento e integridade:
-  1. Save/Retrieve: estado genérico é persistido e recuperado perfeitamente.
-  2. Fail-Safe: checkpoints inexistentes retornam dicionário vazio.
-  3. Timeline: checkpoints são listados em ordem cronológica crescente.
-  4. Isolation: agentes/sessões diferentes jamais leem dados uns dos outros.
+Validates four isolation and integrity contracts:
+  1. Save/Retrieve: Generic state is persisted and restored reliably.
+  2. Fail-Safe: Nonexistent checkpoints return an empty dictionary.
+  3. Timeline: Checkpoints are listed in ascending chronological order.
+  4. Isolation: Distinct agents/sessions never leak or read each other's data.
 
-Integra com a infraestrutura real de concorrência (SDD-02).
+Integrates with the live concurrency infrastructure (SDD-02).
 """
 
 import unittest
@@ -20,8 +20,7 @@ import tempfile
 import json
 
 
-# ── Importação cirúrgica: carrega módulos diretamente sem acionar
-#    os __init__.py dos pacotes (que puxam dependências pesadas). ──
+# ── Surgical Import: loads modules directly without triggering package __init__.py ──
 
 _project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -60,12 +59,12 @@ class TestAgnosticCheckpointerAndTimeTravel(unittest.TestCase):
     def setUp(self):
         self.db_fd, self.db_path = tempfile.mkstemp(suffix=".db")
 
-        # Inicializa infraestrutura de concorrência síncrona da Fase 1
+        # Initialize Phase 1 synchronous concurrency infrastructure
         self.write_queue = SerializedWriteQueue(self.db_path)
         self.write_queue.start()
         self.db_manager = ConciergeDatabaseManager(self.db_path, self.write_queue)
 
-        # Garante a criação da tabela de checkpoints no SQLite WAL
+        # Ensure creation of the agent_checkpoints table in SQLite WAL
         self.db_manager.write_query(
             "CREATE TABLE IF NOT EXISTS agent_checkpoints ("
             "agent_id TEXT, "
@@ -77,7 +76,7 @@ class TestAgnosticCheckpointerAndTimeTravel(unittest.TestCase):
             ");"
         )
 
-        # Inicializa o checkpointer agnóstico
+        # Initialize the agnostic checkpointer
         self.checkpointer = AgnosticCheckpointer(self.db_manager)
 
     def tearDown(self):
@@ -94,101 +93,101 @@ class TestAgnosticCheckpointerAndTimeTravel(unittest.TestCase):
             pass
 
     def test_should_save_and_retrieve_checkpoint_successfully(self):
-        """Garante que estados genéricos de agentes são persistidos e recuperados perfeitamente."""
+        """Ensures that generic agent states are persisted and retrieved successfully."""
         state_data = {
             "active_node": "PLANNING",
             "tokens_consumed": 1542,
             "kanban_todo": ["task1", "task2"],
-            "variables": {"project_name": "Nexus"},
+            "variables": {"project_name": "ConciergeCore"},
         }
 
-        # Grava o checkpoint para o 'nexus_agent'
+        # Save checkpoint for 'primary_agent'
         saved = self.checkpointer.save_checkpoint(
-            agent_id="nexus_agent",
+            agent_id="primary_agent",
             session_id="sess_01",
             checkpoint_id="step_01",
             state_dict=state_data,
         )
         self.assertTrue(
             saved,
-            "O salvamento do checkpoint deveria ter sido executado com sucesso.",
+            "Checkpoint save operation should complete successfully.",
         )
 
-        # Recupera o checkpoint gravado
+        # Retrieve saved checkpoint
         retrieved_state = self.checkpointer.get_checkpoint(
-            agent_id="nexus_agent",
+            agent_id="primary_agent",
             session_id="sess_01",
             checkpoint_id="step_01",
         )
 
-        # Asserções de Integridade dos Dados
+        # Data integrity assertions
         self.assertEqual(retrieved_state["active_node"], "PLANNING")
         self.assertEqual(retrieved_state["tokens_consumed"], 1542)
         self.assertEqual(retrieved_state["kanban_todo"], ["task1", "task2"])
-        self.assertEqual(retrieved_state["variables"]["project_name"], "Nexus")
+        self.assertEqual(retrieved_state["variables"]["project_name"], "ConciergeCore")
 
     def test_should_return_empty_for_nonexistent_checkpoint(self):
-        """Garante retorno seguro e vazio caso o agente tente buscar um estado fantasma."""
+        """Ensures safe empty return when querying a nonexistent checkpoint."""
         state = self.checkpointer.get_checkpoint("ghost_agent", "sess_99", "step_99")
         self.assertEqual(
-            state, {}, "Checkpoints inexistentes devem retornar um dicionário vazio."
+            state, {}, "Nonexistent checkpoints must return an empty dictionary."
         )
 
     def test_should_list_checkpoints_ordered_chronologically(self):
-        """Valida que o checkpointer organiza a linha do tempo cronológica para Time-Travel."""
-        agent = "hermes_agent"
+        """Validates that the checkpointer organizes the timeline in ascending chronological order for time-travel."""
+        agent = "cognitive_agent"
         session = "sess_42"
 
-        # Salva checkpoints sequenciais na linha do tempo
+        # Save sequential checkpoints along the timeline
         self.checkpointer.save_checkpoint(agent, session, "init", {"step": 0})
         self.checkpointer.save_checkpoint(agent, session, "loop_1", {"step": 1})
         self.checkpointer.save_checkpoint(agent, session, "loop_2", {"step": 2})
 
-        # Coleta a linha do tempo de checkpoints do banco
+        # Fetch chronological checkpoints from database
         timeline = self.checkpointer.list_checkpoints(agent, session)
 
-        # O retorno deve listar 3 checkpoints ordenados por criação (crescente)
+        # Expected 3 checkpoints sorted by creation timestamp (ascending)
         self.assertEqual(
             len(timeline),
             3,
-            "Deveria listar exatamente os 3 checkpoints gravados.",
+            "Should list exactly 3 recorded checkpoints.",
         )
 
         checkpoint_ids = [item["checkpoint_id"] for item in timeline]
         self.assertEqual(
             checkpoint_ids,
             ["init", "loop_1", "loop_2"],
-            "A ordenação cronológica foi violada.",
+            "Chronological ordering was violated.",
         )
 
     def test_should_isolate_multiple_agents_and_sessions(self):
-        """Garante isolamento estrito: um agente/sessão jamais lê checkpoints de outros vizinhos."""
-        # Salva o mesmo checkpoint_id em agentes e sessões distintas
+        """Ensures strict multi-tenant isolation: distinct agents and sessions never leak checkpoints."""
+        # Save identical checkpoint_id across distinct agents and sessions
         self.checkpointer.save_checkpoint(
-            "nexus", "session_A", "step_1", {"owner": "nexus_A"}
-        )
-        self.checkpointer.save_checkpoint(
-            "nexus", "session_B", "step_1", {"owner": "nexus_B"}
+            "agent_alpha", "session_A", "step_1", {"owner": "alpha_A"}
         )
         self.checkpointer.save_checkpoint(
-            "hermes", "session_A", "step_1", {"owner": "hermes_A"}
+            "agent_alpha", "session_B", "step_1", {"owner": "alpha_B"}
+        )
+        self.checkpointer.save_checkpoint(
+            "agent_beta", "session_A", "step_1", {"owner": "beta_A"}
         )
 
-        # Valida que cada busca é cirúrgica e isolada
-        state_nexus_a = self.checkpointer.get_checkpoint(
-            "nexus", "session_A", "step_1"
+        # Validate isolated, targeted queries
+        state_alpha_a = self.checkpointer.get_checkpoint(
+            "agent_alpha", "session_A", "step_1"
         )
-        self.assertEqual(state_nexus_a["owner"], "nexus_A")
+        self.assertEqual(state_alpha_a["owner"], "alpha_A")
 
-        state_nexus_b = self.checkpointer.get_checkpoint(
-            "nexus", "session_B", "step_1"
+        state_alpha_b = self.checkpointer.get_checkpoint(
+            "agent_alpha", "session_B", "step_1"
         )
-        self.assertEqual(state_nexus_b["owner"], "nexus_B")
+        self.assertEqual(state_alpha_b["owner"], "alpha_B")
 
-        state_hermes_a = self.checkpointer.get_checkpoint(
-            "hermes", "session_A", "step_1"
+        state_beta_a = self.checkpointer.get_checkpoint(
+            "agent_beta", "session_A", "step_1"
         )
-        self.assertEqual(state_hermes_a["owner"], "hermes_A")
+        self.assertEqual(state_beta_a["owner"], "beta_A")
 
 
 if __name__ == "__main__":

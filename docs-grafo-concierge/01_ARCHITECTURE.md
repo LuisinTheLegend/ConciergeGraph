@@ -1,4 +1,4 @@
-# 🏛️ Grafo Concierge — System Architecture (v4.0.0)
+# 🏛️ Grafo Concierge — System Architecture (v4.2.0)
 
 > **The Sovereign Cognitive Memory & Long-Term Memory (LTM) Infrastructure for AI Agents, IDEs & Developer Environments**
 
@@ -25,7 +25,12 @@ Under the **Survival Engineering Paradigm (Fatias Verticais de Sobrevivência & 
 14. **Polyglot AST Parser Factory (`core/parser_factory.py`, `core/parsers/`)**: Extends codebase intelligence beyond Python to TypeScript and JavaScript (`.ts`, `.tsx`, `.js`, `.jsx`) via Tree-sitter and an ultra-fast lexical fallback parser, extracting classes, functions, and internal imports while filtering external npm dependencies and React built-ins.
 15. **Durable FSM Checkpoints & Cognitive Time-Travel (`storage/relational_db.py`, `core/checkpointer.py`)**: Persists resilient execution snapshots in `fsm_checkpoints` under `(session_id, checkpoint_id)`. Performs recursive JSON sanitization on non-serializable objects and executes clean time-travel rollbacks that purge future checkpoints and re-flag rolled-back files as dirty.
 16. **Progressive Tool Disclosure & FastMCP Security Firewall (`core/mcp_governor.py`)**: Enforces two-layer tool visibility based on agent FSM states (`PLANNING`, `DISCOVERY`, `EXECUTION`, `TDD_GREEN`, `REFACTORING`, `MAINTENANCE`). Passively filters tool discovery to reduce prompt bloat and actively blocks unauthorized executions at runtime, raising `SecurityException`.
-17. **Federated Knowledge Routing (Nozomio RAG) & Global Hybrid Memory Adapter (`core/intent_classifier.py`, `core/nozomio_router.py`, `core/global_memory_adapter.py`)**: JIT Intent Classifier in 3 layers (Regex < 1ms, SQLite relational entities, Ollama SLM fallback) routes queries between private `LOCAL_GRAPHRAG` (`is_private: True`) and public `EXTERNAL_NOZOMIO_MCP` (`is_private: False`). The `GlobalMemoryAdapter` compiles a hybrid sliding window: preserving the last 3 immediate chat messages (STM) combined with a structured Long-Term Memory (LTM) substrate extracted from the graph.
+17. **Federated Knowledge Routing & Global Hybrid Memory Adapter (`core/intent_classifier.py`, `core/federated_knowledge_router.py`, `core/global_memory_adapter.py`)**: JIT Intent Classifier in 3 layers (Regex < 1ms, SQLite relational entities, Ollama SLM fallback) routes queries between private `LOCAL_GRAPHRAG` (`is_private: True`) and public `EXTERNAL_FEDERATED_MCP` (`is_private: False`). The `GlobalMemoryAdapter` compiles a hybrid sliding window: preserving the last 3 immediate chat messages (STM) combined with a structured Long-Term Memory (LTM) substrate extracted from the graph.
+18. **Hierarchical State Machine Engine (`core/hsm_engine.py`)**: Replaces flat FSM with a recursive, tree-structured HSM model. Organizes agent cognitive flow into canonical Super-States (`PLANNING`, `EXECUTION`, `MAINTENANCE`, `STALL`, `SUCCESS`) containing domain-specialized sub-states (`DISCOVERY`, `ARCHITECTURE`, `KANBAN_GEN`, `CODE_GEN`, `TDD_GREEN`, `REFACTORING`, `RE_INDEX`, `PURGE_CACHE`, `RECONCILE`, `RESET_DB`, `AWAITING_HUMAN`, `CONTEXT_FULL`, `ERROR_PAUSE`, `IDLE_COMPLETE`). Resolves state membership via qualified paths (`PLANNING.DISCOVERY`) and assigns sensitivity categories (`READ_ONLY`, `LOCAL_MUTATION`, `DANGEROUS`).
+19. **Strict Lifecycle Hooks & History Node ($H^*$) Delta Verification (`core/hsm_engine.py`)**: Dispatches `on_enter` and `on_exit` hooks in strict hierarchical order (sub-state exit $\to$ super-state exit; super-state enter $\to$ sub-state enter) with resilient try/except blocks. Records Deep History Nodes ($H^*$) storing `(state_path, checkpoint_id, timestamp)`. On `resume_from_history_node()`, verifies whether files modified since the snapshot have diverged via Dual-Hash (SSH + LBH); if drift is detected, safely redirects execution to `EXECUTION.RE_INDEX` for immediate self-healing.
+20. **Cognitive Loop Runner Coupling & Circuit Breaker (`agent/run_agent.py`)**: Couples `HermesAgentRunner` with the HSM engine. Automatically initializes sessions from the latest History Node or defaults to `PLANNING.DISCOVERY`. Enforces a 5-turn **Circuit Breaker** per sub-state to prevent infinite reasoning or retry loops, tripping safely into `STALL.AWAITING_HUMAN`.
+21. **Rate Governor Quotas & Multi-Tier Priority Queuing (`core/rate_governor.py`)**: Enforces high-precision 60-second sliding window quotas (60 RPM / 40,000 TPM) with a 3-tier priority request queue (`HIGH` for interactive turns, `MEDIUM` for subagents, `LOW` for background tasks). Automatically triggers 3-tier reactive freezing: `NORMAL` (<85%), `LOW_FROZEN` (≥85%, suspends low queue), `MEDIUM_FROZEN` (≥95%, suspends subagents, reserving throughput exclusively for Hermes).
+22. **Real-Time Passive Observability Cockpit (`grafo-dashboard-web/`)**: Next.js 16 (App Router) + React 19 + Tailwind CSS v4 dashboard operating under a strict **100% Zero-Mutation UI** paradigm. Receives sub-second telemetry via FastAPI SSE (`/api/telemetry/stream`). Displays a 2x2 grid cockpit: (1) 2D Force-Directed Code Graph with a 60fps sinusoidal pulsating yellow aura for files marked `is_dirty = 1`, (2) SVG Semi-Circular Radial Gauges for RPM and TPM with dynamic freezing status badges, (3) HSM State Inspector with expandable tree, active state highlight, Deep History Node card, and 5-turn Circuit Breaker dots, and (4) Real-time Cyber Console Live Event Feed with auto-scroll, UTC to local time formatting (`HH:mm:ss.SSS`), and category badges (`[WAL]`, `[JANITOR]`, `[DELTA]`, `[HSM]`, `[GATING]`).
 
 ---
 
@@ -34,15 +39,18 @@ Under the **Survival Engineering Paradigm (Fatias Verticais de Sobrevivência & 
 ```
                     ┌─────────────────────────────────────────────────────────┐
                     │            MCP Clients (Claude Desktop / Cursor)        │
-                    │            Next.js Dashboard & Multi-Agent Swarms       │
+                    │            Next.js 16 Observability Cockpit (Grid 2x2)  │
+                    │            Hermes Agent & Autonomous Swarms             │
                     └────────────────────────────┬────────────────────────────┘
                                                  │  JSON-RPC / FastMCP & FastAPI REST/SSE
                                                  ▼
 ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-│ 🌐 INTERFACE & GOVERNANCE LAYER (interface/ & core/mcp_governor.py)                         │
+│ 🌐 INTERFACE & GOVERNANCE LAYER (interface/, core/mcp_governor.py, core/rate_governor.py)   │
 │ - mcp_server.py: FastMCP Server with stdio & SSE transports (30 Native Cognitive Tools)    │
 │ - mcp_governor.py (MCPToolGovernor): Progressive Tool Disclosure Matrix & Active Security   │
-│ - telemetry_api.py: FastAPI REST (/api/telemetry/*, /api/checkpoints/*, /api/mcp/*) & SSE  │
+│ - rate_governor.py (RateGovernor): 60s Sliding Quotas (60 RPM/40k TPM) & Priority Freezing  │
+│ - gating_interceptor.py & security_guard.py: Adaptive Gating Interceptor (ask/auto/auton) │
+│ - telemetry_api.py: 15 REST routes (/api/telemetry/*, /api/governor/*, /api/hsm/*) & SSE    │
 │ - watcher.py: Early-Exit Reactive File Watcher (pathspec / .conciergeignore)                │
 │ - queue_writer.py (SerializedWriteQueue): Single-Writer Daemon + Adaptive Auto-Batching     │
 │ - cli.py: Management and operational CLI commands                                          │
@@ -50,10 +58,12 @@ Under the **Survival Engineering Paradigm (Fatias Verticais de Sobrevivência & 
                                          │
                                          ▼
 ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-│ 🧠 CORE & COGNITIVE SURVIVAL LAYER (core/)                                                  │
+│ 🧠 CORE & COGNITIVE SURVIVAL LAYER (core/ & agent/)                                         │
+│ - hsm_engine.py (HierarchicalStateMachine): Recursive HSM, Super/Sub-States, Hooks & H* Node│
+│ - run_agent.py (HermesAgentRunner): Cognitive Execution Loop + 5-turn Circuit Breaker       │
 │ - middleware.py (GrafoConcierge): Central Facade orchestrating all subsystems                │
 │ - intent_classifier.py: JIT 3-tier triage (Regex < 1ms + SQLite entities + Ollama SLM)     │
-│ - nozomio_router.py: Federated Knowledge Router (LOCAL_GRAPHRAG vs EXTERNAL_NOZOMIO_MCP)    │
+│ - federated_knowledge_router.py: Federated Router (LOCAL_GRAPHRAG vs EXTERNAL_FEDERATED_MCP)│
 │ - global_memory_adapter.py: Hybrid Context Adapter (LTM substrate + Last 3 STM chat msgs)  │
 │ - alias_tracker.py: Atomic File Rename & Move Detection via Structural Semantic Hash (SSH) │
 │ - parser_factory.py: Polyglot parser dispatcher (.py, .ts, .tsx, .js, .jsx)                 │
@@ -386,6 +396,74 @@ CREATE INDEX IF NOT EXISTS idx_fsm_checkpoints_session_created
   1. *Regex Heuristics (< 1ms)*: Matches project terminology, directory structures, and file extensions.
   2. *Relational Entity Validation*: Queries `files` in SQLite WAL to detect mentions of indexed code files.
   3. *Semantic Fallback*: Calls local Ollama SLM (`qwen2.5-coder:1.5b`) for binary classification between `LOCAL_CODEBASE` and `EXTERNAL_GENERAL`.
-* **NozomioRouter (`core/nozomio_router.py`)**: Delegates `LOCAL_CODEBASE` to local GraphRAG (`is_private: True`) and `EXTERNAL_GENERAL` to federated public documentation MCP servers (`is_private: False`).
+* **FederatedKnowledgeRouter (`core/federated_knowledge_router.py`)**: Delegates `LOCAL_CODEBASE` to local GraphRAG (`is_private: True`) and `EXTERNAL_GENERAL` to federated public documentation MCP servers (`is_private: False`).
 * **GlobalMemoryAdapter (`core/global_memory_adapter.py`)**: Compiles a hybrid context payload: preserves the last 3 immediate chat messages (Short-Term Memory) for conversational continuity, while replacing older chat history with a structured Long-Term Memory (LTM) substrate extracted from the knowledge graph.
+
+### 5.13 Hierarchical State Machine (HSM) Engine (`core/hsm_engine.py`)
+* Replaces naive, flat FSMs with a recursive, tree-structured HSM model (`HierarchicalStateMachine` and `HSMNode`).
+* **Canonical Hierarchy**:
+  * `PLANNING`: Read-only discovery and design phase.
+    * Sub-states: `DISCOVERY`, `ARCHITECTURE`, `KANBAN_GEN`.
+  * `EXECUTION`: Local mutation phase.
+    * Sub-states: `CODE_GEN`, `TDD_GREEN`, `REFACTORING`, `RE_INDEX`.
+  * `MAINTENANCE`: Dangerous administration phase.
+    * Sub-states: `PURGE_CACHE`, `RECONCILE`, `RESET_DB`.
+  * `STALL`: Autonomous mitigation and human escalation.
+    * Sub-states: `AWAITING_HUMAN`, `CONTEXT_FULL`, `ERROR_PAUSE`.
+  * `SUCCESS`: Terminal completion.
+    * Sub-states: `IDLE_COMPLETE`.
+* **State Paths**: States are addressed via dot-delimited paths (e.g. `PLANNING.DISCOVERY`, `EXECUTION.TDD_GREEN`).
+* **Automatic Category Inheritance**: Sub-states inherit the sensitivity category of their parent super-state unless explicitly overridden.
+
+### 5.14 State Transition Lifecycle Hooks & History Node ($H^*$) Delta Verification
+* **Hierarchical Lifecycle Hooks**: `HSMNode` supports registration of `on_enter` and `on_exit` callback handlers:
+  * Exit sequence executes from innermost sub-state outwards to super-state (`sub_state.execute_on_exit()` $\to$ `super_state.execute_on_exit()`).
+  * Enter sequence executes from outermost super-state inwards to sub-state (`super_state.execute_on_enter()` $\to$ `sub_state.execute_on_enter()`).
+  * Each execution is guarded by try/except handlers to ensure that a failing hook logs an error but does not corrupt the state transition.
+* **Deep History Node ($H^*$)**:
+  * Preserves the active sub-state and associated checkpoint snapshot `(state_path, checkpoint_id, timestamp)` upon exiting a super-state or saving progress.
+  * When an agent transitions back to a super-state (e.g., re-entering `EXECUTION`), the engine restores the exact sub-state where work paused instead of reverting to the initial default.
+* **Resume Delta Check (`resume_from_history_node`)**:
+  * Before restoring execution context, the engine executes an active audit comparing current workspace files against recorded hashes in SQLite WAL using `DeltaManager` (Dual-Hash: SSH + LBH).
+  * If out-of-band file edits (stale code) are detected, it dynamically intercepts the restoration and redirects the session to `EXECUTION.RE_INDEX`, triggering graph re-synchronization before code generation resumes.
+
+### 5.15 Cognitive Runner Coupling & Circuit Breaker (`agent/run_agent.py`)
+* Couples `HermesAgentRunner` with the HSM engine as the core brain of the cognitive execution loop:
+  * `initialize_session(session_id)`: Inspects SQLite for an active `history_node`. If found and code integrity passes, restores state and resumes execution; otherwise, safely boots into `PLANNING.DISCOVERY`.
+* **Cognitive Circuit Breaker (Anti-Loop Guard)**:
+  * Tracks consecutive turns executed within the same sub-state (`turn_count`).
+  * When `turn_count >= 5` (configurable via `max_turns`), the Circuit Breaker trips:
+    1. Emits a warning event to the telemetry stream.
+    2. Forcefully transitions the session to `STALL.AWAITING_HUMAN` or prompts the planner to re-evaluate the strategy, preventing catastrophic token burns on stubborn test failures or hallucination cycles.
+
+### 5.16 Rate Governor Quotas & Multi-Tier Priority Queuing (`core/rate_governor.py`)
+* **60-Second Sliding Window Quotas**: Continuously measures rolling consumption:
+  * **RPM (Requests per Minute)**: Default quota = 60 req/min.
+  * **TPM (Tokens per Minute)**: Default quota = 40,000 tok/min.
+* **Priority Request Queue (`PriorityRequestQueue`)**:
+  * Channels agent API calls through three strict priority lanes:
+    * `HIGH`: Interactive user turns and Hermes main cognitive steps.
+    * `MEDIUM`: Autonomous sub-agents and tool execution calls.
+    * `LOW`: Asynchronous background jobs (Janitor summarization, GraphRAG embeddings).
+* **3-Tier Reactive Freezing**:
+  * 🟢 **`NORMAL` (< 85%)**: All queues flow at full throughput.
+  * 🟡 **`LOW_FROZEN` (≥ 85%)**: Suspends `LOW` priority queue to protect interactive performance.
+  * 🟠 **`MEDIUM_FROZEN` (≥ 95%)**: Suspends `MEDIUM` subagents, dedicating remaining quota strictly to `HIGH` priority Hermes turns until the sliding window drains.
+
+### 5.17 Adaptive Gating & Security Guard (`core/gating_interceptor.py`, `core/security_guard.py`)
+* Intercepts tool execution requests to enforce developer-configured autonomy modes:
+  * `ask`: Strict human-in-the-loop gating for all mutating operations.
+  * `auto_read`: Non-mutating tools (`READ_ONLY`) execute autonomously; mutating tools require explicit confirmation.
+  * `autonomous`: Full autonomy within the allowed bounds of the current HSM state.
+* `SecurityGuard` performs realpath sandboxing to defend against path traversal (`../`) and forbidden workspace boundary escapes.
+
+### 5.18 Real-Time Passive Observability Cockpit (`grafo-dashboard-web/`)
+* Built with Next.js 16 (App Router), React 19, and Tailwind CSS v4 under a **100% Zero-Mutation UI** paradigm:
+* **Real-time SSE Stream**: Connects to `/api/telemetry/stream` (FastAPI), hydrating state instantly on load via `/api/telemetry/snapshot`, `/api/governor/metrics`, and `/api/hsm/tree` without network polling.
+* **2x2 Grid Cockpit Layout**:
+  1. **Top-Left — CodeGraphViewer (`components/topology/CodeGraphViewer.tsx`)**: 2D Force-Directed Graph with directory community grouping and a 60fps sinusoidal pulsating yellow aura for files with `is_dirty = 1`.
+  2. **Top-Right — QuotaGauges (`components/governor/QuotaGauges.tsx`)**: Semicircular SVG radial gauges for RPM/TPM with smooth `stroke-dashoffset` transitions and reactive freezing badges.
+  3. **Bottom-Left — HSMStateInspector (`components/hsm/HSMStateInspector.tsx`)**: Visual hierarchy tree, active state highlight, Deep History Node card, and 5-turn Circuit Breaker dots.
+  4. **Bottom-Right — LiveEventFeed (`components/telemetry/LiveEventFeed.tsx`)**: Cyber console with auto-scroll toggle, ISO 8601 UTC to local browser time formatting (`HH:mm:ss.SSS`), and category badges (`[WAL]`, `[JANITOR]`, `[DELTA]`, `[HSM]`, `[GATING]`).
+
 

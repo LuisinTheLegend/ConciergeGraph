@@ -3,7 +3,7 @@ core/gating_interceptor.py — SDD-SURVIVAL-24
 
 Adaptive Gating Interceptor for IDE, MCP, and Terminal.
 
-Regulates agent autonomy (Hermes / Nexus) through three strict regimes:
+Regulates autonomous agent execution through three strict regimes:
   plan-only    — Read-only access. Physical mutations and terminal commands blocked.
   ask          — Local file mutations auto-approved. WARNING commands require
                  interactive human developer approval via async non-blocking CLI prompt.

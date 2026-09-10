@@ -31,7 +31,7 @@ import threading
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Optional, Any
 
 from storage import SqliteStore, ChromaVectorStore
 from ingestion.orchestrator import IngestionManager

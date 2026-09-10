@@ -1,17 +1,16 @@
 """
-tests/test_e2e_concierge_integration.py — Grande Auditoria Fim-a-Fim (E2E)
+tests/test_e2e_concierge_integration.py — End-to-End Master Integration Audit
 
-Suíte de Integração Master que orquestra as 7 fatias de sobrevivência
-para comprovar que todos os subsistemas se comunicam perfeitamente sem
-travas, vazamentos ou inconsistências sob um fluxo dinâmico real de
-dados em cascata:
+Master integration test suite orchestrating all core architectural slices
+to prove that all subsystems communicate seamlessly without deadlocks,
+memory leaks, or data inconsistencies under live cascading data flow:
 
-  Passo A: Ingestão de Código & Delta Sync (SDD-04)
-  Passo B: Varredura Frugal do Janitor (SDD-06)
-  Passo C: Navegação Topológica Recursiva com Loop Cíclico (SDD-06)
-  Passo D: Busca Híbrida e Auto-Cura de Vetores (SDD-05)
-  Passo E: Checkpointing de Sessão e Time-Travel (SDD-07)
-  Passo F: Validação de Payload das Novas Ferramentas MCP (SDD-08)
+  Step A: Code Ingestion & Delta Sync (SDD-04)
+  Step B: Frugal Background Janitor Sweep (SDD-06)
+  Step C: Recursive Topological Navigation with Cycle Guards (SDD-06)
+  Step D: Hybrid Search & Query-Time Vector Self-Healing (SDD-05)
+  Step E: Session Checkpointing & Cognitive Time-Travel (SDD-07)
+  Step F: MCP Public Tools Payload Validation (SDD-08)
 """
 
 import unittest
@@ -23,8 +22,7 @@ import json
 import types
 
 
-# ── Importação cirúrgica: carrega módulos diretamente sem acionar
-#    os __init__.py dos pacotes (que puxam dependências pesadas). ──
+# ── Surgical Import: loads modules directly without triggering package __init__.py ──
 
 _project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -108,7 +106,7 @@ sys.modules["core.checkpointer"] = _cp_mod
 _cp_spec.loader.exec_module(_cp_mod)
 AgnosticCheckpointer = _cp_mod.AgnosticCheckpointer
 
-# 9) interface.mcp_server (stub das dependências pesadas)
+# 9) interface.mcp_server (mock heavyweight dependencies)
 if "mcp.server.fastmcp" not in sys.modules:
     _mcp_pkg = types.ModuleType("mcp")
     _mcp_server_pkg = types.ModuleType("mcp.server")
@@ -157,7 +155,7 @@ mcp_server = _ms_mod
 
 
 class MockVectorDatabase:
-    """Mock em memória para simular o comportamento do Qdrant de forma isolada."""
+    """In-memory mock isolating Qdrant behavior for testing."""
     def __init__(self):
         self.storage = {}
 
@@ -184,19 +182,19 @@ class MockVectorDatabase:
 
 class TestConciergeSovereignE2EAudit(unittest.TestCase):
     """
-    Suíte de Teste de Integração Fim-a-Fim (E2E) e Auditoria de Concorrencia.
-    Esta classe orquestra as 7 fatias de sobrevivência para garantir que todos
-    os subsistemas se comuniquem perfeitamente sem travas, vazamentos ou inconsistências.
+    End-to-End (E2E) Integration & Concurrency Audit Suite.
+    Orchestrates all survival slices to verify that subsystems communicate
+    seamlessly without deadlocks, memory leaks, or data inconsistencies.
     """
     def setUp(self):
         self.db_fd, self.db_path = tempfile.mkstemp(suffix=".db")
 
-        # 1. Inicializa Fila de Escrita Serializada (WAL) — Fase 1 (SDD-02)
+        # 1. Initialize SerializedWriteQueue (WAL) — Phase 1 (SDD-02)
         self.write_queue = SerializedWriteQueue(self.db_path)
         self.write_queue.start()
         self.db_manager = ConciergeDatabaseManager(self.db_path, self.write_queue)
 
-        # 2. Inicializa as Tabelas Relacionais do SQLite WAL (DDR e DDL concorrentes)
+        # 2. Initialize relational schemas in SQLite WAL
         self.db_manager.write_query(
             "CREATE TABLE IF NOT EXISTS files ("
             "path TEXT PRIMARY KEY, content TEXT, ssh_hash TEXT, "
@@ -221,24 +219,24 @@ class TestConciergeSovereignE2EAudit(unittest.TestCase):
             ");"
         )
 
-        # 3. Instancia os Managers e Engines Reais
+        # 3. Instantiate real managers and engines
         self.delta_manager = DeltaManager(self.db_manager)
         self.graph_rag = GraphRAGEngine(self.db_manager)
         self.janitor = BackgroundJanitor(self.db_manager)
         self.checkpointer = AgnosticCheckpointer(self.db_manager)
 
-        # 4. Instancia Banco Vetorial Mock e Motores de Busca
+        # 4. Instantiate Mock Vector Database and Search Engines
         self.vector_db = MockVectorDatabase()
         self.search_engine = HybridSearchEngine(self.db_manager, self.vector_db)
         self.reconciler = VectorReconciler(self.db_manager, self.vector_db)
 
-        # 5. Injeta instâncias ativas no escopo de módulo do Servidor MCP para Auditoria de Ferramentas
+        # 5. Inject active instances into MCP server module scope
         mcp_server.db_manager = self.db_manager
         mcp_server.checkpointer = self.checkpointer
         mcp_server.graph_rag = self.graph_rag
 
     def tearDown(self):
-        # Desliga a fila de escritas serializadas de forma graciosa
+        # Gracefully shut down serialized write queue
         self.write_queue.queue.put(None)
         self.write_queue.join(timeout=10)
         os.close(self.db_fd)
@@ -253,18 +251,18 @@ class TestConciergeSovereignE2EAudit(unittest.TestCase):
 
     def test_e2e_flow_full_lifecycle_and_communication(self):
         """
-        AUDITORIA FIM-A-FIM: Executa o fluxo de dados em cascata provando que
-        as comunicações entre Delta Manager, GraphRAG, Checkpointer, Busca Vetorial
-        e as pontes públicas do Servidor MCP operam em sintonia perfeita.
+        END-TO-END AUDIT: Executes full cascading data flow proving that
+        DeltaManager, GraphRAG, Checkpointer, Vector Search, and public MCP tools
+        operate in complete harmony.
         """
         # ==========================================
-        # PASSO A: Ingestão de Código & Delta Sync (Fase 2 / SDD-04)
+        # STEP A: Code Ingestion & Delta Sync (Phase 2 / SDD-04)
         # ==========================================
         community_id = "core_system"
         file_path_1 = "core/main.py"
         file_path_2 = "core/utils.py"
 
-        # Cria registros iniciais das comunidades
+        # Create initial community records
         self.db_manager.write_query(
             "INSERT INTO communities (id, summary_text, is_dirty) VALUES (?, 'Old Summary', 1);",
             (community_id,)
@@ -273,27 +271,27 @@ class TestConciergeSovereignE2EAudit(unittest.TestCase):
         code_1 = "import sys\n\ndef run():\n    return 'OK'\n"
         code_2 = "def calculate_hash(data):\n    return hash(data)\n"
 
-        # Processa alterações de arquivos via DeltaManager (SSH hashes gerados)
+        # Process file changes via DeltaManager (generating SSH hashes)
         struct_change_1 = self.delta_manager.process_file_change(file_path_1, code_1, community_id)
         struct_change_2 = self.delta_manager.process_file_change(file_path_2, code_2, community_id)
 
-        self.assertTrue(struct_change_1, "Arquivo inédito deve registrar mudança estrutural.")
-        self.assertTrue(struct_change_2, "Arquivo inédito deve registrar mudança estrutural.")
+        self.assertTrue(struct_change_1, "Newly created file must trigger structural change.")
+        self.assertTrue(struct_change_2, "Newly created file must trigger structural change.")
 
-        # Verifica se o banco de dados WAL capturou as flags de sujeira (DIRTY = 1)
+        # Verify WAL database captured dirty flags (is_dirty = 1)
         comm_dirty = self.db_manager.read_query("SELECT is_dirty FROM communities WHERE id = ?;", (community_id,))
-        self.assertEqual(comm_dirty[0][0], 1, "A comunidade deve estar marcada como DIRTY.")
+        self.assertEqual(comm_dirty[0][0], 1, "Community must be flagged as DIRTY.")
 
-        # Simula alteração estritamente cosmética no arquivo 1 (comentários/espaços - SSH e LBH idênticos)
-        code_1_cosmetic_only = "import sys\n\ndef run():\n    # apenas comentario cosmetico\n    return 'OK'\n"
+        # Simulate strictly cosmetic change in file 1 (comments/whitespace — identical SSH and LBH)
+        code_1_cosmetic_only = "import sys\n\ndef run():\n    # purely cosmetic comment\n    return 'OK'\n"
         struct_change_cosmetic = self.delta_manager.process_file_change(file_path_1, code_1_cosmetic_only, community_id)
 
-        self.assertFalse(struct_change_cosmetic, "Mudança cosmética não deveria invalidar o grafo (SSH e LBH idênticos).")
+        self.assertFalse(struct_change_cosmetic, "Cosmetic edit must not invalidate graph (identical SSH and LBH).")
 
         # ==========================================
-        # PASSO B: Varredura Frugal do Janitor (Fase 2 / SDD-06)
+        # STEP B: Frugal Background Janitor Sweep (Phase 2 / SDD-06)
         # ==========================================
-        # Com a comunidade marcada como DIRTY, o background janitor deve rodar de forma preguiçosa (Lazy Summarization)
+        # With community marked as DIRTY, background janitor runs lazy summarization
         slm_calls = 0
         def local_slm_mock(payload):
             nonlocal slm_calls
@@ -302,77 +300,77 @@ class TestConciergeSovereignE2EAudit(unittest.TestCase):
 
         logs = self.janitor.run_idle_summarization(local_slm_mock)
 
-        self.assertEqual(slm_calls, 1, "A SLM local deve ser executada para compilar a comunidade suja.")
-        self.assertIn(community_id, logs, "O log de auditoria do Janitor deve registrar o processamento da comunidade.")
+        self.assertEqual(slm_calls, 1, "Local SLM must be invoked to summarize dirty community.")
+        self.assertIn(community_id, logs, "Janitor audit log must record community processing.")
 
-        # Garante que as flags de sujeira foram devidamente resetadas após a compilação
+        # Ensure dirty flags were properly cleared after compilation
         comm_state = self.db_manager.read_query("SELECT is_dirty, summary_text FROM communities WHERE id = ?;", (community_id,))
-        self.assertEqual(comm_state[0][0], 0, "A flag is_dirty da comunidade deve retornar para 0.")
-        self.assertTrue(comm_state[0][1].startswith("Summary of"), "O resumo conceitual deve ser salvo no banco local.")
+        self.assertEqual(comm_state[0][0], 0, "Community is_dirty flag must reset to 0.")
+        self.assertTrue(comm_state[0][1].startswith("Summary of"), "Conceptual summary must be stored in database.")
 
         # ==========================================
-        # PASSO C: Navegação Topológica Recursiva (Fase 2 / SDD-06)
+        # STEP C: Recursive Topological Navigation (Phase 2 / SDD-06)
         # ==========================================
-        # Registra dependências de chamadas AST de forma cruzada
+        # Register circular AST call dependencies
         self.db_manager.write_query("INSERT INTO ast_edges VALUES ('core/main.py', 'core/utils.py');")
         self.db_manager.write_query("INSERT INTO ast_edges VALUES ('core/utils.py', 'core/db_driver.py');")
-        self.db_manager.write_query("INSERT INTO ast_edges VALUES ('core/db_driver.py', 'core/main.py');")  # LOOP CÍCLICO!
+        self.db_manager.write_query("INSERT INTO ast_edges VALUES ('core/db_driver.py', 'core/main.py');")  # CYCLIC LOOP!
 
-        # Varre recursivamente a partir do main.py (deve ignorar o loop cíclico graças ao guard de depth)
+        # Recursively traverse from main.py (must safely handle cyclic loop via depth limit guard)
         call_chain = self.graph_rag.get_call_chain_recursive("core/main.py", depth_limit=4)
 
-        self.assertEqual(len(call_chain), 2, "A busca do GraphRAG deve mapear exatamente os 2 nós filhos interconectados.")
+        self.assertEqual(len(call_chain), 2, "GraphRAG search must resolve exactly 2 interconnected child nodes.")
         self.assertIn("core/utils.py", call_chain)
         self.assertIn("core/db_driver.py", call_chain)
 
         # ==========================================
-        # PASSO D: Busca Híbrida e Auto-Cura de Vetores (Fase 2 / SDD-05)
+        # STEP D: Hybrid Search & Vector Self-Healing (Phase 2 / SDD-05)
         # ==========================================
-        # Insere dados legítimos e órfãos no banco vetorial
+        # Insert legitimate and orphaned data into vector database
         self.vector_db.insert("core/main.py", {"text": "main"})
         self.vector_db.insert("core/utils.py", {"text": "utils"})
-        self.vector_db.insert("core/deleted_file.py", {"text": "orphan"})  # ÓRFÃO!
+        self.vector_db.insert("core/deleted_file.py", {"text": "orphan"})  # ORPHAN!
 
-        # Busca híbrida com auto-cura em tempo de execução
+        # Hybrid search with runtime self-healing
         search_results = self.search_engine.hybrid_search("find functions", limit=5)
 
         returned_ids = [r["id"] for r in search_results]
-        self.assertEqual(len(search_results), 2, "O Query-Time Filter deve remover o vetor órfão em tempo de execução.")
+        self.assertEqual(len(search_results), 2, "Query-Time Filter must remove orphaned vectors dynamically.")
         self.assertIn("core/main.py", returned_ids)
-        self.assertNotIn("core/deleted_file.py", returned_ids, "O arquivo inexistente no SQLite WAL foi limpo JIT.")
+        self.assertNotIn("core/deleted_file.py", returned_ids, "File missing in SQLite WAL must be excluded JIT.")
 
-        # Limpeza física de background
+        # Physical background reconciliation
         deleted_orphans = self.reconciler.reconcile_orphans()
-        self.assertEqual(deleted_orphans, ["core/deleted_file.py"], "O Janitor físico deve identificar e expurgar o órfão.")
-        self.assertNotIn("core/deleted_file.py", self.vector_db.get_all_ids(), "O vetor órfão deve ser extinto do Qdrant.")
+        self.assertEqual(deleted_orphans, ["core/deleted_file.py"], "Physical Janitor must identify and purge orphan.")
+        self.assertNotIn("core/deleted_file.py", self.vector_db.get_all_ids(), "Orphan vector must be expunged from database.")
 
         # ==========================================
-        # PASSO E: Checkpointing de Sessão e Time-Travel (Fase 3 / SDD-07)
+        # STEP E: Session Checkpointing & Time-Travel (Phase 3 / SDD-07)
         # ==========================================
-        agent_id = "hermes_core"
+        agent_id = "cognitive_core"
         session_id = "audit_session_2026"
 
         state_1 = {"node": "DRAFTING", "code_blocks": 5}
         state_2 = {"node": "REFACTORING", "code_blocks": 8}
 
-        # Grava estados sequenciais
+        # Save sequential states
         self.checkpointer.save_checkpoint(agent_id, session_id, "checkpoint_1", state_1)
         self.checkpointer.save_checkpoint(agent_id, session_id, "checkpoint_2", state_2)
 
-        # Lista linha do tempo cronológica
+        # List chronological timeline
         timeline = self.checkpointer.list_checkpoints(agent_id, session_id)
-        self.assertEqual(len(timeline), 2, "Deveria listar a história exata com 2 checkpoints.")
+        self.assertEqual(len(timeline), 2, "Should list exactly 2 chronological checkpoints.")
         self.assertEqual(timeline[0]["checkpoint_id"], "checkpoint_1")
         self.assertEqual(timeline[1]["checkpoint_id"], "checkpoint_2")
 
-        # Simula o Time-Travel carregando o estado antigo para rollback de variáveis
+        # Simulate Time-Travel loading past state for variable rollback
         restored_state = self.checkpointer.get_checkpoint(agent_id, session_id, "checkpoint_1")
-        self.assertEqual(restored_state["node"], "DRAFTING", "O Time-Travel deve restaurar fielmente o dicionário do agente.")
+        self.assertEqual(restored_state["node"], "DRAFTING", "Time-Travel must faithfully restore agent state dictionary.")
 
         # ==========================================
-        # PASSO F: Validação de Payload das Novas Ferramentas MCP (Fase 3 / SDD-08)
+        # STEP F: Payload Validation of MCP Tools (Phase 3 / SDD-08)
         # ==========================================
-        # Testa a ponte JSON-RPC pública de Checkpoint
+        # Test public JSON-RPC checkpoint tool
         save_response_json = mcp_server.agent_save_checkpoint(
             agent_id=agent_id,
             session_id=session_id,
@@ -384,10 +382,10 @@ class TestConciergeSovereignE2EAudit(unittest.TestCase):
         self.assertTrue(parsed_response["success"])
         self.assertIn("saved successfully", parsed_response["message"])
 
-        # Testa a ponte JSON-RPC pública de busca recursiva
+        # Test public JSON-RPC recursive call chain tool
         mcp_call_chain = mcp_server.concierge_get_call_chain(start_node="core/main.py", depth_limit=3)
-        self.assertIn("core/utils.py", mcp_call_chain, "A ponte do MCP de dependências deve responder identicamente.")
-        self.assertIn("core/db_driver.py", mcp_call_chain, "A ponte do MCP de dependências deve responder identicamente.")
+        self.assertIn("core/utils.py", mcp_call_chain, "MCP dependency tool must return consistent results.")
+        self.assertIn("core/db_driver.py", mcp_call_chain, "MCP dependency tool must return consistent results.")
         self.assertEqual(len(mcp_call_chain), 2)
 
 

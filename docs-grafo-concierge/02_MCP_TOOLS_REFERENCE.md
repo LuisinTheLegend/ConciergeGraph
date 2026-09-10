@@ -1,4 +1,4 @@
-# 🔌 MCP Tools Reference — Complete 30 Tools Catalog (v4.0.0)
+# 🔌 MCP Tools Reference — Complete 30 Tools Catalog (v4.2.0)
 
 > **Official Specification for Model Context Protocol (MCP) Clients (Cursor, Windsurf, Claude Desktop, Autonomous Agents & External Multi-Agent Swarms)**
 
@@ -204,11 +204,11 @@ Executes recursive call chain discovery via `WITH RECURSIVE` queries over `ast_e
 ### `agent_save_checkpoint`
 Persists arbitrary agent state dictionaries as JSON blobs in SQLite WAL under a composite primary key `(agent_id, session_id, checkpoint_id)` via `AgnosticCheckpointer`. Checkpoints are automatically prunable by `BackgroundJanitor`'s Smart LRU algorithm while protecting the `"init"` checkpoint.
 * **Arguments**:
-  * `agent_id` (`str`, required): Identifier of the agent (e.g. `nexus_agent`, `hermes`).
+  * `agent_id` (`str`, required): Identifier of the agent (e.g. `primary_agent`, `cognitive_agent`).
   * `session_id` (`str`, required): Unique session run identifier.
   * `checkpoint_id` (`str`, required): Identifier of the step/checkpoint (e.g. `init`, `step_1`, `pre_refactor`).
   * `state_dict` (`dict`, required): Arbitrary Python dictionary containing agent variables, memory, and kanban state.
-* **Return**: `str` (JSON string: `{"success": true, "message": "Checkpoint 'step_1' saved successfully for agent 'nexus_agent'"}`).
+* **Return**: `str` (JSON string: `{"success": true, "message": "Checkpoint 'step_1' saved successfully for agent 'primary_agent'"}`).
 
 ### `agent_get_checkpoint`
 Retrieves and decodes the persisted state dictionary for a specific step.
@@ -301,9 +301,9 @@ Emergency repair tool that destroys and recreates the physical vector collection
 
 ---
 
-## 9. Progressive Tool Disclosure Security Matrix (Active-SDD #21)
+## 9. Progressive Tool Disclosure & Hierarchical State Machine (HSM) Security Matrix (Active-SDD #21 / #25)
 
-To prevent LLM context window pollution and protect the codebase against inadvertent modifications during early research phases, Grafo Concierge implements **Progressive Tool Disclosure** through the `MCPToolGovernor` (`core/mcp_governor.py`).
+To prevent LLM context window pollution and protect the codebase against inadvertent modifications during early research phases, Grafo Concierge implements **Progressive Tool Disclosure** through the `MCPToolGovernor` (`core/mcp_governor.py`) deeply integrated with the **Hierarchical State Machine** (`core/hsm_engine.py`).
 
 ### 9.1 Two-Layer Enforcement Architecture
 
@@ -314,10 +314,10 @@ To prevent LLM context window pollution and protect the codebase against inadver
           ▼ (list_tools)                                ▼ (call_tool)
 ┌───────────────────────────────────┐       ┌───────────────────────────────────┐
 │ Layer 1: Passive Discovery Filter │       │ Layer 2: Active Runtime Intercept │
-│ Filters returned tools by FSM     │       │ Validates session permission      │
+│ Filters returned tools by HSM     │       │ Validates session permission      │
 │ state to contain prompt token cost│       │ Blocks unauthorized execution     │
-└───────────────────────────────────┘       │ with SecurityException            │
-                                            └───────────────────────────────────┘
+│ and reduce cognitive distractors  │       │ with SecurityException            │
+└───────────────────────────────────┘       └───────────────────────────────────┘
 ```
 
 ### 9.2 Tool Sensitivity Classification
@@ -330,25 +330,46 @@ All 30 native tools are strictly classified into three risk tiers:
 | **`LOCAL_MUTATION`** | Modifies SQLite relations, writes local files, or creates checkpoints. | `concierge_register`, `update_project`, `delete_project`, `add_reference_wing`, `remove_reference_wing`, `concierge_mine`, `concierge_wakeup`, `concierge_resume`, `concierge_commit`, `agent_save_checkpoint`, `concierge_store_fact`, `concierge_set_memory`. |
 | **`DANGEROUS`** | Irreversible drops, raw terminal execution, or collection resets. | `reset_collection`, and any unclassified external command execution tools (conservative default). |
 
-### 9.3 State Disclosure Matrix
+### 9.3 Hierarchical State Machine (HSM) Disclosure Matrix
 
-| FSM State | Allowed Categories | Explicit Whitelist | Typical Agent Phase |
+In Grafo Concierge v4.2.0, the state space is organized into a canonical hierarchy of Super-States and specialized Sub-States:
+
+| Super-State | Sub-States | Allowed Sensitivity Categories | Phase Purpose & Key Tools |
 | :--- | :--- | :--- | :--- |
-| **`PLANNING`** (Default) | `READ_ONLY` | `get_telemetry_snapshot` | Requirements gathering, plan writing, architecture review. |
-| **`DISCOVERY`** | `READ_ONLY` | `get_telemetry_snapshot` | AST search, dependency analysis, call graph inspection. |
-| **`EXECUTION`** | `READ_ONLY`, `LOCAL_MUTATION` | `get_telemetry_snapshot` | Implementing code, editing files, saving checkpoints. |
-| **`TDD_GREEN`** | `READ_ONLY`, `LOCAL_MUTATION` | `get_telemetry_snapshot` | Writing minimal implementation to pass failing tests. |
-| **`REFACTORING`** | `READ_ONLY`, `LOCAL_MUTATION` | `get_telemetry_snapshot` | Code cleanup, typing improvements, lint fixes. |
-| **`MAINTENANCE`** | `READ_ONLY`, `LOCAL_MUTATION`, `DANGEROUS` | None (Unrestricted) | Emergency database drops, vacuuming, manual admin operations. |
+| **`PLANNING`** | `DISCOVERY`<br>`ARCHITECTURE`<br>`KANBAN_GEN` | `READ_ONLY` | Requirements extraction, AST exploration, call-chain inspection. Read-only safety guard. |
+| **`EXECUTION`** | `CODE_GEN`<br>`TDD_GREEN`<br>`REFACTORING`<br>`RE_INDEX` | `READ_ONLY`<br>`LOCAL_MUTATION` | Modifying files, running incremental commits (`concierge_commit`), creating checkpoints (`agent_save_checkpoint`). |
+| **`MAINTENANCE`** | `PURGE_CACHE`<br>`RECONCILE`<br>`RESET_DB` | `READ_ONLY`<br>`LOCAL_MUTATION`<br>`DANGEROUS` | Vector database reconciliation, cache clearing, collection drops (`reset_collection`). |
+| **`STALL`** | `AWAITING_HUMAN`<br>`CONTEXT_FULL`<br>`ERROR_PAUSE` | `READ_ONLY` | Safe mitigation state when Circuit Breaker trips (turn $\ge 5$) or when human guidance is required. |
+| **`SUCCESS`** | `IDLE_COMPLETE` | `READ_ONLY` | Terminal success. Awaits next instruction. |
 
-### 9.4 Dynamic State Management via REST API
+### 9.4 Lifecycle Hooks, Deep History Node ($H^*$) & Circuit Breaker
 
-Agents and orchestrators dynamically transition the cognitive state of an active session using the Telemetry API:
-* **Update State**: `POST /api/mcp/state` with payload `{"session_id": "session_abc", "state_name": "EXECUTION"}`
-* **Query State**: `GET /api/mcp/state/{session_id}` returns `{"session_id": "session_abc", "active_state": "EXECUTION"}`
+* **Hierarchical Lifecycle Hooks**:
+  * `on_exit`: Executed in child-to-parent order (innermost sub-state first, then parent super-state).
+  * `on_enter`: Executed in parent-to-child order (parent super-state first, then entering sub-state).
+  * All hook executions are encapsulated by error-handling barriers to prevent state corruption.
+* **Deep History Node ($H^*$)**:
+  * Saves `(state_path, checkpoint_id, timestamp)` upon leaving or pausing work in a sub-state.
+  * Restores the exact child sub-state when re-entering a super-state.
+  * Checks Dual-Hash delta drift during `resume_from_history_node()`; redirects to `EXECUTION.RE_INDEX` if files changed out-of-band.
+* **Cognitive Circuit Breaker**:
+  * Caps consecutive execution turns inside any single sub-state at 5 turns. If exceeded without transition, trips into `STALL.AWAITING_HUMAN` to prevent infinite token burns.
+
+### 9.5 Dynamic State Management via REST API
+
+Agents, orchestrators, and the Next.js Cockpit interact with the HSM via dedicated FastAPI endpoints:
+
+| Endpoint | Method | Payload / Response | Description |
+| :--- | :---: | :--- | :--- |
+| **`/api/hsm/state/{session_id}`** | `GET` | `{"current_full_path": "EXECUTION.CODE_GEN", "history_node": [...]}` | Queries the active qualified state path and History Node for a session. |
+| **`/api/hsm/transition`** | `POST` | `{"session_id": "s1", "target_state": "EXECUTION.TDD_GREEN"}` | Executes a state transition, firing exit/enter hooks and updating the tool disclosure filter. |
+| **`/api/hsm/resume/{session_id}`** | `POST` | `{"status": "resumed", "state": "EXECUTION.CODE_GEN"}` | Restores session from History Node after auditing codebase drift. |
+| **`/api/hsm/tree`** | `GET` | `{"state_tree": {...}}` | Returns the entire canonical HSM topology tree for UI rendering. |
+| **`/api/gating/config`** | `GET` / `POST` | `{"mode": "ask" \| "auto_read" \| "autonomous"}` | Inspects or toggles the runtime adaptive gating autonomy mode. |
 
 If an agent directly calls a tool outside its active state permissions, `validate_tool_execution` immediately raises:
 ```python
-SecurityException: "Acesso negado: ferramenta 'agent_save_checkpoint' (categoria 'LOCAL_MUTATION') está bloqueada durante o estado 'PLANNING' da sessão 'session_abc'."
+SecurityException: "Acesso negado: ferramenta 'agent_save_checkpoint' (categoria 'LOCAL_MUTATION') está bloqueada durante o estado 'PLANNING.DISCOVERY' da sessão 'session_abc'."
 ```
+
 

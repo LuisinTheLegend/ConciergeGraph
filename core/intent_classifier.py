@@ -10,7 +10,7 @@ knowledge (EXTERNAL_GENERAL):
   1. Fast Heuristic (Regex < 1ms): Project keywords, paths, and file extensions.
   2. Relational Entity Heuristic (SQLite): Checks if query terms match
      indexed file paths in the 'files' table.
-  3. Cognitive Semantic Fallback (Ollama SLM): In ambiguous cases,
+  3. Cognitive Semantic Fallback (Local SLM): In ambiguous cases,
      invokes lightweight local model (qwen2.5-coder:1.5b) for intent classification.
 """
 
@@ -24,13 +24,14 @@ logger = logging.getLogger(__name__)
 class IntentClassifier:
     """JIT query intent classifier with a 3-tier triage pipeline."""
 
-    def __init__(self, db_manager, ollama_client=None):
+    def __init__(self, db_manager, slm_client=None, ollama_client=None):
         self.db = db_manager
-        self.ollama = ollama_client
+        self.slm_client = slm_client or ollama_client
+        self.ollama = self.slm_client  # Backward-compatibility alias
 
         # Tier 1: Compiled regex for known project-specific terms and path prefixes
         self.local_keywords = re.compile(
-            r'\b(grafo|concierge|hermes|nexus|sdd|db|tabela|sqlite|qdrant|mcp|janitor|database|comunidade|teste|testes|commit)\b|'
+            r'\b(grafo|concierge|core|agent|sdd|db|tabela|sqlite|vector|mcp|janitor|database|comunidade|teste|testes|commit)\b|'
             r'(\.py|\.tsx?|\.jsx?)\b|'
             r'(/workspace|core/|interface/|grafo-dashboard-web)',
             re.IGNORECASE,
@@ -43,7 +44,7 @@ class IntentClassifier:
         Decision pipeline:
           1. Fast Heuristic (Syntactic < 1ms) via Regex
           2. Relational Entity Heuristic (SQLite indexed files)
-          3. Cognitive Semantic Fallback via Ollama SLM (if available)
+          3. Cognitive Semantic Fallback via Local SLM (if available)
 
         Returns:
             'LOCAL_CODEBASE' if query refers to the private project.
@@ -73,8 +74,8 @@ class IntentClassifier:
             except Exception as e:
                 logger.warning("IntentClassifier: Entity heuristic failure: %s", e)
 
-        # 3. Cognitive Semantic Fallback (Only if Ollama is active)
-        if self.ollama:
+        # 3. Cognitive Semantic Fallback (Only if SLM is active)
+        if self.slm_client:
             try:
                 prompt = (
                     "Classify the user query into exactly one of two strict categories:\n"
@@ -85,13 +86,13 @@ class IntentClassifier:
                     f"Query: \"{query}\"\n\n"
                     "Answer strictly with ONLY one of the two category names."
                 )
-                response = self.ollama.generate(model="qwen2.5-coder:1.5b", prompt=prompt)
+                response = self.slm_client.generate(model="qwen2.5-coder:1.5b", prompt=prompt)
                 clean_res = response.strip().upper()
                 if "LOCAL_CODEBASE" in clean_res:
                     logger.debug("IntentClassifier: '%s' -> LOCAL_CODEBASE (SLM fallback)", query[:60])
                     return "LOCAL_CODEBASE"
             except Exception as e:
-                logger.warning("IntentClassifier: Ollama SLM fallback failure: %s", e)
+                logger.warning("IntentClassifier: Local SLM fallback failure: %s", e)
 
         logger.debug("IntentClassifier: '%s' -> EXTERNAL_GENERAL (default)", query[:60])
         return "EXTERNAL_GENERAL"

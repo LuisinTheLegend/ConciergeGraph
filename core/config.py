@@ -89,7 +89,7 @@ class ConciergeConfig:
         ],
         "automação/rh": [
             "automação", "excel", "planilha", "rh", "workflow",
-            "zapier", "n8n", "integração", "bot",
+            "automacao", "webhook", "pipeline", "integracao", "bot",
         ],
         "estatística": [
             "estatística", "análise", "dados", "média", "probabilidade",

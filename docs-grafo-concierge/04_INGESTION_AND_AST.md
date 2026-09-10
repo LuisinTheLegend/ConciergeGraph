@@ -1,12 +1,12 @@
-# 📥 Ingestion Engine, Tree-sitter AST & Dual-Hash Delta Sync (v4.0.0)
+# 📥 Ingestion Engine, Tree-sitter AST & Dual-Hash Delta Sync (v4.2.0)
 
-> **Architectural Specification for Early-Exit Watchers, Code Parsing, Structural Signature Hashing (SSH), Logical Body Hashing (LBH), Call Graph Generation, and Delta Chunk Caching**
+> **Architectural Specification for Early-Exit Watchers, Multi-Language Tree-sitter AST Parsing, Structural Signature Hashing (SSH), Logical Body Hashing (LBH), Alias Tracking, Deep History Delta Validation, and Reactive Observability**
 
 ---
 
 ## 1. Overview of the Resilient Ingestion Pipeline
 
-The Ingestion Engine is the subsystem responsible for transforming a raw codebase on disk into a rich, searchable knowledge graph while strictly containing token costs and eliminating I/O bottlenecks.
+The Ingestion Engine is the foundational subsystem responsible for transforming a raw codebase on disk into a rich, searchable knowledge graph while strictly containing token costs and eliminating I/O bottlenecks.
 
 ```
  ┌──────────────┐    ┌─────────────┐    ┌──────────────┐    ┌─────────────┐
@@ -165,3 +165,48 @@ Zero graph re-indexes. 100% preservation of historical agent trajectories.
 ### 5.4 Empty Payload Collision Guard
 Newly created files during IDE saves are often momentarily 0 bytes. `AliasTracker` explicitly detects empty payloads and skips hash matching with an `EmptyPayloadError` sentinel, preventing unrelated blank files from falsely matching as aliases.
 
+---
+
+## 6. Runtime Delta Validation during Deep History Resume (`core/hsm_engine.py`)
+
+Under **Active-SDD #27**, the Dual-Hash mechanism is directly wired into session recovery through the **Deep History Node ($H^*$)**:
+
+### 6.1 The Stale File Inconsistency Problem
+When an agent session is interrupted and later resumed via `HierarchicalStateMachine.resume_from_history_node(session_id, delta_manager)`:
+1. If the operator or another external tool modified the underlying source file on disk while the agent was halted, the checkpoint memory would reflect an obsolete state of code.
+2. Proceeding blindly in `CODE_GEN` or `TESTING` on stale code causes hallucinations, broken diff patches, and build failures.
+
+### 6.2 The Runtime Delta Audit Workflow
+
+```
+[Operator Invokes resume_from_history_node]
+                     │
+                     ▼
+        Resolve Checkpoint from WAL / Cache
+                     │
+                     ▼
+       File mtime > checkpoint.created_at?
+           ├─── NO ──► Restore Target Sub-state directly
+           │
+           └─── YES ──► delta_manager.has_structural_change(file)?
+                          ├─── NO (formatting/comments) ──► Restore normally
+                          │
+                          └─── YES (Structural Code Drift detected!)
+                                 │
+                                 ├── Set restored.shared_state["stale_detected"] = True
+                                 ├── Set restored.shared_state["original_state"] = target
+                                 └── Auto-Redirect State ──► EXECUTION.RE_INDEX
+```
+
+When redirected to `EXECUTION.RE_INDEX`, the ingestion engine triggers an immediate re-parse of the modified AST, re-syncs SQLite WAL edges, and clears the stale flag before resuming development.
+
+---
+
+## 7. Reactive Observability Integration: Cockpit 60fps Pulsing (`is_dirty = 1`)
+
+Under **Active-SDD #28**, ingestion state changes are broadcast in real time to the Next.js Cockpit (`grafo-dashboard-web/`):
+
+1. Whenever `DeltaManager` or the File Watcher detects structural changes, the file is marked with `is_dirty = 1` in SQLite.
+2. The SSE telemetry channel (`/api/telemetry/stream`) emits a `DELTA_DETECTED` event containing the affected node identifier and timestamp.
+3. In `CodeGraphViewer.tsx`, the 2D Force-Directed Graph dynamically renders any node with `is_dirty = 1` with a **glowing amber/yellow pulsating aura at 60fps**.
+4. Once JIT re-indexing completes and the community summary is refreshed, `is_dirty` resets to `0` and the node returns to its steady-state color.
