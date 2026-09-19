@@ -99,10 +99,7 @@ Tabela gerada pelo teste (colada no relatório):
      * A AST mutada por `visit()` é instanciada via `tree = ast.parse(file_content)` diretamente dentro de `calculate_lbh()`, pertencendo exclusivamente ao stack frame da thread chamadora.
      * Nenhuma AST é compartilhada entre threads ou instâncias de `DeltaManager`.
      * Executado teste de estresse concorrente com **50 threads simultâneas e 10.000 chamadas**: **0 divergências de hash e 0 exceções**.
-     * Adicionado teste automatizado de regressão `test_calculate_lbh_thread_safety_concurrency` em [`tests/test_delta_sync_drift.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_delta_sync_drift.py) — **4 passed em 13.59s**.
-   - Reclassificado Achado #2 como **FALSO POSITIVO (DESCARTADO)** em todos os documentos de auditoria.
-
----
+      * Adicionado teste automatizado de regressão `test_calculate_lbh_thread_safety_concurrency` em [`tests/test_delta_sync_drift.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_delta_sync_drift.py).
 
 ## 4. Arquivos produzidos / atualizados
 
@@ -113,17 +110,55 @@ Tabela gerada pelo teste (colada no relatório):
 | [`tests/test_delta_sync_drift.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_delta_sync_drift.py) | Teste | Adicionado teste concorrente provando thread-safety de `calculate_lbh()` |
 | [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md) | Protocolo | Resumo atualizado com 5 achados reais + 1 falso positivo resolvido |
 
-## 5. Arquivos **não** modificados
+---
+
+## 5. Arquivos não modificados
 
 Nenhum arquivo de código de produção foi editado (Regra 8 — Fases 1 e 2 são somente-leitura).
 
 ---
 
-## 6. Estado atual da auditoria
+# Sessão de Auditoria — `mock-vs-real-audit`
+
+> **Data:** 2026-09-19  
+> **Item auditado:** `mock-vs-real-audit` (Tarefa transversal de Mocks da Fase 1)  
+> **Status final:** ✅ Concluído, aguardando aprovação para avançar para `core/security_guard.py`  
+
+---
+
+## 1. Execução da auditoria
+- Inspecionadas todas as **18 classes de Mock / Test Double** em `tests/`.
+- Mapeada cada classe de mock à sua correspondente classe real de produção em `core/`, `storage/`, `services/`, `ingestion/`.
+- Executado script comparador de assinaturas e extração de métodos (`ast` + inspeção dinâmica).
+- Reproduzidos em terminal os erros em runtime causados pelas discrepâncias encontradas.
+
+## 2. Achados de Mock vs Real (7 achados confirmados)
+
+| # | Severidade | Resumo |
+|---|-----------|--------|
+| 1 | **CRÍTICA** | [`test_vector_reconciler.py:83`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_vector_reconciler.py#L83) — `MockVectorDatabase` define `get_all_ids()`, ausente em `ChromaVectorStore` e `BaseVectorBackend` (método canônico é `get_all_stored_node_ids()`). `core/vector_reconciler.py:39` chama `get_all_ids()` e falha com `AttributeError` em produção. Padrão idêntico ao Achado #1 de `delta_manager.py`. |
+| 2 | **CRÍTICA** | [`test_hsm_transition_hooks_and_delta.py:32`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_hsm_transition_hooks_and_delta.py#L32) — `MockDeltaManager` define `has_structural_change()`, ausente em `DeltaManager`. `core/hsm_engine.py:458` sofre `AttributeError` em runtime. |
+| 3 | **ALTA (AMBÍGUO)** | [`test_cognitive_routing_memory.py:30`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_cognitive_routing_memory.py#L30) — `MockExternalMCP` define `query_docs()`, chamado por `core/federated_knowledge_router.py:73`. Nenhuma classe real existe no repositório inteiro com esse método (contrato fantasma). |
+| 4 | **ALTA (DUPLICIDADE)** | [`test_mcp_server_handlers.py:116`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_mcp_server_handlers.py#L116) — `MockJanitor` define 4 métodos (`signal_mine_start/end`, `is_running`, `last_reports`) ausentes no `core/background_janitor.py`. Pertencem a `services/janitor.py` (`JanitorService`). Duplicidade arquitetural entre módulos. |
+| 5 | **MÉDIA** | [`test_vector_reconciler.py:73`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_vector_reconciler.py#L73) — `MockVectorDatabase` define `insert(vector_id, payload)` que não existe na interface canônica `BaseVectorBackend` (`store_embedding`). |
+| 6 | **MÉDIA** | [`test_cognitive_routing_memory.py:24`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_cognitive_routing_memory.py#L24) — `MockGraphRAGEngine` define `retrieve_multihop_context(query) -> str`, enquanto `GraphRAGEngine` real espera `(entry_node: str, max_depth: int) -> Dict[str, Any]`. |
+| 7 | **BAIXA** | [`test_interface_contracts.py:62`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_interface_contracts.py#L62) — `_MockVectorStore.reset_collection()` existe apenas na implementação concreta `ChromaVectorStore`, fora da interface abstrata `BaseVectorBackend`. |
+
+## 3. Arquivos produzidos / atualizados
+
+| Arquivo | Tipo | Descrição |
+|---------|------|-----------|
+| [`audits/mock-vs-real-audit.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/mock-vs-real-audit.md) | Relatório | Mapeamento completo dos 18 mocks, tabela oficial de achados e saída bruta de reprodução |
+| [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md) | Protocolo | `mock-vs-real-audit` marcado `[x]`, próximo: `▶ core/security_guard.py` |
+| [`walkthrough.md`](file:///c:/Nexus-Memory/GrafoConcierge/walkthrough.md) | Relatório de Sessão | Registro consolidado da auditoria |
+
+---
+
+## 4. Estado atual da auditoria
 
 ```
 Fase 0: [ ] baseline (não iniciada)
-Fase 1: 7/16 itens concluídos (6 pré-existentes + 1 nesta sessão)
+Fase 1: 8/16 itens concluídos (6 pré-existentes + core/delta_manager.py + mock-vs-real-audit)
          ▶ Próximo: core/security_guard.py
 Fase 2: bloqueada (requer Fase 1 completa)
 Fase 3: bloqueada (requer Fase 2 completa)

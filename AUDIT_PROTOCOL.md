@@ -41,7 +41,7 @@
     a correção diretamente no arquivo de relatório correspondente antes de
     considerar o item fechado — reconhecer no chat não é suficiente, o
     arquivo é a fonte de verdade.
-
+11. Commit obrigatório a cada gate. Imediatamente após marcar um item [x] e antes de reportar o Walkthrough como concluído, rode: git add -A && git commit -m "docs(audit): <slug-do-item> concluído". O trabalho de auditoria é feito em múltiplas máquinas (PC e notebook) — nunca deixe um item aprovado sem commit. Antes de encerrar qualquer sessão (fim de dia, troca de máquina), rode git push e confirme a saída ao humano. Ao iniciar uma sessão numa máquina diferente, rode git pull e git status ANTES de ler o item ▶ EM ANDAMENTO, e reporte o resultado — nunca assuma que o estado local está atualizado.
 ---
 
 ## Fase 0 — Baseline objetiva (sem interpretação)
@@ -89,12 +89,12 @@ Auditado nesta sessão do Antigravity, confirmado de forma independente:
 
 Tarefa extra inserida a partir do padrão encontrado acima:
 
-- [ ] **mock-vs-real-audit** — Listar todas as classes `Mock*`/`Fake*`/
-  `Stub*` em `tests/`. Para cada uma, identificar a classe real
-  correspondente e comparar os métodos de cada lado. Reportar todo método
-  presente no mock mas ausente na classe real (mesmo padrão do Achado #1 de
-  `delta_manager.py`). Sinalizar mocks sem correspondência óbvia como
-  ambíguos, não pular. Salvar em `audits/mock-vs-real-audit.md`.
+- [x] **mock-vs-real-audit** — 18 classes de teste inspecionadas (ver `audits/mock-vs-real-audit.md`).
+  Revelou 2º bug CRÍTICO idêntico ao `delta_manager.py`: `vector_reconciler.py:39`
+  chama `vector_db.get_all_ids()`, método inexistente na classe real `ChromaVectorStore`
+  (mascarado por `MockVectorDatabase` nos testes). Revelou duplicidade arquitetural
+  de Janitors (`core/background_janitor.py` vs `services/janitor.py`) e contrato
+  fantasma de `MockExternalMCP.query_docs` sem implementação real no repositório.
 
 Itens ainda não auditados — ordem sugerida por criticidade:
 
@@ -108,7 +108,7 @@ Itens ainda não auditados — ordem sugerida por criticidade:
 - [ ] `interface/telemetry_api.py`
 - [ ] `grafo-dashboard-web/` (componentes principais e chamadas à API)
 
-▶ **EM ANDAMENTO:** `mock-vs-real-audit`
+▶ **EM ANDAMENTO:** `core/security_guard.py`
 
 ## Fase 2 — Cruzamento transversal (só inicia com TODOS os itens da Fase 1 marcados)
 
