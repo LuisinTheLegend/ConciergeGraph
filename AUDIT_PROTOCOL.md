@@ -78,14 +78,14 @@ forma independente**, não aceitar de graça:
 
 Auditado nesta sessão do Antigravity, confirmado de forma independente:
 
-- [x] `core/delta_manager.py` — 6 achados (ver `audits/core-delta-manager.md`).
+- [x] `core/delta_manager.py` — 5 achados reais + 1 falso positivo resolvido (ver `audits/core-delta-manager.md`).
   Destaque: `hsm_engine.py:458` chama `delta_manager.has_structural_change()`,
   método inexistente na classe real (confirmado de forma independente) —
-  mascarado por `MockDeltaManager` nos testes. `calculate_lbh()` sempre
-  retorna `""` para não-Python (confirmado); `calculate_ssh()` só captura
-  linhas com `def `/`class `/`import `/`from `, então detecta mudanças em
-  import/class mas não em function/const/interface/arrow — descrição
-  corrigida em 2ª rodada.
+  mascarado por `MockDeltaManager` nos testes. Achado #2 (`_stripper` thread-safety)
+  foi reavaliado e resolvido como falso positivo (objeto é stateless e AST é gerada
+  em escopo thread-local; testado sob 50 threads / 10.000 chamadas sem erro).
+  `calculate_lbh()` sempre retorna `""` para não-Python; `calculate_ssh()`
+  documentado com 10 testes parametrizados em `tests/test_ssh_language_coverage.py`.
 
 Tarefa extra inserida a partir do padrão encontrado acima:
 

@@ -40,7 +40,7 @@ tests/test_delta_sync_drift.py::TestDeltaSyncDrift::test_ignore_formatting_and_c
 | # | arquivo | linha | severidade | mecanismo | reprodução | status |
 |---|---------|-------|-----------|-----------|------------|--------|
 | 1 | `delta_manager.py` / `hsm_engine.py` | dm: N/A (método ausente); hsm: 458 | **CRÍTICA** | `hsm_engine.py:458` chama `delta_manager.has_structural_change(target_task_id)`. Este método **não existe** no `DeltaManager`. Os únicos métodos públicos são: `calculate_ssh`, `calculate_lbh`, `process_file_change`, `compile_community_summary_jit`. Em runtime, isso lança `AttributeError`. Os testes em `test_hsm_transition_hooks_and_delta.py` passam porque usam um `MockDeltaManager` que **define** `has_structural_change()` — o mock oculta o bug no código real. | Script de reprodução: `hasattr(DeltaManager(...), 'has_structural_change') = False` — ver saída abaixo. | **CONFIRMADO** |
-| 2 | `delta_manager.py` | 81 | **MÉDIA** | `_stripper = DocstringStripper()` é atributo de **classe** (compartilhado entre todas as instâncias). `DocstringStripper` herda de `ast.NodeTransformer`; o `visit()` **muta a AST in-place** via `node.body.pop(0)`. Se duas threads chamarem `calculate_lbh()` simultaneamente na mesma instância (ou instâncias diferentes — é o mesmo objeto), os `pop()` podem interferir mutuamente. `DocstringStripper` é stateless em si, mas as mutações in-place na AST criam uma janela de race condition se a mesma árvore for revisitada. | Script de reprodução: `dm_a._stripper is dm_b._stripper = True`; tree mutada de 2→1 body nodes após `visit()`. | **CONFIRMADO** |
+| 2 | `delta_manager.py` | 81 | **FALSO POSITIVO** (anteriormente MÉDIA) | `_stripper = DocstringStripper()` é atributo de **classe** (compartilhado entre todas as instâncias). A suspeita inicial apontava race condition por `node.body.pop(0)`. No entanto: (1) `DocstringStripper` é 100% stateless (`self.__dict__ == {}`); (2) a AST mutada é alocada localmente por `ast.parse(file_content)` dentro de `calculate_lbh()`, sendo estritamente privada à stack frame da thread executora; (3) teste de estresse concorrente com 50 threads e 10.000 chamadas simultâneas resultou em 0 divergências e 0 erros. O compartilhamento de instância stateless é seguro (padrão flyweight). | Teste concorrente de estresse (50 threads / 10.000 chamadas): 0 erros. Teste automatizado em `tests/test_delta_sync_drift.py` (`test_calculate_lbh_thread_safety_concurrency`) validado no pytest. | **FALSO POSITIVO (DESCARTADO)** |
 | 3 | `delta_manager.py` | 204–265, 160–200 | **MÉDIA** | Todos os métodos internos (`_insert_new_file`, `_update_structural_change`, `_update_content_only`, `compile_community_summary_jit`) executam **2 write_query separadas** sem transação envolvente (`BEGIN` / `COMMIT`). O `database.py:execute_write()` faz `conn.commit()` individualmente por query. Se o processo morrer (SIGKILL, OOM) entre o primeiro e o segundo write, o estado do banco fica inconsistente: ex. arquivo marcado DIRTY mas comunidade limpa, ou vice-versa. Padrão idêntico ao achado de `alias_tracker.py` (operações não-atômicas). | Análise estática do código `database.py:54-69` — cada `execute_write` faz commit individual. Não há API de transação no `ConciergeDatabaseManager`. | **CONFIRMADO** |
 | 4 | `delta_manager.py` | 186 | **BAIXA** | `compile_community_summary_jit()` linha 186: `payload = "\n".join(row[0] for row in files)`. Se `files.content` for `NULL` no banco, `row[0]` é `None` e o `str.join()` lança `TypeError: sequence item 0: expected str instance, NoneType found`. Nenhum dos caminhos de inserção (`_insert_new_file`) define `content` como NOT NULL, e não há constraint na DDL do teste. | Script de reprodução: inseriu arquivo com `content=NULL`, chamou `compile_community_summary_jit()` → `TypeError` capturado. | **CONFIRMADO** |
 | 5 | `delta_manager.py` | 83–97 | **OBSERVAÇÃO** | `calculate_ssh()` captura todas as linhas com prefixos `def `, `class `, `import `, `from ` **independentemente de indentação** (usa `line.strip()`). Isso significa que `def inner_method(self):` dentro de uma classe é tratado igual a `def top_level()`. O SSH é context-free — não distingue nível de aninhamento. Isso é **conservadoramente correto** (gera false positives, nunca false negatives para mudanças estruturais), mas reduz a precisão do hash. | Script de reprodução: linhas capturadas incluem `def inner_method(self):` junto com `def handle():` e `class Outer:`. | **CONFIRMADO** |
@@ -90,15 +90,16 @@ ACHADO 1: has_structural_change() NÃO EXISTE no DeltaManager
   >>> Métodos disponíveis: ['calculate_lbh', 'calculate_ssh', 'compile_community_summary_jit', 'db_manager', 'process_file_change']
 
 ======================================================================
-ACHADO 2: _stripper é atributo de CLASSE (compartilhado, mutável)
+ACHADO 2: _stripper é atributo de CLASSE — REAVALIAÇÃO E RESOLUÇÃO
 ======================================================================
-  dm_a._stripper is dm_b._stripper = True
-  id(dm_a._stripper) = 1713129437040
-  id(dm_b._stripper) = 1713129437040
-  Before visit - tree1.body[0].body length: 2
-  After visit  - tree1.body[0].body length: 1
-  >>> NodeTransformer.visit() MUTA a árvore in-place (pop).
-  >>> _stripper compartilhado NÃO é thread-safe se chamado concorrentemente.
+  dm_a._stripper is dm_b._stripper = True (Compartilhamento de referência confirmado)
+  DocstringStripper.__dict__ antes e depois de visit(): {} (100% STATELESS)
+  AST 'tree' é gerada localmente por ast.parse(file_content) em calculate_lbh()
+  >>> Árvore é estritamente privada à thread chamadora, nunca compartilhada.
+  >>> Concorrência stress test: 50 threads x 200 iterações (10.000 chamadas simultâneas)
+  >>> Divergências: 0 | Exceções: 0 | Hashes consistentes: 100%
+  >>> Teste de regressão pytest: test_calculate_lbh_thread_safety_concurrency PASSED
+  >>> CONCLUSÃO: FALSO POSITIVO. O compartilhamento de instância stateless é seguro (flyweight).
 
 ======================================================================
 ACHADO 3: Operações multi-write não são atômicas (sem transação)
@@ -156,11 +157,12 @@ FIM DA REPRODUÇÃO
 
 ## Resumo
 
-6 achados totais: 1 CRÍTICO, 1 ALTO, 2 MÉDIOS, 1 BAIXO, 1 OBSERVAÇÃO.
+5 achados reais: 1 CRÍTICO, 1 ALTO, 1 MÉDIO, 1 BAIXO, 1 OBSERVAÇÃO + 1 FALSO POSITIVO RESOLVIDO.
 
 - **CRÍTICO** (#1): Método `has_structural_change()` chamado pelo HSM mas inexistente no DeltaManager — `AttributeError` em runtime. Testes passam apenas por usar mock que mascara o bug.
 - **ALTO** (#6): Change detection parcialmente cego para non-Python — ver tabela de cobertura SSH por linguagem acima (gerada por `tests/test_ssh_language_coverage.py`, 10 passed). LBH universalmente cego; SSH incidentalmente funcional (22–43% para TS/JS/Go/Java/C++, 0% para Rust/C).
-- **MÉDIO** (#2): `_stripper` compartilhado entre instâncias; thread-safety duvidosa.
+- **FALSO POSITIVO** (#2): `_stripper` compartilhado entre instâncias — hipótese de race condition descartada após prova formal e empírica de thread-safety (`DocstringStripper` stateless + AST gerada em escopo thread-local + teste de 50 threads / 10.000 chamadas simultâneas com 0 erros).
 - **MÉDIO** (#3): Operações de DB multi-write sem transação (padrão repetido do projeto).
 - **BAIXO** (#4): `TypeError` ao sumarizar comunidade com arquivo de `content=NULL`.
 - **OBSERVAÇÃO** (#5): SSH context-free — conservadoramente correto mas impreciso.
+

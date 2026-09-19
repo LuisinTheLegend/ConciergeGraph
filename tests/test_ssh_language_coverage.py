@@ -28,15 +28,15 @@ _dm_mod = importlib.util.module_from_spec(_dm_spec)
 sys.modules["core.delta_manager"] = _dm_mod
 _dm_spec.loader.exec_module(_dm_mod)
 DeltaManager = _dm_mod.DeltaManager
+from core.delta_manager import _STRUCTURAL_PREFIXES
 
 
 def _ssh_captured_lines(code: str) -> list[str]:
     """Returns the list of stripped lines that SSH would include in its hash."""
-    prefixes = ("def ", "class ", "import ", "from ")
     return [
         stripped
         for line in code.splitlines()
-        if (stripped := line.strip()).startswith(prefixes)
+        if (stripped := line.strip()).startswith(_STRUCTURAL_PREFIXES)
     ]
 
 
@@ -280,15 +280,15 @@ LANGUAGE_CASES = [
             "    }\n"
             "}\n"
         ),
-        # SSH captures
+        # SSH captures (only bare imports; "public class" does not start with "class ")
         [
             "import java.util.List;",
             "import com.example.model.User;",
-            "class UserService {",  # "public class" -> stripped starts with... no wait
         ],
         # SSH misses
         [
             "package com.example.service;",
+            "public class UserService { ... }",          # "public class" not "class "
             "public UserService(Database db) { ... }",   # constructor
             "public User getUser(String id) { ... }",    # method
             "public interface Repository { ... }",       # interface
@@ -442,43 +442,6 @@ def _make_test(lang, code, captured, missed):
     test_method.__doc__ = f"SSH coverage for {lang}"
     return test_method
 
-
-for _lang, _code, _captured, _missed in LANGUAGE_CASES:
-    # Handle Java special case: "public class" starts with "public", not "class"
-    # We need to verify the actual behavior, not assume
-    pass
-
-# Actually, let me fix Java: "public class UserService {" stripped starts with
-# "public", not "class". So SSH would NOT capture it. Let me correct.
-# Same issue: we need to verify exact behavior before setting expectations.
-# Let me just run the raw capture and set expectations based on what actually happens.
-
-# Re-verify Java: "public class UserService {".strip() = "public class UserService {"
-# .startswith(("def ", "class ", "import ", "from ")) -> False (starts with "public")
-# So Java's class declaration is NOT captured. Fix the expected_captured for Java.
-
-# Fix Java case - index 6 in LANGUAGE_CASES
-_java_idx = next(i for i, (lang, *_) in enumerate(LANGUAGE_CASES) if lang == "Java")
-LANGUAGE_CASES[_java_idx] = (
-    "Java",
-    LANGUAGE_CASES[_java_idx][1],  # same code
-    # Only bare imports are captured; "public class" does NOT start with "class "
-    [
-        "import java.util.List;",
-        "import com.example.model.User;",
-    ],
-    # Missed — now includes the class declaration too
-    [
-        "package com.example.service;",
-        "public class UserService { ... }",          # "public class" not "class "
-        "public UserService(Database db) { ... }",   # constructor
-        "public User getUser(String id) { ... }",    # method
-        "public interface Repository { ... }",       # interface
-    ],
-)
-
-# Fix C++ case — "class UserService {" IS captured (no access modifier prefix)
-# Already correct.
 
 for _lang, _code, _captured, _missed in LANGUAGE_CASES:
     test_name = f"test_ssh_coverage_{_lang.lower()}"

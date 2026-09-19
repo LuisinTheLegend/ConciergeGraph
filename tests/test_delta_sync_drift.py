@@ -84,3 +84,44 @@ def validar_usuario(user):
         dump_mod = self.get_logical_ast_dump(code_com_deriva_logica)
 
         self.assertNotEqual(dump_orig, dump_mod)
+
+    def test_calculate_lbh_thread_safety_concurrency(self):
+        """
+        Garante que calculate_lbh() é thread-safe mesmo com _stripper sendo
+        atributo de classe compartilhado.
+        DocstringStripper é 100% stateless e ast.parse() aloca árvores
+        estritamente thread-locais, eliminando race conditions.
+        """
+        import threading
+        dm = DeltaManager(None)
+
+        # Verifica statelessness
+        self.assertEqual(dm._stripper.__dict__, {})
+
+        snippets = [
+            'def foo():\n    """docstring"""\n    return 1',
+            'class Service:\n    """service doc"""\n    def run(self):\n        """run doc"""\n        return True',
+            'async def fetch():\n    """async doc"""\n    return 42',
+            'def calc(a, b):\n    # Sem docstring\n    return a + b',
+        ]
+        expected_hashes = [dm.calculate_lbh(s) for s in snippets]
+        errors = []
+
+        def worker(idx):
+            code = snippets[idx]
+            exp = expected_hashes[idx]
+            for _ in range(50):
+                h = dm.calculate_lbh(code)
+                if h != exp:
+                    errors.append((idx, h, exp))
+
+        threads = [
+            threading.Thread(target=worker, args=(i % len(snippets),))
+            for i in range(20)
+        ]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        self.assertEqual(len(errors), 0, f"Erros de concorrência detectados: {errors}")
