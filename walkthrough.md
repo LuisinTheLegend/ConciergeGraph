@@ -122,6 +122,7 @@ Nenhum arquivo de código de produção foi editado (Regra 8 — Fases 1 e 2 sã
 
 > **Data:** 2026-09-19  
 > **Item auditado:** `mock-vs-real-audit` (Tarefa transversal de Mocks da Fase 1)  
+> **Commit:** `00d9c4e` (`docs(audit): mock-vs-real-audit concluído`)  
 > **Status final:** ✅ Concluído, aguardando aprovação para avançar para `core/security_guard.py`  
 
 ---
