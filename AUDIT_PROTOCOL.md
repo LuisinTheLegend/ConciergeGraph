@@ -1,0 +1,134 @@
+# Protocolo de Auditoria — Grafo Concierge
+
+> Este arquivo é o "estado" da auditoria. O agente lê este documento, executa o
+> próximo item não concluído, atualiza este próprio arquivo, e PARA. O humano
+> aprova em uma frase curta e o agente continua a partir do arquivo — nunca a
+> partir de um novo prompt reescrito do zero.
+
+---
+
+## Regras Globais (aplicam-se a TODO item deste documento, sem exceção)
+
+1. Você é um auditor de código cético, não um redator de relatório. Sua saída
+   não vale nada se não for verificável.
+2. NUNCA reporte um achado ("bug", "risco", "inconsistência") sem: (a) arquivo
+   e linha exatos, (b) o mecanismo técnico explicado, (c) uma reprodução real
+   que você EXECUTOU — teste pytest, script, ou traceback real. Cole a saída
+   bruta do terminal como prova.
+3. Se não conseguir reproduzir, classifique como `HIPÓTESE NÃO CONFIRMADA` e
+   diga exatamente o que faltou para confirmar. Nunca apresente hipótese como
+   fato.
+4. Escopo estrito: trabalhe SOMENTE no item marcado como "▶ EM ANDAMENTO"
+   abaixo. Se notar algo relevante fora do escopo, anote em
+   `audits/fora-de-escopo.md` — não investigue agora.
+5. Antes de ler código manualmente, rode as ferramentas estáticas relevantes
+   ao escopo do item (pytest, ruff, mypy, bandit) e inclua a saída bruta no
+   relatório.
+6. Formato de saída obrigatório por achado, em `audits/<slug-do-item>.md`:
+   tabela com colunas `arquivo | linha | severidade | mecanismo | reprodução
+   | status (confirmado/hipótese)`.
+7. **GATE OBRIGATÓRIO** — ao concluir um item: marque-o `[x]` neste arquivo,
+   escreva o relatório em `audits/`, gere o Walkthrough/artefato de resumo, e
+   **PARE completamente**. Não inicie o próximo item `[ ]` até receber um
+   comentário explícito de aprovação do humano ("aprovado", "pode seguir",
+   "continue" — só essas frases liberam avanço). Isso vale mesmo dentro da
+   mesma missão/sessão.
+8. Durante as Fases 1 e 2 (auditoria), NUNCA edite código de produção. São
+   fases somente-leitura + escrita de relatórios em `audits/`.
+9. Ao terminar um item, marque neste arquivo qual será o próximo com
+   "▶ EM ANDAMENTO", deixando claro para a próxima rodada onde retomar.
+10. Se o humano pedir uma correção pontual num achado já reportado, aplique
+    a correção diretamente no arquivo de relatório correspondente antes de
+    considerar o item fechado — reconhecer no chat não é suficiente, o
+    arquivo é a fonte de verdade.
+
+---
+
+## Fase 0 — Baseline objetiva (sem interpretação)
+
+- [ ] **fase0-baseline** — Rodar, nesta ordem, e salvar saída bruta completa
+  em `audits/fase0-baseline.md`: `pytest -v --tb=short`,
+  `pytest --collect-only -q`, `pytest --cov=core --cov=interface
+  --cov=storage --cov-report=term-missing`, `ruff check .`, `mypy .`,
+  `bandit -r .`, `pip-audit`, `npm audit` (pasta do dashboard, se existir).
+  Não interpretar ainda, só organizar a saída.
+
+## Fase 1 — Auditoria módulo a módulo (uma linha = um item = uma parada)
+
+Itens já auditados manualmente nesta conversa — o agente deve **confirmar de
+forma independente**, não aceitar de graça:
+
+- [x] `core/alias_tracker.py` — achado: `apply_alias_migration` não é
+  atômico (loop de UPDATEs sem transação envolvente) e referencia coluna
+  `task_id` inexistente em `fsm_checkpoints`.
+- [x] `interface/queue_writer.py` — achado: fila em memória (`queue.Queue`)
+  sem persistência nem tratamento de sinal; risco de perda em SIGKILL.
+- [x] `core/parser_factory.py` + `core/parsers/` — achado: só suporta
+  Python e TS/JS; retorna `None` para o resto (não existe `FallbackParser`).
+- [x] `core/gating_interceptor.py` — achado: `VALID_MODES` real é
+  `{"plan-only","ask","auto-approve"}`; `auto_read`/`autonomous` nunca
+  existiram no código, só na documentação.
+- [x] `core/hsm_engine.py` — achado: `STALL`/`AWAITING_HUMAN`/
+  `CONTEXT_FULL`/`ERROR_PAUSE` são reais; `ERROR` não existe no código.
+  **Pendência:** ler o arquivo completo (só uma amostra foi vista).
+- [x] `interface/mcp_server.py` (parcial) — achado: `concierge_feedback`
+  chama `update_fact_utility` (mutação real) mas está classificado como
+  `READ_ONLY`. **Pendência:** ler o arquivo completo (69KB, só uma função
+  foi conferida).
+
+Auditado nesta sessão do Antigravity, confirmado de forma independente:
+
+- [x] `core/delta_manager.py` — 6 achados (ver `audits/core-delta-manager.md`).
+  Destaque: `hsm_engine.py:458` chama `delta_manager.has_structural_change()`,
+  método inexistente na classe real (confirmado de forma independente) —
+  mascarado por `MockDeltaManager` nos testes. `calculate_lbh()` sempre
+  retorna `""` para não-Python (confirmado); `calculate_ssh()` só captura
+  linhas com `def `/`class `/`import `/`from `, então detecta mudanças em
+  import/class mas não em function/const/interface/arrow — descrição
+  corrigida em 2ª rodada.
+
+Tarefa extra inserida a partir do padrão encontrado acima:
+
+- [ ] **mock-vs-real-audit** — Listar todas as classes `Mock*`/`Fake*`/
+  `Stub*` em `tests/`. Para cada uma, identificar a classe real
+  correspondente e comparar os métodos de cada lado. Reportar todo método
+  presente no mock mas ausente na classe real (mesmo padrão do Achado #1 de
+  `delta_manager.py`). Sinalizar mocks sem correspondência óbvia como
+  ambíguos, não pular. Salvar em `audits/mock-vs-real-audit.md`.
+
+Itens ainda não auditados — ordem sugerida por criticidade:
+
+- [ ] `core/security_guard.py`
+- [ ] `core/rate_governor.py`
+- [ ] `core/background_janitor.py`
+- [ ] `core/vector_reconciler.py`
+- [ ] `storage/` (todos os arquivos)
+- [ ] `ingestion/` (todos os arquivos)
+- [ ] `agent/` e `agents/` (todos os arquivos)
+- [ ] `interface/telemetry_api.py`
+- [ ] `grafo-dashboard-web/` (componentes principais e chamadas à API)
+
+▶ **EM ANDAMENTO:** `mock-vs-real-audit`
+
+## Fase 2 — Cruzamento transversal (só inicia com TODOS os itens da Fase 1 marcados)
+
+- [ ] **cruzamento-modulos** — Ler todos os `audits/*.md` gerados (não
+  reler o código-fonte inteiro). Apontar: (a) módulos que fazem suposições
+  incompatíveis um sobre o outro, (b) falta de isolamento entre
+  projetos/tenants, (c) funcionalidade documentada que nenhum módulo
+  implementa de fato.
+
+## Fase 3 — Consolidação
+
+- [ ] **backlog-final** — Gerar um backlog único, priorizado por
+  severidade, no formato do `concierge-graph-improvements-roadmap-v5.md`,
+  mas exigindo que cada item cite o `audits/<arquivo>.md` de origem.
+
+---
+
+## Como retomar após uma parada
+
+Responda apenas: **"aprovado, siga para o próximo item"** (ou peça correções
+específicas primeiro, se o relatório do item concluído tiver problema — o
+agente deve corrigir o ARQUIVO de relatório, não só reconhecer no chat, e
+voltar ao mesmo gate antes de avançar).
