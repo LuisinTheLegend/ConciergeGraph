@@ -205,6 +205,7 @@ Nenhum arquivo de código de produção foi editado (Regra 8 — Fases 1 e 2 sã
 
 > **Data:** 2026-09-20  
 > **Item auditado:** `core/rate_governor.py` (SDD-SURVIVAL-23: RateGovernor with Priority Traffic & Queue Freezing)  
+> **Commit:** `b89c608` (`docs(audit): core/rate_governor.py concluído`)  
 > **Status final:** ✅ Concluído, aguardando aprovação para avançar para `core/background_janitor.py`  
 
 ---
