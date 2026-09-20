@@ -105,7 +105,13 @@ Tarefa extra inserida a partir do padrão encontrado acima:
   2 MÉDIA (bug de barra dupla `C:\\\\` na raiz do disco bloqueando 100% dos arquivos;
   resolução de caminhos relativos ancorada ao CWD do processo e não a `project_root`),
   1 BAIXA (falso positivo de WARNING por substring match ingênuo em `"build"`).
-- [ ] `core/rate_governor.py`
+- [x] `core/rate_governor.py` — 5 achados confirmados (ver `audits/core-rate-governor.md`).
+  1 CRÍTICA (vazamento de `unfinished_tasks` na `PriorityQueue` e starvation de cabeça
+  de fila durante congelamento de LOW/MEDIUM; deadlock permanente com `join()`),
+  3 ALTA (anti-starvation aging matematicamente inalcançável durante congelamento;
+  Data Race / Lost Updates em `get_current_metrics` sem lock; deadlock eterno em
+  `submit_request` sem timeout e após `shutdown()`),
+  1 MÉDIA (cegueira de RPM no Fast-Path sem registro em `self.history`).
 - [ ] `core/background_janitor.py`
 - [ ] `core/vector_reconciler.py`
 - [ ] `storage/` (todos os arquivos)
@@ -114,7 +120,7 @@ Tarefa extra inserida a partir do padrão encontrado acima:
 - [ ] `interface/telemetry_api.py`
 - [ ] `grafo-dashboard-web/` (componentes principais e chamadas à API)
 
-▶ **EM ANDAMENTO:** `core/rate_governor.py`
+▶ **EM ANDAMENTO:** `core/background_janitor.py`
 
 ## Fase 2 — Cruzamento transversal (só inicia com TODOS os itens da Fase 1 marcados)
 

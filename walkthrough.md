@@ -196,7 +196,48 @@ Nenhum arquivo de código de produção foi editado (Regra 8 — Fases 1 e 2 sã
 | Arquivo | Tipo | Descrição |
 |---------|------|-----------|
 | [`audits/core-security-guard.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/core-security-guard.md) | Relatório | Relatório oficial completo com análise técnica detalhada e saída de reprodução |
-| [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md) | Protocolo | `core/security_guard.py` marcado `[x]`, próximo: `▶ core/rate_governor.py` |
+| [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md) | Protocolo | `core/security_guard.py` marcado `[x]` |
+| [`walkthrough.md`](file:///c:/Nexus-Memory/GrafoConcierge/walkthrough.md) | Relatório de Sessão | Registro consolidado da auditoria |
+
+---
+
+# Sessão de Auditoria — `core/rate_governor.py`
+
+> **Data:** 2026-09-20  
+> **Item auditado:** `core/rate_governor.py` (SDD-SURVIVAL-23: RateGovernor with Priority Traffic & Queue Freezing)  
+> **Status final:** ✅ Concluído, aguardando aprovação para avançar para `core/background_janitor.py`  
+
+---
+
+## 1. Execução da auditoria
+- Inspecionado [`core/rate_governor.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/rate_governor.py) na íntegra (281 linhas).
+- Verificada integração com [`interface/telemetry_api.py`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py) e [`tests/test_rate_governor_priority.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_rate_governor_priority.py).
+- Ferramentas estáticas:
+  - `mypy core/rate_governor.py --follow-imports=skip` -> `Success: no issues found in 1 source file`.
+  - `unittest tests/test_rate_governor_priority.py` -> 8 passed em 1.679s.
+  - `unittest tests/test_agent_hsm_coupling.py` -> 13 passed em 0.759s.
+- Desenvolvido script de reprodução cobrindo 5 achados confirmados com saída bruta em terminal.
+
+---
+
+## 2. Achados de `core/rate_governor.py` (5 achados confirmados)
+
+| # | Severidade | Resumo |
+|---|-----------|--------|
+| 1 | **CRÍTICA** | [`core/rate_governor.py:250, 255, 261, 272`](file:///c:/Nexus-Memory/GrafoConcierge/core/rate_governor.py#L250) — Vazamento cumulativo de `unfinished_tasks` na `PriorityQueue` e starvation de cabeça de fila (Head-of-Line). Re-enfileiramento com `put(req)` sem `task_done()` vaza tarefas fantasmas (+1 a cada 0.5s); `request_queue.join()` trava para sempre em Deadlock. |
+| 2 | **ALTA** | [`core/rate_governor.py:231-252`](file:///c:/Nexus-Memory/GrafoConcierge/core/rate_governor.py#L231-L252) — Condição inalcançável no anti-starvation aging de prioridade 3 (`LOW`). Exige `max_pct < 75.0` para promover tarefa, mas LOW só congela com `>= 85.0`. A promoção durante congelamento é matematicamente inalcançável (`dead code`). |
+| 3 | **ALTA** | [`core/rate_governor.py:91, 116-150`](file:///c:/Nexus-Memory/GrafoConcierge/core/rate_governor.py#L91) — Data Race / Lost Updates em `get_current_metrics()`. Método limpa e reatribui `self.history = [...]` sem deter `self.lock`. Chamadas concorrentes da API de telemetria disputam com `report_usage()`, provocando sobrescrita e perda de registros recentes. |
+| 4 | **ALTA** | [`core/rate_governor.py:196-203, 278-280`](file:///c:/Nexus-Memory/GrafoConcierge/core/rate_governor.py#L196-L203) — Deadlock permanente em `submit_request` se o governor não estiver rodando ou após `shutdown()`. `submit_request` bloqueia em `future_result.get()` sem timeout, e `shutdown()` finaliza a thread sem drenar a fila nem responder aos futures pendentes. |
+| 5 | **MÉDIA** | [`core/rate_governor.py:185-194`](file:///c:/Nexus-Memory/GrafoConcierge/core/rate_governor.py#L185-L194) — Cegueira de RPM no Fast-Path. Requisições prioritárias sob tráfego verde (< 50%) executam inline sem registrar o timestamp em `self.history`, mantendo `current_rpm` em 0 e mascarando rajadas de chamadas rápidas. |
+
+---
+
+## 3. Arquivos produzidos / atualizados
+
+| Arquivo | Tipo | Descrição |
+|---------|------|-----------|
+| [`audits/core-rate-governor.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/core-rate-governor.md) | Relatório | Relatório oficial completo com análise técnica detalhada e saída de reprodução |
+| [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md) | Protocolo | `core/rate_governor.py` marcado `[x]`, próximo: `▶ core/background_janitor.py` |
 | [`walkthrough.md`](file:///c:/Nexus-Memory/GrafoConcierge/walkthrough.md) | Relatório de Sessão | Registro consolidado da auditoria |
 
 ---
@@ -205,8 +246,8 @@ Nenhum arquivo de código de produção foi editado (Regra 8 — Fases 1 e 2 sã
 
 ```
 Fase 0: [ ] baseline (não iniciada)
-Fase 1: 9/16 itens concluídos (6 pré-existentes + delta_manager + mock-vs-real-audit + security_guard)
-         ▶ Próximo: core/rate_governor.py
+Fase 1: 10/16 itens concluídos (6 pré-existentes + delta_manager + mock-vs-real-audit + security_guard + rate_governor)
+         ▶ Próximo: core/background_janitor.py
 Fase 2: bloqueada (requer Fase 1 completa)
 Fase 3: bloqueada (requer Fase 2 completa)
 ```
