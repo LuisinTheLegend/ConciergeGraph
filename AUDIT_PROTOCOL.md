@@ -98,9 +98,13 @@ Tarefa extra inserida a partir do padrão encontrado acima:
   dos métodos, restando observação de duplicidade de nomenclatura com `BackgroundJanitor`).
   `FailingIngestion` e `InMemoryConnManager` verificados como 100% conformes com as classes reais.
 
-Itens ainda não auditados — ordem sugerida por criticidade:
-
-- [ ] `core/security_guard.py`
+- [x] `core/security_guard.py` — 5 achados confirmados (ver `audits/core-security-guard.md`).
+  1 CRÍTICA (evasão da blacklist de comandos via flags GNU `rm -fr /`, `rm -r -f /`,
+  deleção de diretório atual `rm -rf .`, comandos nativos Windows `del /s`, `format`),
+  1 ALTA (`classify_command(None)` lança `TypeError` não tratado),
+  2 MÉDIA (bug de barra dupla `C:\\\\` na raiz do disco bloqueando 100% dos arquivos;
+  resolução de caminhos relativos ancorada ao CWD do processo e não a `project_root`),
+  1 BAIXA (falso positivo de WARNING por substring match ingênuo em `"build"`).
 - [ ] `core/rate_governor.py`
 - [ ] `core/background_janitor.py`
 - [ ] `core/vector_reconciler.py`
@@ -110,7 +114,7 @@ Itens ainda não auditados — ordem sugerida por criticidade:
 - [ ] `interface/telemetry_api.py`
 - [ ] `grafo-dashboard-web/` (componentes principais e chamadas à API)
 
-▶ **EM ANDAMENTO:** `core/security_guard.py`
+▶ **EM ANDAMENTO:** `core/rate_governor.py`
 
 ## Fase 2 — Cruzamento transversal (só inicia com TODOS os itens da Fase 1 marcados)
 

@@ -154,7 +154,48 @@ Nenhum arquivo de código de produção foi editado (Regra 8 — Fases 1 e 2 sã
 | Arquivo | Tipo | Descrição |
 |---------|------|-----------|
 | [`audits/mock-vs-real-audit.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/mock-vs-real-audit.md) | Relatório | Mapeamento completo dos 18 mocks, tabela oficial de achados e saída bruta de reprodução |
-| [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md) | Protocolo | `mock-vs-real-audit` marcado `[x]`, próximo: `▶ core/security_guard.py` |
+| [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md) | Protocolo | `mock-vs-real-audit` marcado `[x]` |
+| [`walkthrough.md`](file:///c:/Nexus-Memory/GrafoConcierge/walkthrough.md) | Relatório de Sessão | Registro consolidado da auditoria |
+
+---
+
+# Sessão de Auditoria — `core/security_guard.py`
+
+> **Data:** 2026-09-20  
+> **Item auditado:** `core/security_guard.py` (SDD-SURVIVAL-24: Boundary Guard & Hazard Classifier)  
+> **Status final:** ✅ Concluído, aguardando aprovação para avançar para `core/rate_governor.py`  
+
+---
+
+## 1. Execução da auditoria
+- Inspecionado [`core/security_guard.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/security_guard.py) na íntegra (102 linhas).
+- Verificada integração com [`core/gating_interceptor.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/gating_interceptor.py) e [`interface/telemetry_api.py`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py).
+- Ferramentas estáticas:
+  - `mypy core/security_guard.py --follow-imports=skip` -> `Success: no issues found in 1 source file`.
+  - `unittest tests/test_adaptive_gating.py` -> 12 passed em 0.023s.
+  - `unittest tests/test_agent_hsm_coupling.py` -> 13 passed em 0.759s.
+- Desenvolvido script de reprodução abrangente cobrindo 5 achados confirmados com saída bruta em terminal.
+
+---
+
+## 2. Achados de `core/security_guard.py` (5 achados confirmados)
+
+| # | Severidade | Resumo |
+|---|-----------|--------|
+| 1 | **CRÍTICA** | [`core/security_guard.py:42-45, 94-95`](file:///c:/Nexus-Memory/GrafoConcierge/core/security_guard.py#L42-L45) — Regex `\brm\s+-rf\s+/` é facilmente contornada por `rm -fr /`, `rm -r -f /`, `rm --recursive --force /`, deleção do diretório corrente (`rm -rf .`, `rm -rf *`), comandos de deleção do Windows (`del /f /s /q C:\*`, `format C:`). Em modo `auto-approve`, qualquer comando não-CRITICAL roda sem aprovação humana. |
+| 2 | **ALTA** | [`core/security_guard.py:94`](file:///c:/Nexus-Memory/GrafoConcierge/core/security_guard.py#L94) — `classify_command(None)` lança `TypeError: expected string or bytes-like object, got 'NoneType'` não tratado. |
+| 3 | **MÉDIA** | [`core/security_guard.py:75-77`](file:///c:/Nexus-Memory/GrafoConcierge/core/security_guard.py#L75-L77) — Concatenação `self.project_root + os.sep` gera barra dupla (`C:\\\\` ou `//`) se `project_root` for raiz de disco ou partição, fazendo `is_safe_path` retornar `False` para 100% dos arquivos do projeto. |
+| 4 | **MÉDIA** | [`core/security_guard.py:72-77`](file:///c:/Nexus-Memory/GrafoConcierge/core/security_guard.py#L72-L77) — Resolução de caminhos relativos em `is_safe_path` ancorada a `os.getcwd()` em vez de `self.project_root`. Falsos bloqueios para projetos externos registrados fora do CWD do servidor. |
+| 5 | **BAIXA** | [`core/security_guard.py:48-54, 98-99`](file:///c:/Nexus-Memory/GrafoConcierge/core/security_guard.py#L48-L54) — Substring match ingênuo em `warning_terms` contendo `"build"` gera falsos positivos de WARNING para comandos inofensivos (`git log --grep="build"`, `cat build.py`, `git checkout build-fix`, `ls -la build/`). |
+
+---
+
+## 3. Arquivos produzidos / atualizados
+
+| Arquivo | Tipo | Descrição |
+|---------|------|-----------|
+| [`audits/core-security-guard.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/core-security-guard.md) | Relatório | Relatório oficial completo com análise técnica detalhada e saída de reprodução |
+| [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md) | Protocolo | `core/security_guard.py` marcado `[x]`, próximo: `▶ core/rate_governor.py` |
 | [`walkthrough.md`](file:///c:/Nexus-Memory/GrafoConcierge/walkthrough.md) | Relatório de Sessão | Registro consolidado da auditoria |
 
 ---
@@ -163,10 +204,11 @@ Nenhum arquivo de código de produção foi editado (Regra 8 — Fases 1 e 2 sã
 
 ```
 Fase 0: [ ] baseline (não iniciada)
-Fase 1: 8/16 itens concluídos (6 pré-existentes + core/delta_manager.py + mock-vs-real-audit)
-         ▶ Próximo: core/security_guard.py
+Fase 1: 9/16 itens concluídos (6 pré-existentes + delta_manager + mock-vs-real-audit + security_guard)
+         ▶ Próximo: core/rate_governor.py
 Fase 2: bloqueada (requer Fase 1 completa)
 Fase 3: bloqueada (requer Fase 2 completa)
 ```
 
 **Aguardando aprovação do humano para avançar** (Regra 7 — GATE OBRIGATÓRIO).
+
