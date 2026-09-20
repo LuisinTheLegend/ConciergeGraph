@@ -92,9 +92,11 @@ Tarefa extra inserida a partir do padrão encontrado acima:
 - [x] **mock-vs-real-audit** — 18 classes de teste inspecionadas (ver `audits/mock-vs-real-audit.md`).
   Revelou 2º bug CRÍTICO idêntico ao `delta_manager.py`: `vector_reconciler.py:39`
   chama `vector_db.get_all_ids()`, método inexistente na classe real `ChromaVectorStore`
-  (mascarado por `MockVectorDatabase` nos testes). Revelou duplicidade arquitetural
-  de Janitors (`core/background_janitor.py` vs `services/janitor.py`) e contrato
-  fantasma de `MockExternalMCP.query_docs` sem implementação real no repositório.
+  (mascarado por `MockVectorDatabase` nos testes). Identificou contrato fantasma de
+  `MockExternalMCP.query_docs` sem implementação real no repositório. O caso de `MockJanitor`
+  foi rebaixado para Falso Positivo (em produção usa-se `JanitorService`, que satisfaz 100%
+  dos métodos, restando observação de duplicidade de nomenclatura com `BackgroundJanitor`).
+  `FailingIngestion` e `InMemoryConnManager` verificados como 100% conformes com as classes reais.
 
 Itens ainda não auditados — ordem sugerida por criticidade:
 
