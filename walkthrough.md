@@ -163,6 +163,7 @@ Nenhum arquivo de código de produção foi editado (Regra 8 — Fases 1 e 2 sã
 
 > **Data:** 2026-09-20  
 > **Item auditado:** `core/security_guard.py` (SDD-SURVIVAL-24: Boundary Guard & Hazard Classifier)  
+> **Commit:** `d32f244` (`docs(audit): core/security_guard.py concluído`)  
 > **Status final:** ✅ Concluído, aguardando aprovação para avançar para `core/rate_governor.py`  
 
 ---
