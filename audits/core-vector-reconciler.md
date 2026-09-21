@@ -33,9 +33,9 @@ Para cumprir a diretriz de auditoria além do escopo de mocks, foram catalogadas
 | # | arquivo | linha | severidade | mecanismo | reprodução | status |
 |---|---------|-------|-----------|-----------|------------|--------|
 | 1 | `core/vector_reconciler.py` | 39 | **CRÍTICA** | Invocação de método fantasma `self.vector_db.get_all_ids()`. Conforme já identificado no Achado #1 de [`audits/mock-vs-real-audit.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/mock-vs-real-audit.md#L72), o método `get_all_ids()` não existe na interface abstrata `BaseVectorBackend`, nem no backend padrão de produção `ChromaVectorStore` (o método canônico é `get_all_stored_node_ids()`), nem em `QdrantVectorStore`. Em ambiente real, qualquer execução de reconciliação de vetores quebra com `AttributeError: 'ChromaVectorStore' object has no attribute 'get_all_ids'`. A suite de testes passou apenas porque `MockVectorDatabase` inventou um método inexistente. | Script executado com `ChromaVectorStore`: `AttributeError` capturado com sucesso. Nenhuma classe real implementa o método. | **CONFIRMADO** (já citado em mock-vs-real-audit) |
-| 2 | `core/vector_reconciler.py` | 40–49, 54 | **CRÍTICA** | Incompatibilidade semântica de chaves e risco de purga total da base de vetores (Catastrophic Data Loss). O reconciliador busca `vector_ids` no banco vetorial e compara via `vector_ids - sqlite_paths` com `SELECT path FROM files;`. No GrafoConcierge real, os vetores indexam nós da AST com formato `node_{node_id}` (`ingestion/orchestrator.py:756`), enquanto a tabela `files` armazena caminhos de arquivos (`path` textual). Como os identificadores pertencem a espaços disjuntos, a interseção é vazia e **100% dos vetores legítimos são classificados como órfãos**, sendo sumariamente deletados em lote do banco vetorial. | Executado com vetores canônicos (`node_101`, `node_102`) e arquivos legítimos no SQLite: o reconciliador purgou 100% dos vetores legítimos, esvaziando o banco. | **CONFIRMADO** |
+| 2 | `core/vector_reconciler.py` | 40–49, 54 | **CRÍTICA** | Incompatibilidade de TIPO (`int` vs `str`) e Domínio Semântico -> Purga Total de Vetores (Catastrophic Data Loss). O reconciliador busca `vector_ids` no banco vetorial e compara via `vector_ids - sqlite_paths` com `SELECT path FROM files;`. No GrafoConcierge real, `get_all_stored_node_ids()` devolve `set[int]` (IDs de nós da AST), enquanto a tabela `files` armazena caminhos de arquivos em texto (`set[str]`). Em Python, a interseção entre `int` e `str` é sempre vazia (`set()`), de modo que `vector_ids - sqlite_paths` avalia invariavelmente para `vector_ids` integralmente. **A purga total de 100% dos vetores legítimos é matematicamente garantida**, esvaziando o banco vetorial. | Executado com `set[int]` canônico e caminhos SQLite: interseção nula e 100% dos vetores enviados para expurgo físico. | **CONFIRMADO** |
 | 3 | `core/vector_reconciler.py` | 31–50 | **ALTA** | Ausência de sincronização atômica e race condition destrutiva com ingestão concorrente (TOCTOU). `reconcile_orphans()` executa em segundo plano sem qualquer lock (sem `threading.Lock`) e sem coordenação transacional com o pipeline de ingestão (`IngestionOrchestrator`). Como a ingestão grava vetores no Step 6 e comita nós/arquivos no SQLite no Step 7/8, uma reconciliação que leia o banco vetorial entre esses dois passos marca os vetores recém-ingeridos como "órfãos" e os deleta fisicamente antes que o SQLite confirme a escrita. | Simulação de inserção concorrente durante leitura de IDs: vetor em trânsito de ingestão foi marcado como órfão e apagado indevidamente. | **CONFIRMADO** |
-| 4 | `core/vector_reconciler.py` | 48–50 | **MÉDIA** | Falta de paginação em lote e ausência de tratamento de exceções em `delete_batch`. O método passa a lista inteira de `orphan_ids` de uma só vez para `self.vector_db.delete_batch(orphan_ids)`. Em bases grandes ou após exclusão de repositórios inteiros com milhares de nós, listas desmedidas estouram limites de payload de rede (Qdrant) ou memória (Chroma). Falhas parciais não são tratadas e a exceção propaga sem retorno de diagnóstico. | Análise estática da chamada não paginada confrontada com `BATCH_SIZE = 100` presente em `ChromaVectorStore`. | **CONFIRMADO** |
+| 4 | `core/vector_reconciler.py` | 48–50 | **MÉDIA** | Falta de paginação em lote e ausência de tratamento de exceções em `delete_batch`. O método passa a lista inteira de `orphan_ids` de uma só vez para `self.vector_db.delete_batch(orphan_ids)` em desacordo com `BATCH_SIZE = 100` em `ChromaVectorStore`. Em bases grandes, listas desmedidas (ex: 500 itens) estouram limites de payload de rede ou buffer de memória, e exceções propagam sem tratamento ou recuperação. | Teste com 500 itens demonstrou despacho em lote único de 500 (`[500]`), estourando limites de payload e quebrando o reconciliador. | **CONFIRMADO** |
 
 ---
 
@@ -62,7 +62,7 @@ Para cumprir a diretriz de auditoria além do escopo de mocks, foram catalogadas
 
 ---
 
-### Achado #2 — Incompatibilidade Semântica de Chaves e Purga Total de Vetores (Data Loss)
+### Achado #2 — Incompatibilidade de TIPO (`int` vs `str`) e Domínio Semântico -> Purga Total de Vetores (Data Loss)
 
 - **Mecanismo da Falha:**  
   Em `core/vector_reconciler.py:40–55`:
@@ -83,19 +83,34 @@ Para cumprir a diretriz de auditoria além do escopo de mocks, foram catalogadas
       rows = self.db_manager.read_query("SELECT path FROM files;")
       return {row[0] for row in rows}
   ```
-  Há uma discrepância conceitual absoluta entre o que é indexado no banco vetorial e o que é lido do SQLite:
-  1. No banco vetorial de produção ([`ingestion/orchestrator.py:756`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L756)), os IDs de documentos representam nós de código: `"doc_id": f"node_{node_id}"` (ex: `"node_1"`, `"node_2"`, `"node_105"`).
-  2. Na tabela `files` do SQLite, a coluna `path` armazena caminhos no sistema de arquivos: `"src/core/main.py"`, `"storage/store.py"`.
-  3. Ao fazer `vector_ids - sqlite_paths`, como nenhum ID de nó (`"node_X"`) é igual a um caminho de arquivo (`"src/..."`), a operação de diferença de conjuntos avalia para `vector_ids` integralmente.
-  4. O reconciliador interpreta **todos os vetores legítimos da base como órfãos** e envia a lista completa para `self.vector_db.delete_batch(orphan_ids)`.
+  A falha possui duas camadas intransponíveis:
+  
+  1. **Incompatibilidade de TIPO primitivo (`int` vs `str`):**
+     - O método canônico real de recuperação de IDs no backend vetorial (`get_all_stored_node_ids()`, definido em `storage/base_backend.py:91` e implementado em `storage/vector_store.py:263`) retorna `set[int]` (números inteiros correspondentes às chaves primárias dos nós no SQLite).
+     - A consulta `_get_all_sqlite_paths()` retorna `set[str]` contendo nomes de arquivos (`SELECT path FROM files;`).
+     - Em Python, inteiros nunca são iguais a strings (`101 != "101"`). A interseção entre `set[int]` e `set[str]` é estritamente vazia (`set()`), mesmo se um arquivo se chamasse `"101"`. Logo, a operação `vector_ids - sqlite_paths` resulta em **100% de `vector_ids`**.
+  
+  2. **Incompatibilidade Semântica de Domínio:**
+     - Os vetores indexam nós da AST gerados pelo Tree-sitter ([`ingestion/orchestrator.py:756`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L756)), com identificadores do tipo `"node_{node_id}"` e metadados de nós.
+     - A tabela `files` armazena caminhos de arquivos (`"src/core/main.py"`).
+     - Como nenhum nó da AST tem ID igual a um caminho de arquivo, a classificação de órfão é universal e atinge a totalidade dos registros.
+
 - **Impacto no Sistema:**  
-  Caso o método `get_all_ids()` fosse fornecido por um adapter superficial retornando os `doc_id`s do Chroma/Qdrant, a primeira execução da rotina de auto-cura **apagaria 100% dos embeddings de todo o projeto**, destruindo a base de busca semântica.
+  **A purga de 100% da base de vetores é matematicamente garantida**, não apenas provável. Na primeira execução da rotina em produção, toda a base de embeddings é sumariamente apagada.
+
+- **DEPENDÊNCIA CRÍTICA ENTRE ACHADO #1 E ACHADO #2:**  
+  > [!CAUTION]
+  > **Risco Extremo de Regressão Destrutiva em Correção Isolada:**  
+  > Atualmente, o sistema está **"seguro por estar quebrado"**: a rotina aborta imediatamente na linha 39 com `AttributeError` devido ao Achado #1 (`get_all_ids()` inexistente), impedindo que a execução atinja as linhas 43–49.  
+  > Se um desenvolvedor corrigir apenas o Achado #1 isoladamente (por exemplo, criando um método `get_all_ids()` que aponte para `get_all_stored_node_ids()`), o sistema passará do estado quebrado para o estado **"roda e apaga todo o banco vetorial"** devido ao Achado #2.  
+  > **Conclusão mandatória:** Os Achados #1 e #2 **DEVEM ser corrigidos estritamente no mesmo commit / mini-plano**, nunca de forma incremental ou separada!
+
 - **Correção Conceitual Sugerida (Fase 3):**  
   Substituir a consulta a `files.path` pela verificação dos nós da tabela `nodes`:
   ```sql
   SELECT id FROM nodes;
   ```
-  E delegar a reconciliação ao método canônico `verify_sync(sqlite_node_ids)` da classe de storage, que já encapsula a lógica correta de extrair e validar `int(node_id)`.
+  E delegar a reconciliação ao método canônico `verify_sync(sqlite_node_ids: set[int])` de `ChromaVectorStore`, que já opera com tipos `int` e validação bidirecional correta.
 
 ---
 
@@ -135,33 +150,56 @@ Para cumprir a diretriz de auditoria além do escopo de mocks, foram catalogadas
 
 ## 5. Saída Bruta da Reprodução Executada
 
-Script executado: `scratch/reproduce_vector_reconciler_findings.py`
+Script executado: `python scratch/reproduce_vector_reconciler_findings.py`
 
 ```text
+[CRITICAL] qdrant-client not found. QdrantVectorStore operating in NO-OP mode. Semantic searches will return empty!
 ======================================================================
-PROVAS DE REPRODUCAO — core/vector_reconciler.py
+PROVAS DE REPRODUÇÃO EXECUTÁVEIS — core/vector_reconciler.py
 ======================================================================
 
---- TESTE ACHADO 1: Método fantasma get_all_ids() inexistente nas classes reais ---
+======================================================================
+TESTE ACHADO 1: Método fantasma get_all_ids() inexistente nas classes reais
+======================================================================
 BaseVectorBackend tem get_all_ids? False
 ChromaVectorStore tem get_all_ids? False
 QdrantVectorStore tem get_all_ids? False
-Capturado AttributeError com sucesso: 'ChromaVectorStore' object has no attribute 'get_all_ids'
-[CONFIRMADO ACHADO 1]: Nenhuma classe real implementa get_all_ids(). O VectorReconciler quebra com AttributeError em produção!
-
---- TESTE ACHADO 2: Incompatibilidade de Domínio e Risco de Purga Total (Data Loss) ---
-Vetores existentes antes da reconciliação: ['node_101', 'node_102']
-Arquivos existentes no SQLite: ['src/main.py', 'src/utils.py']
-IDs purgados pelo VectorReconciler: ['node_101', 'node_102']
-Vetores restantes no banco vetorial: []
-[CONFIRMADO ACHADO 2]: Comparação semântica inválida (IDs de nós vs Paths de arquivos) resulta na PURGA TOTAL (100%) dos vetores legítimos!
-
---- TESTE ACHADO 3: Race condition com ingestão concorrente (TOCTOU) ---
-Vetores apagados durante janela de ingestão: ['doc_new_incoming']
-[CONFIRMADO ACHADO 3]: Vetor recém-ingerido foi expurgado como falso órfão por falta de sincronização com o pipeline de ingestão!
+BaseVectorBackend tem get_all_stored_node_ids? True
+ChromaVectorStore tem get_all_stored_node_ids? True
+Capturado AttributeError em runtime: 'ChromaVectorStore' object has no attribute 'get_all_ids'
+[CONFIRMADO ACHADO 1]: get_all_ids() é método fantasma. Em produção, VectorReconciler quebra imediatamente com AttributeError.
 
 ======================================================================
-RESULTADOS: F1=True, F2=True, F3=True
+TESTE ACHADO 2: Incompatibilidade de TIPO (int vs str) e Domínio -> Purga Total Garantida
+======================================================================
+Tipo retornado por get_all_stored_node_ids(): <class 'int'> -> {101, 102, 103}
+Tipo retornado por _get_all_sqlite_paths():   <class 'str'> -> {'101', 'src/main.py', 'src/utils.py'}
+Diferença de conjuntos (vector_ids - sqlite_paths): {101, 102, 103}
+Interseção entre set[int] e set[str]: set()
+Taxa de purga resultante: 100.0%
+Vetores existentes antes da reconciliação: [101, 102]
+Arquivos válidos registrados no SQLite: ['src/main.py', 'src/utils.py']
+IDs expurgados pelo VectorReconciler: [101, 102]
+Vetores restantes no banco vetorial: []
+[CONFIRMADO ACHADO 2]: Pelo descasamento de TIPO (int vs str) e domínio semântico, 100% dos vetores legítimos são purgados (Data Loss Catastrófico garantido)!
+
+======================================================================
+TESTE ACHADO 3: Ausência de Locks e Race Condition TOCTOU com Ingestão Concorrente
+======================================================================
+Vetores apagados durante a janela de ingestão concorrente: ['new_ingested_node_in_transit']
+[CONFIRMADO ACHADO 3]: Vetor legítimo em trânsito de ingestão foi destruído por falta de sincronização atômica entre vector store e SQLite!
+
+======================================================================
+TESTE ACHADO 4: Ausência de Paginação em Lote e Exceções Não Tratadas em delete_batch
+======================================================================
+Tamanho do lote canônico configurado em ChromaVectorStore: BATCH_SIZE = 100
+Total de órfãos a deletar: 500
+Chamadas realizadas a delete_batch: [500] (lote único de 500 itens)
+Exceção não tratada propagada pelo VectorReconciler: Payload too large: batch size exceeds maximum allowed limit of 250 items
+[CONFIRMADO ACHADO 4]: delete_batch despacha a lista completa de uma só vez sem paginação (BATCH_SIZE), propagando falhas não tratadas!
+
+======================================================================
+RESULTADOS FINAIS: F1=True | F2=True | F3=True | F4=True
 ======================================================================
 ```
 

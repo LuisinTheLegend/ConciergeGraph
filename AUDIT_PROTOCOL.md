@@ -119,7 +119,7 @@ Tarefa extra inserida a partir do padrão encontrado acima:
   2 MÉDIA (crash com `TypeError` em `_summarize_community` quando `files.content` é `NULL`;
   descarte cego de `is_dirty = 0` / TOCTOU sobre arquivos modificados durante a SLM).
 - [x] `core/vector_reconciler.py` — 4 achados confirmados (ver `audits/core-vector-reconciler.md`).
-  2 CRÍTICA (invocação de método fantasma `self.vector_db.get_all_ids()` inexistente em `BaseVectorBackend`/`ChromaVectorStore`/`QdrantVectorStore`, mascarado por mock nos testes; incompatibilidade semântica de chaves `vector_ids - sqlite_paths` com `SELECT path FROM files` em vez de IDs de nós da AST, causando purga acidental de 100% dos vetores legítimos da base vetorial),
+  2 CRÍTICA (invocação de método fantasma `self.vector_db.get_all_ids()` inexistente em `BaseVectorBackend`/`ChromaVectorStore`/`QdrantVectorStore`, mascarado por mock nos testes; incompatibilidade de TIPO (`int` vs `str`) e de domínio semântico entre `get_all_stored_node_ids()` e `_get_all_sqlite_paths()`, causando purga matematicamente garantida de 100% dos vetores legítimos da base vetorial; dependência crítica: corrigir #1 isoladamente faz o sistema passar de 'seguro por estar quebrado' para 'roda e apaga tudo', exigindo correção simultânea),
   1 ALTA (ausência de locks e race condition destrutiva TOCTOU com ingestão concorrente em segundo plano),
   1 MÉDIA (falta de paginação em lote e ausência de tratamento de exceções em `delete_batch`).
 - [ ] `core/checkpointer.py`
