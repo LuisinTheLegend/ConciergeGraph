@@ -288,8 +288,60 @@ Nenhum arquivo de código de produção foi editado (Regra 8 — Fases 1 e 2 sã
 
 ```
 Fase 0: [ ] baseline (não iniciada)
-Fase 1: 11/16 itens concluídos (6 pré-existentes + delta_manager + mock-vs-real-audit + security_guard + rate_governor + background_janitor)
-         ▶ Próximo: core/vector_reconciler.py
+Fase 1: 11/17 itens concluídos (6 pré-existentes + delta_manager + mock-vs-real-audit + security_guard + rate_governor + background_janitor)
+         ▶ Concluído: core/vector_reconciler.py
+         ▶ Próximo: core/checkpointer.py
+Fase 2: bloqueada (requer Fase 1 completa)
+Fase 3: bloqueada (requer Fase 2 completa)
+```
+
+---
+
+# Sessão de Auditoria — `core/vector_reconciler.py`
+
+> **Data:** 2026-09-20  
+> **Item auditado:** `core/vector_reconciler.py` (SDD-SURVIVAL-05: Eventual Consistency Janitor & Background Vector Reconciler)  
+> **Status final:** ✅ Concluído, aguardando aprovação para avançar para `core/checkpointer.py`  
+
+---
+
+## 1. Execução da auditoria
+- Inspecionado [`core/vector_reconciler.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/vector_reconciler.py) na íntegra (57 linhas).
+- Verificado alinhamento com interfaces e backends reais: [`storage/base_backend.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/base_backend.py), [`storage/vector_store.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py) (`ChromaVectorStore`), [`core/vector_backend.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/vector_backend.py) (`QdrantVectorStore`), e [`ingestion/orchestrator.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py).
+- Ferramentas estáticas:
+  - `mypy core/vector_reconciler.py --follow-imports=skip` -> `Success: no issues found in 1 source file`.
+  - `unittest tests/test_vector_reconciler.py` -> 2 passed em 0.046s (passou apenas pelo uso do mock permissivo `MockVectorDatabase`).
+- Desenvolvido script de reprodução abrangente cobrindo 4 achados confirmados com saída bruta em terminal.
+
+---
+
+## 2. Achados de `core/vector_reconciler.py` (4 achados confirmados)
+
+| # | Severidade | Resumo |
+|---|-----------|--------|
+| 1 | **CRÍTICA** | [`core/vector_reconciler.py:39`](file:///c:/Nexus-Memory/GrafoConcierge/core/vector_reconciler.py#L39) — Invocação de método fantasma `self.vector_db.get_all_ids()`. Conforme já identificado no Achado #1 de [`audits/mock-vs-real-audit.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/mock-vs-real-audit.md#L72), o método `get_all_ids()` não existe em `BaseVectorBackend`, `ChromaVectorStore` (canônico: `get_all_stored_node_ids()`) nem em `QdrantVectorStore`. Quebra em runtime com `AttributeError`. |
+| 2 | **CRÍTICA** | [`core/vector_reconciler.py:40–49, 54`](file:///c:/Nexus-Memory/GrafoConcierge/core/vector_reconciler.py#L40-L49) — Incompatibilidade semântica de chaves e risco de purga total da base vetorial (Catastrophic Data Loss). O reconciliador subtrai caminhos de arquivos (`files.path`) de IDs de vetores (`vector_ids - sqlite_paths`). No sistema real, os vetores armazenam IDs de nós da AST (`node_{node_id}`, ex: `"node_101"`), enquanto a tabela `files` armazena caminhos no filesystem (`"src/main.py"`). Como os conjuntos são disjuntos, a diferença avalia para 100% dos vetores legítimos, que são sumariamente deletados do banco vetorial. |
+| 3 | **ALTA** | [`core/vector_reconciler.py:31–50`](file:///c:/Nexus-Memory/GrafoConcierge/core/vector_reconciler.py#L31-L50) — Ausência de sincronização atômica e race condition destrutiva com ingestão concorrente (TOCTOU). Sem locks (`threading.Lock`) e sem coordenação com `IngestionOrchestrator`. Como a ingestão grava vetores no Step 6 e o SQLite no Step 7/8, uma reconciliação que leia o banco vetorial entre esses passos marca vetores legítimos em trânsito como órfãos e os deleta. |
+| 4 | **MÉDIA** | [`core/vector_reconciler.py:48–50`](file:///c:/Nexus-Memory/GrafoConcierge/core/vector_reconciler.py#L48-L50) — Falta de paginação em lote e ausência de tratamento de exceções em `delete_batch`. Lista inteira de órfãos é enviada de uma só vez, com risco de estourar limites de payload de rede (Qdrant) ou memória (Chroma). |
+
+---
+
+## 3. Arquivos produzidos / atualizados
+
+| Arquivo | Tipo | Descrição |
+|---------|------|-----------|
+| [`audits/core-vector-reconciler.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/core-vector-reconciler.md) | Relatório | Relatório oficial completo com inventário de chamadas, análise técnica detalhada e saída de reprodução |
+| [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md) | Protocolo | `core/vector_reconciler.py` marcado `[x]`, próximo: `▶ core/checkpointer.py` |
+| [`walkthrough.md`](file:///c:/Nexus-Memory/GrafoConcierge/walkthrough.md) | Relatório de Sessão | Registro consolidado da auditoria |
+
+---
+
+## 4. Estado atual da auditoria
+
+```
+Fase 0: [ ] baseline (não iniciada)
+Fase 1: 12/17 itens concluídos (6 pré-existentes + delta_manager + mock-vs-real-audit + security_guard + rate_governor + background_janitor + vector_reconciler)
+         ▶ Próximo: core/checkpointer.py
 Fase 2: bloqueada (requer Fase 1 completa)
 Fase 3: bloqueada (requer Fase 2 completa)
 ```

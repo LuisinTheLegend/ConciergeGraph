@@ -118,7 +118,10 @@ Tarefa extra inserida a partir do padrão encontrado acima:
   destruição do ponto-zero e deleção cruzada de checkpoints entre agentes por ignorar `agent_id` no DELETE),
   2 MÉDIA (crash com `TypeError` em `_summarize_community` quando `files.content` é `NULL`;
   descarte cego de `is_dirty = 0` / TOCTOU sobre arquivos modificados durante a SLM).
-- [ ] `core/vector_reconciler.py`
+- [x] `core/vector_reconciler.py` — 4 achados confirmados (ver `audits/core-vector-reconciler.md`).
+  2 CRÍTICA (invocação de método fantasma `self.vector_db.get_all_ids()` inexistente em `BaseVectorBackend`/`ChromaVectorStore`/`QdrantVectorStore`, mascarado por mock nos testes; incompatibilidade semântica de chaves `vector_ids - sqlite_paths` com `SELECT path FROM files` em vez de IDs de nós da AST, causando purga acidental de 100% dos vetores legítimos da base vetorial),
+  1 ALTA (ausência de locks e race condition destrutiva TOCTOU com ingestão concorrente em segundo plano),
+  1 MÉDIA (falta de paginação em lote e ausência de tratamento de exceções em `delete_batch`).
 - [ ] `core/checkpointer.py`
 - [ ] `storage/` (todos os arquivos)
 - [ ] `ingestion/` (todos os arquivos)
@@ -126,7 +129,7 @@ Tarefa extra inserida a partir do padrão encontrado acima:
 - [ ] `interface/telemetry_api.py`
 - [ ] `grafo-dashboard-web/` (componentes principais e chamadas à API)
 
-▶ **EM ANDAMENTO:** `core/vector_reconciler.py`
+▶ **EM ANDAMENTO:** `core/checkpointer.py`
 
 ## Fase 2 — Cruzamento transversal (só inicia com TODOS os itens da Fase 1 marcados)
 
