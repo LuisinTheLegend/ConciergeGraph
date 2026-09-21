@@ -119,6 +119,7 @@ Tarefa extra inserida a partir do padrão encontrado acima:
   2 MÉDIA (crash com `TypeError` em `_summarize_community` quando `files.content` é `NULL`;
   descarte cego de `is_dirty = 0` / TOCTOU sobre arquivos modificados durante a SLM).
 - [ ] `core/vector_reconciler.py`
+- [ ] `core/checkpointer.py`
 - [ ] `storage/` (todos os arquivos)
 - [ ] `ingestion/` (todos os arquivos)
 - [ ] `agent/` e `agents/` (todos os arquivos)
