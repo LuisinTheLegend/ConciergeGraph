@@ -342,7 +342,67 @@ Fase 3: bloqueada (requer Fase 2 completa)
 ```
 Fase 0: [ ] baseline (não iniciada)
 Fase 1: 12/17 itens concluídos (6 pré-existentes + delta_manager + mock-vs-real-audit + security_guard + rate_governor + background_janitor + vector_reconciler)
+         ▶ Concluído: core/vector_reconciler.py
          ▶ Próximo: core/checkpointer.py
+Fase 2: bloqueada (requer Fase 1 completa)
+Fase 3: bloqueada (requer Fase 2 completa)
+```
+
+---
+
+# Sessão de Auditoria — `core/checkpointer.py`
+
+> **Data:** 2026-09-21  
+> **Item auditado:** `core/checkpointer.py` (SDD-SURVIVAL-07: Agnostic Agent State Checkpointer & SDD-SURVIVAL-20: Durable FSM Checkpoints & Time-Travel)  
+> **Status final:** ✅ Concluído, aguardando aprovação para avançar para `storage/`  
+
+---
+
+## 1. Execução da auditoria
+- Inspecionado [`core/checkpointer.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py) na íntegra (256 linhas).
+- Verificadas integrações e chamadores reais: [`interface/mcp_server.py`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py) (`agent_save_checkpoint`, `agent_get_checkpoint`, `agent_list_checkpoints`), [`core/hsm_engine.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/hsm_engine.py), [`core/background_janitor.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/background_janitor.py) e [`storage/relational_db.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/relational_db.py).
+- Ferramentas estáticas:
+  - `mypy core/checkpointer.py --follow-imports=skip` -> ❌ **4 erros encontrados** (chamada de `None` e tuplas incompatíveis em queries).
+  - `unittest tests/test_agent_checkpointer.py tests/test_durable_checkpoints_timetravel.py` -> 7 passed em 2.633s (passou por viés de fixtures que evitaram o cenário ambíguo real).
+- Desenvolvido script de reprodução abrangente cobrindo 4 testes empíricos com saída bruta em terminal.
+
+---
+
+## 2. Achados de `core/checkpointer.py` (5 achados confirmados)
+
+| # | Severidade | Resumo |
+|---|-----------|--------|
+| 1 | **CRÍTICA** | [`core/checkpointer.py:73–78, 80–117`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py#L73) — Despacho ambíguo em `save_checkpoint` baseado em heurística de tipos (`len(args) == 4 and isinstance(args[3], str)`). Na chamada real em [`interface/mcp_server.py:1741`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L1741), são passados 4 argumentos posicionais. Se `state_dict` for string JSON ou mensagem textual, o método despacha erroneamente para `fsm_checkpoints` em vez de `agent_checkpoints`, inverte colunas primárias (`session_id` recebe `agent_id`, `checkpoint_id` recebe `session_id`, `agent_id` recebe `checkpoint_id`) e **descarta o estado** gravando `shared_state_blob = "{}"`. |
+| 2 | **ALTA** | [`core/checkpointer.py:195–210`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py#L195) — Falha de atomicidade e mascaramento silencioso de erros em `execute_time_travel`. O loop ignora o retorno de `write_fn` (`execute_write`), que retorna tupla `(False, error)` e não propaga exceções. Se o rollback falhar no banco, `execute_time_travel` retorna `target_data`, reportando falso sucesso de Time-Travel. |
+| 3 | **ALTA** | [`core/checkpointer.py:196`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py#L196) — Granularidade temporal insuficiente (1s de `CURRENT_TIMESTAMP`) em `execute_time_travel`. Em rajadas rápidas de transição de estado, checkpoints no mesmo segundo têm timestamp idêntico, e a cláusula `WHERE created_at > ?` falha em deletar checkpoints futuros. |
+| 4 | **MÉDIA** | [`core/checkpointer.py:226–234`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py#L226) — Crash com `json.JSONDecodeError` não tratado em `get_checkpoint` para blobs corrompidos ou truncados no SQLite (ao contrário de `load_checkpoint` que possui fallback seguro). |
+| 5 | **MÉDIA** | [`core/checkpointer.py:112–113, 137–138, 201–206`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py#L112) — Tipagem insegura do Mypy e risco de `TypeError: 'NoneType' object is not callable` na resolução dinâmica de `write_fn`. 4 erros apontados pelo Mypy. |
+
+---
+
+## 3. Matriz de Interação Crítica entre Achados
+
+1. **Interação entre #1 (Despacho) e Time-Travel (#2 e #3):** Se `save_checkpoint` for corrigido para gravar dados de agente estritamente em `agent_checkpoints`, esses checkpoints ficarão permanentemente invisíveis para `execute_time_travel` (que opera apenas sobre `fsm_checkpoints`). Se `execute_time_travel` for expandido para podar `agent_checkpoints`, deve obrigatoriamente filtrar por `agent_id` e `session_id` para não reintroduzir a deleção cruzada multi-agente do `BackgroundJanitor`.
+2. **Interação entre #2 (Mascaramento) e #3 (Timestamp):** Ajustar o timestamp para float sem antes remover o mascaramento de erro de #2 fará qualquer incompatibilidade de tipo no SQLite ser engolida silenciosamente, mascarando a falha do rollback.
+
+---
+
+## 4. Arquivos produzidos / atualizados
+
+| Arquivo | Tipo | Descrição |
+|---------|------|-----------|
+| [`audits/core-checkpointer.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/core-checkpointer.md) | Relatório | Relatório oficial completo com análise técnica detalhada, matriz de interação e saída bruta de reprodução |
+| [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md) | Protocolo | `core/checkpointer.py` marcado `[x]`, próximo: `▶ storage/ (todos os arquivos)` |
+| [`walkthrough.md`](file:///c:/Nexus-Memory/GrafoConcierge/walkthrough.md) | Relatório de Sessão | Registro consolidado da auditoria |
+
+---
+
+## 5. Estado atual da auditoria
+
+```
+Fase 0: [ ] baseline (não iniciada)
+Fase 1: 13/17 itens concluídos (6 pré-existentes + delta_manager + mock-vs-real-audit + security_guard + rate_governor + background_janitor + vector_reconciler + checkpointer)
+         ▶ Próximo: storage/ (todos os arquivos)
 Fase 2: bloqueada (requer Fase 1 completa)
 Fase 3: bloqueada (requer Fase 2 completa)
 ```

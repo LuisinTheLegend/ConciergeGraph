@@ -122,14 +122,17 @@ Tarefa extra inserida a partir do padrão encontrado acima:
   2 CRÍTICA (invocação de método fantasma `self.vector_db.get_all_ids()` inexistente em `BaseVectorBackend`/`ChromaVectorStore`/`QdrantVectorStore`, mascarado por mock nos testes; incompatibilidade de TIPO (`int` vs `str`) e de domínio semântico entre `get_all_stored_node_ids()` e `_get_all_sqlite_paths()`, causando purga matematicamente garantida de 100% dos vetores legítimos da base vetorial; dependência crítica: corrigir #1 isoladamente faz o sistema passar de 'seguro por estar quebrado' para 'roda e apaga tudo', exigindo correção simultânea),
   1 ALTA (ausência de locks e race condition destrutiva TOCTOU com ingestão concorrente em segundo plano),
   1 MÉDIA (falta de paginação em lote e ausência de tratamento de exceções em `delete_batch`).
-- [ ] `core/checkpointer.py`
+- [x] `core/checkpointer.py` — 5 achados confirmados (ver `audits/core-checkpointer.md`).
+  1 CRÍTICA (despacho ambíguo em `save_checkpoint` baseado em heurística de tipos `len(args)==4 and isinstance(args[3], str)` desviando chamadas de `agent_save_checkpoint` para `fsm_checkpoints` com inversão de colunas primárias e perda total de dados `shared_state="{}"`),
+  2 ALTA (mascaramento silencioso de falhas e transação não atômica em `execute_time_travel`; granularidade de 1s de `CURRENT_TIMESTAMP` falhando em deletar checkpoints futuros em rajadas rápidas de time-travel),
+  2 MÉDIA (crash com `json.JSONDecodeError` não tratado em `get_checkpoint`; tipagem insegura reportada pelo Mypy com risco de chamada em `None`).
 - [ ] `storage/` (todos os arquivos)
 - [ ] `ingestion/` (todos os arquivos)
 - [ ] `agent/` e `agents/` (todos os arquivos)
 - [ ] `interface/telemetry_api.py`
 - [ ] `grafo-dashboard-web/` (componentes principais e chamadas à API)
 
-▶ **EM ANDAMENTO:** `core/checkpointer.py`
+▶ **EM ANDAMENTO:** `storage/` (todos os arquivos)
 
 ## Fase 2 — Cruzamento transversal (só inicia com TODOS os itens da Fase 1 marcados)
 
