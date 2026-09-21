@@ -24,7 +24,7 @@
 | # | arquivo | linha | severidade | mecanismo | reprodução | status |
 |---|---------|-------|-----------|-----------|------------|--------|
 | 1 | `core/rate_governor.py` | 250, 255, 261, 272 | **CRÍTICA** | Vazamento cumulativo de `unfinished_tasks` na `PriorityQueue` e starvation de cabeça de fila (Head-of-Line). Quando uma tarefa de baixa/média prioridade está congelada, o loop faz `get()` e em seguida `put(req)` sem chamar `task_done()`. Cada ciclo de re-enfileiramento a cada 0.5s incrementa `unfinished_tasks` em +1 (tarefas fantasmas). Qualquer chamada a `request_queue.join()` trava para sempre em Deadlock. Além disso, a tarefa mantém seu timestamp original antigo, sendo recolocada no topo da fila e bloqueando outras tarefas do mesmo nível. | Script executado com fila congelada por 1.6s: `unfinished_tasks` saltou de 1 para 5 tarefas fantasmas. Ver saída bruta. | **CONFIRMADO** |
-| 2 | `core/rate_governor.py` | 231–252 | **ALTA** | Contradição matemática inalcançável no anti-starvation aging de prioridade 3 (`LOW`). O código exige `max_pct < 75.0` para promover a tarefa; porém, a fila `LOW` só é congelada quando `max_pct >= 85.0`. Se `max_pct < 75.0`, a fila não está congelada e a tarefa já executaria naturalmente sem promoção. Se `max_pct >= 85.0`, `max_pct < 75.0` é sempre FALSO, caindo no `else` que re-enfileira. A promoção durante congelamento é inalcançável (`dead code`). | Script injetou tarefa LOW com 10s de idade (> threshold de 0.1s) sob 86% de uso: tarefa permaneceu congelada sem nunca executar. | **CONFIRMADO** |
+| 2 | `core/rate_governor.py` | 231–252 | **ALTA** | Starvation de tarefas LOW envelhecidas em toda a faixa de 75% a 100% de carga. O branch de envelhecimento (aging) avalia se `max_pct < 75.0` para promover a tarefa; caso contrário (`max_pct >= 75.0`), cai no `else` e re-enfileira a tarefa com `sleep(0.5)`. Como a fila LOW só congela oficialmente com `max_pct >= 85.0` (`low_priority_frozen`), qualquer tarefa LOW envelhecida fica impedida de executar em toda a faixa de 75% a 100% de carga (inclusive entre 75% e 84.9%, onde a fila LOW nem sequer está congelada), sofrendo inanição contínua e só conseguindo executar se a carga cair abaixo de 75%. | Script injetou `PriorityRequest` com timestamp antigo na fila sob 80% de carga fixa (`low_priority_frozen=False`): tarefa sofreu inanição contínua e foi executada imediatamente assim que a carga caiu para 70%. | **CONFIRMADO** |
 | 3 | `core/rate_governor.py` | 91, 116–150 | **ALTA** | Data Race / Lost Updates em `get_current_metrics()`. O método lê, filtra e reatribui `self.history = [item for item in self.history if item[0] >= cutoff]` sem adquirir `self.lock`. Como `self.lock` é um `threading.Lock()` (não-reentrante), chamadas concorrentes externas (como o endpoint `/api/governor/metrics` em `interface/telemetry_api.py:387`) disputam com `report_usage()`, provocando sobrescrita e perda de registros de consumo recentes. | Inspecionado tipo de `self.lock`: `Lock` não-reentrante. Executada concorrência entre leituras e escritas sem proteção. | **CONFIRMADO** |
 | 4 | `core/rate_governor.py` | 196–203, 278–280 | **ALTA** | Deadlock permanente em `submit_request` se o governor não estiver rodando ou após `shutdown()`. `submit_request` enfileira a tarefa e bloqueia em `req.future_result.get()` sem timeout. Se `start()` não tiver sido chamado, ou se `shutdown()` for invocado (o qual apenas seta `self.running = False` e encerra a thread sem drenar a fila nem responder aos futures pendentes), a thread chamadora fica travada em deadlock eterno. | Invocado `shutdown()` e submetida tarefa: thread cliente travada indefinidamente em `future_result.get()`. | **CONFIRMADO** |
 | 5 | `core/rate_governor.py` | 185–194 | **MÉDIA** | Cegueira de RPM no Fast-Path. Requisições prioritárias (prioridade 1) sob tráfego verde (< 50%) executam inline instantaneamente sem serem inseridas na fila. Porém, `submit_request` não registra o timestamp da chamada no histórico deslizante (`self.history`). Se o chamador não invocar `report_usage()`, requisições rápidas consecutivas não incrementam `current_rpm`, mascarando rajadas de chamadas. | Submetida requisição via fast-path: `current_rpm` permaneceu em 0. | **CONFIRMADO** |
@@ -58,34 +58,47 @@
 
 ---
 
-### Achado #2 — Condição Matematicamente Inalcançável no Anti-Starvation Aging
+### Achado #2 — Starvation de Tarefas LOW Envelhecidas em Toda a Faixa de 75% a 100% de Carga
 
 - **Mecanismo da Falha:**  
-  O código em `run()` define:
+  O loop consumidor em `core/rate_governor.py:231–258` processa tarefas de prioridade 3 (`LOW`):
   ```python
   if req.priority == 3:
       age = time.time() - req.timestamp
       if age >= self.aging_threshold_secs:
-          ...
+          with self.lock:
+              metrics = self.get_current_metrics()
+          max_pct = max(
+              metrics["rpm_percentage"], metrics["tpm_percentage"]
+          )
           if max_pct < 75.0:
               # Temporary promotion: execute even if LOW is frozen
-              ...
+              logger.info(...)
+              # Fall through directly to execution
           else:
+              # Still under load: re-enqueue
               self.request_queue.put(req)
               time.sleep(0.5)
               continue
+      elif self.low_priority_frozen:
+          self.request_queue.put(req)
+          time.sleep(0.5)
+          continue
   ```
-  Porém, a regra de congelamento de `LOW` em `_recalculate_frozen_states()` (linha 168) é:
+  O congelamento oficial de LOW é recalculado em `_recalculate_frozen_states()` (linha 168):
   ```python
   self.low_priority_frozen = max_pct >= 85.0
   ```
-  Isso cria uma contradição lógica insuperável:
-  - Se `max_pct < 75.0%`, a fila `LOW` **não está congelada** (pois só congela com `>= 85%`). A tarefa seria executada de qualquer forma.
-  - Se a fila `LOW` estiver realmente congelada (`max_pct >= 85.0%`), a condição `max_pct < 75.0` é **estritamente falsa**. O código sempre cai no `else`, re-enfileira a tarefa e dorme 0.5s.
+  O branch `if max_pct < 75.0:` não é "código morto" (`dead code`), pois ele executa e de fato promove a tarefa quando a carga do sistema cai abaixo de 75%. No entanto, a lógica produz uma anomalia severa em **toda a faixa de 75% a 100% de carga**:
+  1. **Faixa Intermediária Não-Congelada (75% a 84.9%):**  
+     Nesta faixa, `low_priority_frozen` é `False` (a fila LOW não está congelada e deveria processar requisições). Se uma tarefa LOW for nova (`age < aging_threshold_secs`), ela não entra no primeiro `if`, pula o `elif self.low_priority_frozen` e executa normalmente. Porém, se a tarefa for antiga/envelhecida (`age >= aging_threshold_secs`), ela entra no bloco de aging, avalia `if max_pct < 75.0` (que é Falso, pois a carga está em 80%), cai no `else` e é re-enfileirada com `sleep(0.5)`. O próprio mecanismo anti-starvation introduz uma inversão perversa: tarefas antigas sofrem inanição e são bloqueadas, enquanto tarefas novas poderiam executar.
+  2. **Faixa Congelada (85% a 100%):**  
+     Quando `low_priority_frozen` é `True` (`max_pct >= 85.0`), a tarefa envelhecida também nunca é promovida porque `max_pct >= 85.0 >= 75.0`, caindo invariavelmente no `else`.
+  Em suma: **qualquer tarefa LOW que atinja o threshold de envelhecimento fica estritamente impedida de executar em toda a faixa de 75% a 100% de carga**, entrando em starvation contínuo e só conseguindo executar se a carga do sistema cair abaixo de 75%.
 - **Impacto no Sistema:**  
-  O mecanismo de promoção temporária por envelhecimento (anti-starvation) anunciado na documentação (linhas 20-21) é **código morto (`dead code`)**. Tarefas do Janitor envelhecidas nunca são promovidas enquanto o sistema estiver sob estresse de quota.
+  Tarefas de background de baixa prioridade (como janitoring, compactação e reconciliação) que acumulam tempo na fila sofrem inanição prolongada em qualquer regime de operação com carga contínua entre 75% e 100%. Além disso, como demonstrado no Achado #1, a cada 500ms essa tarefa é re-enfileirada, vazando contadores de `unfinished_tasks` e monopolizando a cabeça da fila.
 - **Correção Conceitual Sugerida (Fase 3):**  
-  Ajustar o threshold de promoção para um nível condizente com a sobrecarga, por exemplo permitindo a execução de tarefas envelhecidas se `max_pct < 95.0%` (evitando starvation total enquanto a quota crítica de MEDIUM/HIGH não for atingida), ou atribuindo `req.priority = 2` ao objeto.
+  Ajustar a verificação de aging para que tarefas envelhecidas possam ser promovidas temporariamente ao nível MEDIUM (ex: permitindo execução se `max_pct < 95.0%`, que é o limiar de bloqueio de MEDIUM), ou garantindo que tarefas envelhecidas nunca sofram restrição mais severa que tarefas novas quando a fila não está congelada (`max_pct < 85.0%`).
 
 ---
 
@@ -157,21 +170,55 @@
 
 ## 4. Saída Bruta da Reprodução Executada
 
-Script executado: `scratch/reproduce_rate_governor_findings.py`
+Scripts executados:
+1. `scratch/reproduce_rate_governor_findings.py` (Visão geral de todos os 5 achados)
+2. `scratch/reproduce_finding_2_starvation.py` (Reprodução detalhada do Achado #2: Starvation sob carga intermediária de 80% vs liberação sob 70%)
 
 ```text
 ======================================================================
-REPRODUCAO DOS ACHADOS — core/rate_governor.py
+REPRODUCAO: Achado #2 - Starvation de Tarefa LOW na Faixa de 75% a 100%
 ======================================================================
 
+[1] Estado Inicial da Carga:
+    - RPM: 80/100 (80.0%)
+    - low_priority_frozen: False (Esperado: False, pois 80% < 85%)
+    - medium_priority_frozen: False
+
+[2] Injetando PriorityRequest LOW envelhecida:
+    - Prioridade: 3 (LOW)
+    - Idade: 30.0s (Threshold: 1.0s)
+    - Carga mantida: 80% (Faixa intermediaria: 75% <= carga < 85%)
+
+[3] Aguardando 2.0s sob carga continua de 80%...
+    ... Fila backlog: 1 | Executou: []
+    ... Fila backlog: 1 | Executou: []
+    ... Fila backlog: 1 | Executou: []
+    ... Fila backlog: 1 | Executou: []
+
+[4] Resultado sob 80% de carga:
+    [CONFIRMADO] A tarefa envelhecida NAO EXECUTOU sob 80% de carga!
+    Mecanismo: Como age >= 1.0s, o loop avalia `max_pct < 75.0`.
+    Como max_pct (80%) >= 75.0%, cai no `else` e e re-enfileirada com sleep(0.5).
+    Mesmo com `low_priority_frozen == False` (fila LOW teoricamente aberta),
+    qualquer tarefa envelhecida fica presa em starvation em TODA a faixa de 75% a 100%.
+
+[5] Reduzindo a carga para 70% (< 75% limiar de promocao)...
+    ... Fila backlog: 0 | Executou: ['AGED_TASK_EXECUTED']
+    [CONFIRMADO] A tarefa executou imediatamente quando a carga caiu abaixo de 75%!
+    O branch de promocao e alcancavel e funciona, mas APENAS sob carga < 75%.
+
+======================================================================
+REPRODUCAO CONCLUIDA COM SUCESSO.
+======================================================================
+```
+
+Saída consolidada dos demais achados (`scratch/reproduce_rate_governor_findings.py`):
+
+```text
 --- ACHADO 1 (CRITICA): Vazamento de unfinished_tasks em filas congeladas ---
 unfinished_tasks logo apos put inicial: 1
 unfinished_tasks apos 1.6s congelado: 5
 Vazamento comprovado: 5 > 1 (Aumento de 4 tarefas fantasmas!)
-
---- ACHADO 2 (ALTA): Anti-starvation inalcancavel quando LOW esta congelado ---
-Tarefa envelhecida executou durante freeze (86% uso)? False
-Mecanismo: Como max_pct=86% >= 75%, o aging cai no else e re-enfileira, NUNCA promovendo enquanto congelada!
 
 --- ACHADO 3 (ALTA): get_current_metrics nao adquire lock e sobreescreve history ---
 Tipo de gov3.lock: <class '_thread.lock'> (Lock nao-reentrante impede reuso em get_current_metrics)
@@ -185,10 +232,6 @@ SUCESSO: Provado que submit_request trava para sempre (deadlock) quando o govern
 --- ACHADO 5 (MEDIA): Cegueira de RPM no Fast-Path ---
 Resultado do fast-path: fast_done
 current_rpm registrado apos fast-path: 0 (Esperado: 0 devido a omissao de registro)
-
-======================================================================
-TODOS OS 5 ACHADOS REPRODUZIDOS COM SUCESSO!
-======================================================================
 ```
 
 ---
