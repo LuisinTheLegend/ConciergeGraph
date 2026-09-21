@@ -301,7 +301,7 @@ Fase 3: bloqueada (requer Fase 2 completa)
 
 > **Data:** 2026-09-20  
 > **Item auditado:** `core/vector_reconciler.py` (SDD-SURVIVAL-05: Eventual Consistency Janitor & Background Vector Reconciler)  
-> **Commit:** `ed31ea1` (`docs(audit): detalhar tipo int vs str, dependencia critica e saida bruta completa do vector_reconciler`)  
+> **Commit:** `18675ba` (`docs(audit): refinar achados 3 e 4 do vector_reconciler com node_id 106 e nota de threshold arbitrario`)  
 > **Status final:** ✅ Concluído, aguardando aprovação para avançar para `core/checkpointer.py`  
 
 ---
