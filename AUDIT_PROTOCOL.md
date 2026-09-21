@@ -112,7 +112,12 @@ Tarefa extra inserida a partir do padrão encontrado acima:
   Data Race / Lost Updates em `get_current_metrics` sem lock; deadlock eterno em
   `submit_request` sem timeout e após `shutdown()`),
   1 MÉDIA (cegueira de RPM no Fast-Path sem registro em `self.history`).
-- [ ] `core/background_janitor.py`
+- [x] `core/background_janitor.py` — 5 achados confirmados (ver `audits/core-background-janitor.md`).
+  3 ALTA (slice negativo `remaining[-0:]` com `keep_limit=0` preserva 100% dos checkpoints;
+  degradação irreversível da prioridade do processo inteiro do servidor para IDLE;
+  destruição do ponto-zero em sessões multi-agente por ignorar `agent_id`),
+  2 MÉDIA (crash com `TypeError` em `_summarize_community` quando `files.content` é `NULL`;
+  descarte cego de `is_dirty = 0` / TOCTOU sobre arquivos modificados durante a SLM).
 - [ ] `core/vector_reconciler.py`
 - [ ] `storage/` (todos os arquivos)
 - [ ] `ingestion/` (todos os arquivos)
@@ -120,7 +125,7 @@ Tarefa extra inserida a partir do padrão encontrado acima:
 - [ ] `interface/telemetry_api.py`
 - [ ] `grafo-dashboard-web/` (componentes principais e chamadas à API)
 
-▶ **EM ANDAMENTO:** `core/background_janitor.py`
+▶ **EM ANDAMENTO:** `core/vector_reconciler.py`
 
 ## Fase 2 — Cruzamento transversal (só inicia com TODOS os itens da Fase 1 marcados)
 

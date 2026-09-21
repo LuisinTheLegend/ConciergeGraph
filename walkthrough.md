@@ -243,15 +243,56 @@ Nenhum arquivo de código de produção foi editado (Regra 8 — Fases 1 e 2 sã
 
 ---
 
+# Sessão de Auditoria — `core/background_janitor.py`
+
+> **Data:** 2026-09-20  
+> **Item auditado:** `core/background_janitor.py` (SDD-SURVIVAL-06 / SDD-SURVIVAL-12 / SDD-SURVIVAL-14: Background Community Summarizer, Smart Checkpoint Pruning, and Hardware-Aware Governor)  
+> **Status final:** ✅ Concluído, aguardando aprovação para avançar para `core/vector_reconciler.py`  
+
+---
+
+## 1. Execução da auditoria
+- Inspecionado [`core/background_janitor.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/background_janitor.py) na íntegra (291 linhas).
+- Verificada integração com [`core/graph_rag.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/graph_rag.py), [`core/checkpointer.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py) e [`interface/queue_writer.py`](file:///c:/Nexus-Memory/GrafoConcierge/interface/queue_writer.py).
+- Ferramentas estáticas:
+  - `mypy core/background_janitor.py --follow-imports=skip --ignore-missing-imports` -> `Success: no issues found in 1 source file`.
+  - `unittest tests/test_graph_rag_janitor.py tests/test_graph_rag_frugal.py tests/test_checkpoint_pruning.py` -> 6 passed em 2.938s.
+- Desenvolvido script de reprodução cobrindo 5 achados confirmados com saída bruta em terminal.
+
+---
+
+## 2. Achados de `core/background_janitor.py` (5 achados confirmados)
+
+| # | Severidade | Resumo |
+|---|-----------|--------|
+| 1 | **ALTA** | [`core/background_janitor.py:176–186`](file:///c:/Nexus-Memory/GrafoConcierge/core/background_janitor.py#L176) — Falha de slice negativo em Python (`remaining[-keep_limit:]`) quando `keep_limit = 0`. `-0 == 0`, logo `remaining[-0:]` avalia para a lista inteira. `preserve_set` protege 100% dos checkpoints da sessão, e 0 registros são deletados. |
+| 2 | **ALTA** | [`core/background_janitor.py:270–284`](file:///c:/Nexus-Memory/GrafoConcierge/core/background_janitor.py#L270) — Degradação irreversível da prioridade do processo inteiro do servidor (`p.nice(psutil.IDLE_PRIORITY_CLASS)`). Rebaixa todo o processo do Concierge antes mesmo da checagem da barreira térmica e jamais restaura a prioridade original. |
+| 3 | **ALTA** | [`core/background_janitor.py:160–197`](file:///c:/Nexus-Memory/GrafoConcierge/core/background_janitor.py#L160) — Destruição do ponto-zero em sessões multi-agente. Chave primária de `agent_checkpoints` é `(agent_id, session_id, checkpoint_id)`, mas a query agrupa apenas por `session_id`, protegendo apenas o ponto-zero do primeiro agente e deletando o ponto-zero de agentes secundários. |
+| 4 | **MÉDIA** | [`core/background_janitor.py:96–100`](file:///c:/Nexus-Memory/GrafoConcierge/core/background_janitor.py#L96) — Crash com `TypeError: sequence item 0: expected str instance, NoneType found` em `_summarize_community` quando `files.content` é `NULL`, abortando toda a varredura de ociosidade. |
+| 5 | **MÉDIA** | [`core/background_janitor.py:106–113`](file:///c:/Nexus-Memory/GrafoConcierge/core/background_janitor.py#L106) — TOCTOU / Descarte cego de `is_dirty = 0` sobre arquivos modificados durante a geração de resumos pela SLM (5 a 30s), mascarando permanentemente alterações de código recentes. |
+
+---
+
+## 3. Arquivos produzidos / atualizados
+
+| Arquivo | Tipo | Descrição |
+|---------|------|-----------|
+| [`audits/core-background-janitor.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/core-background-janitor.md) | Relatório | Relatório oficial completo com análise técnica detalhada e saída de reprodução |
+| [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md) | Protocolo | `core/background_janitor.py` marcado `[x]`, próximo: `▶ core/vector_reconciler.py` |
+| [`walkthrough.md`](file:///c:/Nexus-Memory/GrafoConcierge/walkthrough.md) | Relatório de Sessão | Registro consolidado da auditoria |
+
+---
+
 ## 4. Estado atual da auditoria
 
 ```
 Fase 0: [ ] baseline (não iniciada)
-Fase 1: 10/16 itens concluídos (6 pré-existentes + delta_manager + mock-vs-real-audit + security_guard + rate_governor)
-         ▶ Próximo: core/background_janitor.py
+Fase 1: 11/16 itens concluídos (6 pré-existentes + delta_manager + mock-vs-real-audit + security_guard + rate_governor + background_janitor)
+         ▶ Próximo: core/vector_reconciler.py
 Fase 2: bloqueada (requer Fase 1 completa)
 Fase 3: bloqueada (requer Fase 2 completa)
 ```
 
 **Aguardando aprovação do humano para avançar** (Regra 7 — GATE OBRIGATÓRIO).
+
 
