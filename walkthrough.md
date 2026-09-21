@@ -354,6 +354,7 @@ Fase 3: bloqueada (requer Fase 2 completa)
 
 > **Data:** 2026-09-21  
 > **Item auditado:** `core/checkpointer.py` (SDD-SURVIVAL-07: Agnostic Agent State Checkpointer & SDD-SURVIVAL-20: Durable FSM Checkpoints & Time-Travel)  
+> **Commit:** `af19f98` (`docs(audit): core/checkpointer.py concluido`)  
 > **Status final:** ✅ Concluído, aguardando aprovação para avançar para `storage/`  
 
 ---
