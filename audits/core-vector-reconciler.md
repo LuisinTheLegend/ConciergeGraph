@@ -116,19 +116,30 @@ Para cumprir a diretriz de auditoria além do escopo de mocks, foram catalogadas
 
 ### Achado #3 — Race Condition com Ingestão Concorrente (TOCTOU)
 
-- **Mecanismo da Falha:**  
-  O pipeline de ingestão ([`ingestion/orchestrator.py:769–780`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L769)) opera em etapas sequenciais:
+- **Mecanismo da Falha e Independência em Relação aos Achados #1 e #2:**  
+  > [!IMPORTANT]
+  > **Independência Crítica:** Este achado **continua 100% válido mesmo após a correção integral dos Achados #1 e #2**. Trata-se de uma falha arquitetural pura de concorrência e timing entre o banco vetorial e o SQLite, e **não** uma consequência do bug de tipo primitivo (`int` vs `str`) ou do método fantasma.
+  
+  O pipeline de ingestão ([`ingestion/orchestrator.py:769–780`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L769)) opera em etapas sequenciais assíncronas:
   - Step 6: Grava os vetores no banco vetorial (`_step_store_vector`).
-  - Step 7/8: Persiste as transações e relacionamentos no banco SQLite WAL.
-  O `VectorReconciler` não possui lock compartilhado nem verifica se há ingestão ou reindexação em andamento (não consulta `is_indexing` nem adquire lock em `ConciergeDatabaseManager`).
-  Se `reconcile_orphans()` for acionado entre o Step 6 e a persistência final no SQLite:
-  1. O reconciliador lê os novos IDs no banco vetorial.
-  2. O SQLite ainda não concluiu o commit das novas entidades.
-  3. Os novos vetores são classificados como órfãos e deletados fisicamente antes de poderem ser utilizados.
+  - Step 7/8: Persiste as entidades, nós e relacionamentos no banco SQLite WAL.
+  
+  Mesmo em um cenário onde o reconciliador já utilize o método correto `get_all_stored_node_ids() -> set[int]` e consulte a tabela correta `SELECT id FROM nodes;`:
+  1. Suponha os nós legítimos `101` e `102` já sincronizados em ambos os bancos.
+  2. A ingestão inicia a indexação de um novo nó com ID inteiro realista: `node_id = 106`.
+  3. No Step 6 da ingestão, o embedding do nó `106` é persistido com sucesso no banco vetorial. O vector store agora contém `{101, 102, 106}`.
+  4. O `VectorReconciler` acorda em background exatamente na janela antes de a ingestão concluir o Step 7/8.
+  5. O reconciliador lê `{101, 102, 106}` do vector store.
+  6. O reconciliador lê o SQLite, onde a transação do Step 7/8 ainda não foi comitada, encontrando apenas `{101, 102}`.
+  7. A diferença `{101, 102, 106} - {101, 102}` avalia para `{106}`.
+  8. O reconciliador classifica o nó `106` recém-ingerido como "órfão" e invoca `self.vector_db.delete_batch([106])`, **destruindo fisicamente o vetor em trânsito**.
+  9. Frações de segundo depois, a ingestão conclui o commit no SQLite: o nó `106` passa a constar na tabela `nodes`.
+  10. **Resultado corrompido:** O nó `106` existe no grafo relacional do SQLite, mas seu vetor de busca semântica foi permanentemente destruído. Buscas vetoriais subsequentes ignoram o nó.
+
 - **Impacto no Sistema:**  
-  Perda silenciosa de vetores recém-indexados sob carga ou ingestões demoradas, deixando nós do grafo sem embeddings correspondentes no banco vetorial.
+  Degradação silenciosa e permanente da cobertura semântica de bases de código sob ingestão concorrente, sem qualquer log de erro.
 - **Correção Conceitual Sugerida (Fase 3):**  
-  Implementar trava de concorrência com o `IngestionOrchestrator` (ex: verificar `is_indexing` ou coordenar via lock de banco) e aplicar uma janela de tolerância temporal (quiet window / grace period), não deletando vetores criados há menos de $N$ minutos.
+  Implementar trava de exclusão mútua com o `IngestionOrchestrator` (ex: verificar `is_indexing` ou coordenar via lock de banco) e aplicar uma janela de tolerância temporal (quiet window / grace period), recusando a deleção de vetores criados recentemente (ex: delta temporal < 5 minutos).
 
 ---
 
@@ -139,12 +150,22 @@ Para cumprir a diretriz de auditoria além do escopo de mocks, foram catalogadas
   ```python
   self.vector_db.delete_batch(orphan_ids)
   ```
-  Ao contrário da implementação em [`storage/vector_store.py:562`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py#L562) (que pagina em fatias de `BATCH_SIZE = 100`), o `VectorReconciler` envia toda a lista de órfãos de uma só vez.
-  Se `orphan_ids` contiver dezenas de milhares de registros, requisições HTTP para backends remotos (como Qdrant ou Pinecone) falham por estouro de tamanho de requisição (HTTP 413 Payload Too Large) ou time-out de conexão. Além disso, não há bloco `try ... except` protegendo a exclusão.
+  O `VectorReconciler` envia toda a lista de órfãos de uma só vez para `delete_batch(orphan_ids)` sem qualquer particionamento em lotes e sem encapsular a chamada em um bloco protetor `try ... except`.
+  
+  - **Esclarecimento sobre Limites de Lote e Constantes Reais:**  
+    > [!NOTE]
+    > **Diferença entre o Teste de Reprodução e o Código Real:**  
+    > O limite de **250 itens** utilizado na exceção simulada do teste de estresse foi escolhido **arbitrariamente** como fixture ilustrativa para simular a rejeição de um buffer de rede/payload HTTP (como erro 413) e demonstrar que o reconciliador quebra sem tratamento de erro.  
+    > No código real do repositório:
+    > 1. [`storage/vector_store.py:270, 517`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py#L270): O backend `ChromaVectorStore` codifica explicitamente a constante canônica de lote `BATCH_SIZE: int = 100`, dividindo internamente em fatias de 100 itens.
+    > 2. [`core/vector_backend.py:316–320`](file:///c:/Nexus-Memory/GrafoConcierge/core/vector_backend.py#L316-L320): O backend `QdrantVectorStore` despacha a lista inteira de uma só vez via `points_selector=qdrant_models.PointIdsList(points=doc_ids)`.
+    > 
+    > A falha em `VectorReconciler` reside em delegar cegamente uma lista não limitada a qualquer backend sem paginação e sem capturar exceções, propagando falhas não tratadas.
+
 - **Impacto no Sistema:**  
-  Falha não recuperável de reconciliação em grandes limpezas ou migrações de projetos.
+  Em expurgos volumosos (ex: exclusão de repositórios inteiros ou refatorações massivas com milhares de arquivos), requisições HTTP/gRPC a backends remotos ou estresses de memória podem lançar exceções não tratadas, abortando a rotina de reconciliação no meio do processo.
 - **Correção Conceitual Sugerida (Fase 3):**  
-  Fatiar a lista em lotes de 100 itens com bloco `try ... except` e registro de log por lote processado.
+  Fatiar a lista em lotes padronizados de 100 itens com bloco `try ... except` em torno de cada lote e registro de log por lote processado.
 
 ---
 
@@ -173,7 +194,7 @@ Capturado AttributeError em runtime: 'ChromaVectorStore' object has no attribute
 TESTE ACHADO 2: Incompatibilidade de TIPO (int vs str) e Domínio -> Purga Total Garantida
 ======================================================================
 Tipo retornado por get_all_stored_node_ids(): <class 'int'> -> {101, 102, 103}
-Tipo retornado por _get_all_sqlite_paths():   <class 'str'> -> {'101', 'src/main.py', 'src/utils.py'}
+Tipo retornado por _get_all_sqlite_paths():   <class 'str'> -> {'src/utils.py', 'src/main.py', '101'}
 Diferença de conjuntos (vector_ids - sqlite_paths): {101, 102, 103}
 Interseção entre set[int] e set[str]: set()
 Taxa de purga resultante: 100.0%
@@ -184,19 +205,26 @@ Vetores restantes no banco vetorial: []
 [CONFIRMADO ACHADO 2]: Pelo descasamento de TIPO (int vs str) e domínio semântico, 100% dos vetores legítimos são purgados (Data Loss Catastrófico garantido)!
 
 ======================================================================
-TESTE ACHADO 3: Ausência de Locks e Race Condition TOCTOU com Ingestão Concorrente
+TESTE ACHADO 3: TOCTOU / Race Condition com Ingestão Concorrente (Cenário Pós-Correção de #1 e #2 com node_id=106)
 ======================================================================
-Vetores apagados durante a janela de ingestão concorrente: ['new_ingested_node_in_transit']
-[CONFIRMADO ACHADO 3]: Vetor legítimo em trânsito de ingestão foi destruído por falta de sincronização atômica entre vector store e SQLite!
+Estado inicial: nós 101 e 102 sincronizados no Vector Store e no SQLite.
+Ingestão (Step 6): Gravando novo vetor node_id=106 no Vector Store...
+Reconciliador acorda em background antes do commit da ingestão no SQLite...
+Reconciliador identificou e deletou órfãos: [106]
+Ingestão (Step 7/8): Concluindo commit do node_id=106 no SQLite...
+Nó 106 presente no SQLite? True (linhas: [(106,)])
+Nó 106 presente no Vector Store? False (foi deletado pelo reconciliador: [106])
+[CONFIRMADO ACHADO 3]: Falha de timing/concorrência genuína! Mesmo com #1 e #2 corrigidos (usando node_id=106 inteiro e tabela nodes), o vetor legítimo em trânsito de ingestão é DESTRUÍDO pelo reconciliador!
 
 ======================================================================
 TESTE ACHADO 4: Ausência de Paginação em Lote e Exceções Não Tratadas em delete_batch
 ======================================================================
-Tamanho do lote canônico configurado em ChromaVectorStore: BATCH_SIZE = 100
-Total de órfãos a deletar: 500
+Tamanho do lote canônico codificado em ChromaVectorStore: BATCH_SIZE = 100 (storage/vector_store.py:270)
+Total de órfãos a deletar nesta execução: 500
+[ESCLARECIMENTO]: O limite de 250 itens foi escolhido ARBITRARIAMENTE no teste como simulação de threshold de falha.
 Chamadas realizadas a delete_batch: [500] (lote único de 500 itens)
-Exceção não tratada propagada pelo VectorReconciler: Payload too large: batch size exceeds maximum allowed limit of 250 items
-[CONFIRMADO ACHADO 4]: delete_batch despacha a lista completa de uma só vez sem paginação (BATCH_SIZE), propagando falhas não tratadas!
+Exceção não tratada capturada fora do VectorReconciler: Payload too large: batch size exceeds maximum allowed limit of 250 items (arbitrary test threshold)
+[CONFIRMADO ACHADO 4]: delete_batch despacha a lista completa de uma só vez sem paginação ou tratamento de erro no VectorReconciler!
 
 ======================================================================
 RESULTADOS FINAIS: F1=True | F2=True | F3=True | F4=True
