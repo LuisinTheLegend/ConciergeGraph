@@ -115,7 +115,7 @@ Tarefa extra inserida a partir do padrão encontrado acima:
 - [x] `core/background_janitor.py` — 5 achados confirmados (ver `audits/core-background-janitor.md`).
   3 ALTA (slice negativo `remaining[-0:]` com `keep_limit=0` preserva 100% dos checkpoints;
   degradação irreversível da prioridade do processo inteiro do servidor para IDLE;
-  destruição do ponto-zero em sessões multi-agente por ignorar `agent_id`),
+  destruição do ponto-zero e deleção cruzada de checkpoints entre agentes por ignorar `agent_id` no DELETE),
   2 MÉDIA (crash com `TypeError` em `_summarize_community` quando `files.content` é `NULL`;
   descarte cego de `is_dirty = 0` / TOCTOU sobre arquivos modificados durante a SLM).
 - [ ] `core/vector_reconciler.py`

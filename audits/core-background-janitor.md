@@ -22,7 +22,7 @@
 |---|---------|-------|-----------|-----------|------------|--------|
 | 1 | `core/background_janitor.py` | 176–186 | **ALTA** | Falha de slice negativo em Python (`remaining[-keep_limit:]`) quando `keep_limit = 0`. Ao solicitar a retenção exclusiva do ponto-zero inicial (`keep_limit=0`), o slice `remaining[-0:]` é avaliado em Python como `remaining[0:]` (a lista inteira). Como resultado, `preserve_set` preserva 100% dos checkpoints da sessão e `ids_to_delete` fica vazio (`[]`), não apagando nenhum registro do banco. | Invocado `prune_session_checkpoints(keep_limit=0)` sobre sessão com 6 checkpoints: 0 deletados, todos os 6 permaneceram no banco. | **CONFIRMADO** |
 | 2 | `core/background_janitor.py` | 270–284 | **ALTA** | Degradação irreversível da prioridade do processo inteiro do servidor (`p.nice(psutil.IDLE_PRIORITY_CLASS)` ou `nice(15)`). O método `process_community_summaries_frugal()` rebaixa a prioridade de todo o processo do Concierge (afetando o servidor MCP, API de telemetria, RateGovernor e threads de escrita) antes mesmo de checar a barreira térmica de hardware. Se a barreira falhar, a prioridade já foi rebaixada e nunca é restaurada. | Invocado `process_community_summaries_frugal()` com barreira térmica bloqueada: prioridade do processo caiu de 32 (NORMAL) para 64 (IDLE) e permaneceu degradada. | **CONFIRMADO** |
-| 3 | `core/background_janitor.py` | 160–197 | **ALTA** | Destruição do ponto-zero em sessões multi-agente. A tabela relacional `agent_checkpoints` possui chave primária composta `(agent_id, session_id, checkpoint_id)`. Porém, a consulta `_prune_single_session` filtra apenas por `session_id`, ordenando todos os checkpoints cronologicamente e protegendo apenas `all_ids[0]`. O ponto-zero (`"init"`) de agentes subsequentes da mesma sessão é colocado em `remaining` e fisicamente deletado quando ultrapassa `keep_limit`. | Criada sessão com `agent_scout` e `agent_coder`: após 6 passos do scout, o ponto-zero `coder_init` foi deletado do banco relacional. | **CONFIRMADO** |
+| 3 | `core/background_janitor.py` | 160–197 | **ALTA** | Destruição de ponto-zero e deleção cruzada de checkpoints entre agentes na mesma sessão. A chave primária de `agent_checkpoints` é `(agent_id, session_id, checkpoint_id)`. Em `interface/mcp_server.py:897, 1731` (`agent_save_checkpoint`), o `checkpoint_id` é fornecido diretamente pelo cliente sem namespace de agente nem UUID. Em `_prune_single_session`, a query agrupa apenas por `session_id`: (1) apenas o primeiro checkpoint da sessão é protegido como ponto-zero, destruindo o ponto-zero de agentes secundários; (2) o comando `DELETE ... WHERE session_id = ? AND checkpoint_id IN (?)` não filtra por `agent_id`, apagando checkpoints homônimos (ex: `step_1`, `plan`) de agentes que nada tinham a ver com a poda, como dano colateral. | Reproduzidos ambos os casos: (1) ponto-zero `coder_init` destruído após passos do `scout`; (2) checkpoint ativo `step_target` do `coder` destruído quando o `scout` gerou checkpoint com mesmo ID. | **CONFIRMADO** |
 | 4 | `core/background_janitor.py` | 96–100 | **MÉDIA** | Crash com `TypeError` em `_summarize_community` quando `files.content` é `NULL`. Se algum arquivo da comunidade tiver conteúdo nulo no SQLite (arquivos binários, arquivos recém-descobertos sem corpo carregado, ou inicializados apenas com hashes), `payload = "\n".join(row[0] for row in files)` lança `TypeError: sequence item 0: expected str instance, NoneType found`, abortando toda a varredura de ociosidade. | Inserido arquivo com `content = NULL` em comunidade dirty: `run_idle_summarization()` explodiu com `TypeError`. | **CONFIRMADO** |
 | 5 | `core/background_janitor.py` | 106–113 | **MÉDIA** | TOCTOU / Descarte cego de `is_dirty = 0` sobre arquivos modificados durante a geração da SLM. A chamada ao modelo local (`local_slm_callback`) leva de 5 a 30 segundos. Se um arquivo for alterado e marcado como `is_dirty = 1` enquanto a SLM gera o resumo, `UPDATE files SET is_dirty = 0 WHERE community_id = ?` reseta cegamente a flag, mascarando a nova edição sem que seu código tenha sido resumido. | Modificado arquivo concorrentemente durante o callback da SLM: flag `is_dirty` foi resetada para 0 ao término, perdendo o estado sujo. | **CONFIRMADO** |
 
@@ -95,14 +95,28 @@
 
 ---
 
-### Achado #3 — Destruição do Ponto-Zero em Sessões Multi-Agente
+### Achado #3 — Destruição do Ponto-Zero e Deleção Cruzada de Checkpoints em Sessões Multi-Agente
 
-- **Mecanismo da Falha:**  
-  Conforme o esquema de arquitetura (SDD-SURVIVAL-12) e os testes em `test_checkpoint_pruning.py`, a chave primária de `agent_checkpoints` é composta:
+- **Geração de `checkpoint_id` no Servidor MCP (`interface/mcp_server.py`):**  
+  Inspecionando [`interface/mcp_server.py:897–914`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L897) e [`interface/mcp_server.py:1731–1751`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L1731):
+  ```python
+  def tool_agent_save_checkpoint(
+      agent_id: str,
+      session_id: str,
+      checkpoint_id: str,
+      state_dict: dict,
+  ) -> str:
+      return agent_save_checkpoint(agent_id, session_id, checkpoint_id, state_dict)
+  ```
+  O `checkpoint_id` **não é gerado pelo servidor** (não há UUID, nem hash, nem prefixação automática por `agent_id`). Ele é um identificador textual fornecido livremente pelo chamador / cliente MCP (ex: `"init"`, `"step_1"`, `"step_2"`, `"plan"`, `"refactor"`).
+  Na tabela `agent_checkpoints`, a chave primária é composta:
   ```sql
   PRIMARY KEY (agent_id, session_id, checkpoint_id)
   ```
-  Porém, `_prune_single_session()` faz a seleção agregando apenas por `session_id`:
+  Portanto, múltiplos agentes distintos na mesma sessão podem (e costumam) registrar checkpoints com identificadores idênticos (`step_1`, `init`, etc.), coexistindo legitimamente no banco.
+
+- **Mecanismo da Falha (Duas Variantes Confirmadas):**  
+  Em `core/background_janitor.py:160–197`:
   ```python
   all_checkpoints = self.db_manager.read_query(
       "SELECT checkpoint_id FROM agent_checkpoints "
@@ -110,22 +124,36 @@
       "ORDER BY created_at ASC;",
       (session_id,),
   )
+  ...
+  init_checkpoint = all_ids[0]
+  remaining = all_ids[1:]
+  ...
+  ids_to_delete = [cid for cid in all_ids if cid not in preserve_set]
+  placeholders = ", ".join("?" for _ in ids_to_delete)
+  self.db_manager.write_query(
+      f"DELETE FROM agent_checkpoints "
+      f"WHERE session_id = ? AND checkpoint_id IN ({placeholders});",
+      (session_id, *ids_to_delete),
+  )
   ```
-  O método trata a lista inteira como uma única cadeia linear:
-  - Protege apenas `all_ids[0]` (o primeiro checkpoint gravado na sessão).
-  - Em uma sessão multi-agente (onde agentes como Scout, Architect e Coder operam juntos na mesma sessão), o checkpoint inicial do segundo agente (ex: `coder_init`) vai para a lista `remaining`.
-  - Conforme o primeiro agente acumula novos passos que ultrapassam `keep_limit`, o ponto-zero do segundo agente é marcado como obsoleto e deletado do banco relacional por:
-    ```sql
-    DELETE FROM agent_checkpoints WHERE session_id = ? AND checkpoint_id IN (?);
-    ```
+  1. **Variante A — Destruição do Ponto-Zero de Agentes Secundários:**  
+     O algoritmo protege apenas `all_ids[0]` (o primeiro registro absoluto gravado na sessão). O ponto-zero de agentes que ingressam subsequentemente na mesma sessão (ex: `coder_init`) é empurrado para a lista `remaining`. Conforme o agente principal gera passos além de `keep_limit`, o ponto-zero dos demais agentes é considerado intermediário e fisicamente apagado.
+  2. **Variante B — Deleção Cruzada de Checkpoints de Outros Agentes (Dano Colateral):**  
+     O comando de exclusão `DELETE FROM agent_checkpoints WHERE session_id = ? AND checkpoint_id IN (...)` **NÃO filtra por `agent_id`**!  
+     Se o `agent_scout` possui 10 passos e seu checkpoint antigo `"step_1"` entra em `ids_to_delete`, o comando `DELETE` remove todas as linhas da sessão com `checkpoint_id = 'step_1'` sem distinção de `agent_id`. Se o `agent_coder` possuía um checkpoint `"step_1"` (mesmo que fosse seu único checkpoint ativo recém-criado), **o checkpoint do `agent_coder` é sumariamente destruído como dano colateral**!
 - **Impacto no Sistema:**  
-  Destruição física silenciosa do ponto de restauração inicial de agentes secundários em sessões compartilhadas. Quebra da garantia de hard reset e time-travel para agentes que não foram os primeiros a gravar na sessão.
+  Corrupção grave de histórico e perda de integridade transacional em arquiteturas multi-agente (como pipelines de Scout -> Architect -> Coder). Agentes perdem tanto sua capacidade de hard-reset para o ponto inicial quanto seus estados intermediários legítimos por colisão de nomes convencionais.
 - **Correção Conceitual Sugerida (Fase 3):**  
-  Executar a auto-poda iterando separadamente sobre cada tupla `(agent_id, session_id)`:
-  ```sql
-  SELECT DISTINCT agent_id, session_id FROM agent_checkpoints;
-  ```
-  Garantindo que cada agente mantenha seu próprio ponto-zero inviolável e seus próprios $N$ passos mais recentes.
+  1. Particionar a poda estritamente por `(agent_id, session_id)`:
+     ```sql
+     SELECT DISTINCT agent_id, session_id FROM agent_checkpoints;
+     ```
+  2. Adicionar o filtro `AND agent_id = ?` na cláusula `DELETE`:
+     ```sql
+     DELETE FROM agent_checkpoints
+     WHERE session_id = ? AND agent_id = ? AND checkpoint_id IN (...);
+     ```
+  3. No servidor MCP, assegurar namespace determinístico (ex: prefixar internamente `f"{agent_id}:{checkpoint_id}"` ou validar unicidade).
 
 ---
 
@@ -211,7 +239,13 @@ Nova prioridade do processo apos a chamada: 64
 --- TESTE ACHADO 3: Destruição do Ponto-Zero de Múltiplos Agentes na Mesma Sessão ---
 Checkpoints restantes para sessao 'collab_sess': [('agent_scout', 'scout_init'), ('agent_scout', 'scout_step_4'), ('agent_scout', 'scout_step_5'), ('agent_scout', 'scout_step_6')]
 Checkpoints do agent_coder restantes: []
-[CONFIRMADO ACHADO 3]: 'coder_init' (ponto zero do agent_coder) foi DELETADO porque o algoritmo so protegeu o ponto zero do primeiro agente!
+[CONFIRMADO ACHADO 3 - Variante A]: 'coder_init' (ponto zero do agent_coder) foi DELETADO porque o algoritmo so protegeu o ponto zero do primeiro agente!
+
+--- TESTE ACHADO 3 (Variante B): Deleção Cruzada por Checkpoint ID Homônimo ---
+Checkpoints inseridos: scout ('init', 'step_target', 'step_1'..'step_7') | coder ('init', 'step_target')
+Checkpoints restantes após prune com keep_limit=3: [('coder', 'init'), ('scout', 'init'), ('scout', 'step_5'), ('scout', 'step_6'), ('scout', 'step_7')]
+Coder checkpoints restantes: ['init']
+[CONFIRMADO ACHADO 3 - Variante B]: 'step_target' do coder foi DELETADO porque DELETE não filtra por agent_id!
 
 --- TESTE ACHADO 4: Crash em _summarize_community quando content é NULL ---
 Exceção capturada com sucesso: TypeError: sequence item 0: expected str instance, NoneType found
@@ -222,7 +256,7 @@ Estado de file1.py apos summarizacao: content='code v2 NOVO', is_dirty=0
 [CONFIRMADO ACHADO 5]: is_dirty foi resetado para 0, mascarando a edicao 'code v2 NOVO' feita durante a geracao!
 
 ======================================================================
-RESULTADO: F1=True, F2=True, F3=True, F4=True, F5=True
+RESULTADO: F1=True, F2=True, F3A=True, F3B=True, F4=True, F5=True
 ======================================================================
 ```
 
