@@ -247,7 +247,7 @@ Nenhum arquivo de código de produção foi editado (Regra 8 — Fases 1 e 2 sã
 
 > **Data:** 2026-09-20  
 > **Item auditado:** `core/background_janitor.py` (SDD-SURVIVAL-06 / SDD-SURVIVAL-12 / SDD-SURVIVAL-14: Background Community Summarizer, Smart Checkpoint Pruning, and Hardware-Aware Governor)  
-> **Commit:** `1cca3a4` (`docs(audit): core/background_janitor.py concluído`)  
+> **Commit:** `8d8b95d` (`docs(audit): adicionar variante de delecao cruzada de checkpoints ao Achado #3 do background_janitor`)  
 > **Status final:** ✅ Concluído, aguardando aprovação para avançar para `core/vector_reconciler.py`  
 
 ---
