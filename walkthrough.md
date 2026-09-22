@@ -458,7 +458,7 @@ Fase 3: bloqueada (requer Fase 2 completa)
 |---------|------|-----------|
 | [`audits/storage.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/storage.md) | Relatório | Relatório completo de auditoria do diretório `storage/` com matriz interna, transversal e saídas brutas |
 | [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md) | Protocolo | `storage/` marcado `[x]`, próximo: `▶ ingestion/ (todos os arquivos)` |
-| [`walkthrough.md`](file:///c:/Nexus-Memory/GrafoConcierge/walkthrough.md) | Relatório de Sessão | Registro consolidado da auditoria (Commit `0b56be2`) |
+| [`walkthrough.md`](file:///c:/Nexus-Memory/GrafoConcierge/walkthrough.md) | Relatório de Sessão | Registro consolidado da auditoria (Commit `4b45d56`) |
 
 ---
 
@@ -472,7 +472,7 @@ Fase 2: bloqueada (requer Fase 1 completa)
 Fase 3: bloqueada (requer Fase 2 completa)
 ```
 
-**Commit:** `0b56be2` (push confirmado para `origin/main`)  
+**Commit:** `4b45d56` (push confirmado para `origin/main`)  
 **Aguardando aprovação do humano para avançar** (Regra 7 — GATE OBRIGATÓRIO).
 
 
