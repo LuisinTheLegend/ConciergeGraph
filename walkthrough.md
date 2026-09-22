@@ -398,12 +398,76 @@ Fase 3: bloqueada (requer Fase 2 completa)
 
 ---
 
-## 5. Estado atual da auditoria
+# Sessão de Auditoria: `storage/` (Todos os Arquivos)
+
+> **Data:** 2026-09-21 → 2026-09-22  
+> **Item auditado:** `storage/` (todos os 9 arquivos)  
+> **Status final:** ✅ Concluído, aguardando aprovação para avançar (GATE OBRIGATÓRIO)
+
+---
+
+## 1. Execução da Auditoria
+
+### Escopo e Análise dos 9 Módulos:
+1. [`storage/__init__.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/__init__.py) — Exportações públicas da camada de persistência.
+2. [`storage/base_backend.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/base_backend.py) — Contrato abstrato `BaseVectorBackend`.
+3. [`storage/connection.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/connection.py) — Gerenciamento thread-safe com `SerializedWriteQueue` e `ConnectionManager`.
+4. [`storage/store.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py) — Fachada unificada SQLite `SqliteStore`.
+5. [`storage/schema.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/schema.py) — DDL, tabelas, índices e triggers FTS5.
+6. [`storage/logic.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/logic.py) — Inteligência de grafo, BM25, decaimento e CTE recursiva.
+7. [`storage/semantic_logic.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/semantic_logic.py) — Operações sobre fatos semânticos.
+8. [`storage/relational_db.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/relational_db.py) — DDL de checkpoints relacionais.
+9. [`storage/vector_store.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py) — Implementação concreta em ChromaDB.
+
+### Ferramentas Estáticas e Testes:
+- `mypy storage/ --follow-imports=skip` executado: 13 erros detectados (11 em `vector_store.py`, 1 em `store.py:749`, 1 em `semantic_logic.py:50`).
+- `pytest tests/test_storage_logic.py` executado: 57 passed em 12.13s (14 deprecation warnings em `datetime.utcnow()`).
+- Script empírico executado: [`scratch/reproduce_storage_findings.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/reproduce_storage_findings.py) confirmou os 9 achados com saída bruta de terminal colada no relatório oficial.
+
+---
+
+## 2. Tabela de Achados de `storage/`
+
+| # | Severidade | Resumo |
+|---|-----------|--------|
+| 1 | **CRÍTICA** | [`storage/connection.py:111–140`](file:///c:/Nexus-Memory/GrafoConcierge/storage/connection.py#L111) — Deadlock inevitável em escritas reentrantes/aninhadas no `SerializedWriteQueue` travando permanentemente o worker thread `sqlite-writer`. |
+| 2 | **GRAVE** | [`storage/connection.py:257–273`](file:///c:/Nexus-Memory/GrafoConcierge/storage/connection.py#L257) — Vazamento contínuo de conexões SQLite de threads finalizadas em `ConnectionManager._read_connections` (memory & descriptor leak). |
+| 3 | **MÉDIA** | [`storage/connection.py:75, 81–110`](file:///c:/Nexus-Memory/GrafoConcierge/storage/connection.py#L75) — Impossibilidade de reiniciar `SerializedWriteQueue` após `stop()` (`RuntimeError: threads can only be started once`). |
+| 4 | **GRAVE** | [`storage/relational_db.py:27–35`](file:///c:/Nexus-Memory/GrafoConcierge/storage/relational_db.py#L27) — Incompatibilidade de contrato: `init_fsm_checkpoints_schema` falha silenciosamente na fachada `SqliteStore` e `SchemaManager` não cria tabelas de checkpoint. |
+| 5 | **GRAVE** | [`storage/logic.py:330–350`](file:///c:/Nexus-Memory/GrafoConcierge/storage/logic.py#L330) — `TypeError` em `GraphLogic._calculate_decay` com timestamps ISO offset-aware, degradando silenciosamente o score de recência para o mínimo 0.01. |
+| 6 | **CRÍTICA** | [`storage/vector_store.py:711–740`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py#L711) — Bypass de Strict Scoping em `ChromaVectorStore.search` quando `project_uuids=[]`, vazando dados confidenciais de todos os projetos (Cross-Project Leakage). |
+| 7 | **MÉDIA** | [`storage/vector_store.py:477`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py#L477) — Crash com `ValueError` em `ChromaVectorStore.search` quando `node_id` no metadata é `None` ou string vazia. |
+| 8 | **MÉDIA** | [`storage/logic.py:578–593`](file:///c:/Nexus-Memory/GrafoConcierge/storage/logic.py#L578) — Duplicação de nós em consultas CTE recursivas `get_dependency_tree` e `get_reverse_dependency_tree` devido à inclusão de `depth` em `SELECT DISTINCT *`. |
+| 9 | **BAIXA** | [`storage/semantic_logic.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/semantic_logic.py) e [`storage/store.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py) — Isolamento total de `semantic_logic.py` na fachada `SqliteStore`, forçando chamadores externos a quebrarem encapsulamento. |
+
+---
+
+## 3. Matriz de Interação Interna
+
+- Mapeadas as interações entre os 9 componentes de `storage/` entre si no relatório oficial [`audits/storage.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/storage.md).
+- Identificadas desconexões estruturais críticas:
+  - `store.py` não coordena deleções com `vector_store.py`, gerando vetores órfãos.
+  - `store.py` não integra `semantic_logic.py`, forçando chamadores externos a acessarem `_conn_mgr.read()`.
+  - `relational_db.py` assume contrato de banco incompatível com `store.py` e `connection.py`.
+
+---
+
+## 4. Arquivos Produzidos / Atualizados
+
+| Arquivo | Tipo | Descrição |
+|---------|------|-----------|
+| [`audits/storage.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/storage.md) | Relatório | Relatório completo de auditoria do diretório `storage/` com matriz interna, transversal e saídas brutas |
+| [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md) | Protocolo | `storage/` marcado `[x]`, próximo: `▶ ingestion/ (todos os arquivos)` |
+| [`walkthrough.md`](file:///c:/Nexus-Memory/GrafoConcierge/walkthrough.md) | Relatório de Sessão | Registro consolidado da auditoria |
+
+---
+
+## 5. Estado Atual da Auditoria
 
 ```
 Fase 0: [ ] baseline (não iniciada)
-Fase 1: 13/17 itens concluídos (6 pré-existentes + delta_manager + mock-vs-real-audit + security_guard + rate_governor + background_janitor + vector_reconciler + checkpointer)
-         ▶ Próximo: storage/ (todos os arquivos)
+Fase 1: 14/17 itens concluídos (6 pré-existentes + delta_manager + mock-vs-real-audit + security_guard + rate_governor + background_janitor + vector_reconciler + checkpointer + storage)
+         ▶ Próximo: ingestion/ (todos os arquivos)
 Fase 2: bloqueada (requer Fase 1 completa)
 Fase 3: bloqueada (requer Fase 2 completa)
 ```

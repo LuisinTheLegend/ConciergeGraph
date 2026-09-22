@@ -126,13 +126,17 @@ Tarefa extra inserida a partir do padrão encontrado acima:
   1 CRÍTICA (despacho ambíguo em `save_checkpoint` baseado em heurística de tipos `len(args)==4 and isinstance(args[3], str)` desviando chamadas de `agent_save_checkpoint` para `fsm_checkpoints` com inversão de colunas primárias e perda total de dados `shared_state="{}"`),
   2 ALTA (mascaramento silencioso de falhas e transação não atômica em `execute_time_travel`; granularidade de 1s de `CURRENT_TIMESTAMP` falhando em deletar checkpoints futuros em rajadas rápidas de time-travel),
   2 MÉDIA (crash com `json.JSONDecodeError` não tratado em `get_checkpoint`; tipagem insegura reportada pelo Mypy com risco de chamada em `None`).
-- [ ] `storage/` (todos os arquivos)
+- [x] `storage/` (todos os arquivos) — 9 achados confirmados (ver `audits/storage.md`).
+  2 CRÍTICA (deadlock inevitável em escritas aninhadas/reentrantes no `SerializedWriteQueue` travando permanentemente o worker thread; bypass completo de isolamento estrito / Strict Scoping em `ChromaVectorStore.search` quando `project_uuids=[]` vazando dados cross-project),
+  3 ALTA/GRAVE (vazamento perpétuo de conexões SQLite de threads finalizadas em `ConnectionManager` acumulando zumbis em `_read_connections`; incompatibilidade de contrato em `relational_db:init_fsm_checkpoints_schema` falhando silenciosamente e ausência das tabelas de checkpoints no `SchemaManager`; falha de tipo em `GraphLogic._calculate_decay` com timestamps ISO 8601 offset-aware degradando silenciosamente o score de recência para o mínimo 0.01),
+  3 MÉDIA (falha com `RuntimeError` ao reiniciar `SerializedWriteQueue` após `stop`; crash com `ValueError` em busca vetorial quando `node_id` é `None`/string vazia; duplicação de nós na CTE recursiva `get_dependency_tree` por inclusão de `depth` em `SELECT DISTINCT`),
+  1 BAIXA (isolamento total de `semantic_logic` na fachada `SqliteStore` forçando quebra de encapsulamento).
 - [ ] `ingestion/` (todos os arquivos)
 - [ ] `agent/` e `agents/` (todos os arquivos)
 - [ ] `interface/telemetry_api.py`
 - [ ] `grafo-dashboard-web/` (componentes principais e chamadas à API)
 
-▶ **EM ANDAMENTO:** `storage/` (todos os arquivos)
+▶ **EM ANDAMENTO:** `ingestion/` (todos os arquivos)
 
 ## Fase 2 — Cruzamento transversal (só inicia com TODOS os itens da Fase 1 marcados)
 
