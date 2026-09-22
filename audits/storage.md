@@ -200,6 +200,16 @@ Esta matriz mapeia as dependências, contratos e incompatibilidades arquiteturai
     Isso impede que `scoped_uuids=[]` alcance `self._vector.search()`.
   - **`interface/mcp_server.py:1134-1147`**: Se `all_wings=True` e `project_identifier=""`, o MCP server passa `project_uuid=""` para `hybrid_search`, que via `resolve_scoped_uuids` busca todos os projetos cadastrados ou retorna `[]` (caindo no guard de `HybridSearchEngine`). Se `all_wings=False` e `project_identifier=""`, `_resolve_project_identifier` lança `ValueError("Project '' not found")`.
   - **Conclusão de Call Site:** **NÃO existe no código de produção atual nenhum call site ativo que consiga enviar `project_uuids=[]` para `ChromaVectorStore.search`**. O achado representa uma **violação de contrato e ausência de defesa em profundidade na camada de persistência** (`storage/vector_store.py` não garante o contrato de `BaseVectorBackend` isoladamente). Se qualquer script, teste, subagente ou refatoração futura consumir `ChromaVectorStore` ou `BaseVectorBackend` diretamente sem passar por `HybridSearchEngine`, sofrerá o vazamento cross-project completo.
+- **Adendo de Arquitetura e Risco de Colisão (`core/search_engine.py` vs `core/hybrid_search.py`):**
+  - **Código Morto com Nome Conflitante:** Existe uma segunda classe também denominada [`HybridSearchEngine`](file:///c:/Nexus-Memory/GrafoConcierge/core/search_engine.py#L20) em [`core/search_engine.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/search_engine.py). Essa implementação é legado/código morto que não é referenciada por nenhum import ativo de produção (o sistema ativo utiliza [`core/hybrid_search.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/hybrid_search.py), importado em `core/__init__.py`, `core/middleware.py` e `interface/mcp_server.py`).
+  - **Ausência Total de Parâmetros de Escopo:** Em `core/search_engine.py:30-40`, o método é assinado como:
+    ```python
+    def hybrid_search(self, query_text: str, limit: int = 5) -> List[Dict[str, Any]]:
+        raw_results = self.vector_db.search(query_text, limit=limit)
+    ```
+    Ele não aceita nem propaga nenhum parâmetro de escopo (`project_uuid` ou `project_uuids`) para `self.vector_db.search(...)`, e sua query de autotratamento no SQLite (`SELECT path FROM files WHERE path IN (...)`) tampouco filtra por projeto.
+  - **Risco Real:** Como o nome da classe é perfeitamente idêntico ao da classe ativa de `core/hybrid_search.py`, existe risco iminente de que um desenvolvedor, agente autônomo ou recurso de auto-import de IDE importe acidentalmente `core.search_engine.HybridSearchEngine` em vez de `core.hybrid_search.HybridSearchEngine`. Caso isso ocorra, o chamador executará buscas vetoriais completamente sem escopo, acessando e vazando dados de todos os projetos na base vetorial.
+  - **Recomendação:** Remover o arquivo morto [`core/search_engine.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/search_engine.py) do repositório (ajustando os testes legados `tests/test_vector_reconciler.py` e `tests/test_e2e_concierge_integration.py` para apontarem para o motor oficial ou removendo o módulo órfão) ou renomear explicitamente a classe (ex.: `LegacyDeadHybridSearchEngine`) para sinalizar inequivocamente que não deve ser utilizada.
 
 ---
 
@@ -380,8 +390,9 @@ tests/test_storage_logic.py: 14 warnings
    - Adicionar método compatível em `SqliteStore` ou integrar a criação de `fsm_checkpoints` e `agent_checkpoints` diretamente ao DDL de `storage/schema.py:TABLES_SQL`.
 5. **Correção de Fuso Horário e Decaimento (Achado #5)**:
    - Migrar `datetime.utcnow()` para `datetime.now(timezone.utc)` e garantir normalização de `commit_dt` para UTC aware antes de calcular `delta_days`.
-6. **Correção de Strict Scoping no Vetor (Achado #6)**:
+6. **Correção de Strict Scoping no Vetor e Remoção de Código Morto (Achado #6)**:
    - Em `ChromaVectorStore._build_where_filter`: se `project_uuids` for vazio `[]`, forçar uma condição impossível (ex.: `{"project_uuid": "__NO_PROJECT__"}`) ou retornar lista vazia imediatamente em `search()`.
+   - **Eliminação de Risco de Colisão:** Remover o arquivo morto `core/search_engine.py` (ou renomear a classe) para eliminar o risco de colisão de nomes com `core/hybrid_search.py` e execuções acidentais sem escopo de projeto.
 7. **Tratamento de `node_id` no Vetor (Achado #7)**:
    - Validar em `_validate_metadata` que `isinstance(metadata["node_id"], int)`.
 8. **Desduplicação na CTE (Achado #8)**:
