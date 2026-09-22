@@ -190,6 +190,16 @@ Esta matriz mapeia as dependências, contratos e incompatibilidades arquiteturai
           conditions.append({"project_uuid": {"$in": project_uuids}})
   ```
   Se `project_uuids` for uma lista vazia `[]` (por exemplo, quando um chamador não define escopo ou passa uma lista vazia de referências), a condição de isolamento de projeto é ignorada. A busca prossegue com `where=None` (ou apenas com filtros secundários como `node_type`), retornando vetores confidenciais de outros projetos.
+- **Investigação de Call Sites no Código de Produção:**
+  - **`core/hybrid_search.py:134-136`**: O orquestrador oficial de busca híbrida (`HybridSearchEngine`) executa `scoped_uuids = self._project_index.resolve_scoped_uuids(...)`. Logo em seguida, possui um guard explícito:
+    ```python
+    if not scoped_uuids:
+        logger.warning("Strict Scoping returned 0 projects — empty search.")
+        return []
+    ```
+    Isso impede que `scoped_uuids=[]` alcance `self._vector.search()`.
+  - **`interface/mcp_server.py:1134-1147`**: Se `all_wings=True` e `project_identifier=""`, o MCP server passa `project_uuid=""` para `hybrid_search`, que via `resolve_scoped_uuids` busca todos os projetos cadastrados ou retorna `[]` (caindo no guard de `HybridSearchEngine`). Se `all_wings=False` e `project_identifier=""`, `_resolve_project_identifier` lança `ValueError("Project '' not found")`.
+  - **Conclusão de Call Site:** **NÃO existe no código de produção atual nenhum call site ativo que consiga enviar `project_uuids=[]` para `ChromaVectorStore.search`**. O achado representa uma **violação de contrato e ausência de defesa em profundidade na camada de persistência** (`storage/vector_store.py` não garante o contrato de `BaseVectorBackend` isoladamente). Se qualquer script, teste, subagente ou refatoração futura consumir `ChromaVectorStore` ou `BaseVectorBackend` diretamente sem passar por `HybridSearchEngine`, sofrerá o vazamento cross-project completo.
 
 ---
 
