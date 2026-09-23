@@ -139,12 +139,15 @@ Tarefa extra inserida a partir do padrão encontrado acima:
   2 CRÍTICA (colisão estrutural entre uma fila real em `storage/connection.py` e zero fila do lado de `core/database.py`, onde conexões físicas efêmeras cruas disputam o mesmo banco `data/concierge.db` sem serialização, sem mutex e sem `foreign_keys=ON`; ilusão dos testes e código morto em produção onde `interface/queue_writer.py::SerializedWriteQueue` é testada em 11 suítes mas em produção `ConciergeDatabaseManager` é instanciado em `mcp_server.py:166` com `write_queue=None`),
   2 ALTA/GRAVE (divergência de integridade referencial por ausência de `PRAGMA foreign_keys=ON;` em `interface/queue_writer.py` e `core/database.py`, permitindo gravação de arestas/registros órfãos no banco compartilhado; timeout assimétrico de 5s em `storage/connection.py` vs 30s em `core/database.py` provocando `OperationalError: database is locked` prematuro na camada de storage sob contenção sustentada),
   1 MÉDIA (quebra de encapsulamento privado em `interface/mcp_server.py:162` acessando `self._gc._store._conn_mgr._db_path` para criar uma segunda conexão paralela ao invés de usar fachada unificada).
-- [ ] `ingestion/` (todos os arquivos)
+- [x] `ingestion/` (todos os arquivos) — 8 achados confirmados (ver [`audits/ingestion.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/ingestion.md)).
+  2 CRÍTICA (perda total no grafo na renomeação de arquivos por colisão de hash no crawler `find_node_by_hash` ignorando caminhos + falso purge no GC; descarte silencioso de 100% dos resumos L0 com gravação de `nodes.summary = NULL` no SQLite e esterilização completa da geração subsequente de L1 e L2),
+  2 ALTA/GRAVE (falha silenciosa de persistência do L2 Compass por envio de `folder_name` em vez de `uuid` para `SqliteStore.update_project`; acúmulo perpétuo de vetores zumbis no ChromaDB em modificações de arquivos por falta de coordenação no Step 7 de GC),
+  4 MÉDIA (crash interno com `AttributeError` em `_step_summarize` quando `summarizer=None`; descarte padrão de arquivos essenciais `.txt` como `requirements.txt` por `DEFAULT_IGNORE_PATTERNS`; poluição severa de tags por matching ingênuo de substrings como `reaction` -> `react` e `next()` -> `nextjs`; quebra e truncamento prematuro de funções em JS/TS por contador ingênuo de chaves que não ignora strings ou comentários).
 - [ ] `agent/` e `agents/` (todos os arquivos)
 - [ ] `interface/telemetry_api.py`
 - [ ] `grafo-dashboard-web/` (componentes principais e chamadas à API)
 
-▶ **EM ANDAMENTO:** `ingestion/` (todos os arquivos)
+▶ **EM ANDAMENTO:** `agent/` e `agents/` (todos os arquivos)
 
 ## Fase 2 — Cruzamento transversal (só inicia com TODOS os itens da Fase 1 marcados)
 
