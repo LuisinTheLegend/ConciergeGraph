@@ -31,7 +31,7 @@ A auditoria estática e empírica aprofundada de todos os 5 arquivos de `ingesti
 |---|---|---|---|---|---|---|
 | **#1** | [`ingestion/crawler.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/crawler.py#L560) <br> [`ingestion/orchestrator.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L765) | `560`, `765` | 🔴 **CRÍTICA** | `find_node_by_hash` busca nó apenas por `(project_uuid, file_hash)` ignorando `relative_path`. Ao renomear um arquivo sem alterar conteúdo, o crawler classifica o novo arquivo como inalterado (`is_new=False`), não o ingere, e `_detect_deleted_nodes` marca o caminho antigo como deletado. O GC do orquestrador purga os nós do caminho antigo, resultando na **perda total do arquivo no grafo (0 nós)**. | Script empírico reproduz rename `a.py -> b.py`: nós caem de 2 para 0 | **CONFIRMADO** |
 | **#2** | [`ingestion/orchestrator.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L191) <br> [`ingestion/orchestrator.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L571) | `191`, `201`, `571` | 🔴 **CRÍTICA** | `_step_summarize` chama o LLM e retorna `list[SummaryResult]`, mas essa lista **nunca é atribuída aos chunks** nem repassada para `_step_store_sqlite`. Em `_step_store_sqlite:571`, o código busca `chunk.cached_summary` (que é sempre `None` para novos chunks). Todos os nós são gravados no SQLite com `summary = NULL`. Como consequência, `generate_project_context:843` encontra 0 resumos e pula L1 e L2. | LLM executa 5 chamadas com sucesso, mas todos os nós no SQLite ficam com `summary = None` | **CONFIRMADO** |
-| **#3** | [`ingestion/summarizer.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/summarizer.py#L789) <br> [`ingestion/orchestrator.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L880) | `789`, `880-883` | 🟠 **GRAVE** | `summarize_l2` recebe `project_name` (`folder_name`, ex: `"MeuProjeto"`) vindo do orquestrador e chama `_store.update_project(project_name, summary=...)`. `SqliteStore.update_project` executa `WHERE uuid = ?`. A query não casa com o UUID real (`proj-uuid-...`), afeta 0 linhas em silêncio e o **resumo arquitetural global L2 nunca é gravado no banco de dados**. | Projeto com UUID real não recebe o L2 retornado pelo summarizer (`projects.summary` permanece `None`) | **CONFIRMADO** |
+| **#3** | [`ingestion/summarizer.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/summarizer.py#L789) <br> [`ingestion/orchestrator.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L880) | `789`, `880-883` | 🟠 **GRAVE** | `summarize_l2` recebe `project_name` (`folder_name`, ex: `"MeuProjeto"`) vindo do orquestrador e chama `_store.update_project(project_name, summary=...)`. `SqliteStore.update_project` executa `WHERE uuid = ?`. A query não casa com o UUID real (`proj-uuid-...`), afeta 0 linhas e não lança exceção no SQLite. O `try/except` nunca captura a falha e o código emite `logger.info("L2 Compass persisted...")`, gerando uma **falsa confirmação de sucesso no log** enquanto o resumo L2 é permanentemente perdido. | Projeto com UUID real não recebe o L2 retornado pelo summarizer (`projects.summary` permanece `None`) | **CONFIRMADO** |
 | **#4** | [`ingestion/orchestrator.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L213) <br> [`ingestion/orchestrator.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L234) | `213`, `234-239` | 🟠 **GRAVE** | Ao reingerir um arquivo modificado, `_store.cleanup_obsolete_nodes` deleta chunks antigos apenas no SQLite. O Step 7 (`_step_garbage_collection`), que reconcilia o Chroma via `verify_sync`, é protegido por `if crawl_report.deleted_node_ids:`. Como a modificação não deleta arquivos do disco, `deleted_node_ids` fica vazio, o GC é pulado e os **vetores antigos permanecem para sempre como zumbis no ChromaDB**. | Após edição com remoção de função, SQLite fica com 2 nós vivos e Chroma acumula 5 vetores (3 zumbis) | **CONFIRMADO** |
 | **#5** | [`ingestion/orchestrator.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L442) <br> [`ingestion/orchestrator.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L449) | `442`, `449` | 🟡 **MÉDIA** | Em `_step_summarize`, a Fase 2 checa `if small_chunks and self._summarizer:`, mas a Fase 3 (regular chunks) checa apenas `if regular_chunks:`. Se `self._summarizer is None`, a task assíncrona invoca `await self._summarizer.summarize_l0_async(chunk)`, explodindo com `AttributeError: 'NoneType' object has no attribute 'summarize_l0_async'` e poluindo `result.errors` para cada chunk. | Ingestão com `summarizer=None` gera erro interno `AttributeError` em `result.errors` | **CONFIRMADO** |
 | **#6** | [`ingestion/crawler.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/crawler.py#L395) <br> [`ingestion/crawler.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/crawler.py#L481) | `395`, `481` | 🟡 **MÉDIA** | `DEFAULT_IGNORE_PATTERNS` inclui indevidamente `"*.txt"`. Na inicialização do crawler sem `.gitignore` de usuário, a Camada 1 injeta essa regra, fazendo com que arquivos como `requirements.txt` e documentações `.txt` sejam sumariamente descartados do grafo, em contradição direta com o `EXTENSION_MAP` que mapeia `.txt` para `FileCategory.DOC`. | Crawler escaneia diretório com `requirements.txt` e retorna lista vazia de arquivos | **CONFIRMADO** |
@@ -148,7 +148,7 @@ Esta matriz mapeia as dependências, contratos e falhas de acoplamento entre os 
 
 ---
 
-### Achado #3: Falha Silenciosa de Persistência do L2 Compass (`folder_name` vs `uuid`)
+### Achado #3: Falha Silenciosa de Persistência do L2 Compass (`folder_name` vs `uuid`) e Falsa Confirmação de Sucesso no Log
 - **Severidade:** 🟠 **GRAVE**
 - **Arquivos:** [`ingestion/summarizer.py:786-793`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/summarizer.py#L786-L793), [`ingestion/orchestrator.py:879-888`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L879-L888), [`storage/store.py:154`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py#L154)
 - **Mecanismo:**
@@ -162,7 +162,12 @@ Esta matriz mapeia as dependências, contratos e falhas de acoplamento entre os 
   Dentro de `summarizer.py`:
   ```python
   def _persist_l2(self, project_name: str, result: SummaryResult) -> None:
-      self._store.update_project(project_name, summary=result.summary)
+      """Writes the L2 Compass in the summary field of the project in SqliteStore."""
+      try:
+          self._store.update_project(project_name, summary=result.summary)
+          logger.info("L2 Compass persisted for project %s.", project_name)
+      except Exception as e:
+          logger.error("Failed to persist L2 Compass for %s: %s", project_name, e)
   ```
   Porém, a assinatura de `SqliteStore.update_project` é:
   ```python
@@ -170,8 +175,18 @@ Esta matriz mapeia as dependências, contratos e falhas de acoplamento entre os 
       conn.execute(f"UPDATE projects SET {sc} WHERE uuid = ?", vals)
   ```
   O `SqliteStore` espera estritamente o **UUID** do projeto na cláusula `WHERE uuid = ?`.
-  Como recebe `project_name` (`"ConciergeGraph"` ou `"MeuProjetoNome"`), a cláusula `WHERE uuid = 'MeuProjetoNome'` não encontra nenhuma linha. O SQLite conclui a execução sem erros (`rowcount = 0`), e o `_persist_l2` registra alegremente `"L2 Compass persisted for project..."` no log.
-  **Impacto:** O resumo executivo de nível mais alto do sistema (L2 Compass) nunca é gravado no banco de dados.
+  Como recebe `project_name` (`"ConciergeGraph"` ou `"MeuProjetoNome"`), a cláusula `WHERE uuid = 'MeuProjetoNome'` não encontra nenhuma linha (`rowcount = 0`).
+
+  > [!WARNING]
+  > **Mecanismo de Falsa Confirmação de Sucesso no Log:**
+  > O bloco `try/except` em `_persist_l2` **nunca captura essa falha**. No SQLite (e no driver `sqlite3` do Python), um comando `UPDATE` cuja cláusula `WHERE` não casa com nenhuma linha é considerado uma transação bem-sucedida que simplesmente afetou 0 linhas — **nenhuma exceção é lançada**.
+  > Consequentemente, o fluxo nunca atinge o bloco `except Exception as e:`. Em vez disso, o código executa incondicionalmente a linha seguinte:
+  > ```python
+  > logger.info("L2 Compass persisted for project %s.", project_name)
+  > ```
+  > Isso é substancialmente mais perigoso do que uma falha silenciosa comum: trata-se de uma **falsa confirmação ativa de sucesso no log**. Desenvolvedores, operadores e sistemas de observabilidade veem no log que o resumo arquitetural L2 foi persistido com sucesso, enquanto no banco relacional a coluna `projects.summary` permanece `NULL` e o dado foi permanentemente perdido na memória volátil.
+
+- **Impacto:** O resumo executivo de nível mais alto do sistema (L2 Compass) nunca é gravado no banco de dados, enquanto o log atesta falsamente que a operação teve sucesso pleno.
 - **Reprodução Empírica:**
   ```
   L2 retornado pelo summarizer: Visao global do projeto de teste
