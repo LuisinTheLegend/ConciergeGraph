@@ -132,6 +132,8 @@ Para verificar as hipóteses de despacho e rastrear todos os caminhos reais de p
   3. Se o `DELETE` falhar (ou o `UPDATE files` falhar por tabela travada ou erro de I/O), nenhuma exceção é disparada.
   4. O bloco `except Exception` nunca é executado e o método retorna `target_data`.
   5. Além disso, as duas queries são executadas em conexões/transações separadas sem bloco `BEGIN IMMEDIATE`, quebrando a atomicidade do rollback.
+- **Adendo Pós-Descoberta de `duplicacao-serialized-write-queue`:**  
+  Este módulo usa `ConciergeDatabaseManager` sem `write_queue` (injetado via `interface/mcp_server.py:166`), portanto toda escrita aqui descrita ocorre via conexão SQLite efêmera crua, sem serialização real e sem `foreign_keys=ON;`. As não-atomicidades já documentadas neste relatório devem ser lidas como ainda mais expostas a corrupção sob concorrência real do que descrito originalmente: as queries do rollback (`DELETE FROM fsm_checkpoints` e `UPDATE files`) abrem conexões físicas distintas e isoladas, permitindo que escritas concorrentes de outras threads ou do `SqliteStore` se intercalem entre as duas queries sem qualquer serialização em fila.
 
 - **Impacto no Sistema:**  
   Falso positivo de Time-Travel: o orquestrador e os agentes assumem que o rollback ocorreu com sucesso, enquanto o banco SQLite permanece em estado corrompido ou inconsistente.
@@ -294,3 +296,15 @@ RESULTADOS FINAIS: F1=True | F2=True | F3=True | F4=True
   - Passou (3 testes) porque utilizou 6 argumentos posicionais (`len(args) >= 5`), caindo no branch do SDD-20 sem testar a colisão posicional com o agente.
   - Inseriu checkpoints com espaçamento artificial de tempo via sleeps, mascarando o Achado #3 (granularidade de 1 segundo).
   - Nunca simulou falhas na camada SQLite para testar o retorno de `execute_time_travel`, mascarando o Achado #2.
+
+---
+
+## 8. Adendo Pós-Descoberta de `duplicacao-serialized-write-queue`
+
+> **Nota Estrutural Transversal:**  
+> A auditoria do item transversal `duplicacao-serialized-write-queue` comprovou que em ambiente de produção ([`interface/mcp_server.py:166`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L166)), `ConciergeDatabaseManager` é instanciado **sem** passar `write_queue` (`self.write_queue = None`).  
+> Consequentemente:
+> 1. Todas as escritas realizadas pelo `AgnosticCheckpointer` (`save_checkpoint`, `execute_time_travel`, etc.) ocorrem via conexões SQLite efêmeras cruas, abertas e fechadas a cada query (`sqlite3.connect`), sem serialização real em fila.
+> 2. O `PRAGMA foreign_keys=ON;` está desativado (`foreign_keys=0`), permitindo inserções órfãs desprovidas de integridade referencial.
+> 3. As falhas de atomicidade documentadas no **Achado #2** (duas queries separadas em `execute_time_travel`) não ocorrem apenas em transações lógicas separadas, mas em conexões físicas separadas, permitindo que escritas concorrentes de outros agentes ou de `SqliteStore` se intercalem livremente no meio do processo de rollback.
+> 4. Todas as não-atomicidades já documentadas neste relatório devem ser lidas como **ainda mais expostas a corrupção sob concorrência real** do que descrito originalmente.
