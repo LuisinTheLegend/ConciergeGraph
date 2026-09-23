@@ -24,7 +24,7 @@
 | 2 | `core/background_janitor.py` | 270–284 | **ALTA** | Degradação irreversível da prioridade do processo inteiro do servidor (`p.nice(psutil.IDLE_PRIORITY_CLASS)` ou `nice(15)`). O método `process_community_summaries_frugal()` rebaixa a prioridade de todo o processo do Concierge (afetando o servidor MCP, API de telemetria, RateGovernor e threads de escrita) antes mesmo de checar a barreira térmica de hardware. Se a barreira falhar, a prioridade já foi rebaixada e nunca é restaurada. | Invocado `process_community_summaries_frugal()` com barreira térmica bloqueada: prioridade do processo caiu de 32 (NORMAL) para 64 (IDLE) e permaneceu degradada. | **CONFIRMADO** |
 | 3 | `core/background_janitor.py` | 160–197 | **ALTA** | Destruição de ponto-zero e deleção cruzada de checkpoints entre agentes na mesma sessão. A chave primária de `agent_checkpoints` é `(agent_id, session_id, checkpoint_id)`. Em `interface/mcp_server.py:897, 1731` (`agent_save_checkpoint`), o `checkpoint_id` é fornecido diretamente pelo cliente sem namespace de agente nem UUID. Em `_prune_single_session`, a query agrupa apenas por `session_id`: (1) apenas o primeiro checkpoint da sessão é protegido como ponto-zero, destruindo o ponto-zero de agentes secundários; (2) o comando `DELETE ... WHERE session_id = ? AND checkpoint_id IN (?)` não filtra por `agent_id`, apagando checkpoints homônimos (ex: `step_1`, `plan`) de agentes que nada tinham a ver com a poda, como dano colateral. | Reproduzidos ambos os casos: (1) ponto-zero `coder_init` destruído após passos do `scout`; (2) checkpoint ativo `step_target` do `coder` destruído quando o `scout` gerou checkpoint com mesmo ID. | **CONFIRMADO** |
 | 4 | `core/background_janitor.py` | 96–100 | **MÉDIA** | Crash com `TypeError` em `_summarize_community` quando `files.content` é `NULL`. Se algum arquivo da comunidade tiver conteúdo nulo no SQLite (arquivos binários, arquivos recém-descobertos sem corpo carregado, ou inicializados apenas com hashes), `payload = "\n".join(row[0] for row in files)` lança `TypeError: sequence item 0: expected str instance, NoneType found`, abortando toda a varredura de ociosidade. | Inserido arquivo com `content = NULL` em comunidade dirty: `run_idle_summarization()` explodiu com `TypeError`. | **CONFIRMADO** |
-| 5 | `core/background_janitor.py` | 106–113 | **MÉDIA** | TOCTOU / Descarte cego de `is_dirty = 0` sobre arquivos modificados durante a geração da SLM. A chamada ao modelo local (`local_slm_callback`) leva de 5 a 30 segundos. Se um arquivo for alterado e marcado como `is_dirty = 1` enquanto a SLM gera o resumo, `UPDATE files SET is_dirty = 0 WHERE community_id = ?` reseta cegamente a flag, mascarando a nova edição sem que seu código tenha sido resumido. | Modificado arquivo concorrentemente durante o callback da SLM: flag `is_dirty` foi resetada para 0 ao término, perdendo o estado sujo. | **CONFIRMADO** |
+| 5 | `core/background_janitor.py` | 106–113 | **MÉDIA** | TOCTOU / Descarte cego de `is_dirty = 0` sobre arquivos modificados durante a geração da SLM. A chamada ao modelo local (`local_slm_callback`) leva de 5 a 30 segundos. Ao concluir, emite duas queries de escrita (`UPDATE communities` e `UPDATE files`). Com `write_queue=None` em produção (`mcp_server.py:166`), essas escritas ocorrem em **duas conexões físicas efêmeras cruas distintas** sem serialização em fila e sem `foreign_keys=ON;`, permitindo que edições concorrentes de agentes se intercalem entre as duas conexões e resetando cegamente `is_dirty = 0`. | Modificado arquivo concorrentemente durante o callback da SLM: flag `is_dirty` foi resetada para 0 ao término, perdendo o estado sujo. | **CONFIRMADO** |
 
 ---
 
@@ -206,6 +206,8 @@
   ```
   A execução de `local_slm_callback` é síncrona e demorada (inferência em modelo local). Se durante esse intervalo de tempo algum arquivo da comunidade for editado por um agente ou usuário, o subsistema de ingestão marca o arquivo com `is_dirty = 1`.
   Ao concluir a geração, `_summarize_community` emite `UPDATE files SET is_dirty = 0 WHERE community_id = ?` incondicionalmente para toda a comunidade.
+- **Adendo Pós-Descoberta de `duplicacao-serialized-write-queue`:**  
+  Este módulo utiliza `ConciergeDatabaseManager` sem `write_queue` (injetado via `interface/mcp_server.py:166`). Por conseguinte, as duas queries de escrita (`UPDATE communities` e `UPDATE files`) não operam sequencialmente sob uma mesma transação nem sob uma fila serializada: cada uma abre e fecha uma **conexão SQLite física efêmera crua distinta**, com `PRAGMA foreign_keys=OFF`. Essa desconexão física cria uma janela de concorrência onde operações de outros agentes ou threads de ingestão podem se intercalar exatamente entre a atualização do resumo da comunidade e a limpeza das flags dos arquivos, corrompendo a consistência do GraphRAG.
 - **Impacto no Sistema:**  
   A nova edição é marcada falsamente como limpa (`is_dirty = 0`), porém o seu conteúdo novo não estava presente no `payload` enviado à SLM. A comunidade permanece com um resumo defasado e nunca mais será marcada como suja até que uma edição subsequente ocorra.
 - **Correção Conceitual Sugerida (Fase 3):**  
@@ -213,6 +215,7 @@
   ```sql
   UPDATE files SET is_dirty = 0 WHERE path IN (...) AND last_modified <= ?;
   ```
+  Executar ambas as atualizações sob a mesma transação atômica (`BEGIN IMMEDIATE ... COMMIT`).
 
 ---
 
@@ -276,3 +279,16 @@ RESULTADO: F1=True, F2=True, F3A=True, F3B=True, F4=True, F5=True
   - Testa a auto-poda em um único agente isolado com `keep_limit=5`.
   - Não testa `keep_limit=0`, sessões multi-agente, nem empates em `created_at`.
   - Resultado: 1 passed.
+
+---
+
+## 6. Adendo Pós-Descoberta de `duplicacao-serialized-write-queue`
+
+> **Nota Estrutural Transversal:**  
+> A auditoria do item transversal `duplicacao-serialized-write-queue` comprovou que em ambiente de produção ([`interface/mcp_server.py:166`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L166)), `ConciergeDatabaseManager` é instanciado **sem** passar `write_queue` (`self.write_queue = None`).  
+> Consequentemente:
+> 1. Todas as escritas realizadas pelo `JanitorService` (como `_prune_single_session` e `_summarize_community`) ocorrem via **conexões SQLite físicas efêmeras cruas**, abertas e fechadas a cada query (`sqlite3.connect`), sem serialização real em fila.
+> 2. O `PRAGMA foreign_keys=ON;` está desativado (`foreign_keys=0`), permitindo deleções e mutações sem integridade referencial ativa.
+> 3. As falhas de atomicidade e janelas de concorrência documentadas no **Achado #5** (duas queries consecutivas em `_summarize_community`) não ocorrem apenas em transações lógicas separadas, mas em **duas conexões físicas distintas e isoladas**. Entre o fechamento da primeira conexão (`UPDATE communities`) e a abertura da segunda (`UPDATE files`), escritas concorrentes de agentes ou de `storage/` podem se intercalar livremente, agravando a perda do estado dirty e a dessincronização dos resumos.
+> 4. Todas as não-atomicidades e condições de corrida já documentadas neste relatório devem ser lidas como **ainda mais expostas a corrupção sob concorrência real** do que descrito originalmente.
+

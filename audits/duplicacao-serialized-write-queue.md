@@ -13,18 +13,18 @@
 
 ---
 
-## 1. Contexto e Hipótese Inicial
+## 1. Contexto, Hipótese Inicial e Realidade Operacional
 
-Durante a auditoria de `storage/` e `core/`, identificou-se uma grave incongruência arquitetural: existem **duas classes independentes denominadas `SerializedWriteQueue`** no repositório:
+Durante a auditoria de `storage/` e `core/`, formulou-se a hipótese de que haveria *"duas implementações concorrentes de `SerializedWriteQueue` disputando o mesmo arquivo físico"*, baseando-se na existência de duas classes com nomes idênticos:
 1. `interface/queue_writer.py::SerializedWriteQueue`: projetada para `core/database.py::ConciergeDatabaseManager` com suporte a *Opportunistic Auto-Batching* (até 50 itens) e fallback atômico;
 2. `storage/connection.py::SerializedWriteQueue`: projetada para `storage/store.py::SqliteStore` via `ConnectionManager`, com execução sequencial de callables arbitrários.
 
-Em [`interface/mcp_server.py:161-166`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L161-L166), o servidor MCP extrai privadamente o caminho do banco de dentro de `SqliteStore`:
-```python
-resolved_db_path = str(self._gc._store._conn_mgr._db_path)
-db_manager = ConciergeDatabaseManager(resolved_db_path)
-```
-Isso bifurca os canais de escrita contra o mesmo arquivo físico `data/concierge.db`.
+Entretanto, a auditoria rigorosa dos pontos de montagem reais em produção ([`interface/mcp_server.py:161-166`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L161-L166)) desfez essa moldura: **não existem duas filas concorrendo em produção**. O que realmente opera em tempo de execução é:
+- **Uma fila real e ativa em `storage/`** (`storage/connection.py::SerializedWriteQueue`), com worker thread e `foreign_keys=ON;`;
+- **ZERO fila do lado de `core/`** (`core/database.py::ConciergeDatabaseManager`), que ao ser instanciado em `mcp_server.py:166` sem `write_queue` (`write_queue=None`), dispara conexões SQLite físicas efêmeras cruas (`sqlite3.connect`), sem serialização, sem mutex e sem `foreign_keys=ON;`.
+- A fila de `interface/queue_writer.py` é **código morto em produção**, sobrevivendo apenas em testes automatizados (`tests/`).
+
+Ao bifurcar o acesso ao mesmo arquivo físico `data/concierge.db` dessa forma, conexões efêmeras do `core/` bombardeiam o banco por fora de qualquer fila, quebrando a integridade e colidindo com a fila real do `storage/`.
 
 ---
 
@@ -32,7 +32,7 @@ Isso bifurca os canais de escrita contra o mesmo arquivo físico `data/concierge
 
 | # | Arquivo Principal | Linhas | Severidade | Mecanismo | Reprodução Empírica | Status |
 |---|-------------------|--------|-----------|-----------|---------------------|--------|
-| 1 | `interface/queue_writer.py` vs `storage/connection.py` | `interface/queue_writer.py:32` e `storage/connection.py:59` | 🔴 **CRÍTICA** | **Duplicação Arquitetural Não Coordenada**: Duas threads gravadoras (`SerializedWriteQueue`) disputando o mesmo arquivo SQLite físico sem nenhum lock compartilhado de SO, sem mutex inter-processo e sem visibilidade mútua de transações. | Duas filas disparadas simultaneamente contra o mesmo banco SQLite compartilhado sob carga concorrente. | **CONFIRMADO** |
+| 1 | `storage/connection.py` vs `core/database.py` (e `interface/queue_writer.py`) | `storage/connection.py:59`, `core/database.py:56–70`, `interface/mcp_server.py:166` | 🔴 **CRÍTICA** | **Colisão entre Fila Real (`storage/`) e Zero Fila (`core/`) sobre o Mesmo Banco**: A arquitetura projetou duas classes `SerializedWriteQueue`, mas em produção ([`interface/mcp_server.py:166`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L166)) `ConciergeDatabaseManager` é instanciado com `write_queue=None`. A realidade operacional de produção não são duas filas colidindo, mas a coexistência de **uma fila real** (`storage/connection.py`) disputando o banco `data/concierge.db` contra **zero fila** do lado de `core/database.py` (que dispara conexões SQLite efêmeras cruas a cada escrita, sem serialização, sem mutex e sem `foreign_keys=ON`). | Verificação do call site real em `mcp_server.py:166`; execução simultânea de escrita via fila de storage vs conexões efêmeras cruas de `ConciergeDatabaseManager` contra o mesmo banco físico. | **CONFIRMADO** |
 | 2 | `interface/mcp_server.py` e `core/database.py` | `interface/mcp_server.py:166` e `core/database.py:27–29, 56–70` | 🔴 **CRÍTICA** | **Ilusão dos Testes e Código Morto em Produção**: `interface/queue_writer.py` é testada em 11 suites de teste (`tests/`), mas em produção (`mcp_server.py:166`) `ConciergeDatabaseManager(resolved_db_path)` é instanciado **SEM** `write_queue`. Com `self.write_queue = None`, todas as escritas de `core/` em produção executam conexões efêmeras diretas (`sqlite3.connect` por query), contornando 100% a proteção serializada que a arquitetura alega oferecer. | Análise estática do call site de produção vs 11 suítes de teste; inspeção de `self.write_queue is None` em tempo de execução. | **CONFIRMADO** |
 | 3 | `interface/queue_writer.py` e `core/database.py` | `interface/queue_writer.py:49–52`, `core/database.py:60`, `storage/connection.py:155` | 🟠 **GRAVE** | **Divergência de Integridade Referencial (`foreign_keys=OFF`)**: `storage/connection.py` ativa `PRAGMA foreign_keys=ON;`. Porém, `interface/queue_writer.py` e `core/database.py` **NÃO configuram foreign keys** (permanecem desativadas = 0). O `core/` consegue gravar arestas e registros com IDs órfãos no banco compartilhado, enquanto `storage/` falha com `IntegrityError`. | `ConciergeDatabaseManager` gravou aresta apontando para `source_id=999999` inexistente com sucesso (`rowid=1`). `SqliteStore` rejeitou a mesma operação com `IntegrityError`. | **CONFIRMADO** |
 | 4 | `storage/connection.py` vs `interface/queue_writer.py` | `storage/connection.py:154` vs `interface/queue_writer.py:49` | 🟠 **GRAVE** | **Timeout Assimétrico e Falha com `OperationalError: database is locked`**: `storage/connection.py` configura `PRAGMA busy_timeout=5000;` (5 segundos). Já `interface/queue_writer.py` e `core/database.py` usam `timeout=30.0` (30 segundos). Sob contenção sustentada (>5s), a camada de `storage/` aborta prematuramente com erro de banco travado, enquanto `core/` continua aguardando. | Transação exclusiva mantida por 5.5s: `SqliteStore` abortou exatamente aos 5.60s com `sqlite3.OperationalError: database is locked`. | **CONFIRMADO** |
@@ -42,13 +42,16 @@ Isso bifurca os canais de escrita contra o mesmo arquivo físico `data/concierge
 
 ## 3. Detalhamento dos Mecanismos
 
-### Achado #1: Duplicação Arquitetural Não Coordenada de `SerializedWriteQueue`
-- **Mecanismo:**  
-  A documentação em `01_ARCHITECTURE.md` e os cabeçalhos de arquivo afirmam que o Grafo Concierge possui uma fila única de gravação serializada para eliminar por completo erros de *Database Lock*.  
-  Entretanto, foram desenvolvidas duas classes com o mesmo nome em pacotes distintos:
-  - [`interface/queue_writer.py::SerializedWriteQueue`](file:///c:/Nexus-Memory/GrafoConcierge/interface/queue_writer.py#L32): subclasse de `threading.Thread` com suporte a `BEGIN IMMEDIATE;`, auto-batching de até 50 itens e fallback em lote;
-  - [`storage/connection.py::SerializedWriteQueue`](file:///c:/Nexus-Memory/GrafoConcierge/storage/connection.py#L59): thread trabalhadora dedicada gerenciada por `ConnectionManager`, que recebe *callables* em `_WriteJob` e executa um a um.
-  Ambas operam contra o mesmo arquivo físico `data/concierge.db` sem nenhum lock inter-processos ou inter-threads compartilhado. O SQLite em modo WAL suporta apenas **um escritor simultâneo**. Havendo duas filas independentes, uma fila bloqueia a outra no nível do motor SQLite (disco/WAL), destruindo o princípio de fila única em memória.
+### Achado #1: Colisão entre Fila Real (`storage/connection.py`) e Zero Fila (`core/database.py`) sobre o Mesmo Banco Físico
+- **Mecanismo Real em Produção:**  
+  A documentação em `01_ARCHITECTURE.md` afirma que o Grafo Concierge possui uma fila única de gravação serializada para eliminar por completo erros de *Database Lock*.  
+  No código-fonte, foram implementadas duas classes independentes denominadas `SerializedWriteQueue` ([`storage/connection.py:59`](file:///c:/Nexus-Memory/GrafoConcierge/storage/connection.py#L59) e [`interface/queue_writer.py:32`](file:///c:/Nexus-Memory/GrafoConcierge/interface/queue_writer.py#L32)).  
+  Contudo, o rastreamento da instanciação no servidor MCP revela a verdadeira topologia operacional em produção: **não são duas filas disputando o banco, mas sim uma fila real coexistindo com zero fila do outro lado**:
+  1. **Lado `storage/` ([`storage/store.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py)):** Opera com uma fila serializada real ativa ([`storage/connection.py::SerializedWriteQueue`](file:///c:/Nexus-Memory/GrafoConcierge/storage/connection.py#L59)), consumida pelo worker thread dedicado `sqlite-writer` com `PRAGMA foreign_keys=ON;` e `PRAGMA busy_timeout=5000;`.
+  2. **Lado `core/` ([`core/database.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py)):** Em produção ([`interface/mcp_server.py:166`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L166)), `ConciergeDatabaseManager(resolved_db_path)` é instanciado **sem** o parâmetro `write_queue`. Com `self.write_queue = None`, **não há nenhuma fila serializadora ativa**. Cada chamada a `execute_write` abre e fecha uma conexão SQLite física efêmera crua (`sqlite3.connect` com timeout de 30s), executando queries diretas, sem passar por fila e sem `foreign_keys=ON`.
+  3. A segunda fila ([`interface/queue_writer.py`](file:///c:/Nexus-Memory/GrafoConcierge/interface/queue_writer.py)) existe apenas nos testes automatizados (`tests/`), criando a ilusão de que o `core/` possui uma fila de escrita dedicada.
+- **Impacto no Sistema:**  
+  O arquivo físico `data/concierge.db` é bombardeado concorrentemente pela thread da fila de `storage/` e por múltiplos fluxos efêmeros não-serializados vindos de `core/` (como `checkpointer`, `delta_manager` e `background_janitor`). As conexões efêmeras do `core/` não respeitam a fila de `storage/` e não validam integridade referencial, podendo intercalar escritas no meio de operações lógicas alheias e provocar `database is locked` na fila de storage aos 5 segundos sob contenção.
 
 ---
 

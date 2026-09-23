@@ -86,6 +86,7 @@ Auditado nesta sessão do Antigravity, confirmado de forma independente:
   em escopo thread-local; testado sob 50 threads / 10.000 chamadas sem erro).
   `calculate_lbh()` sempre retorna `""` para não-Python; `calculate_ssh()`
   documentado com 10 testes parametrizados em `tests/test_ssh_language_coverage.py`.
+  Adendo pós-descoberta: Achado #3 agravado por conexões SQLite efêmeras cruas sem fila e sem `foreign_keys=ON`, executando duas conexões físicas distintas por mutação.
 
 Tarefa extra inserida a partir do padrão encontrado acima:
 
@@ -112,12 +113,14 @@ Tarefa extra inserida a partir do padrão encontrado acima:
   Data Race / Lost Updates em `get_current_metrics` sem lock; deadlock eterno em
   `submit_request` sem timeout e após `shutdown()`),
   1 MÉDIA (cegueira de RPM no Fast-Path sem registro em `self.history`).
+  *(Nota: 100% em memória, zero interações com `ConciergeDatabaseManager` ou SQLite).*
 - [x] `core/background_janitor.py` — 5 achados confirmados (ver `audits/core-background-janitor.md`).
   3 ALTA (slice negativo `remaining[-0:]` com `keep_limit=0` preserva 100% dos checkpoints;
   degradação irreversível da prioridade do processo inteiro do servidor para IDLE;
   destruição do ponto-zero e deleção cruzada de checkpoints entre agentes por ignorar `agent_id` no DELETE),
   2 MÉDIA (crash com `TypeError` em `_summarize_community` quando `files.content` é `NULL`;
   descarte cego de `is_dirty = 0` / TOCTOU sobre arquivos modificados durante a SLM).
+  Adendo pós-descoberta: Achado #5 agravado por duas conexões físicas efêmeras cruas distintas por ciclo de resumo, sem fila e sem `foreign_keys=ON`.
 - [x] `core/vector_reconciler.py` — 4 achados confirmados (ver `audits/core-vector-reconciler.md`).
   2 CRÍTICA (invocação de método fantasma `self.vector_db.get_all_ids()` inexistente em `BaseVectorBackend`/`ChromaVectorStore`/`QdrantVectorStore`, mascarado por mock nos testes; incompatibilidade de TIPO (`int` vs `str`) e de domínio semântico entre `get_all_stored_node_ids()` e `_get_all_sqlite_paths()`, causando purga matematicamente garantida de 100% dos vetores legítimos da base vetorial; dependência crítica: corrigir #1 isoladamente faz o sistema passar de 'seguro por estar quebrado' para 'roda e apaga tudo', exigindo correção simultânea),
   1 ALTA (ausência de locks e race condition destrutiva TOCTOU com ingestão concorrente em segundo plano),
@@ -126,14 +129,15 @@ Tarefa extra inserida a partir do padrão encontrado acima:
   1 CRÍTICA (despacho ambíguo em `save_checkpoint` baseado em heurística de tipos `len(args)==4 and isinstance(args[3], str)` desviando chamadas de `agent_save_checkpoint` para `fsm_checkpoints` com inversão de colunas primárias e perda total de dados `shared_state="{}"`),
   2 ALTA (mascaramento silencioso de falhas e transação não atômica em `execute_time_travel`; granularidade de 1s de `CURRENT_TIMESTAMP` falhando em deletar checkpoints futuros em rajadas rápidas de time-travel),
   2 MÉDIA (crash com `json.JSONDecodeError` não tratado em `get_checkpoint`; tipagem insegura reportada pelo Mypy com risco de chamada em `None`).
+  Adendo pós-descoberta: Achado #2 agravado por conexões físicas efêmeras cruas sem fila e sem `foreign_keys=ON`.
 - [x] `storage/` (todos os arquivos) — 9 achados confirmados (ver `audits/storage.md`).
   2 CRÍTICA (deadlock inevitável em escritas aninhadas/reentrantes no `SerializedWriteQueue` travando permanentemente o worker thread; bypass completo de isolamento estrito / Strict Scoping em `ChromaVectorStore.search` quando `project_uuids=[]` vazando dados cross-project),
   3 ALTA/GRAVE (vazamento perpétuo de conexões SQLite de threads finalizadas em `ConnectionManager` acumulando zumbis em `_read_connections`; incompatibilidade de contrato em `relational_db:init_fsm_checkpoints_schema` falhando silenciosamente e ausência das tabelas de checkpoints no `SchemaManager`; falha de tipo em `GraphLogic._calculate_decay` com timestamps ISO 8601 offset-aware degradando silenciosamente o score de recência para o mínimo 0.01),
   3 MÉDIA (falha com `RuntimeError` ao reiniciar `SerializedWriteQueue` após `stop`; crash com `ValueError` em busca vetorial quando `node_id` é `None`/string vazia; duplicação de nós na CTE recursiva `get_dependency_tree` por inclusão de `depth` em `SELECT DISTINCT`),
   1 BAIXA (isolamento total de `semantic_logic` na fachada `SqliteStore` forçando quebra de encapsulamento).
 - [x] **duplicacao-serialized-write-queue** — 5 achados confirmados (ver [`audits/duplicacao-serialized-write-queue.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/duplicacao-serialized-write-queue.md)).
-  2 CRÍTICA (duplicação arquitetural não coordenada de `SerializedWriteQueue` em `storage/connection.py` vs `interface/queue_writer.py` disputando o mesmo arquivo de banco físico; ilusão dos testes e código morto em produção onde `interface/queue_writer.py` é testada em 11 suítes mas em produção `ConciergeDatabaseManager` é instanciado sem fila, executando escritas diretas efêmeras por query via `sqlite3.connect`),
-  2 ALTA/GRAVE (divergência de integridade referencial por falta de `PRAGMA foreign_keys=ON;` em `interface/queue_writer.py` e `core/database.py`, permitindo gravação de arestas/registros com IDs órfãos no banco compartilhado; timeout assimétrico de 5s em `storage/connection.py` vs 30s em `core/database.py` provocando `OperationalError: database is locked` prematuro na camada de storage sob contenção sustentada),
+  2 CRÍTICA (colisão estrutural entre uma fila real em `storage/connection.py` e zero fila do lado de `core/database.py`, onde conexões físicas efêmeras cruas disputam o mesmo banco `data/concierge.db` sem serialização, sem mutex e sem `foreign_keys=ON`; ilusão dos testes e código morto em produção onde `interface/queue_writer.py::SerializedWriteQueue` é testada em 11 suítes mas em produção `ConciergeDatabaseManager` é instanciado em `mcp_server.py:166` com `write_queue=None`),
+  2 ALTA/GRAVE (divergência de integridade referencial por ausência de `PRAGMA foreign_keys=ON;` em `interface/queue_writer.py` e `core/database.py`, permitindo gravação de arestas/registros órfãos no banco compartilhado; timeout assimétrico de 5s em `storage/connection.py` vs 30s em `core/database.py` provocando `OperationalError: database is locked` prematuro na camada de storage sob contenção sustentada),
   1 MÉDIA (quebra de encapsulamento privado em `interface/mcp_server.py:162` acessando `self._gc._store._conn_mgr._db_path` para criar uma segunda conexão paralela ao invés de usar fachada unificada).
 - [ ] `ingestion/` (todos os arquivos)
 - [ ] `agent/` e `agents/` (todos os arquivos)
