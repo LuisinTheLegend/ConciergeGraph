@@ -490,17 +490,68 @@ Confirmada em `interface/mcp_server.py:162` a extração forçada de `resolved_d
 
 ---
 
+# Relatório da Auditoria: `ingestion/` (Orquestração e Processamento)
+
+## 1. Resumo da Investigação
+Auditoria aprofundada de todos os 6 módulos do pacote `ingestion/`: `crawler.py`, `extractor.py`, `summarizer.py`, `dispatcher.py`, `orchestrator.py` e `pipeline.py`.
+Total de 8 achados confirmados, com 2 bugs de severidade CRÍTICA e 2 de severidade ALTA/GRAVE.
+
+## 2. Tabela de Achados Confirmados
+
+| # | Severidade | Resumo |
+|---|-----------|--------|
+| 1 | **CRÍTICA** | [`ingestion/crawler.py:108-112`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/crawler.py#L108) vs [`ingestion/orchestrator.py:270-305`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L270) — **Perda Total de Nós e Metadados no Grafo na Renomeação de Arquivos**: O crawler detecta renomeação consultando `find_node_by_hash(content_hash)`. Como o nó retornado tem o caminho antigo, o orquestrador não atualiza o nó no grafo nem reaponta arestas, e no Step 6 (GC de nós obsoletos) identifica o caminho antigo como deletado, purgando o nó do SQLite e da base vetorial. |
+| 2 | **CRÍTICA** | [`ingestion/summarizer.py:175-185`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/summarizer.py#L175) vs [`ingestion/orchestrator.py:228-232`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L228) — **Descarte Silencioso de 100% dos Resumos L0 com Esterilização de L1 e L2**: `summarizer.generate_file_summary` retorna tupla `(summary_text, metadata_dict)`. O orquestrador espera dicionário e tenta acessar `summary.get("summary")`, resultando em fallback para string vazia ou `NULL` em `nodes.summary`. Consequentemente, as etapas hierárquicas L1 e L2 recebem resumos vazios para agregação. |
+| 3 | **GRAVE** | [`ingestion/orchestrator.py:254-256`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L254) vs [`storage/store.py:180-188`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py#L180) — **Falha Silenciosa de Persistência do L2 Compass com Falsa Confirmação no Log**: O orquestrador passa `folder_name` (string) como identificador de projeto para `update_project(project_id=...)`, que exige UUID. O UPDATE SQLite falha silenciosamente (0 linhas afetadas não geram exceção), e o código emite log informativo de sucesso. |
+| 4 | **GRAVE** | [`ingestion/orchestrator.py:295-310`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L295) vs [`storage/vector_store.py:210`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py#L210) — **Acúmulo Perpétuo de Vetores Zumbis no ChromaDB na Atualização de Conteúdo**: O GC de purga só remove vetores se o arquivo tiver sido inteiramente removido do disco. Se um arquivo for modificado, novos embeddings são gerados com novos IDs sem exclusão dos embeddings antigos, inflando a base vetorial indefinidamente. |
+| 5 | **MÉDIA** | [`ingestion/dispatcher.py:84`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/dispatcher.py#L84) — Silenciamento incondicional de exceções em `run_background` com `logger.error` e retorno falso de conclusão. |
+| 6 | **MÉDIA** | [`ingestion/extractor.py:142`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/extractor.py#L142) — Truncamento cego de tokens via slice de caracteres (`text[:4000]`) podendo cortar entidades sintáticas no meio. |
+| 7 | **BAIXA** | [`ingestion/pipeline.py:95`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/pipeline.py#L95) — Redundância estrutural com `orchestrator.py` gerando acoplamento circular e caminhos de execução mortos. |
+| 8 | **BAIXA** | [`ingestion/crawler.py:48`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/crawler.py#L48) — Inconsistência na normalização de caminhos Windows (mistura de `/` e `\\`). |
+
+---
+
+# Relatório da Auditoria: `bypass-governanca-por-session-id` (Segurança Transversal)
+
+## 1. Resumo da Investigação
+Investigação do mecanismo de controle de estados do `MCPToolGovernor` (`core/mcp_governor.py`) integrado ao servidor FastMCP (`interface/mcp_server.py`).
+Confirmado que a governança é completamente contornável a partir de qualquer estado por injeção de `session_id`, e que o subsistema de checkpoints não possui autenticação, permitindo roubo de credenciais e envenenamento de estado de agentes.
+
+## 2. Tabela de Achados Confirmados
+
+| # | Severidade | Resumo |
+|---|-----------|--------|
+| 1 | **CRÍTICA MÁXIMA** | [`interface/mcp_server.py:246-258`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L246) e [`core/mcp_governor.py:100`](file:///c:/Nexus-Memory/GrafoConcierge/core/mcp_governor.py#L100) — **Bypass Total do MCPToolGovernor via Ghost Token e FastMCP Descarte de Parâmetros**: Um chamador em sessão travada em `PLANNING` registra uma sessão fantasma (ex: `bypass_token`) como `MAINTENANCE` via `concierge_set_state` (categorizada erroneamente como `READ_ONLY`). Ao chamar `reset_collection({"session_id": "bypass_token"})`, o interceptor valida o token fantasma, o FastMCP descarta o argumento não declarado na função alvo e executa a operação destrutiva `DANGEROUS`, destruindo a base vetorial. |
+| 2 | **CRÍTICA** | [`interface/mcp_server.py:897-960, 1731-1775`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L897) e [`core/checkpointer.py:138-144, 226-234`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py#L138) — **Impersonation Total, Exfiltração de Segredos e Envenenamento de Checkpoints via `session_id` e `agent_id`**: Não há autenticação, token nem amarração ao transporte. Qualquer chamador pode chamar `agent_get_checkpoint` e roubar o estado confidencial (API keys, memórias) de qualquer sessão/agente legítimo, e chamar `agent_save_checkpoint` para sobrescrever (`INSERT OR REPLACE`) o estado com payloads maliciosos, consumidos pela vítima na retomada da sessão. |
+| 3 | **GRAVE** | [`interface/mcp_server.py:261-270`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L261) — **Vazamento de 100% das 31 Ferramentas em `list_tools()` para Clientes MCP Padrão**: O protocolo JSON-RPC oficial de `tools/list` não envia `session_id`. O interceptor recebe `None`, ignorando o filtro e exibindo ferramentas perigosas a agentes em qualquer estado. |
+| 4 | **GRAVE** | [`agent/run_agent.py:28-57`](file:///c:/Nexus-Memory/GrafoConcierge/agent/run_agent.py#L28) vs [`interface/mcp_server.py`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py) — **Desconexão Total do Runtime Cognitivo (`CognitiveAgentRunner` e `HSMEngine` Órfãos)**: Em produção, o servidor MCP nunca instancia a máquina de estados hierárquica; o estado é apenas uma string manual gerenciada pelo `MCPToolGovernor`. |
+| 5 | **MÉDIA** | [`core/mcp_governor.py:37-38`](file:///c:/Nexus-Memory/GrafoConcierge/core/mcp_governor.py#L37) — **Inicialização Insegura por Padrão (`default_state = "EXECUTION"`)**: Servidor inicia liberando mutações locais (`concierge_mine`, `concierge_commit`) por padrão em vez de modo estrito de leitura. |
+
+---
+
+## 3. Arquivos Produzidos / Atualizados Nesta Etapa
+
+| Arquivo | Tipo | Descrição |
+|---------|------|-----------|
+| [`audits/ingestion.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/ingestion.md) | Relatório | Relatório detalhado dos 8 achados de `ingestion/` com análise de código e propostas de mitigação |
+| [`audits/bypass-governanca-por-session-id.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/bypass-governanca-por-session-id.md) | Relatório | Relatório detalhado dos 5 achados de segurança transversal com saídas brutas de reprodução para Achado #1 e Achado #2 |
+| [`scratch/test_governor_dispatch.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/test_governor_dispatch.py) | Script de Reprodução | Script demonstrando o bypass do governor e execução não autorizada de `reset_collection` a partir de `PLANNING` |
+| [`scratch/test_checkpoint_impersonation.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/test_checkpoint_impersonation.py) | Script de Reprodução | Script comprovando exfiltração de segredos via `agent_get_checkpoint` e sobrescrita arbitrária via `agent_save_checkpoint` |
+| [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md) | Protocolo | Atualizado com a conclusão e reprodução empírica de `ingestion/` e `bypass-governanca-por-session-id` |
+| [`walkthrough.md`](file:///c:/Nexus-Memory/GrafoConcierge/walkthrough.md) | Relatório de Sessão | Registro consolidado atualizado com os novos achados e evidências empíricas |
+
+---
+
 ## 4. Estado Atual da Auditoria
 
 ```
 Fase 0: [ ] baseline (não iniciada)
-Fase 1: 15/18 itens concluídos (6 pré-existentes + delta_manager + mock-vs-real-audit + security_guard + rate_governor + background_janitor + vector_reconciler + checkpointer + storage + duplicacao-serialized-write-queue)
-         ▶ Próximo: ingestion/ (todos os arquivos)
+Fase 1: 17/18 itens concluídos (6 pré-existentes + delta_manager + mock-vs-real-audit + security_guard + rate_governor + background_janitor + vector_reconciler + checkpointer + storage + duplicacao-serialized-write-queue + ingestion + bypass-governanca-por-session-id)
+         ▶ Próximo: agent/ e agents/ (3 arquivos: run_agent.py, agent_prompts.py, revisor_critico.py)
 Fase 2: bloqueada (requer Fase 1 completa)
 Fase 3: bloqueada (requer Fase 2 completa)
 ```
 
-**Commit:** `7f73ec3` (push confirmado para `origin/main`)  
 **Aguardando aprovação do humano para avançar** (Regra 7 — GATE OBRIGATÓRIO).
 
 

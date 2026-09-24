@@ -87,16 +87,25 @@ Adicionalmente, comprovou-se que todo o subsistema de máquinas de estado hierá
 
 ---
 
-### Achado #2: Falha Estrutural de Design — `session_id` como Vetor de Falsa Identidade
+### Achado #2: Falha Estrutural de Design — `session_id` e `agent_id` como Vetores de Impersonation e Envenenamento de Checkpoints
 - **Severidade:** 🔴 **CRÍTICA**
-- **Arquivos:** [`core/mcp_governor.py:39`](file:///c:/Nexus-Memory/GrafoConcierge/core/mcp_governor.py#L39), [`interface/mcp_server.py:890-950`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L890-L950)
+- **Arquivos:** [`core/mcp_governor.py:39`](file:///c:/Nexus-Memory/GrafoConcierge/core/mcp_governor.py#L39), [`core/checkpointer.py:138-144, 226-234`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py#L138), [`interface/mcp_server.py:897-960, 1731-1775`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L897)
+- **Status de Certeza:** **CONFIRMADO E REPRODUZIDO EMPIRICAMENTE** (via [`scratch/test_checkpoint_impersonation.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/test_checkpoint_impersonation.py))
 - **Mecanismo:**
   Apenas 4 ferramentas no servidor declaram `session_id` formalmente em seus parâmetros: `concierge_set_state`, `agent_save_checkpoint`, `agent_get_checkpoint` e `agent_list_checkpoints`.
   As outras 27 ferramentas do servidor não têm esse parâmetro.
-  Isso gera um efeito colateral grave:
-  - Se um agente for configurado para operar em `session_id="agent_prod_42"`, todas as suas chamadas para ferramentas normais (`concierge_mine`, `concierge_commit`, `search_symbols`) enviam argumentos sem `session_id`.
-  - Como o interceptor faz `arguments.get("session_id", "default")`, essas chamadas **caem silenciosamente na sessão `"default"`**, ignorando qualquer estado restritivo configurado para `"agent_prod_42"`.
-  - No sentido inverso, qualquer agente pode bisbilhotar ou sobrescrever checkpoints de sessões alheias em `agent_get_checkpoint(agent_id="X", session_id="Y", checkpoint_id="Z")`, pois a identidade do chamador não é vinculada à sessão de transporte.
+  Isso gera duas vulnerabilidades estruturais críticas:
+
+  1. **Fuga Silenciosa para a Sessão `"default"`:**
+     - Se um agente for configurado para operar em `session_id="agent_prod_42"`, todas as suas chamadas para ferramentas normais (`concierge_mine`, `concierge_commit`, `search_symbols`) enviam argumentos sem `session_id`.
+     - Como o interceptor faz `arguments.get("session_id", "default")`, essas chamadas **caem silenciosamente na sessão `"default"`**, ignorando qualquer estado restritivo configurado para `"agent_prod_42"`.
+
+  2. **Impersonation Total, Exfiltração de Segredos e Envenenamento de Estado em Checkpoints:**
+     - As ferramentas `agent_save_checkpoint`, `agent_get_checkpoint` e `agent_list_checkpoints` recebem `agent_id` e `session_id` como argumentos de chamada do cliente (JSON-RPC).
+     - **Não existe nenhuma camada de autenticação, verificação de credenciais ou amarração da identidade do chamador ao transporte (SSE ou stdio).** Qualquer cliente conectado ao servidor MCP pode fornecer qualquer string como `agent_id` e `session_id`.
+     - **Exfiltração de Segredos (Leitura Não Autorizada):** Um agente atacante ou invasor que envie `agent_id="legitimate_worker_agent"` e `session_id="victim_session"` em `agent_get_checkpoint` recebe integralmente o `state_dict` serializado da vítima, incluindo chaves de API (`api_secret_key`), credenciais e contexto confidencial.
+     - **Envenenamento de Estado (Sobrescrita Arbitrária):** Em `core/checkpointer.py:139`, a persistência usa `INSERT OR REPLACE INTO agent_checkpoints (agent_id, session_id, checkpoint_id, state_blob) VALUES (?, ?, ?, ?)`. O atacante simplesmente envia um novo checkpoint com a mesma tupla `(agent_id, session_id, checkpoint_id)`, **sobrescrevendo silenciosamente o estado da vítima** com payloads maliciosos. Quando a vítima legítima retoma sua execução via `agent_get_checkpoint`, consome o estado adulterado pelo atacante sem nenhum alerta de integridade.
+     - **Isolamento de `agent_id`:** O teste empírico comprovou que se o atacante usar um `agent_id` diferente (`"different_unauthorized_agent"`), a query SQLite `WHERE agent_id = ? AND session_id = ?` retorna vazio `{}`. Porém, como `agent_id` é um argumento arbitrariamente fornecido pelo cliente e não há segredo nem hash, qualquer agente pode se passar pela vítima fornecendo o nome dela (ex.: nomes padrão como `primary_agent`, `revisor_critico`, `scout`, `coder`).
 
 ---
 
@@ -150,6 +159,7 @@ Adicionalmente, comprovou-se que todo o subsistema de máquinas de estado hierá
 
 ## 5. Saída Bruta Completa da Reprodução Empírica
 
+### 5.1 Achado #1: Bypass do Governor via Ghost Token e FastMCP Descarte de Parâmetros
 Execução do script de verificação de segurança [`scratch/test_governor_dispatch.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/test_governor_dispatch.py):
 
 ```text
@@ -211,6 +221,43 @@ Chamada com session_id='agent_session_1' -> Bloqueada corretamente: Access denie
 Agente registrou 'bypass_token' como MAINTENANCE via concierge_set_state (READ_ONLY).
 RESULTADO DO BYPASS: reset_collection EXECUTADA COM SUCESSO! -> [TextContent(type='text', text='{\n  "success": true,\n  "duration_seconds": 0.027\n}', annotations=None, meta=None)]
 Vulnerabilidade comprovada: FastMCP descartou session_id e executou a operacao DANGEROUS!
+```
+
+### 5.2 Achado #2: Impersonation de Sessão, Exfiltração de Segredos e Envenenamento de Checkpoints
+Execução do script de verificação de segurança [`scratch/test_checkpoint_impersonation.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/test_checkpoint_impersonation.py):
+
+```text
+[09/23/26 22:56:51] INFO     GrafoConciergeServer initialized mcp_server.py:233
+                             - 31 tools registered.                            
+======================================================================
+TESTE DE IMPERSONATION E ENVENENAMENTO DE CHECKPOINTS VIA session_id
+======================================================================
+1. Vítima salvou checkpoint 'critical_step_42' em 'victim_session':
+   Resposta: ([TextContent(type='text', text='{"success": true, "message": "Checkpoint \'critical_step_42\' saved successfully for agent \'legitimate_worker_agent\'"}', annotations=None, meta=None)], {'result': '{"success": true, "message": "Checkpoint \'critical_step_42\' saved successfully for agent \'legitimate_worker_agent\'"}'})
+
+2. Atacante B impersona a vítima e lista checkpoints:
+   Checkpoints descobertos: [TextContent(type='text', text='{\n  "checkpoint_id": "critical_step_42",\n  "created_at": "2026-09-24 01:56:51"\n}', annotations=None, meta=None)]
+
+3. Atacante B lê o checkpoint da vítima (agent_get_checkpoint):
+   Dados roubados: [TextContent(type='text', text='{\n  "user_email": "ceo@enterprise.com",\n  "api_secret_key": "sk-proj-SUPER_CONFIDENTIAL_KEY_XYZ",\n  "work_status": "in_progress",\n  "approved_budget": 500000\n}', annotations=None, meta=None)]
+   -> [COMPROVADO] LEITURA NÃO AUTORIZADA: Atacante exfiltrou 'api_secret_key' da vítima!
+
+4. Atacante B sobrescreve o checkpoint da vítima com payload malicioso:
+   Resposta: ([TextContent(type='text', text='{"success": true, "message": "Checkpoint \'critical_step_42\' saved successfully for agent \'legitimate_worker_agent\'"}', annotations=None, meta=None)], {'result': '{"success": true, "message": "Checkpoint \'critical_step_42\' saved successfully for agent \'legitimate_worker_agent\'"}'})
+
+5. Vítima retoma a sessão e lê seu checkpoint:
+   Estado recuperado: [TextContent(type='text', text='{\n  "user_email": "hacker@evil.com",\n  "api_secret_key": "sk-proj-POISONED_KEY",\n  "work_status": "corrupted",\n  "approved_budget": 0,\n  "backdoor_payload": "rm -rf /"\n}', annotations=None, meta=None)]
+   -> [COMPROVADO] ENVENENAMENTO DE ESTADO: O checkpoint da vítima foi substituído pelo payload do atacante!
+
+6. Atacante tenta ler com agent_id='different_unauthorized_agent' e session_id='victim_session':
+   Resposta: [TextContent(type='text', text='{}', annotations=None, meta=None)]
+
+======================================================================
+SÍNTESE DOS RESULTADOS:
+- Impersonation de Identidade / Exfiltração de Segredos: CONFIRMADA
+- Envenenamento e Sobrescrita Arbitrária de Checkpoint: CONFIRMADA
+- Classificação de Gravidade: CRÍTICA (Nenhuma autenticação de sessão ou agente)
+======================================================================
 ```
 
 ---
