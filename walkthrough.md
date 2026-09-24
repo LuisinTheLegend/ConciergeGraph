@@ -529,15 +529,37 @@ Confirmado que a governança é completamente contornável a partir de qualquer 
 
 ---
 
+# Relatório da Auditoria: `agent/` e `agents/` (Runtime Cognitivo e Auditor Crítico)
+
+## 1. Resumo da Investigação
+Auditoria aprofundada dos 3 arquivos de runtime cognitivo e auditoria crítica:
+- [`agent/run_agent.py`](file:///c:/Nexus-Memory/GrafoConcierge/agent/run_agent.py) (`CognitiveAgentRunner` / `HermesAgentRunner`)
+- [`agent/agent_prompts.py`](file:///c:/Nexus-Memory/GrafoConcierge/agent/agent_prompts.py) (`DynamicPromptBuilder`)
+- [`agents/revisor_critico.py`](file:///c:/Nexus-Memory/GrafoConcierge/agents/revisor_critico.py) (`RevisorCritico`, `AuditResult`, `RerankResult`)
+
+**Nota Estrutural Mandatória (Severidade Condicional):** Conforme demonstrado no item anterior, estes módulos operam como **código órfão em produção**, desconectados do servidor FastMCP. Por isso, todas as severidades aqui registradas são estritamente **CONDICIONAIS**: não afetam o servidor em execução hoje, mas representam falhas críticas imediatas se e quando alguém decidir reconectar ou reaproveitar este código.
+
+## 2. Tabela de Achados Confirmados
+
+| # | Severidade | Resumo |
+|---|-----------|--------|
+| 1 | **CRÍTICA CONDICIONAL** | [`agent/run_agent.py:47, 82, 123, 154, 160`](file:///c:/Nexus-Memory/GrafoConcierge/agent/run_agent.py#L47) — **Contaminação de Turnos Multi-Sessão no Circuit Breaker**: `self.current_substate_turn_count` é um inteiro único de instância da classe compartilhado entre todas as sessões. Inicializar ou transicionar uma sessão zera indevidamente o contador de outras; sessões concorrentes somam passos no mesmo contador, gerando bloqueios espúrios em `STALL.ERROR_PAUSE` (*Cross-Session Denial of Service*). |
+| 2 | **CRÍTICA CONDICIONAL** | [`agents/revisor_critico.py:555–573`](file:///c:/Nexus-Memory/GrafoConcierge/agents/revisor_critico.py#L555) — **Vazamento de Privacidade por Fallback Inseguro e Sensibilidade a Caixa (Case-Sensitivity)**: `check_contamination` usa `privacy_hierarchy.get(source_privacy, 0)` sem normalizar `.upper()`. Qualquer string em minúsculas (`"restricted"`) ou sinônimo corporativo (`"CONFIDENTIAL"`, `"SECRET"`) recebe nível `0` (`PUBLIC`), avaliando `source_level > target_level` como `False` e aprovando a transferência de dados ultra-secretos para contextos públicos (violação do princípio de *Fail-Closed*). |
+| 3 | **GRAVE CONDICIONAL** | [`agents/revisor_critico.py:331, 362–381`](file:///c:/Nexus-Memory/GrafoConcierge/agents/revisor_critico.py#L331) — **Aprovação Espúria de Commits Inválidos e Incompatibilidade de Assinatura em `audit_with_retry`**: O docstring prescreve `Callable(task, outcome, feedback)`, mas o código chama `generate_fn(result.reason)` (1 argumento). Se a função lançar exceção no 1º loop, o bloco `except` aciona `break` e retorna `approved=True, partial_audit=True, loop_count=max_loops`, aprovando automaticamente um rascunho com defeito sem ter executado as tentativas. |
+| 4 | **GRAVE CONDICIONAL** | [`agent/run_agent.py:151–217`](file:///c:/Nexus-Memory/GrafoConcierge/agent/run_agent.py#L151) — **Dessincronização de Estado e Diretrizes em `step(target_transition=...)`**: `step()` constrói o prompt dinâmico usando o estado ANTERIOR (`current_path`) e só depois efetua a transição solicitada. O LLM recebe no prompt instruções e proibições da fase antiga (ex.: `PLANNING: Nenhuma mutação física autorizada`), enquanto o retorno já indica o novo estado (`EXECUTION.CODE_GEN`), gerando alucinações e bloqueios cognitivos. |
+| 5 | **GRAVE CONDICIONAL** | [`agents/revisor_critico.py:433, 490–498, 504–513`](file:///c:/Nexus-Memory/GrafoConcierge/agents/revisor_critico.py#L433) — **Defeitos de Tipagem e Crash em Reranking (`NoneType` e `int` vs `str`)**: (1) `_heuristic_rerank` quebra com `TypeError` se algum nó contiver `score_final: None`; (2) `_llm_rerank` força `relevance_map[int(nid)]`, descartando 100% dos candidatos caso `node_id` venha como `str` (padrão de nós vetoriais e paths); (3) se o mapa não casar, retorna lista vazia `[]`, violando a garantia de retornar ao menos 1 resultado. |
+| 6 | **MÉDIA CONDICIONAL** | [`agent/run_agent.py:243–262`](file:///c:/Nexus-Memory/GrafoConcierge/agent/run_agent.py#L243) — **Bypass de RateGovernor e Corrotinas Não Avaliadas em `execute_tool`**: Funções assíncronas contornam o `RateGovernor` quando `gating` é nulo (`if inspect.iscoroutinefunction(dummy_fn): return await dummy_fn()`). Quando `gating` está ativo, a função assíncrona é chamada sem `await` dentro de `_run_with_governor`, retornando uma corrotina crua não executada. |
+| 7 | **MÉDIA CONDICIONAL** | [`agent/agent_prompts.py:82–132`](file:///c:/Nexus-Memory/GrafoConcierge/agent/agent_prompts.py#L82) vs [`core/mcp_governor.py:43–76`](file:///c:/Nexus-Memory/GrafoConcierge/core/mcp_governor.py#L43) — **Dessincronização Estrutural entre Sub-Estados do HSM e `TOOL_DISCLOSURE_MATRIX`**: `parse_state_path` decompõe apenas o super-estado. As entradas de sub-estados declaradas na matriz do governor (`DISCOVERY`, `TDD_GREEN`, `REFACTORING`) nunca são consultadas pelo builder, tornando-se regras mortas. |
+
+---
+
 ## 3. Arquivos Produzidos / Atualizados Nesta Etapa
 
 | Arquivo | Tipo | Descrição |
 |---------|------|-----------|
-| [`audits/ingestion.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/ingestion.md) | Relatório | Relatório detalhado dos 8 achados de `ingestion/` com análise de código e propostas de mitigação |
-| [`audits/bypass-governanca-por-session-id.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/bypass-governanca-por-session-id.md) | Relatório | Relatório detalhado dos 5 achados de segurança transversal com saídas brutas de reprodução para Achado #1 e Achado #2 |
-| [`scratch/test_governor_dispatch.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/test_governor_dispatch.py) | Script de Reprodução | Script demonstrando o bypass do governor e execução não autorizada de `reset_collection` a partir de `PLANNING` |
-| [`scratch/test_checkpoint_impersonation.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/test_checkpoint_impersonation.py) | Script de Reprodução | Script comprovando exfiltração de segredos via `agent_get_checkpoint` e sobrescrita arbitrária via `agent_save_checkpoint` |
-| [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md) | Protocolo | Atualizado com a conclusão e reprodução empírica de `ingestion/` e `bypass-governanca-por-session-id` |
+| [`audits/agent-and-agents.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/agent-and-agents.md) | Relatório | Relatório detalhado dos 7 achados com distinção explícita de severidade condicional (código órfão) e propostas de correção |
+| [`scratch/reproduce_agent_findings.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/reproduce_agent_findings.py) | Script de Reprodução | Script comprovando empiricamente os 5 principais bugs (contaminação de turnos, dessincronização de prompt, bypass de privacidade, falsa aprovação e falhas de reranking) |
+| [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md) | Protocolo | Atualizado com o fechamento do item `agent/` e `agents/` e transição do foco para `interface/telemetry_api.py` |
 | [`walkthrough.md`](file:///c:/Nexus-Memory/GrafoConcierge/walkthrough.md) | Relatório de Sessão | Registro consolidado atualizado com os novos achados e evidências empíricas |
 
 ---
@@ -546,10 +568,16 @@ Confirmado que a governança é completamente contornável a partir de qualquer 
 
 ```
 Fase 0: [ ] baseline (não iniciada)
-Fase 1: 17/18 itens concluídos (6 pré-existentes + delta_manager + mock-vs-real-audit + security_guard + rate_governor + background_janitor + vector_reconciler + checkpointer + storage + duplicacao-serialized-write-queue + ingestion + bypass-governanca-por-session-id)
-         ▶ Próximo: agent/ e agents/ (3 arquivos: run_agent.py, agent_prompts.py, revisor_critico.py)
-Fase 2: bloqueada (requer Fase 1 completa)
-Fase 3: bloqueada (requer Fase 2 completa)
+Fase 1: 18/20 concluídos
+        [x] storage/ (9 achados)
+        [x] duplicacao-serialized-write-queue (5 achados)
+        [x] ingestion/ (8 achados)
+        [x] bypass-governanca-por-session-id (5 achados)
+        [x] agent/ e agents/ (7 achados condicionais)
+        ▶ Próximo: interface/telemetry_api.py
+        [ ] grafo-dashboard-web/
+Fase 2: bloqueada (aguarda fim da Fase 1)
+Fase 3: bloqueada (aguarda fim da Fase 2)
 ```
 
 **Aguardando aprovação do humano para avançar** (Regra 7 — GATE OBRIGATÓRIO).
