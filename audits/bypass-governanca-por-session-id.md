@@ -19,23 +19,28 @@ Adicionalmente, comprovou-se que todo o subsistema de máquinas de estado hierá
 
 ---
 
-## 2. SEÇÃO ESPECIAL: Falha Arquitetural de Design — A Ilusão de Autenticidade do `session_id`
+## 2. SEÇÃO ESPECIAL: Falha Arquitetural de Design — Duas Falhas Independentes Ancoradas na Ilusão de Autenticidade do `session_id`
 
 > [!CAUTION]
-> ### Alerta de Risco Sistêmico: `session_id` como Vetor de Falsa Segurança
-> Esta investigação revelou que a vulnerabilidade **não é um bug isolado de implementação**, mas uma **falha conceitual de design** que contamina transversalmente a arquitetura do Grafo Concierge.
+> ### Alerta de Risco Sistêmico: `session_id` como Vetor de Falsa Segurança e Independência das Falhas
+> Esta investigação revelou que a vulnerabilidade **não é um bug isolado de implementação**, mas uma **falha conceitual de design** que contamina transversalmente a arquitetura do Grafo Concierge em **duas frentes totalmente independentes**:
 >
 > **A Premissa Falsa:**
-> A arquitetura assumiu que `session_id` é um identificador seguro, estável e inviolável do chamador, capaz de ancorar políticas de controle de acesso, isolamento de memória e checkpoints.
+> A arquitetura assumiu que `session_id` é um identificador seguro, estável e inviolável do chamador, capaz de ancorar tanto políticas de controle de acesso a ferramentas quanto o isolamento de memória e checkpoints.
 >
 > **A Realidade do Código:**
-> `session_id` é apenas uma **string arbitrária fornecida pelo próprio cliente no payload JSON-RPC**. Não há autenticação de sessão, não há tokens criptográficos assinados, não há amarração com conexões de transporte e não há validação de identidade.
+> `session_id` (assim como `agent_id`) é apenas uma **string arbitrária fornecida pelo próprio cliente no payload JSON-RPC**. Não há autenticação de sessão, não há tokens criptográficos assinados, não há amarração com conexões de transporte e não há verificação de posse (*ownership*).
 >
-> **Implicações Transversais Imediatas:**
-> Qualquer mecanismo do sistema que utilize `session_id` para decisões de segurança, isolamento de contexto ou integridade de dados deve ser considerado **inerentemente vulnerável a personificação (*impersonation*) e contaminação de contexto (*context poisoning*)**:
-> 1. **`MCPToolGovernor` (`core/mcp_governor.py`):** Permite bypass total de restrições de estado através da alternância arbitrária de `session_id` em argumentos JSON-RPC.
-> 2. **Checkpoints Relacionais (`interface/mcp_server.py:892-950`):** As ferramentas `agent_save_checkpoint`, `agent_get_checkpoint` e `agent_list_checkpoints` usam `session_id` como chave primária composta `(agent_id, session_id, checkpoint_id)`. Qualquer agente pode ler, sobrescrever ou corromper checkpoints de outro agente bastando enviar o `session_id` alvo.
-> 3. **Restauração de Histórico HSM (`core/hsm_engine.py:400`):** `resume_from_history_node(session_id)` restaura o estado interno com base exclusivamente nessa string não autenticada.
+> **Duas Causas-Raiz Diferentes e Não Interdependentes:**
+> 1. **Achado #1 (Controle de Estado / Escalação de Privilégios):** Trata-se da quebra da máquina de estados do `MCPToolGovernor`. O chamador manipula `session_id` para alternar estados e desbloquear ferramentas `DANGEROUS` (como `reset_collection`).
+> 2. **Achado #2 (Ausência de Verificação de Posse em Checkpoints):** Trata-se da ausência total de controle de acesso/posse em `agent_get_checkpoint` e `agent_save_checkpoint`. **Este achado NÃO depende do bypass do Achado #1 nem de manipulação de estado**:
+>    - No estado padrão do servidor (`EXECUTION`), a matriz de governança já autoriza:
+>      `TOOL_DISCLOSURE_MATRIX['EXECUTION']['allowed_categories'] = ['READ_ONLY', 'LOCAL_MUTATION']`.
+>    - Como `agent_get_checkpoint` é categorizada como `READ_ONLY` e `agent_save_checkpoint` como `LOCAL_MUTATION`, **ambas as ferramentas já estão 100% abertas por padrão** para qualquer chamador.
+>    - Mesmo em um ambiente onde o `MCPToolGovernor` funcionasse com 100% de perfeição e sem bypass, o ataque do Achado #2 seria executado com sucesso imediato no estado `EXECUTION` normal de trabalho.
+>
+> **Implicação Crítica para a Remediação (Fase 3):**
+> A correção do Achado #1 (proteger a transição de estados) **NÃO resolve** o Achado #2 (roubo e envenenamento de checkpoints). Da mesma forma, corrigir a posse de checkpoints **NÃO resolve** a escalação de privilégios para ferramentas destrutivas. São duas falhas com causas-raiz distintas que exigem correções estruturais separadas.
 
 ---
 
@@ -44,7 +49,7 @@ Adicionalmente, comprovou-se que todo o subsistema de máquinas de estado hierá
 | # | Arquivo(s) | Linha(s) | Severidade | Mecanismo Resumido | Status |
 |---|---|---|---|---|---|
 | **#1** | [`interface/mcp_server.py`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L249-L259) <br> [`core/mcp_governor.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/mcp_governor.py#L128-L193) | `mcp_server.py:249-259` <br> `mcp_governor.py:100, 128` | 🔴🔴 **CRÍTICA MÁXIMA** | **Bypass Total da Governança de Ferramentas via Injeção de `session_id` Fantasma**: `concierge_set_state` é `READ_ONLY` (sempre liberada). Qualquer agente restrito em `PLANNING` pode criar uma sessão efêmera `X` em `MAINTENANCE` e invocar qualquer ferramenta `DANGEROUS` (ex.: `reset_collection`) injetando `{"session_id": "X"}`. O interceptor valida `X` como permitido, e o FastMCP descarta o argumento extra não declarado e executa a operação destrutiva. | **CONFIRMADO E REPRODUZIDO** |
-| **#2** | [`core/mcp_governor.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/mcp_governor.py#L39-L41) <br> [`interface/mcp_server.py`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L890-L950) | `mcp_governor.py:39` <br> `mcp_server.py:899` | 🔴 **CRÍTICA** | **Falha Estrutural de Design: Ausência de Identidade e Sessões Spoofáveis**: `session_id` é string livre sem validação criptográfica. O mesmo vetor que burla o governor permite ataque de *impersonation* e contaminação de checkpoints em `agent_save_checkpoint` e `fsm_checkpoints`. | **CONFIRMADO E REPRODUZIDO** |
+| **#2** | [`core/checkpointer.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py#L138-L144) <br> [`interface/mcp_server.py`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L897-L960) | `core/checkpointer.py:138, 226` <br> `interface/mcp_server.py:897, 1731` | 🔴 **CRÍTICA** | **Ausência Total de Verificação de Posse em Checkpoints (Independente do Achado #1)**: `agent_get_checkpoint` (`READ_ONLY`) e `agent_save_checkpoint` (`LOCAL_MUTATION`) já estão abertas por padrão no estado `EXECUTION`. Sem autenticação ou verificação de posse de `agent_id`/`session_id`, qualquer chamador pode roubar credenciais da vítima e sobrescrever/envenenar checkpoints alheios sem precisar burlar o governor nem alterar nenhum estado. | **CONFIRMADO E REPRODUZIDO** |
 | **#3** | [`interface/mcp_server.py`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L261-L270) | `mcp_server.py:261-270` | 🟠 **GRAVE** | **Vazamento de 100% do Catálogo em `list_tools()` (Falha no Progressive Disclosure)**: `governed_list_tools` só filtra se `session_id` for fornecido. Clientes MCP oficiais (`tools/list`) nunca passam `session_id`. O servidor sempre expõe todas as 31 ferramentas, poluindo o contexto e revelando comandos perigosos. | **CONFIRMADO E REPRODUZIDO** |
 | **#4** | [`agent/run_agent.py`](file:///c:/Nexus-Memory/GrafoConcierge/agent/run_agent.py#L28-L57) <br> [`core/hsm_engine.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/hsm_engine.py#L123) <br> [`interface/mcp_server.py`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L1-L1786) | Todo o arquivo | 🟠 **GRAVE** | **Desconexão Total do Runtime Cognitivo (`CognitiveAgentRunner` e `HSMEngine` Órfãos)**: A infraestrutura de Harel Statecharts (HSM), Deep History Nodes ($H^*$) e Circuit Breaker de sub-estados nunca é instanciada pelo servidor MCP em produção. O "estado" do servidor é uma mera string em memória, sem transição autônoma. | **CONFIRMADO** |
 | **#5** | [`core/mcp_governor.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/mcp_governor.py#L37-L38) | `mcp_governor.py:37-38` | 🟡 **MÉDIA** | **Inicialização Insegura por Padrão (`default_state = "EXECUTION"`)**: O governor não inicia em `PLANNING`. Ferramentas de mutação física local (`LOCAL_MUTATION`, ex.: `concierge_mine`, `write_file`) ficam abertas imediatamente após o boot do servidor. | **CONFIRMADO E REPRODUZIDO** |
@@ -87,25 +92,27 @@ Adicionalmente, comprovou-se que todo o subsistema de máquinas de estado hierá
 
 ---
 
-### Achado #2: Falha Estrutural de Design — `session_id` e `agent_id` como Vetores de Impersonation e Envenenamento de Checkpoints
+### Achado #2: Ausência Total de Verificação de Posse em Checkpoints (Independente do Achado #1)
 - **Severidade:** 🔴 **CRÍTICA**
-- **Arquivos:** [`core/mcp_governor.py:39`](file:///c:/Nexus-Memory/GrafoConcierge/core/mcp_governor.py#L39), [`core/checkpointer.py:138-144, 226-234`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py#L138), [`interface/mcp_server.py:897-960, 1731-1775`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L897)
+- **Arquivos:** [`core/checkpointer.py:138-144, 226-234`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py#L138), [`interface/mcp_server.py:897-960, 1731-1775`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L897), [`core/mcp_governor.py:52-55, 101-109`](file:///c:/Nexus-Memory/GrafoConcierge/core/mcp_governor.py#L52)
 - **Status de Certeza:** **CONFIRMADO E REPRODUZIDO EMPIRICAMENTE** (via [`scratch/test_checkpoint_impersonation.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/test_checkpoint_impersonation.py))
 - **Mecanismo:**
-  Apenas 4 ferramentas no servidor declaram `session_id` formalmente em seus parâmetros: `concierge_set_state`, `agent_save_checkpoint`, `agent_get_checkpoint` e `agent_list_checkpoints`.
-  As outras 27 ferramentas do servidor não têm esse parâmetro.
-  Isso gera duas vulnerabilidades estruturais críticas:
+  Este achado possui causa-raiz **completamente independente** da governança de estados do Achado #1:
+  - O `MCPToolGovernor` classifica `agent_get_checkpoint` e `agent_list_checkpoints` como `READ_ONLY` (`core/mcp_governor.py:101-102`), e `agent_save_checkpoint` como `LOCAL_MUTATION` (`core/mcp_governor.py:109`).
+  - No estado padrão do servidor (`EXECUTION`), a matriz de autorização define:
+    ```python
+    "EXECUTION": {
+        "allowed_categories": ["READ_ONLY", "LOCAL_MUTATION"],
+        "allowed_tools": ["get_telemetry_snapshot"],
+    }
+    ```
+  - Portanto, **todas as ferramentas de checkpoint já estão plenamente autorizadas por padrão**, sem necessidade de contornar estados, forçar `MAINTENANCE` ou invocar `concierge_set_state`.
+  - A falha reside exclusivamente na **ausência de verificação de posse (*Broken Object Level Authorization / Missing Authentication*)** no subsistema de checkpoints:
+    1. **Identificadores Livres no JSON-RPC:** As ferramentas recebem `agent_id` e `session_id` como simples strings declaradas no payload de entrada da chamada, sem qualquer verificação criptográfica, token de autenticação ou vinculação ao socket/transporte do chamador.
+    2. **Exfiltração de Segredos (Leitura Não Autorizada):** Qualquer chamador pode invocar `agent_get_checkpoint(agent_id="legitimate_worker_agent", session_id="victim_session", checkpoint_id="critical_step_42")` e receber imediatamente todos os segredos (chaves de API, credenciais corporativas e dados confidenciais) persistidos pela vítima.
+    3. **Envenenamento de Estado (Sobrescrita Arbitrária):** Em `core/checkpointer.py:139`, a persistência executa `INSERT OR REPLACE INTO agent_checkpoints (agent_id, session_id, checkpoint_id, state_blob) VALUES (?, ?, ?, ?)`. Qualquer chamador pode enviar um payload contendo comandos maliciosos ou estado corrompido para a mesma tupla `(agent_id, session_id, checkpoint_id)`. O SQLite WAL sobrescreve silenciosamente o checkpoint legítimo da vítima. Quando a vítima retoma seu trabalho via `agent_get_checkpoint`, carrega o estado envenenado sem nenhum alerta ou verificação de integridade.
+    4. **Isolamento de `agent_id`:** O teste empírico comprovou que se o atacante usar um `agent_id` diferente (`"different_unauthorized_agent"`), a query SQLite `WHERE agent_id = ? AND session_id = ?` retorna vazio `{}`. Porém, como `agent_id` é um argumento arbitrariamente fornecido pelo cliente e os identificadores de agentes no Grafo Concierge são previsíveis e padronizados (`primary_agent`, `revisor_critico`, `scout`, `coder`), a falsificação de identidade (*impersonation*) é direta e imediata.
 
-  1. **Fuga Silenciosa para a Sessão `"default"`:**
-     - Se um agente for configurado para operar em `session_id="agent_prod_42"`, todas as suas chamadas para ferramentas normais (`concierge_mine`, `concierge_commit`, `search_symbols`) enviam argumentos sem `session_id`.
-     - Como o interceptor faz `arguments.get("session_id", "default")`, essas chamadas **caem silenciosamente na sessão `"default"`**, ignorando qualquer estado restritivo configurado para `"agent_prod_42"`.
-
-  2. **Impersonation Total, Exfiltração de Segredos e Envenenamento de Estado em Checkpoints:**
-     - As ferramentas `agent_save_checkpoint`, `agent_get_checkpoint` e `agent_list_checkpoints` recebem `agent_id` e `session_id` como argumentos de chamada do cliente (JSON-RPC).
-     - **Não existe nenhuma camada de autenticação, verificação de credenciais ou amarração da identidade do chamador ao transporte (SSE ou stdio).** Qualquer cliente conectado ao servidor MCP pode fornecer qualquer string como `agent_id` e `session_id`.
-     - **Exfiltração de Segredos (Leitura Não Autorizada):** Um agente atacante ou invasor que envie `agent_id="legitimate_worker_agent"` e `session_id="victim_session"` em `agent_get_checkpoint` recebe integralmente o `state_dict` serializado da vítima, incluindo chaves de API (`api_secret_key`), credenciais e contexto confidencial.
-     - **Envenenamento de Estado (Sobrescrita Arbitrária):** Em `core/checkpointer.py:139`, a persistência usa `INSERT OR REPLACE INTO agent_checkpoints (agent_id, session_id, checkpoint_id, state_blob) VALUES (?, ?, ?, ?)`. O atacante simplesmente envia um novo checkpoint com a mesma tupla `(agent_id, session_id, checkpoint_id)`, **sobrescrevendo silenciosamente o estado da vítima** com payloads maliciosos. Quando a vítima legítima retoma sua execução via `agent_get_checkpoint`, consome o estado adulterado pelo atacante sem nenhum alerta de integridade.
-     - **Isolamento de `agent_id`:** O teste empírico comprovou que se o atacante usar um `agent_id` diferente (`"different_unauthorized_agent"`), a query SQLite `WHERE agent_id = ? AND session_id = ?` retorna vazio `{}`. Porém, como `agent_id` é um argumento arbitrariamente fornecido pelo cliente e não há segredo nem hash, qualquer agente pode se passar pela vítima fornecendo o nome dela (ex.: nomes padrão como `primary_agent`, `revisor_critico`, `scout`, `coder`).
 
 ---
 
