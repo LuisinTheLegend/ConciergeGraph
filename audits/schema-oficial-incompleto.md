@@ -34,7 +34,7 @@ Durante a preparação para a auditoria de `grafo-dashboard-web/`, foi realizada
 |---|------------------|-------------------|-----------|-----------|--------|
 | **1** | [`storage/schema.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/schema.py)<br>[`storage/store.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py)<br>[`core/database.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py) | `schema.py:51–144, 285–305`<br>`store.py:91–107`<br>`database.py:32–41` | 🔴 **CRÍTICA MÁXIMA** | **Omissão Estrutural de 5 Tabelas Relacionais no Bootstrap Oficial**: O schema oficial de produção define apenas 8 tabelas legadas + 1 FTS5. As tabelas `files`, `communities`, `ast_edges`, `agent_checkpoints` e `fsm_checkpoints` não possuem DDL em nenhum arquivo de inicialização de produção. `ConciergeDatabaseManager._init_tables()` cria apenas a tabela temporária `test_log`. | **CONFIRMADO E REPRODUZIDO** |
 | **2** | 12 Módulos de `core/` e `interface/` | 12 arquivos (ver lista detalhada na Seção 3) | 🔴 **CRÍTICA MÁXIMA** | **Inoperância Funcional de Todos os Subsistemas Analíticos em Instalação Limpa**: Em um banco oficialmente bootstrapado, operações essenciais quebram imediatamente: `reconcile_orphans()` (`no such table: files`), `process_file_change()` (`no such table: files`), `run_idle_summarization()` (`no such table: communities`), `detect_logical_communities()` (`no such table: ast_edges`), `get_telemetry_snapshot()` (`no such table: files`), ferramentas MCP de checkpoints (`no such table: agent_checkpoints`). | **CONFIRMADO E REPRODUZIDO** |
-| **3** | [`core/database.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py)<br>[`core/checkpointer.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py)<br>[`interface/watcher.py`](file:///c:/Nexus-Memory/GrafoConcierge/interface/watcher.py) | `database.py:66–67`<br>`checkpointer.py:146–149`<br>`watcher.py:93–100` | 🟠 **GRAVE** | **Mascaramento Silencioso de Erros DDL por Supressão de Exceções**: `core/database.py::execute_write` captura `Exception` e retorna `(False, error)`. `AgnosticCheckpointer.save_checkpoint` retorna `False` sem propagar erro ou registrar log crítico. `interface/watcher.py::hydrate_known_hashes` captura exceções silenciosamente com `except Exception: pass`, ocultando que a leitura de `files` falhou. | **CONFIRMADO E REPRODUZIDO** |
+| **3** | [`storage/store.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py)<br>[`storage/schema.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/schema.py)<br>[`core/database.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py)<br>[`core/checkpointer.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py)<br>[`interface/watcher.py`](file:///c:/Nexus-Memory/GrafoConcierge/interface/watcher.py) | `store.py:107`<br>`schema.py:285–305`<br>`database.py:66–67`<br>`checkpointer.py:146–149`<br>`watcher.py:93–100` | 🟠 **GRAVE** | **Mascaramento Silencioso de Erros DDL e Falsa Confirmação no Boot**: `core/database.py::execute_write` engole exceções retornando `(False, error)`. `AgnosticCheckpointer.save_checkpoint` retorna `False` sem propagar erro ou registrar log crítico. `interface/watcher.py::hydrate_known_hashes` captura exceções silenciosamente com `except Exception: pass`. Agravando o cenário, `storage/store.py:107` loga `Schema v3.8.0 verified - all tables and triggers OK.` porque `verify_tables_exist()` valida apenas o subset restrito que o próprio `SchemaManager` conhece, entregando ao operador uma falsa confirmação de integridade no boot enquanto 5 tabelas críticas de `core/*` estão ausentes. | **CONFIRMADO E REPRODUZIDO** |
 | **4** | Suítes de Teste (`tests/`) | 14 arquivos de teste em `tests/` | 🔴 **CRÍTICA** | **A Ilusão dos Testes (Test Mirage)**: A cobertura de testes do projeto mascara a quebra estrutural porque 14 suítes de teste independentes criam privadamente as tabelas `files`, `communities`, `ast_edges` e `agent_checkpoints` em suas rotinas de fixture `setUp()`, simulando um schema que a aplicação real em produção nunca possui. | **CONFIRMADO** |
 | **5** | [`docs-grafo-concierge/01_ARCHITECTURE.md`](file:///c:/Nexus-Memory/GrafoConcierge/docs-grafo-concierge/01_ARCHITECTURE.md)<br>[`storage/schema.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/schema.py) | `01_ARCHITECTURE.md:130–169` vs `schema.py:51–144` | 🟡 **MÉDIO** | **Abandono de Especificação Arquitetural**: A documentação formal de arquitetura em `01_ARCHITECTURE.md` lista com clareza as 13 tabelas necessárias, divididas entre "SURVIVAL & DELTA ENGINE TABLES" (tabelas 1 a 4) e "COGNITIVE GRAPH & FACT TABLES" (tabelas 5 a 12). No entanto, o código de `schema.py` implementou apenas as tabelas 5 a 12, abandonando as tabelas 1 a 4 sem qualquer migração ou aviso. | **CONFIRMADO** |
 
@@ -68,6 +68,7 @@ Em [`storage/schema.py:51-144`](file:///c:/Nexus-Memory/GrafoConcierge/storage/s
 
 E em `storage/schema.py:285-300`, `verify_tables_exist()` valida apenas essas mesmas tabelas, concluindo:
 `Schema v3.8.0 verified - all tables and triggers OK.`
+Esse mecanismo cria uma **falsa confirmação de integridade no boot**: a validação é circular, pois só checa as tabelas que o próprio `SchemaManager` já conhece, deixando o operador cego para o fato de que 5 tabelas estruturais de `core/*` não existem.
 
 A classe complementar de banco em `core/`, `ConciergeDatabaseManager` ([`core/database.py:32-41`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py#L32-L41)), possui um método `_init_tables()` que executa exclusivamente:
 ```python
@@ -133,9 +134,9 @@ Ao testar as operações reais de cada subsistema sobre o banco bootstrapado ofi
 
 ---
 
-### Achado #3: Mascaramento Silencioso de Erros DDL
+### Achado #3: Mascaramento Silencioso de Erros DDL e Falsa Confirmação no Boot
 
-Dois mecanismos no código ocultam ativamente essa falha sistêmica:
+Três mecanismos distintos no código atuam em conjunto para ocultar completamente a ausência do schema de operadores e chamadores:
 
 1. **`core/database.py:66-67`**:
    ```python
@@ -164,6 +165,13 @@ Dois mecanismos no código ocultam ativamente essa falha sistêmica:
            pass
    ```
    O watcher ignora qualquer falha em bloco com `except Exception: pass`. O servidor sobe, loga que o watcher está ativo, mas o watcher não possui nenhum hash indexado em memória.
+
+3. **Falsa Confirmação de Integridade no Boot (`storage/store.py:107` e `storage/schema.py:285-300`)**:
+   ```python
+   # storage/store.py:107
+   logger.info("Schema v%s verified - all tables and triggers OK.", SchemaManager.SCHEMA_VERSION)
+   ```
+   Esta mensagem de log é profundamente enganosa. A função `verify_tables_exist()` ([`storage/schema.py:285-305`](file:///c:/Nexus-Memory/GrafoConcierge/storage/schema.py#L285)) só valida a lista de tabelas que o próprio `SchemaManager` conhece e cria (`projects`, `nodes`, `edges`, `reference_wings`, `trajectories`, `commit_log`, `nodes_fts`, `user_core_memory`, `semantic_facts`), ignorando 100% das 5 tabelas críticas exigidas por `core/*` (`files`, `communities`, `ast_edges`, `agent_checkpoints`, `fsm_checkpoints`). Um operador inspecionando os logs de inicialização do servidor recebe uma confirmação explícita de integridade total da persistência, exatamente no momento em que a camada relacional de inteligência, governança e telemetria do sistema está desprovida de suas tabelas e condenada ao colapso imediato.
 
 ---
 
