@@ -152,10 +152,13 @@ Tarefa extra inserida a partir do padrão encontrado acima:
   2 CRÍTICA CONDICIONAL (contaminação de turnos multi-sessão e reset indevido no Circuit Breaker por contador único de instância `current_substate_turn_count`; vazamento total de privacidade por fallback inseguro para nível `0` [PUBLIC] e falta de normalização `.upper()` em `check_contamination`),
   3 GRAVE CONDICIONAL (aprovação espúria de commits inválidos com `partial_audit=True` após falha em `generate_fn` em `audit_with_retry`; dessincronização entre prompt e estado ativo em `step(target_transition=...)` gerando alucinações e bloqueios cognitivos; falha e crash em reranking por incompatibilidade de tipo `int` vs `str` e `NoneType`),
   2 MÉDIA CONDICIONAL (incompatibilidade estrutural universal com corrotinas não-awaited e bypass de `RateGovernor` em `execute_tool`; dessincronização estrutural entre sub-estados do HSM e `TOOL_DISCLOSURE_MATRIX`).
-- [ ] `interface/telemetry_api.py`
+- [x] `interface/telemetry_api.py` — 7 achados confirmados (ver [`audits/interface-telemetry-api.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/interface-telemetry-api.md)).
+  2 CRÍTICA (falha fatal e crash HTTP 500 em produção por suposição de tabelas inexistentes `files` e `agent_checkpoints` forjadas apenas no `setUp` dos testes; inoperância fora da caixa por dependência não configurada `get_db_manager` lançando `RuntimeError`),
+  3 GRAVE (falso stream contínuo no SSE que aborta e desconecta clientes após 5 segundos devido a trava de teste `max_checks = 5` mantida em produção; invalidação perpétua do hash SHA-256 no SSE por geração dinâmica de `datetime.now()` quebrando o filtro de broadcast; insegurança total de CORS com `allow_origins=['*']` e `allow_credentials=True` sem nenhuma autenticação em rotas mutantes permitindo CSRF e alteração arbitrária de estados e regimes de segurança),
+  2 MÉDIA (dessincronização interna entre `agent_checkpoints` e `fsm_checkpoints` com crash de tipagem em timestamps `NULL` e string ISO; thread consumidora daemônica iniciada desnecessariamente no import do módulo sem conexões reais no servidor FastMCP).
 - [ ] `grafo-dashboard-web/` (componentes principais e chamadas à API)
 
-▶ **EM ANDAMENTO:** `interface/telemetry_api.py`
+▶ **EM ANDAMENTO:** `grafo-dashboard-web/` (componentes principais e chamadas à API)
 
 ## Fase 2 — Cruzamento transversal (só inicia com TODOS os itens da Fase 1 marcados)
 

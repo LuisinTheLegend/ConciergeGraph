@@ -553,13 +553,34 @@ Auditoria aprofundada dos 3 arquivos de runtime cognitivo e auditoria crítica:
 
 ---
 
+# Relatório da Auditoria: `interface/telemetry_api.py` (Camada REST e Streaming SSE)
+
+## 1. Resumo da Investigação
+Auditoria minuciosa de [`interface/telemetry_api.py`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py) (596 linhas) e seus testes associados em [`tests/test_telemetry_api.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_telemetry_api.py).
+
+O módulo foi submetido a execução contra o banco real do repositório ([`data/concierge.db`](file:///c:/Nexus-Memory/GrafoConcierge/data/concierge.db)) e sob inicialização limpa via FastAPI. Foram identificados 7 achados graves: quebra fatal com HTTP 500 em produção por suposição de tabelas inexistentes no esquema oficial (`files` e `agent_checkpoints`), inoperância fora da caixa por dependência não configurada (`get_db_manager`), mutilação do streaming SSE por trava de teste hardcoded (`max_checks = 5`), quebra perpétua da detecção de mudanças por timestamp dinâmico no SHA-256, permissividade irrestrita de CORS combinada com rotas mutantes sem autenticação, e crash na deserialização de datas SQLite.
+
+## 2. Tabela de Achados Confirmados
+
+| # | Severidade | Resumo |
+|---|-----------|--------|
+| 1 | **CRÍTICA** | [`interface/telemetry_api.py:153–161, 181–184`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L153) — **Falha Fatal em Produção por Suposição de Esquema Inexistente (`OperationalError: no such table: files`)**: `_build_telemetry_payload` executa queries diretas em `files` e `agent_checkpoints`. No banco real de produção (`data/concierge.db`), estas tabelas não existem (foram criadas artesanalmente apenas no `setUp` dos testes). Qualquer chamada a `/api/telemetry/snapshot` ou `/api/telemetry/stream` em produção quebra com HTTP 500 imediato. |
+| 2 | **CRÍTICA** | [`interface/telemetry_api.py:114–126`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L114) — **Inoperância Fora da Caixa por Dependência Não Configurada (`RuntimeError`)**: `_db_manager_instance` inicia como `None`. `get_db_manager()` é exigido por quase todos os endpoints. Sem um `lifespan` handler que leia `GRAFO_DB_PATH` ou inicialização automática, subir a API com `uvicorn interface.telemetry_api:app` resulta em HTTP 500 em 100% das rotas de dados. |
+| 3 | **GRAVE** | [`interface/telemetry_api.py:556–572`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L556) — **Falso Stream Contínuo: SSE Aborta após 5 Segundos por Trava de Teste Codificada em Produção (`max_checks = 5`)**: O gerador assíncrono `_telemetry_event_generator` limita o loop a `max_checks = 5` ("Limit to prevent infinite loop in tests"). A conexão com o dashboard web é abruptamente encerrada a cada 5 segundos, forçando o frontend a cair em ciclo infinito de reconexões (`reconnect loop`). |
+| 4 | **GRAVE** | [`interface/telemetry_api.py:226, 234–237`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L226) — **Invalidação Perpétua do SHA-256 no SSE por Timestamp Dinâmico (`datetime.now()`)**: O gerador SSE promete emitir dados apenas quando o hash do payload mudar. Porém, `_build_telemetry_payload` gera `next_scheduled_run = datetime.now(tz=timezone.utc)` com milissegundos em cada execução. O hash SHA-256 é diferente a cada segundo mesmo em banco ocioso, anulando 100% o algoritmo de detecção de mudanças e saturando a rede. |
+| 5 | **GRAVE** | [`interface/telemetry_api.py:98–105, 357–369`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L98) — **Insegurança Total de CORS e Ausência Completa de Autenticação em Endpoints Mutantes**: Configuração de CORS com `allow_origins=["*"]` e `allow_credentials=True` combinada com ausência total de tokens ou API keys. Qualquer página web aberta no navegador do usuário pode disparar `POST`s para `http://localhost:8000` alterando o estado do MCP (`/api/mcp/state`), relaxando o regime de segurança para `auto-approve` (`/api/gating/config`) ou corrompendo checkpoints (`/api/checkpoints/time-travel`). |
+| 6 | **MÉDIA** | [`interface/telemetry_api.py:166, 199, 304–319`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L166) — **Dessincronização de Esquema e Crash de Tipagem em Timestamps (`NoneType` e `str`)**: (1) `_build_telemetry_payload` chama `datetime.fromtimestamp(ts)`, falhando com `TypeError` se `ts` for `NULL` ou string ISO (`'2026-09-24 21:00:00'`); (2) dessincronização interna: enquanto o snapshot lê de `agent_checkpoints` com coluna `timestamp`, o endpoint `/api/checkpoints/{session_id}` lê de `fsm_checkpoints` com colunas `state_name, task_id, created_at`. |
+| 7 | **MÉDIA** | [`interface/telemetry_api.py:56–68`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L56) — **Thread Daemônica Órfã e Singletons Desconectados no Import do Módulo**: A mera importação de `interface.telemetry_api` (feita por `interface/mcp_server.py:151`) invoca `rate_governor_service.start()`, subindo uma thread consumidora que roda em loop contínuo consumindo CPU sem receber requisições de produção. Singletons de `SecurityGuard` e `GatingInterceptor` também são instanciados sem governar as ferramentas reais do FastMCP. |
+
+---
+
 ## 3. Arquivos Produzidos / Atualizados Nesta Etapa
 
 | Arquivo | Tipo | Descrição |
 |---------|------|-----------|
-| [`audits/agent-and-agents.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/agent-and-agents.md) | Relatório | Relatório detalhado dos 7 achados com distinção explícita de severidade condicional (código órfão) e propostas de correção |
-| [`scratch/reproduce_agent_findings.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/reproduce_agent_findings.py) | Script de Reprodução | Script comprovando empiricamente os 6 principais bugs (contaminação de turnos, dessincronização de prompt, bypass de privacidade, falsa aprovação, falhas de reranking e incompatibilidade estrutural com corrotinas/bypass do governor) |
-| [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md) | Protocolo | Atualizado com o fechamento do item `agent/` e `agents/` e transição do foco para `interface/telemetry_api.py` |
+| [`audits/interface-telemetry-api.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/interface-telemetry-api.md) | Relatório | Relatório detalhado dos 7 achados com comprovação de crash em produção, travas de teste e brechas de CORS/auth |
+| [`scratch/reproduce_telemetry_findings.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/reproduce_telemetry_findings.py) | Script de Reprodução | Script comprovando empiricamente os 6 principais bugs (crash em produção, db_manager None, abort em 5s no SSE, hash inválido perpétuo, CORS/mutações desprotegidas e crash de tipagem) |
+| [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md) | Protocolo | Atualizado com o fechamento do item `interface/telemetry_api.py` (19/20) e transição do foco para `grafo-dashboard-web/` |
 | [`walkthrough.md`](file:///c:/Nexus-Memory/GrafoConcierge/walkthrough.md) | Relatório de Sessão | Registro consolidado atualizado com os novos achados e evidências empíricas |
 
 ---
@@ -568,14 +589,14 @@ Auditoria aprofundada dos 3 arquivos de runtime cognitivo e auditoria crítica:
 
 ```
 Fase 0: [ ] baseline (não iniciada)
-Fase 1: 18/20 concluídos
+Fase 1: 19/20 concluídos
         [x] storage/ (9 achados)
         [x] duplicacao-serialized-write-queue (5 achados)
         [x] ingestion/ (8 achados)
         [x] bypass-governanca-por-session-id (5 achados)
         [x] agent/ e agents/ (7 achados condicionais)
-        ▶ Próximo: interface/telemetry_api.py
-        [ ] grafo-dashboard-web/
+        [x] interface/telemetry_api.py (7 achados)
+        ▶ Próximo: grafo-dashboard-web/ (último item da Fase 1!)
 Fase 2: bloqueada (aguarda fim da Fase 1)
 Fase 3: bloqueada (aguarda fim da Fase 2)
 ```
