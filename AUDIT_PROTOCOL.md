@@ -156,9 +156,14 @@ Tarefa extra inserida a partir do padrão encontrado acima:
   2 CRÍTICA (falha fatal e crash HTTP 500 em produção por suposição de tabelas inexistentes `files` e `agent_checkpoints` forjadas apenas no `setUp` dos testes; inoperância fora da caixa por dependência não configurada `get_db_manager` lançando `RuntimeError`),
   3 GRAVE (falso stream contínuo no SSE que aborta e desconecta clientes após 5 segundos devido a trava de teste `max_checks = 5` mantida em produção; invalidação perpétua do hash SHA-256 no SSE por geração dinâmica de `datetime.now()` quebrando o filtro de broadcast; insegurança total de CORS com `allow_origins=['*']` e `allow_credentials=True` sem nenhuma autenticação em rotas mutantes permitindo CSRF e alteração arbitrária de estados e regimes de segurança),
   2 MÉDIA (dessincronização interna entre `agent_checkpoints` e `fsm_checkpoints` com crash de tipagem em timestamps `NULL` e string ISO; thread consumidora daemônica iniciada desnecessariamente no import do módulo sem conexões reais no servidor FastMCP).
+- [x] **schema-oficial-incompleto** — PRIORIDADE MÁXIMA (achado transversal supremo da auditoria; suplanta em severidade estrutural qualquer outro item; ver [`audits/schema-oficial-incompleto.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/schema-oficial-incompleto.md)).
+  2 CRÍTICA MÁXIMA (omissão estrutural de 5 tabelas relacionais essenciais no bootstrap oficial do sistema: `files`, `communities`, `ast_edges`, `agent_checkpoints` e `fsm_checkpoints` não possuem DDL em nenhum arquivo de produção; colapso imediato com `sqlite3.OperationalError: no such table: ...` em 12 módulos já auditados de `core/` e `interface/` após clone limpo do repositório),
+  1 CRÍTICA (a ilusão dos testes [Test Mirage]: 14 suítes de teste mascaram a ausência do schema criando privadamente as tabelas em seus métodos `setUp()`, fazendo a suíte passar com 100% de sucesso enquanto a instalação real de produção está completamente inoperante),
+  1 ALTA/GRAVE (mascaramento silencioso de falhas de DDL por supressão de exceções em `core/database.py::execute_write` retornando falso sucesso/booleano e `interface/watcher.py` com `except Exception: pass`),
+  1 MÉDIA (abandono de especificação formal onde `01_ARCHITECTURE.md` especificava as 13 tabelas mas `storage/schema.py` implementou apenas metade).
 - [ ] `grafo-dashboard-web/` (componentes principais e chamadas à API)
 
-▶ **EM ANDAMENTO:** `grafo-dashboard-web/` (componentes principais e chamadas à API)
+▶ **PRÓXIMO PASSO (Aguardando Aprovação):** `grafo-dashboard-web/` (componentes principais e chamadas à API)
 
 ## Fase 2 — Cruzamento transversal (só inicia com TODOS os itens da Fase 1 marcados)
 

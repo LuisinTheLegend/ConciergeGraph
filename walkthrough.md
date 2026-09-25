@@ -592,15 +592,63 @@ Fase 0: [ ] baseline (não iniciada)
 Fase 1: 19/20 concluídos
         [x] storage/ (9 achados)
         [x] duplicacao-serialized-write-queue (5 achados)
+---
+
+# Relatório da Auditoria Transversal: `schema-oficial-incompleto` (Colapso Estrutural de Produção)
+
+## 1. Resumo da Investigação
+Investigação transversal de severidade máxima arquitetural sobre a ausência de DDL das tabelas relacionais de `core/*` em código de produção.
+Foram analisados [`storage/schema.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/schema.py), [`storage/store.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py), [`storage/relational_db.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/relational_db.py), [`core/database.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py), [`docs-grafo-concierge/01_ARCHITECTURE.md`](file:///c:/Nexus-Memory/GrafoConcierge/docs-grafo-concierge/01_ARCHITECTURE.md) e 12 módulos de produção consumidores de banco.
+
+Foi realizada uma simulação de clone limpo via [`scratch/reproduce_schema_incompleto.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/reproduce_schema_incompleto.py), executando o bootstrap oficial (`main.py` -> `SqliteStore` -> `SchemaManager.apply_full_schema()`) em arquivo de banco novo e vazio.
+
+**Resultado da Investigação:**
+1. O bootstrap oficial cria apenas 8 tabelas legadas + 1 FTS5 (`projects`, `nodes`, `edges`, `reference_wings`, `trajectories`, `commit_log`, `user_core_memory`, `semantic_facts`, `nodes_fts`).
+2. NENHUM arquivo de produção cria as 5 tabelas relacionais essenciais: `files`, `communities`, `ast_edges`, `agent_checkpoints`, `fsm_checkpoints`.
+3. Todas as 12 suítes de `core/` e `interface/` entram em colapso com `sqlite3.OperationalError: no such table: ...` ao operar no banco oficial.
+4. "A Ilusão dos Testes": 14 suítes de teste de `tests/` criam as tabelas privadamente no `setUp()`, criando 100% de falso sucesso nos testes de integração.
+
+## 2. Tabela de Achados Confirmados
+
+| # | Severidade | Resumo |
+|---|-----------|--------|
+| 1 | **CRÍTICA MÁXIMA** | [`storage/schema.py:51–144`](file:///c:/Nexus-Memory/GrafoConcierge/storage/schema.py#L51) e [`core/database.py:32–41`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py#L32) — **Omissão Estrutural de 5 Tabelas Relacionais no Bootstrap Oficial**: O schema oficial de produção define apenas as 8 tabelas legadas v3.8.0. As tabelas `files`, `communities`, `ast_edges`, `agent_checkpoints` e `fsm_checkpoints` não possuem DDL em nenhum arquivo de produção. `ConciergeDatabaseManager._init_tables()` cria apenas a tabela temporária `test_log`. |
+| 2 | **CRÍTICA MÁXIMA** | 12 Módulos de `core/` e `interface/` — **Colapso Geral de Produção em Instalação Limpa (`OperationalError: no such table: ...`)**: `VectorReconciler.reconcile_orphans()` (`files`), `DeltaManager.process_file_change()` (`files`), `Checkpointer.save_checkpoint()` / `load_checkpoint()` (`agent_checkpoints`, `fsm_checkpoints`), `BackgroundJanitor.run_idle_summarization()` (`communities`), `BackgroundJanitor.prune_session_checkpoints()` (`agent_checkpoints`), `GraphRAGEngine.detect_logical_communities()` e `get_call_chain_recursive()` (`ast_edges`), `HybridSearchEngine.hybrid_search()` (`files`), `TelemetryAPI.get_telemetry_snapshot()` (`files`), `Watcher.hydrate_known_hashes()` (`files`), ferramentas FastMCP de checkpoints e call chain quebram imediatamente no banco real. |
+| 3 | **GRAVE** | [`core/database.py:66–67`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py#L66) e [`interface/watcher.py:93–100`](file:///c:/Nexus-Memory/GrafoConcierge/interface/watcher.py#L93) — **Mascaramento Silencioso de Falhas DDL por Supressão de Exceções**: `core/database.py::execute_write` engole exceções retornando `(False, error)`, e `AgnosticCheckpointer.save_checkpoint` retorna `False` sem logar erro. `interface/watcher.py` silencia falhas em `files` com `except Exception: pass`, subindo o serviço com `_known_hashes` vazio. |
+| 4 | **CRÍTICA** | 14 Suítes de Teste em `tests/` — **A Ilusão dos Testes (Test Mirage)**: 14 suítes de teste mascaram a quebra arquitetural injetando artesanalmente `CREATE TABLE IF NOT EXISTS files (...)`, `communities`, `ast_edges`, etc., dentro do método `setUp()`, simulando um schema que nunca é gerado na aplicação real. |
+| 5 | **MÉDIO** | [`docs-grafo-concierge/01_ARCHITECTURE.md:130–169`](file:///c:/Nexus-Memory/GrafoConcierge/docs-grafo-concierge/01_ARCHITECTURE.md#L130) vs [`storage/schema.py:51–144`](file:///c:/Nexus-Memory/GrafoConcierge/storage/schema.py#L51) — **Abandono de Especificação Arquitetural**: A especificação formal documentava 13 tabelas, mas ao consolidar `schema.py`, o autor copiou apenas as tabelas legadas 5 a 12, abandonando as 4 tabelas de "SURVIVAL & DELTA ENGINE" e isolando `fsm_checkpoints` como código morto em `relational_db.py`. |
+
+---
+
+## 3. Arquivos Produzidos / Atualizados Nesta Etapa
+
+| Arquivo | Tipo | Descrição |
+|---------|------|-----------|
+| [`audits/schema-oficial-incompleto.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/schema-oficial-incompleto.md) | Relatório Oficial | Relatório completo do achado transversal máximo com análise dos 12 módulos, prova de terminal e recomendações para a Fase 3 |
+| [`scratch/reproduce_schema_incompleto.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/reproduce_schema_incompleto.py) | Script de Reprodução | Script que simula clone limpo, executa bootstrap oficial e comprova a falha em 10 operações reais de `core/` e `interface/` |
+| [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md) | Protocolo | Atualizado com o item transversal `schema-oficial-incompleto` (PRIORIDADE MÁXIMA) marcado como concluído |
+| [`walkthrough.md`](file:///c:/Nexus-Memory/GrafoConcierge/walkthrough.md) | Relatório de Sessão | Registro consolidado atualizado com evidências empíricas brutas e detalhamento dos mecanismos |
+
+---
+
+## 4. Estado Atual da Auditoria
+
+```
+Fase 0: [ ] baseline (não iniciada)
+Fase 1: 20/21 concluídos
+        [x] storage/ (9 achados)
+        [x] duplicacao-serialized-write-queue (5 achados)
         [x] ingestion/ (8 achados)
         [x] bypass-governanca-por-session-id (5 achados)
         [x] agent/ e agents/ (7 achados condicionais)
         [x] interface/telemetry_api.py (7 achados)
+        [x] schema-oficial-incompleto (5 achados transversais máximos)
         ▶ Próximo: grafo-dashboard-web/ (último item da Fase 1!)
 Fase 2: bloqueada (aguarda fim da Fase 1)
 Fase 3: bloqueada (aguarda fim da Fase 2)
 ```
 
 **Aguardando aprovação do humano para avançar** (Regra 7 — GATE OBRIGATÓRIO).
+
 
 
