@@ -8,6 +8,7 @@ Empirical reproduction of findings in:
 """
 
 import asyncio
+import inspect
 import os
 import sys
 import tempfile
@@ -19,6 +20,9 @@ from core.database import ConciergeDatabaseManager
 from core.checkpointer import AgnosticCheckpointer
 from core.mcp_governor import MCPToolGovernor
 from core.hsm_engine import HierarchicalStateMachine
+from core.security_guard import SecurityGuard
+from core.gating_interceptor import GatingInterceptor
+from core.rate_governor import RateGovernor
 from agent.run_agent import CognitiveAgentRunner
 from agent.agent_prompts import DynamicPromptBuilder
 from agents.revisor_critico import RevisorCritico, AuditResult
@@ -200,12 +204,62 @@ def test_finding_5_rerank_type_mismatch_and_crash():
     print(f"-> [CONFIRMADO] Defeitos em Reranking confirmados: {success}\n")
     return success
 
+async def test_finding_6_async_tool_coroutine_and_governor_bypass():
+    print("=" * 70)
+    print("TESTE 6: Incompatibilidade Estrutural com Corrotinas e Bypass do RateGovernor")
+    print("=" * 70)
+    
+    gov = RateGovernor()
+    gov.start()
+    guard = SecurityGuard(".")
+    gating = GatingInterceptor(security_guard=guard, default_mode="auto-approve")
+    
+    # Caminho 1: COM Gating e COM RateGovernor
+    runner_gating_gov = CognitiveAgentRunner(hsm_engine=None, gating_interceptor=gating, rate_governor=gov)
+    executed_1 = False
+    async def async_tool_1():
+        nonlocal executed_1
+        executed_1 = True
+        return {"status": "success"}
+
+    res_1 = await runner_gating_gov.execute_tool("sess_1", "read_file", execute_fn=async_tool_1)
+    is_coroutine_1 = inspect.iscoroutine(res_1)
+    print(f"6.1 Caminho COM Gating e COM Governor:")
+    print(f"    Tipo do retorno: {type(res_1)}")
+    print(f"    Retorno é objeto corrotina cru (não-awaited): {is_coroutine_1}")
+    print(f"    Ferramenta assíncrona foi executada: {executed_1}")
+    if is_coroutine_1:
+        res_1.close()  # Fecha para evitar RuntimeWarning no cleanup
+
+    # Caminho 2: SEM Gating e COM RateGovernor
+    runner_no_gating = CognitiveAgentRunner(hsm_engine=None, gating_interceptor=None, rate_governor=gov)
+    executed_2 = False
+    async def async_tool_2():
+        nonlocal executed_2
+        executed_2 = True
+        return {"status": "success"}
+
+    res_2 = await runner_no_gating.execute_tool("sess_1", "read_file", execute_fn=async_tool_2)
+    rpm_recorded = gov.get_current_metrics()["current_rpm"]
+    print(f"6.2 Caminho SEM Gating e COM Governor:")
+    print(f"    Tipo do retorno: {type(res_2)}")
+    print(f"    Ferramenta assíncrona foi executada: {executed_2}")
+    print(f"    Requisições registradas no RateGovernor: {rpm_recorded}")
+    print(f"    RateGovernor foi completamente ignorado/bypassed: {rpm_recorded == 0}")
+    
+    gov.shutdown()
+
+    confirmed = is_coroutine_1 and (not executed_1) and executed_2 and (rpm_recorded == 0)
+    print(f"-> [CONFIRMADO] Incompatibilidade universal com funções assíncronas: {confirmed}\n")
+    return confirmed
+
 async def main():
     f1 = await test_finding_1_cross_session_turn_pollution()
     f2 = await test_finding_2_prompt_state_desync()
     f3 = test_finding_3_contamination_bypass()
     f4 = test_finding_4_fake_approval_on_crash()
     f5 = test_finding_5_rerank_type_mismatch_and_crash()
+    f6 = await test_finding_6_async_tool_coroutine_and_governor_bypass()
     
     print("=" * 70)
     print("RESUMO DE REPRODUÇÃO (agent/ e agents/):")
@@ -214,6 +268,7 @@ async def main():
     print(f"Achado 3 (Bypass Barreira Contaminação): {'REPRODUZIDO' if f3 else 'FALHOU'}")
     print(f"Achado 4 (Aprovação Espúria Commit Inválido): {'REPRODUZIDO' if f4 else 'FALHOU'}")
     print(f"Achado 5 (Defeitos de Tipo e Crash em Reranking): {'REPRODUZIDO' if f5 else 'FALHOU'}")
+    print(f"Achado 6 (Incompatibilidade com Corrotinas e Bypass): {'REPRODUZIDO' if f6 else 'FALHOU'}")
     print("=" * 70)
 
 if __name__ == "__main__":

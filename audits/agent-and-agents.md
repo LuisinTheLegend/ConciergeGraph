@@ -33,7 +33,7 @@ Diferente dos módulos de `storage/`, `core/` e `ingestion/` (onde cada bug crí
 | **#3** | [`agents/revisor_critico.py`](file:///c:/Nexus-Memory/GrafoConcierge/agents/revisor_critico.py#L331) | `331, 362–381` | 🟠 **GRAVE (CONDICIONAL / CÓDIGO ÓRFÃO)** | **Aprovação Espúria de Commits Inválidos e Incompatibilidade de Assinatura em `audit_with_retry`**: O docstring prescreve `Callable(task, outcome, feedback)`, mas o código chama `generate_fn(result.reason)` (1 argumento). Se a função lançar exceção no 1º loop, o bloco `except` aciona `break` e retorna `approved=True, partial_audit=True, loop_count=max_loops`, aprovando automaticamente um rascunho com defeito sem ter executado as tentativas. | **CONFIRMADO E REPRODUZIDO** |
 | **#4** | [`agent/run_agent.py`](file:///c:/Nexus-Memory/GrafoConcierge/agent/run_agent.py#L151-L217) | `151–217` | 🟠 **GRAVE (CONDICIONAL / CÓDIGO ÓRFÃO)** | **Dessincronização de Estado e Diretrizes em `step(target_transition=...)`**: `step()` constrói o prompt dinâmico usando o estado ANTERIOR (`current_path`) e só depois efetua a transição solicitada. O LLM recebe no prompt instruções e proibições da fase antiga (ex.: `PLANNING: Nenhuma mutação física autorizada`), enquanto o retorno já indica o novo estado (`EXECUTION.CODE_GEN`), gerando alucinações e bloqueios cognitivos. | **CONFIRMADO E REPRODUZIDO** |
 | **#5** | [`agents/revisor_critico.py`](file:///c:/Nexus-Memory/GrafoConcierge/agents/revisor_critico.py#L433) | `433, 490–498, 504–513` | 🟠 **GRAVE (CONDICIONAL / CÓDIGO ÓRFÃO)** | **Defeitos de Tipagem e Crash em Reranking (`NoneType` e `int` vs `str`)**: (1) `_heuristic_rerank` quebra com `TypeError` se algum nó contiver `score_final: None`; (2) `_llm_rerank` força `relevance_map[int(nid)]`, descartando 100% dos candidatos caso `node_id` venha como `str` (padrão de nós vetoriais e paths); (3) se o mapa não casar, retorna lista vazia `[]`, violando a garantia de retornar ao menos 1 resultado. | **CONFIRMADO E REPRODUZIDO** |
-| **#6** | [`agent/run_agent.py`](file:///c:/Nexus-Memory/GrafoConcierge/agent/run_agent.py#L243-L262) | `243–262` | 🟡 **MÉDIA (CONDICIONAL / CÓDIGO ÓRFÃO)** | **Bypass de RateGovernor e Corrotinas Não Avaliadas em `execute_tool`**: Funções assíncronas contornam o `RateGovernor` quando `gating` é nulo (`if inspect.iscoroutinefunction(dummy_fn): return await dummy_fn()`). Quando `gating` está ativo, a função assíncrona é chamada sem `await` dentro de `_run_with_governor`, retornando uma corrotina crua não executada. | **CONFIRMADO** |
+| **#6** | [`agent/run_agent.py`](file:///c:/Nexus-Memory/GrafoConcierge/agent/run_agent.py#L243-L262) | `243–262` | 🟡 **MÉDIA (CONDICIONAL / CÓDIGO ÓRFÃO)** | **Incompatibilidade Estrutural Universal com Corrotinas e Bypass do RateGovernor em `execute_tool`**: Funções assíncronas (`async def`) nunca funcionam corretamente através do pipeline de governança, independente da configuração: (1) no caminho **COM Gating e COM Governor**, a worker thread (e o fast-path) do `RateGovernor.submit_request` executa `task_fn()` sem `await`, enquanto o `GatingInterceptor` executa `return execute_fn()` sincronicamente, devolvendo uma corrotina crua não executada (`Tool actually executed: False`); (2) no caminho **COM Gating e SEM Governor**, `execute_fn()` chama `dummy_fn()` sem `await`, também devolvendo corrotina não-executada; (3) no caminho **SEM Gating e COM Governor**, a linha `if inspect.iscoroutinefunction(dummy_fn): return await dummy_fn()` executa a ferramenta diretamente com `await`, mas **ignora e contorna 100% o enfileiramento do RateGovernor** (`Governor requests recorded: 0`). Em nenhuma configuração uma ferramenta assíncrona é governada e executada corretamente. | **CONFIRMADO E REPRODUZIDO** |
 | **#7** | [`agent/agent_prompts.py`](file:///c:/Nexus-Memory/GrafoConcierge/agent/agent_prompts.py#L82-L132) | `82–132` | 🟡 **MÉDIA (CONDICIONAL / CÓDIGO ÓRFÃO)** | **Dessincronização Estrutural entre Sub-Estados do HSM e `TOOL_DISCLOSURE_MATRIX`**: `parse_state_path` decompõe apenas o super-estado. As entradas de sub-estados declaradas na matriz do governor (`DISCOVERY`, `TDD_GREEN`, `REFACTORING`) nunca são consultadas pelo builder, tornando-se regras mortas. | **CONFIRMADO** |
 
 ---
@@ -165,11 +165,11 @@ Diferente dos módulos de `storage/`, `core/` e `ingestion/` (onde cada bug crí
 
 ---
 
-### Achado #6: Bypass de RateGovernor e Corrotinas Não Avaliadas em `execute_tool`
+### Achado #6: Incompatibilidade Estrutural Universal com Corrotinas e Bypass do RateGovernor em `execute_tool`
 - **Severidade:** 🟡 **MÉDIA (CONDICIONAL / CÓDIGO ÓRFÃO)**
-- **Arquivo:** [`agent/run_agent.py:243-262`](file:///c:/Nexus-Memory/GrafoConcierge/agent/run_agent.py#L243-L262)
+- **Arquivo:** [`agent/run_agent.py:243-262`](file:///c:/Nexus-Memory/GrafoConcierge/agent/run_agent.py#L243-L262), [`core/gating_interceptor.py:139`](file:///c:/Nexus-Memory/GrafoConcierge/core/gating_interceptor.py#L139), [`core/rate_governor.py:192, 267`](file:///c:/Nexus-Memory/GrafoConcierge/core/rate_governor.py#L192)
 - **Mecanismo:**
-  Em `execute_tool`:
+  O método `execute_tool` tenta integrar três camadas sucessivas de governança (`MCPToolGovernor` -> `GatingInterceptor` -> `RateGovernor`):
   ```python
   def _run_with_governor():
       if self.governor:
@@ -183,8 +183,39 @@ Diferente dos módulos de `storage/`, `core/` e `ingestion/` (onde cada bug crí
       return await dummy_fn()
   return _run_with_governor()
   ```
-  - Se `dummy_fn` for assíncrona e `self.gating` for `None`, a linha `if inspect.iscoroutinefunction(dummy_fn): return await dummy_fn()` executa a ferramenta diretamente, **ignorando completamente o enfileiramento do `RateGovernor`**.
-  - Se `self.gating` estiver ativo, `_run_with_governor` invoca `dummy_fn()` sincronicamente, gerando um objeto de corrotina cru que é retornado por `intercept_tool_call` sem ser aguardado via `await`, abortando silenciosamente a execução real da ferramenta.
+  Quando a ferramenta fornecida em `execute_fn` é assíncrona (`async def` ou função que retorna corrotina, como é o padrão no ecossistema MCP/FastMCP), a execução falha estruturalmente em **todos os cenários de configuração**:
+
+  1. **Caminho COM Gating e COM Governor:**
+     - `execute_tool` chama `await self.gating.intercept_tool_call(..., execute_fn=_run_with_governor)`.
+     - Dentro de `GatingInterceptor.intercept_tool_call`, a linha 139 faz `return execute_fn()`, chamando `_run_with_governor` de forma **estritamente síncrona** (sem `await`).
+     - `_run_with_governor` despacha a tarefa chamando `self.governor.submit_request(..., task_fn=dummy_fn)`.
+     - Conforme documentado e confirmado na auditoria de `core/rate_governor.py`:
+       - No fast-path (linha 192), o governor executa `result = task_fn()`.
+       - No loop consumidor da worker thread (linha 267), a thread do daemon executa `result = req.task_fn()`.
+     - Em ambos os pontos do `RateGovernor`, a execução ocorre **sincronicamente sem `await` e sem um event loop associado à thread trabalhadora**. Invocar uma corrotina assíncrona dessa forma apenas instancia o objeto corrotina (`<coroutine object ...>`), sem nunca agendá-lo ou aguardá-lo.
+     - O governor devolve o objeto corrotina cru; `GatingInterceptor` o devolve intacto; e `execute_tool` aguarda apenas a conclusão do interceptor, retornando o objeto corrotina cru para o chamador.
+     - **Resultado:** A ferramenta **nunca é executada** (`Tool actually executed: False`), abortando silenciosamente e disparando `RuntimeWarning: coroutine was never awaited`.
+
+  2. **Caminho COM Gating e SEM Governor:**
+     - `execute_fn()` chama `dummy_fn()` diretamente.
+     - Como `intercept_tool_call` retorna `execute_fn()` sem `await`, o objeto corrotina é retornado cru.
+     - **Resultado:** A ferramenta **nunca é executada** (`Tool actually executed: False`).
+
+  3. **Caminho SEM Gating e COM Governor:**
+     - `self.gating` é nulo. O código atinge as linhas 260–262:
+       ```python
+       if inspect.iscoroutinefunction(dummy_fn):
+           return await dummy_fn()
+       return _run_with_governor()
+       ```
+     - O desenvolvedor tentou remediar a falta de `await` inserindo `if inspect.iscoroutinefunction(dummy_fn): return await dummy_fn()`.
+     - Porém, ao fazer isso, **o fluxo salta diretamente por cima de `_run_with_governor()`**, contornando 100% o `RateGovernor` (`Governor requests recorded: 0`). Prioridade de tráfego, orçamentos de RPM/TPM e congelamento reativo de filas são totalmente ignorados.
+     - Se `dummy_fn` for um callable assíncrono que não passe no teste estrito de `inspect.iscoroutinefunction` (ex.: decorador, closure ou objeto com `__call__` assíncrono), ela cai no `_run_with_governor()` e sofre exatamente o mesmo defeito do Caminho 1 (retorna corrotina crua não-executada).
+
+  4. **Caminho SEM Gating e SEM Governor:**
+     - A ferramenta executa diretamente via `await dummy_fn()`, sem nenhuma barreira de governança.
+
+  **Conclusão Estrutural:** Não se trata de uma falha isolada de um branch ou de esquecimento pontual de um `await`: **não existe suporte arquitetural no pipeline de governança (`RateGovernor` + `GatingInterceptor`) para executar ferramentas assíncronas**. O `RateGovernor` foi concebido com modelo síncrono baseado em threads (`threading.Thread` + `queue.Queue`), enquanto o `CognitiveAgentRunner` é assíncrono (`async/await`), criando uma incompatibilidade de paradigmas que inviabiliza a execução correta sob qualquer combinação de flags.
 
 ---
 
@@ -256,12 +287,27 @@ TESTE 5: Falha em Rerank (NoneType crash e Type Mismatch)
 -> [CONFIRMADO] Defeitos em Reranking confirmados: True
 
 ======================================================================
+TESTE 6: Incompatibilidade Estrutural com Corrotinas e Bypass do RateGovernor
+======================================================================
+6.1 Caminho COM Gating e COM Governor:
+    Tipo do retorno: <class 'coroutine'>
+    Retorno é objeto corrotina cru (não-awaited): True
+    Ferramenta assíncrona foi executada: False
+6.2 Caminho SEM Gating e COM Governor:
+    Tipo do retorno: <class 'dict'>
+    Ferramenta assíncrona foi executada: True
+    Requisições registradas no RateGovernor: 0
+    RateGovernor foi completamente ignorado/bypassed: True
+-> [CONFIRMADO] Incompatibilidade universal com funções assíncronas: True
+
+======================================================================
 RESUMO DE REPRODUÇÃO (agent/ e agents/):
 Achado 1 (Contaminação Turnos Circuit Breaker): REPRODUZIDO
 Achado 2 (Dessincronização Prompt-Estado em step): REPRODUZIDO
 Achado 3 (Bypass Barreira Contaminação): REPRODUZIDO
 Achado 4 (Aprovação Espúria Commit Inválido): REPRODUZIDO
 Achado 5 (Defeitos de Tipo e Crash em Reranking): REPRODUZIDO
+Achado 6 (Incompatibilidade com Corrotinas e Bypass): REPRODUZIDO
 ======================================================================
 ```
 
@@ -277,3 +323,4 @@ Achado 5 (Defeitos de Tipo e Crash em Reranking): REPRODUZIDO
    - **Corrigir Ciclo de Retry de Commits:** Se `generate_fn` falhar com exceção, o commit deve permanecer reprovado (`approved=False`), sem concessão de `partial_audit=True`.
    - **Sincronizar Geração de Prompt com Novo Estado:** Em `step()`, efetuar a transição de estado *antes* de construir o prompt dinâmico.
    - **Coerência de Tipagem em Rerank:** Tratar `node_id` como `str` consistente ou tolerante (`str(nid)`) em `relevance_map`, e sanitizar `score_final` tratando `None` como `0.0`.
+   - **Compatibilidade Assíncrona no Pipeline de Governança:** Se o pipeline de governança for mantido, `RateGovernor` deve suportar despacho assíncrono nativo (ex.: via `asyncio.Queue` / `run_coroutine_threadsafe`), e `GatingInterceptor.intercept_tool_call` deve avaliar `await execute_fn()` caso o retorno ou a função sejam corrotinas, garantindo que a execução ocorra dentro do event loop correto sob controle do governor sem bypass.

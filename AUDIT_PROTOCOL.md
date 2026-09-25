@@ -151,7 +151,7 @@ Tarefa extra inserida a partir do padrão encontrado acima:
   *(Nota Mandatória: Toda a severidade deste item é CONDICIONAL / CÓDIGO ÓRFÃO, pois estes arquivos estão desconectados do servidor em produção — Achado #4 de bypass-governanca).*
   2 CRÍTICA CONDICIONAL (contaminação de turnos multi-sessão e reset indevido no Circuit Breaker por contador único de instância `current_substate_turn_count`; vazamento total de privacidade por fallback inseguro para nível `0` [PUBLIC] e falta de normalização `.upper()` em `check_contamination`),
   3 GRAVE CONDICIONAL (aprovação espúria de commits inválidos com `partial_audit=True` após falha em `generate_fn` em `audit_with_retry`; dessincronização entre prompt e estado ativo em `step(target_transition=...)` gerando alucinações e bloqueios cognitivos; falha e crash em reranking por incompatibilidade de tipo `int` vs `str` e `NoneType`),
-  2 MÉDIA CONDICIONAL (bypass de `RateGovernor` e retorno de corrotinas não avaliadas em `execute_tool`; dessincronização estrutural entre sub-estados do HSM e `TOOL_DISCLOSURE_MATRIX`).
+  2 MÉDIA CONDICIONAL (incompatibilidade estrutural universal com corrotinas não-awaited e bypass de `RateGovernor` em `execute_tool`; dessincronização estrutural entre sub-estados do HSM e `TOOL_DISCLOSURE_MATRIX`).
 - [ ] `interface/telemetry_api.py`
 - [ ] `grafo-dashboard-web/` (componentes principais e chamadas à API)
 
