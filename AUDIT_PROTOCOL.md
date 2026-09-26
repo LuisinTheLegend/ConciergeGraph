@@ -166,7 +166,7 @@ Tarefa extra inserida a partir do padrão encontrado acima:
   2 GRAVE (incompatibilidade estrutural de autenticação FastMCP com rejeição imediata HTTP 401 por ausência de suporte a headers no `EventSource` nativo e no `sendRequest`; omissão estrutural de metadados `summary` e `tags` em `get_full_topology` esvaziando permanentemente o `InspectorDrawer` ao clicar em nós do grafo 3D/2D),
   3 MÉDIA (risco de crash e corrupção de data `Invalid Date` por concatenação cega de `+ "Z"` em timestamps ISO em `CoreMemoryPanel`; rotas mutantes `/api/hsm/transition` deixadas órfãs e cliques na UI tornados inertes por omissão da prop `onSelectState`; 37 erros de linter com violação de funções puras no render de `LiveEventFeed` no React 19 e disparos de `setState` em efeitos).
 
-▶ **PRÓXIMO PASSO (Aguardando Aprovação - FASE 1 CONCLUÍDA):** Início da Fase 2 — `cruzamento-modulos` (Todos os 18 itens da Fase 1 concluídos com relatórios e provas empíricas!)
+▶ **PRÓXIMO PASSO (Aguardando Aprovação - FASE 1 CONCLUÍDA):** Início da Fase 2 — `cruzamento-modulos` (Todos os 21 itens da Fase 1 concluídos com relatórios e provas empíricas!)
 
 ## Fase 2 — Cruzamento transversal (só inicia com TODOS os itens da Fase 1 marcados)
 
