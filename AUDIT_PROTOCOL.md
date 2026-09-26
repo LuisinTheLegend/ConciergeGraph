@@ -171,10 +171,15 @@ Tarefa extra inserida a partir do padrão encontrado acima:
 ## Fase 2 — Cruzamento transversal (só inicia com TODOS os itens da Fase 1 marcados)
 
 - [ ] **cruzamento-modulos** — Ler todos os `audits/*.md` gerados (não
-  reler o código-fonte inteiro). Apontar: (a) módulos que fazem suposições
-  incompatíveis um sobre o outro, (b) falta de isolamento entre
-  projetos/tenants, (c) funcionalidade documentada que nenhum módulo
-  implementa de fato.
+  reler o código-fonte inteiro). Apontar:
+  (a) módulos que fazem suposições incompatíveis um sobre o outro;
+  (b) falta de isolamento entre projetos/tenants;
+  (c) funcionalidade documentada que nenhum módulo implementa de fato;
+  (d) **Eixo de Colapso Sistêmico Central: `core/database.py::ConciergeDatabaseManager`** — convergência
+  crítica entre `duplicacao-serialized-write-queue` e `schema-oficial-incompleto`,
+  demonstrando que nem a camada de escrita (conexões efêmeras sem fila e sem FKs) nem
+  a de schema (`_init_tables` só cria `test_log`) cumprem o especificado na documentação, tornando-o
+  o componente mais frágil e enganoso de toda a arquitetura.
 
 ## Fase 3 — Consolidação
 

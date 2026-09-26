@@ -706,6 +706,14 @@ Fase 2: BLOQUEADA NO GATE (aguarda aprovação formal do usuário para iniciar c
 Fase 3: BLOQUEADA NO GATE (aguarda conclusão da Fase 2)
 ```
 
+### Diretriz Mapeada para o Relatório de Síntese da Fase 2 (`cruzamento-modulos`)
+- **Eixo Central de Colapso Sistêmico: `core/database.py::ConciergeDatabaseManager`**:
+  Convergência crítica entre [`audits/duplicacao-serialized-write-queue.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/duplicacao-serialized-write-queue.md) e [`audits/schema-oficial-incompleto.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/schema-oficial-incompleto.md). Ambos miram o mesmo componente por ângulos complementares:
+  1. **Camada de Escrita Quebrada:** Opera com `write_queue=None` em produção, disparando conexões SQLite efêmeras cruas, sem serialização, sem mutex e com `foreign_keys=OFF`.
+  2. **Camada de Schema Inexistente:** O método `_init_tables()` cria exclusivamente a tabela `test_log`, omitindo 100% das 5 tabelas operacionais exigidas pelo `core/*` (`files`, `communities`, `ast_edges`, `agent_checkpoints`, `fsm_checkpoints`).
+  3. **Mascaramento Universal de Erros:** O método `execute_write` intercepta qualquer `OperationalError` (tabela ausente ou DB travado) e retorna `(False, err)`, o qual chamadores como `execute_time_travel` descartam cegamente, reportando falso sucesso.
+  Isso consolida o `ConciergeDatabaseManager` como o componente mais enganoso e frágil de todo o sistema legado.
+
 **Aguardando aprovação do humano para avançar para a Fase 2** (Regra 7 — GATE OBRIGATÓRIO).
 
 
