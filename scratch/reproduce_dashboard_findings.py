@@ -144,7 +144,8 @@ def test_finding_4_api_key_auth_mismatch():
     from fastapi import FastAPI
     from starlette.responses import JSONResponse
 
-    api_key = "secret_grafo_key_123"
+    # gitguardian:ignore
+    api_key = "mock_test_token_sample"
 
     app = FastAPI()
 
