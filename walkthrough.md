@@ -631,24 +631,82 @@ Foi realizada uma simulação de clone limpo via [`scratch/reproduce_schema_inco
 
 ---
 
+---
+
+# Relatório da Auditoria: `grafo-dashboard-web/` (Painel Web Next.js, Clientes de API e Telemetria)
+
+## 1. Resumo da Investigação
+Auditoria aprofundada do frontend Next.js 16 / React 19 / Three.js ([`grafo-dashboard-web/`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web)), incluindo componentes do cockpit, universo 3D/2D, hooks reativos de SSE e chamadas ao FastMCP e FastAPI.
+
+Foram executadas análises estáticas (`tsc --noEmit`, `npm run lint`, `npm run build`) e testes empíricos de integração via [`scratch/reproduce_dashboard_findings.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/reproduce_dashboard_findings.py).
+
+**Resultado da Investigação:**
+1. **Código Morto e HUD Congelado:** `useTelemetryStream.ts` trata `RATE_GOVERNOR_UPDATE`, `HSM_STATE_UPDATE`, `WAL_WRITE_JOB` e `DELTA_DETECTED`, mas o backend emite exclusivamente `TelemetryPayloadSchema` sem atributo `event_type`. O switch é inalcançável e os mostradores de cota (`QuotaGauges`) e estados (`HSMStateInspector`) ficam permanentemente congelados no valor inicial de boot.
+2. **Ciclo Infinito de Flapping SSE:** Trava de teste `max_checks = 5` mantida no backend derruba a conexão SSE a cada 5 segundos; o cliente força reconexão a cada 3 segundos, gerando um loop de 8 segundos que polui o feed de eventos com 75 reconexões a cada 10 minutos e faz o HUD piscar sem parar.
+3. **Colisão de Portas e Desconexão do FastMCP:** `main.py` roda FastMCP em `stdio` por padrão (porta 8000 se SSE); o FastAPI `telemetry_api.py` também roda na porta 8000 gerando colisão `WinError 10048`. Ao mesmo tempo, `.env.local` e `client.ts` configuram FastMCP na porta 7077 (onde nenhum serviço roda). Ao rodar `npm run dev:all`, o cliente MCP tenta conectar infinitamente em 7077 e a telemetria falha pois `telemetry_api.py` não é iniciado por `main.py`.
+4. **Rejeição HTTP 401 com API Key:** Quando `GRAFO_API_KEY` está ativa no backend, requisições do frontend são rejeitadas com 401 porque `EventSource` nativo e `fetch(POST)` não enviam cabeçalhos nem token.
+5. **Esvaziamento do InspectorDrawer:** `store.get_lightweight_topology()` omite `summary` e `tags` para economia de banda; `InspectorDrawer.tsx` assume que os campos já existem no nó sem fazer fetch secundário sob demanda; o usuário clica no nó no grafo 3D/2D e recebe Description e Tags permanentemente vazias.
+6. **37 Erros de Linter no React 19:** `npm run lint` falha com 37 erros, com `Date.now()` impuro no render de `LiveEventFeed` e `setState` disparado síncronamente em efeitos.
+
+## 2. Tabela de Achados Confirmados
+
+| # | Severidade | Resumo |
+|---|-----------|--------|
+| 1 | **CRÍTICA** | [`lib/useTelemetryStream.ts:219–260`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/useTelemetryStream.ts#L219) — **Código Morto em Handlers SSE e Telemetria Reativa Congelada**: Backend emite apenas `TelemetryPayloadSchema` sem `event_type`. O switch é 100% inalcançável e os mostradores de cota (`QuotaGauges`) e estado HSM (`HSMStateInspector`) nunca são atualizados via SSE. |
+| 2 | **CRÍTICA** | [`lib/useTelemetryStream.ts:280–291`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/useTelemetryStream.ts#L280) e [`interface/telemetry_api.py:556–572`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L556) — **Ciclo Infinito de Flapping SSE e Inundação do Buffer de Eventos**: Trava `max_checks = 5` derruba conexão a cada 5s; reconexão a cada 3s gera 75 quedas/reconexões a cada 10 min, inundando o feed com mensagens repetidas `"Connected to FastAPI Telemetry SSE Stream"`. |
+| 3 | **CRÍTICA** | [`package.json:10–11`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/package.json#L10), [`.env.local:6, 10`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/.env.local#L6), [`main.py:70, 245`](file:///c:/Nexus-Memory/GrafoConcierge/main.py#L70), [`interface/mcp_server.py:143–145`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L143) — **Colisão de Portas, Inoperância do Script `dev:all` e Desconexão do FastMCP SSE**: `main.py` roda FastMCP em `stdio`; se `sse`, colide na porta 8000 com FastAPI; `.env.local` busca FastMCP na porta 7077 onde nada escuta; `npm run dev:all` entrega um painel completamente desconectado. |
+| 4 | **GRAVE** | [`lib/mcp/client.ts:78, 294–298`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/mcp/client.ts#L78) e [`interface/mcp_server.py:186–212`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L186) — **Incompatibilidade de Autenticação FastMCP e Rejeição Total com HTTP 401**: Falta de suporte a cabeçalho `Authorization` ou `?token=` no cliente faz todas as chamadas serem rejeitadas com 401 quando `GRAFO_API_KEY` está ativa. |
+| 5 | **GRAVE** | [`storage/store.py:259–273`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py#L259) e [`app/components/InspectorDrawer.tsx:124–152`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/app/components/InspectorDrawer.tsx#L124) — **Omissão de Metadados em `get_full_topology` e Esvaziamento do `InspectorDrawer`**: Projeção SQL omite `summary` e `tags` para economia de banda; `InspectorDrawer` não faz busca sob demanda e exibe nós com campos de descrição e tags permanentemente vazios. |
+| 6 | **MÉDIA** | [`app/components/CoreMemoryPanel.tsx:137–146`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/app/components/CoreMemoryPanel.tsx#L137) — **Risco de Crash e Corrupção de Data (`Invalid Date`)**: Concatenação cega de `+ "Z"` em timestamps ISO contendo fuso pré-existente gera `Invalid Date` / `RangeError`. |
+| 7 | **MÉDIA** | [`app/page.tsx:478–482`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/app/page.tsx#L478) e [`components/hsm/HSMStateInspector.tsx:191`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/components/hsm/HSMStateInspector.tsx#L191) — **Rotas Mutantes Órfãs e Callbacks Inertes no HUD**: Omissão da prop `onSelectState` em `app/page.tsx` deixa cliques na UI inertes e rota `/api/hsm/transition` órfã. |
+| 8 | **MÉDIA** | [`components/telemetry/LiveEventFeed.tsx:93–121`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/components/telemetry/LiveEventFeed.tsx#L93) e [`lib/useTelemetryStream.ts:191`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/useTelemetryStream.ts#L191) — **37 Erros de Linter, Impureza em Render React 19 e Efeitos em Cascata**: Violação da regra de funções puras do React 19 (`Date.now()` no render) e disparos síncronos de `setState` em efeitos resultando em falha de linter. |
+
+---
+
+## 3. Arquivos Produzidos / Atualizados Nesta Etapa
+
+| Arquivo | Tipo | Descrição |
+|---------|------|-----------|
+| [`audits/grafo-dashboard-web.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/grafo-dashboard-web.md) | Relatório Oficial | Relatório completo de auditoria do frontend Next.js 16, clientes FastMCP/FastAPI e motores gráficos Three.js |
+| [`scratch/reproduce_dashboard_findings.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/reproduce_dashboard_findings.py) | Script de Reprodução | Script de testes de contrato e integração comprovando as 5 falhas estruturais de API e SSE |
+| [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md) | Protocolo | Atualizado com `grafo-dashboard-web/` marcado como `[x]` concluído. **Fase 1 100% concluída!** |
+| [`walkthrough.md`](file:///c:/Nexus-Memory/GrafoConcierge/walkthrough.md) | Relatório de Sessão | Registro consolidado atualizado com os achados do dashboard e fechamento da Fase 1 |
+
+---
+
 ## 4. Estado Atual da Auditoria
 
 ```
 Fase 0: [ ] baseline (não iniciada)
-Fase 1: 20/21 concluídos
+Fase 1: 21/21 concluídos (100% DA FASE 1 CONCLUÍDA!)
+        [x] core/delta_manager.py (5 achados)
+        [x] core/alias_tracker.py (4 achados)
+        [x] core/hsm_engine.py (8 achados)
+        [x] core/mcp_governor.py (4 achados)
+        [x] core/adaptive_gating.py (4 achados)
+        [x] core/security_guard.py (3 achados)
+        [x] core/rate_governor.py (4 achados)
+        [x] core/background_janitor.py (4 achados)
+        [x] core/checkpointer.py (6 achados)
+        [x] core/vector_reconciler.py (4 achados)
+        [x] core/graph_rag.py (5 achados)
+        [x] core/hybrid_search.py (4 achados)
+        [x] core/middleware.py (5 achados)
+        [x] interface/mcp_server.py (7 achados)
         [x] storage/ (9 achados)
         [x] duplicacao-serialized-write-queue (5 achados)
         [x] ingestion/ (8 achados)
         [x] bypass-governanca-por-session-id (5 achados)
         [x] agent/ e agents/ (7 achados condicionais)
         [x] interface/telemetry_api.py (7 achados)
-        [x] schema-oficial-incompleto (5 achados transversais máximos)
-        ▶ Próximo: grafo-dashboard-web/ (último item da Fase 1!)
-Fase 2: bloqueada (aguarda fim da Fase 1)
-Fase 3: bloqueada (aguarda fim da Fase 2)
+        [x] schema-oficial-incompleto (5 achados transversais supremos)
+        [x] grafo-dashboard-web/ (8 achados)
+Fase 2: BLOQUEADA NO GATE (aguarda aprovação formal do usuário para iniciar cruzamento-modulos)
+Fase 3: BLOQUEADA NO GATE (aguarda conclusão da Fase 2)
 ```
 
-**Aguardando aprovação do humano para avançar** (Regra 7 — GATE OBRIGATÓRIO).
+**Aguardando aprovação do humano para avançar para a Fase 2** (Regra 7 — GATE OBRIGATÓRIO).
+
 
 
 

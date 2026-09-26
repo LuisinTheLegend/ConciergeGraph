@@ -161,9 +161,12 @@ Tarefa extra inserida a partir do padrão encontrado acima:
   1 CRÍTICA (a ilusão dos testes [Test Mirage]: 14 suítes de teste mascaram a ausência do schema criando privadamente as tabelas em seus métodos `setUp()`, fazendo a suíte passar com 100% de sucesso enquanto a instalação real de produção está completamente inoperante),
   1 ALTA/GRAVE (mascaramento silencioso de falhas de DDL por supressão de exceções em `core/database.py::execute_write` e `interface/watcher.py`; falsa confirmação enganosa no log de boot em `storage/store.py:107` logando 'Schema v3.8.0 verified - all tables and triggers OK' porque `verify_tables_exist` valida apenas seu próprio subset restrito, ocultando a ausência de 5 tabelas críticas),
   1 MÉDIA (abandono de especificação formal onde `01_ARCHITECTURE.md` especificava as 13 tabelas mas `storage/schema.py` implementou apenas metade).
-- [ ] `grafo-dashboard-web/` (componentes principais e chamadas à API)
+- [x] `grafo-dashboard-web/` (componentes principais e chamadas à API) — 8 achados confirmados (ver [`audits/grafo-dashboard-web.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/grafo-dashboard-web.md)).
+  3 CRÍTICA (código morto em handlers SSE com mostradores de cota `QuotaGauges` e estados `HSMStateInspector` permanentemente congelados por ausência do atributo `event_type` no backend; ciclo infinito de flapping SSE a cada 8s por trava `max_checks = 5` mantida em produção inundando o feed com 75 reconexões/10min e fazendo o HUD piscar sem parar; colisão de portas 8000 entre FastAPI e FastMCP com inoperância total do script `dev:all` e desconexão do FastMCP SSE por busca na porta órfã 7077),
+  2 GRAVE (incompatibilidade estrutural de autenticação FastMCP com rejeição imediata HTTP 401 por ausência de suporte a headers no `EventSource` nativo e no `sendRequest`; omissão estrutural de metadados `summary` e `tags` em `get_full_topology` esvaziando permanentemente o `InspectorDrawer` ao clicar em nós do grafo 3D/2D),
+  3 MÉDIA (risco de crash e corrupção de data `Invalid Date` por concatenação cega de `+ "Z"` em timestamps ISO em `CoreMemoryPanel`; rotas mutantes `/api/hsm/transition` deixadas órfãs e cliques na UI tornados inertes por omissão da prop `onSelectState`; 37 erros de linter com violação de funções puras no render de `LiveEventFeed` no React 19 e disparos de `setState` em efeitos).
 
-▶ **PRÓXIMO PASSO (Aguardando Aprovação):** `grafo-dashboard-web/` (componentes principais e chamadas à API)
+▶ **PRÓXIMO PASSO (Aguardando Aprovação - FASE 1 CONCLUÍDA):** Início da Fase 2 — `cruzamento-modulos` (Todos os 18 itens da Fase 1 concluídos com relatórios e provas empíricas!)
 
 ## Fase 2 — Cruzamento transversal (só inicia com TODOS os itens da Fase 1 marcados)
 
