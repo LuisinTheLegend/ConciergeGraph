@@ -669,7 +669,7 @@ Foram executadas análises estáticas (`tsc --noEmit`, `npm run lint`, `npm run 
 |---------|------|-----------|
 | [`audits/grafo-dashboard-web.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/grafo-dashboard-web.md) | Relatório Oficial | Relatório completo de auditoria do frontend Next.js 16, clientes FastMCP/FastAPI e motores gráficos Three.js |
 | [`scratch/reproduce_dashboard_findings.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/reproduce_dashboard_findings.py) | Script de Reprodução | Script de testes de contrato e integração comprovando falhas de API/SSE; sanitizado token de teste contra falsos alertas |
-| [`audits/core-checkpointer.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/core-checkpointer.md) | Relatório Atualizado | Inclusão do 3º adendo no Achado #2 conectando a falha silenciosa de rollback à ausência de `fsm_checkpoints` comprovada por `schema-oficial-incompleto.md` |
+| [`audits/core-checkpointer.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/core-checkpointer.md) | Relatório Atualizado | Refinamento do 3º adendo no Achado #2: diferencia crash com `OperationalError` no passo 2 de leitura (em instalação limpa) do mascaramento silencioso com falso sucesso no passo 3 de escrita (sob tabelas existentes) |
 | [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md) | Protocolo | Atualizado com `grafo-dashboard-web/` marcado como `[x]` concluído. **Fase 1 100% concluída!** |
 | [`walkthrough.md`](file:///c:/Nexus-Memory/GrafoConcierge/walkthrough.md) | Relatório de Sessão | Registro consolidado atualizado com os achados do dashboard, adendo ao checkpointer e fechamento da Fase 1 |
 
