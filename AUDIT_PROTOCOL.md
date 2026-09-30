@@ -175,7 +175,7 @@ Tarefa extra inserida a partir do padrão encontrado acima:
   (c) **Funcionalidade documentada não implementada:** 13 funcionalidades especificadas em documentação/SDD nunca funcionaram em produção (incluindo fila unificada, schema completo, HSM, reconciliador vetorial, sumarização multinível e dashboard HUD);
   (d) **Eixo de Colapso Sistêmico Central: `core/database.py::ConciergeDatabaseManager`** — convergência
   confirmada entre `duplicacao-serialized-write-queue` e `schema-oficial-incompleto`: fachada vazia que falha em ambas as dimensões (escrita e schema), corrompendo integridade por colisão com `storage/` e falhando catastroficamente por tabelas inexistentes.
-  Identificadas 4 cadeias de falha transversal com diagramas Mermaid; mapa de calor de severidade com 78 achados (3 Máxima + 20 Crítica + 27 Grave + 25 Média + 3 Baixa); inventário de código morto/órfão (6 componentes); padrão sistêmico "Test Mirage" consolidado.
+  Identificadas 4 cadeias de falha transversal com diagramas Mermaid; mapa de calor de severidade com 79 achados (3 Máxima + 20 Crítica + 27 Grave + 26 Média + 3 Baixa); inventário de código morto/órfão (6 componentes); padrão sistêmico "Test Mirage" consolidado.
 
 ▶ **PRÓXIMO PASSO (Aguardando Aprovação - FASE 2 CONCLUÍDA):** Início da Fase 3 — `backlog-final`
 

@@ -288,12 +288,12 @@ flowchart TD
 | `ingestion/` (pipeline de ingestão) | — | 2 | 2 | 4 | — | **8** |
 | `grafo-dashboard-web/` (frontend) | — | 3 | 2 | 3 | — | **8** |
 | `agent/` + `agents/` (código órfão) | — | 2* | 3* | 2* | — | **7*** |
-| **TOTAL** | **3** | **20** | **27** | **25** | **3** | **78** |
+| **TOTAL** | **3** | **20** | **27** | **26** | **3** | **79** |
 
 > \* Severidade condicional — só se materializa se o código órfão for reconectado ao servidor.
 
 > [!IMPORTANT]
-> **78 achados confirmados com reprodução empírica**, dos quais **50 são CRÍTICOS ou GRAVES**, distribuídos em cadeia por 15 relatórios independentes. Nenhum subsistema do Grafo Concierge opera sem falhas fundamentais.
+> **79 achados confirmados com reprodução empírica**, dos quais **50 são CRÍTICOS ou GRAVES**, distribuídos em cadeia por 15 relatórios independentes. Nenhum subsistema do Grafo Concierge opera sem falhas fundamentais.
 
 ---
 
