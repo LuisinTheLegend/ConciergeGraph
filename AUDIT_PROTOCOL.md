@@ -166,20 +166,18 @@ Tarefa extra inserida a partir do padrão encontrado acima:
   2 GRAVE (incompatibilidade estrutural de autenticação FastMCP com rejeição imediata HTTP 401 por ausência de suporte a headers no `EventSource` nativo e no `sendRequest`; omissão estrutural de metadados `summary` e `tags` em `get_full_topology` esvaziando permanentemente o `InspectorDrawer` ao clicar em nós do grafo 3D/2D),
   3 MÉDIA (risco de crash e corrupção de data `Invalid Date` por concatenação cega de `+ "Z"` em timestamps ISO em `CoreMemoryPanel`; rotas mutantes `/api/hsm/transition` deixadas órfãs e cliques na UI tornados inertes por omissão da prop `onSelectState`; 37 erros de linter com violação de funções puras no render de `LiveEventFeed` no React 19 e disparos de `setState` em efeitos).
 
-▶ **PRÓXIMO PASSO (Aguardando Aprovação - FASE 1 CONCLUÍDA):** Início da Fase 2 — `cruzamento-modulos` (Todos os 21 itens da Fase 1 concluídos com relatórios e provas empíricas!)
-
 ## Fase 2 — Cruzamento transversal (só inicia com TODOS os itens da Fase 1 marcados)
 
-- [ ] **cruzamento-modulos** — Ler todos os `audits/*.md` gerados (não
-  reler o código-fonte inteiro). Apontar:
-  (a) módulos que fazem suposições incompatíveis um sobre o outro;
-  (b) falta de isolamento entre projetos/tenants;
-  (c) funcionalidade documentada que nenhum módulo implementa de fato;
+- [x] **cruzamento-modulos** — Cruzamento transversal de todos os 15 relatórios da Fase 1 (ver [`audits/cruzamento-modulos.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/cruzamento-modulos.md)).
+  Cobertos os 4 eixos obrigatórios:
+  (a) **Suposições incompatíveis entre módulos:** 4 incompatibilidades de tipo (`int` vs `str`, timestamps offset-aware, métodos fantasma, FKs assimétricas) e 3 contratos de mock divergentes das classes reais;
+  (b) **Falta de isolamento entre projetos/tenants:** busca vetorial cross-project com `project_uuids=[]`, checkpoints sem posse, privacidade `Fail-Open` por case-sensitivity e pruning cross-agent;
+  (c) **Funcionalidade documentada não implementada:** 13 funcionalidades especificadas em documentação/SDD nunca funcionaram em produção (incluindo fila unificada, schema completo, HSM, reconciliador vetorial, sumarização multinível e dashboard HUD);
   (d) **Eixo de Colapso Sistêmico Central: `core/database.py::ConciergeDatabaseManager`** — convergência
-  crítica entre `duplicacao-serialized-write-queue` e `schema-oficial-incompleto`,
-  demonstrando que nem a camada de escrita (conexões efêmeras sem fila e sem FKs) nem
-  a de schema (`_init_tables` só cria `test_log`) cumprem o especificado na documentação, tornando-o
-  o componente mais frágil e enganoso de toda a arquitetura.
+  confirmada entre `duplicacao-serialized-write-queue` e `schema-oficial-incompleto`: fachada vazia que falha em ambas as dimensões (escrita e schema), corrompendo integridade por colisão com `storage/` e falhando catastroficamente por tabelas inexistentes.
+  Identificadas 4 cadeias de falha transversal com diagramas Mermaid; mapa de calor de severidade com 78 achados (3 Máxima + 20 Crítica + 27 Grave + 25 Média + 3 Baixa); inventário de código morto/órfão (6 componentes); padrão sistêmico "Test Mirage" consolidado.
+
+▶ **PRÓXIMO PASSO (Aguardando Aprovação - FASE 2 CONCLUÍDA):** Início da Fase 3 — `backlog-final`
 
 ## Fase 3 — Consolidação
 
