@@ -177,13 +177,14 @@ Tarefa extra inserida a partir do padrão encontrado acima:
   confirmada entre `duplicacao-serialized-write-queue` e `schema-oficial-incompleto`: fachada vazia que falha em ambas as dimensões (escrita e schema), corrompendo integridade por colisão com `storage/` e falhando catastroficamente por tabelas inexistentes.
   Identificadas 4 cadeias de falha transversal com diagramas Mermaid; mapa de calor de severidade com 79 achados (3 Máxima + 20 Crítica + 27 Grave + 26 Média + 3 Baixa); inventário de código morto/órfão (6 componentes); padrão sistêmico "Test Mirage" consolidado.
 
-▶ **PRÓXIMO PASSO (Aguardando Aprovação - FASE 2 CONCLUÍDA):** Início da Fase 3 — `backlog-final`
+✅ **AUDITORIA COMPLETA — Todas as 3 fases concluídas.**
 
 ## Fase 3 — Consolidação
 
-- [ ] **backlog-final** — Gerar um backlog único, priorizado por
-  severidade, no formato do `concierge-graph-improvements-roadmap-v5.md`,
-  mas exigindo que cada item cite o `audits/<arquivo>.md` de origem.
+- [x] **backlog-final** — Backlog único com 79 achados priorizados por severidade (ver [`audits/backlog-final.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/backlog-final.md)).
+  79 itens numerados BL-001 a BL-079, cada um citando o `audits/<arquivo>.md` de origem e a cadeia transversal (quando aplicável).
+  Ordem de correção recomendada: (1) Schema unificado, (2) Unificação da camada de escrita, (3) Segurança e governança, (4) Contratos mock→real, (5) Código órfão, (6) Frontend e telemetria.
+  Dependências críticas identificadas: BL-007 e BL-008 devem ser corrigidos simultaneamente; BL-001 desbloqueia 12+ módulos.
 
 ---
 
