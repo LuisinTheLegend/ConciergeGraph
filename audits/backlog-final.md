@@ -705,13 +705,13 @@ flowchart TD
 - **Diretriz de Remediação:** Harmonizar a assinatura e contrato de tipo de retorno entre o mock e a classe real `GraphRAGEngine`, unificando a especificação de entrada (query vs entry_node) e retorno.
 - **Critério de Validação:** Assinatura do mock é idêntica à classe real `GraphRAGEngine.retrieve_multihop_context` e o tipo retornado é consistente.
 
-#### [BL-087] Divergência de Interface e Assinatura em `_MockVectorStore` (`reset_collection` e `search`)
+#### [BL-087] Mock Permissivo com `*args, **kwargs` e Divergência de Interface em `_MockVectorStore`
 - **Severidade:** 🔵 BAIXA
-- **Arquivos & Linhas:** [`tests/test_interface_contracts.py:62, 65`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_interface_contracts.py#L62), [`storage/base_backend.py:91`](file:///c:/Nexus-Memory/GrafoConcierge/storage/base_backend.py#L91), [`storage/vector_store.py:251`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py#L251)
+- **Arquivos & Linhas:** [`tests/test_interface_contracts.py:59, 63`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_interface_contracts.py#L59), [`storage/base_backend.py:91`](file:///c:/Nexus-Memory/GrafoConcierge/storage/base_backend.py#L91), [`storage/vector_store.py:251`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py#L251)
 - **Relatório de Origem:** [`audits/mock-vs-real-audit.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/mock-vs-real-audit.md) #7
-- **Mecanismo da Falha:** `_MockVectorStore.reset_collection()` é testado como se pertencesse à interface base vetorial, mas `reset_collection` existe somente na implementação concreta `ChromaVectorStore`, não na interface abstrata `BaseVectorBackend`. Adicionalmente, `_MockVectorStore.search(self)` não aceita parâmetros (`def search(self): return []`), enquanto a interface real exige `query_embedding` e `project_uuids`.
-- **Diretriz de Remediação:** Adicionar `reset_collection` na classe abstrata `BaseVectorBackend` (se fizer parte do contrato canônico) e alinhar a assinatura de `search` em `_MockVectorStore` com a assinatura completa de `BaseVectorBackend.search`.
-- **Critério de Validação:** `_MockVectorStore` herda formalmente de `BaseVectorBackend` e cumpre todas as suas assinaturas sem desvios.
+- **Mecanismo da Falha:** `_MockVectorStore.reset_collection()` é testado como se pertencesse à interface base vetorial, mas `reset_collection` existe apenas na implementação concreta `ChromaVectorStore`, não na interface abstrata `BaseVectorBackend`. Adicionalmente, `_MockVectorStore.search(self, *args, **kwargs)` é excessivamente permissivo: por aceitar quaisquer argumentos variáveis, o mock mascara potenciais violações de contrato e não detectaria um chamador que desrespeitasse a assinatura canônica de `BaseVectorBackend.search(self, query_embedding: list[float], project_uuids: list[str], top_k: int = 10, filters: Optional[dict] = None)`.
+- **Diretriz de Remediação:** Adicionar `reset_collection` na interface base `BaseVectorBackend` (se fizer parte do contrato canônico) e substituir `*args, **kwargs` em `_MockVectorStore.search` pela assinatura estrita e tipada de `BaseVectorBackend.search`.
+- **Critério de Validação:** `_MockVectorStore` herda formalmente de `BaseVectorBackend` e cumpre todas as suas assinaturas sem desvios, rejeitando chamadas com parâmetros inválidos.
 
 ---
 
@@ -899,9 +899,10 @@ Em conformidade com a Regra 10 do `AUDIT_PROTOCOL.md` e a rodada de revisão ext
 - **Antes:** BL-060 classificado como `🟡 MÉDIA` com texto citando "crash fatal".
 - **Depois:** Revertido para `🔵 BAIXA`. Texto na Seção 1 atualizado para `"TypeError quando files.content é NULL (severidade BAIXA no relatório de origem)"`.
 - **Argumento Técnico para Decisão Humana:**
-  - *Visão da Fonte (Severidade BAIXA):* Em condições nominais, a tabela `files` é populada por `ingestion/crawler.py`, que sempre grava strings não-nulas. A ocorrência de `content IS NULL` é atípica e restrita a inserções parciais ou anomalias isoladas de schema.
-  - *Contra-argumento de Engenharia (Risco Potencial de Elevação):* Quando uma comunidade possui mesmo que um único arquivo com conteúdo nulo, a invocação do endpoint lazy JIT aborta com `TypeError: sequence item 0: expected str instance, NoneType found`, quebrando a compilação inteira da comunidade em vez de degradar graciosamente.
-  - *Decisão Adotada:* Mantida estritamente a severidade **BAIXA** do relatório canônico de origem, submetendo o argumento técnico e a reprodução abaixo para deliberação do operador humano.
+  - *Fato Verificado em Código:* O método `compile_community_summary_jit` existe em `core/delta_manager.py:160` e, quando executado sobre registros com `files.content = NULL`, lança `TypeError: sequence item 0: expected str instance, NoneType found`.
+  - *Conexão com Fluxo de Produção (Hipótese Descartada):* Busca abrangente no repositório confirmou que o método **não possui nenhum chamador em produção**, não está registrado como ferramenta MCP nem como rota HTTP. O método é coberto apenas em `tests/test_delta_sync.py`. Trata-se de funcionalidade documentada na especificação do SDD, mas **não conectada** a nenhum fluxo ativo de produção (risco estritamente latente).
+  - *Estado da Coluna `files.content`:* A suposição anterior de que `crawler.py` "sempre grava strings não-nulas" não se sustenta no código: o crawler não grava na tabela `files`, a DDL oficial não inclui a tabela `files` (Achado BL-001) e os testes existentes inserem arquivos com `content = NULL` (ex.: `tests/test_alias_tracker.py:163`).
+  - *Decisão Adotada:* Mantida estritamente a severidade **BAIXA** do relatório canônico de origem, confirmando que a falha é um defeito de código isolado sem impacto em produção ativa.
 - **Saída Bruta da Reprodução Executada:**
 ```
 ======================================================================
@@ -1057,4 +1058,71 @@ Divergências: 0
   - 🟡 **28 Média**
   - 🔵 **5 Baixa**
 - Alinhamento 100% verificado entre: Cabeçalho do documento, Gráfico ASCII, Mapa de Calor por Subsistema (todas as 15 linhas e colunas somam 87), Tabela de Itens e `AUDIT_PROTOCOL.md`.
+
+### 7.6 Mini-rodada de Correções (Revisão Externa do Commit 3b11de7)
+
+Em conformidade com a Regra 10 do `AUDIT_PROTOCOL.md` e a revisão externa pós-commit 3b11de7, registram-se abaixo as correções efetuadas para sanar afirmações sem sustentação fática no código:
+
+#### 7.6.1 Correção 1 — BL-087: Mock Permissivo com `*args, **kwargs` (e não "sem parâmetros")
+- **Diagnóstico:** O mecanismo anterior de BL-087 afirmava erroneamente que `_MockVectorStore.search(self)` "não aceita parâmetros" (`def search(self): return []`). O código real em `tests/test_interface_contracts.py:63` define `def search(self, *args, **kwargs): return []`. A divergência real é a **permissividade excessiva**: o mock aceita quaisquer argumentos variáveis e, portanto, mascara chamadores que violem a assinatura canônica de produção.
+- **Antes:**
+  - Título: `[BL-087] Divergência de Interface e Assinatura em _MockVectorStore (reset_collection e search)`
+  - Linhas: `tests/test_interface_contracts.py:62, 65`
+  - Mecanismo: Afirmava que `search(self)` não aceita parâmetros (`def search(self): return []`).
+- **Depois:**
+  - Título: `[BL-087] Mock Permissivo com *args, **kwargs e Divergência de Interface em _MockVectorStore`
+  - Linhas: `tests/test_interface_contracts.py:59, 63`
+  - Mecanismo: Documentado que `search(self, *args, **kwargs)` é excessivamente permissivo e mascara violações da assinatura canônica `BaseVectorBackend.search(self, query_embedding: list[float], project_uuids: list[str], top_k: int = 10, filters: Optional[dict] = None)`.
+  - Severidade mantida: `🔵 BAIXA`.
+- **Alinhamento em Outros Arquivos:** Achado #7 em [`audits/mock-vs-real-audit.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/mock-vs-real-audit.md) atualizado na mesma linha.
+- **Saída Bruta da Verificação (Passo 1a):**
+```
+=== GREP tests/test_interface_contracts.py ===
+59:    def reset_collection(self):
+63:    def search(self, *args, **kwargs):
+
+=== SIGNATURES ===
+_MockVectorStore.search sig: (*args, **kwargs)
+BaseVectorBackend.search sig: (self, query_embedding: 'list[float]', project_uuids: 'list[str]', top_k: 'int' = 10, filters: 'Optional[dict]' = None) -> 'list[VectorSearchResult]'
+
+=== CHAMADA REAL _MockVectorStore().search("x", ["p"], top_k=3) ===
+Retorno: []
+```
+- **Saída Bruta da Busca por Ocorrências da Afirmação Incorreta (Passo 1e):**
+```
+audits/backlog-final.md:712: (corrigido para permissividade de *args, **kwargs)
+audits/mock-vs-real-audit.md:78: (corrigido para permissividade de *args, **kwargs)
+AUDIT_PROTOCOL.md: 0 ocorrências encontradas
+```
+
+#### 7.6.2 Correção 2 — Seção 7.2: Desconexão de `compile_community_summary_jit` em Produção
+- **Diagnóstico:** A redação anterior da Seção 7.2 sustentava um contra-argumento de elevação afirmando que a falha ocorreria "na invocação do endpoint lazy JIT / cache miss" e que `crawler.py` sempre gravaria strings não-nulas. A investigação comprovou que:
+  1. Não há nenhum chamador de `compile_community_summary_jit` em arquivos de produção (`core/`, `interface/`, `services/`, `agent/`, etc.).
+  2. O método não é rota HTTP nem ferramenta FastMCP.
+  3. `crawler.py` não escreve na tabela `files` (a qual sequer consta na DDL oficial do `storage/schema.py`).
+- **Antes:** Texto afirmava risco em "endpoint lazy JIT / cache miss" e garantia não-nula por `crawler.py`.
+- **Depois:** Seção 7.2 reformulada demonstrando que o método está documentado no SDD e testado em `tests/test_delta_sync.py`, porém **não conectado** a nenhum fluxo de produção (risco estritamente latente). Severidade **BAIXA** mantida com respaldo empírico integral.
+- **Saída Bruta da Busca Abrangente de Chamadores (Passo 2a):**
+```
+=== BUSCA GLOBAL POR 'compile_community_summary_jit' NO REPOSITÓRIO ===
+.\core\delta_manager.py:160: def compile_community_summary_jit(
+.\tests\test_delta_sync.py:213: summary_v1 = self.delta_manager.compile_community_summary_jit(
+.\tests\test_delta_sync.py:220: summary_v2 = self.delta_manager.compile_community_summary_jit(
+(Restante das ocorrências restrito aos próprios relatórios em audits/)
+
+Total de chamadores em produção: 0
+Total de registros como ferramenta MCP / rota HTTP: 0
+```
+- **Saída Bruta da Busca de Escritas em `files` (Passo 2c):**
+```
+=== GREP POR INSERT INTO files OU UPDATE files ===
+.\core\alias_tracker.py:216: "UPDATE files SET path = ?, last_modified = ?, is_dirty = 1 WHERE path = ?;",
+.\core\background_janitor.py:111: "UPDATE files SET is_dirty = 0 WHERE community_id = ?;",
+.\core\checkpointer.py:201: queries.append(("UPDATE files SET is_dirty = 1, last_modified = ? WHERE path = ?;", (time.time(), task_id)))
+.\core\delta_manager.py:196: "UPDATE files SET is_dirty = 0 WHERE community_id = ?;",
+.\core\delta_manager.py:214: "INSERT INTO files (path, content, ssh_hash, body_hash, is_dirty, community_id) "
+.\core\delta_manager.py:232: "UPDATE files SET content = ?, is_dirty = 0 WHERE path = ?;",
+.\core\delta_manager.py:257: "UPDATE files SET content = ?, ssh_hash = ?, body_hash = ?, is_dirty = 1 "
+(Nenhuma escrita proveniente de ingestion/crawler.py; crawler não referencia tabela files)
+```
 
