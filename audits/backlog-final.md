@@ -32,6 +32,27 @@ A inspeção detalhada do backlog preliminar consolidado revelou **5 pontos de r
 
 Esta versão consolidada da **Fase 3** estabelece o **Roadmap de Engenharia e Backlog Executivo Completo**, com rastreabilidade 100% canônica com os 15 relatórios de auditoria, totalizando 87 itens técnicos estruturados (86 achados de não-conformidade confirmados + 1 observação de precisão arquitetural catalogada como melhoria técnica).
 
+### 1.1 Reconciliação com a Fase 2 (A Ponte Matemática: 79 → 84 → 87)
+
+O relatório de síntese da Fase 2 ([`audits/cruzamento-modulos.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/cruzamento-modulos.md)) declarava **79 achados** consolidados. A evolução para os **87 itens** catalogados no presente roadmap decorre de um processo estrito de reconciliação algébrica em duas etapas, comprovado item a item:
+
+| Severidade | Fase 2 (79 itens) | Transição 79 → 84 (Fase 3 Preliminar) | Transição 84 → 87 (Fase 3 Final) | Fase 3 Final (87 itens) | Saldo Líquido (79 → 87) |
+|---|:---:|---|---|:---:|:---:|
+| **Máxima** | 3 | Mantida inalterada | Mantida inalterada | **3** | 0 |
+| **Crítica** | 20 | **+1**: +1 inclusão de `BL-063` (substitui `#1b`), +1 restauração de `BL-003` (elevado de Média) | Mantida inalterada | **21** | **+1** |
+| **Grave** | 27 | **+3**: +2 inclusões (`BL-058`, `BL-084`), +2 restaurações (`BL-053`, `BL-019`), -1 reclassificação (`BL-021` para Média) | Mantida inalterada | **30** | **+3** |
+| **Média** | 26 | **+1**: +3 inclusões (`BL-005`, `BL-082`, `BL-083`), +1 de `BL-021`, -3 reclassificações (`BL-003`, `BL-053`, `BL-019`) | **+1**: +2 inclusões de mock (`BL-085`, `BL-086`), -1 reversão de `BL-060` (para Baixa) | **28** | **+2** |
+| **Baixa** | 3 | Mantida inalterada | **+2**: +1 inclusão de mock (`BL-087`), +1 reversão de `BL-060` (para Baixa) | **5** | **+2** |
+| **TOTAL** | **79** | **+5 itens** (`BL-005`, `BL-058`, `BL-082`, `BL-083`, `BL-084`, com `BL-063` normalizando `#1b`) | **+3 itens** (`BL-085`, `BL-086`, `BL-087`) | **87** | **+8** |
+
+#### Detalhamento das Transições:
+1. **Etapa 1 (79 → 84 itens — Resolução de Lacunas e Restauração Canônica):**
+   - **Inclusões (+5):** Incorporação de 5 achados confirmados da Fase 1 que haviam sido omitidos na contagem preliminar: `BL-005` (Média), `BL-058` (Grave), `BL-082` (Média), `BL-083` (Média) e `BL-084` (Grave). O item `BL-063` (Crítica) substituiu o ID espúrio `#1b` (Crítica) sem alteração de saldo.
+   - **Restauração de Severidades Canônicas:** 4 itens tiveram suas severidades alinhadas aos relatórios de origem: `BL-003` (+1 Crítica, -1 Média), `BL-021` (-1 Grave, +1 Média), `BL-053` (+1 Grave, -1 Média) e `BL-019` (+1 Grave, -1 Média).
+2. **Etapa 2 (84 → 87 itens — Auditoria de Mocks e Reversão Canônica):**
+   - **Inclusões (+3):** Adição dos achados de divergência de mock comprovados em `audits/mock-vs-real-audit.md`: `BL-085` (Média), `BL-086` (Média) e `BL-087` (Baixa).
+   - **Reversão de `BL-060`:** O item `BL-060` (`core-delta-manager.md #4`), preliminarmente categorizado como Média, foi formalmente revertido para a severidade canônica de origem **Baixa** (-1 Média, +1 Baixa) após comprovação empírica de inexistência de chamadores em produção.
+
 ---
 
 ## 2. Visão Executiva e Métricas Consolidadas
