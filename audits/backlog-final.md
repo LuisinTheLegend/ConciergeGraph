@@ -873,7 +873,7 @@ graph TD
 ## 6. Veredicto Final da Fase 3
 
 O **Backlog Final & Roadmap de Engenharia** está agora formalmente estabelecido com:
-- **87 achados catalogados** com rastreabilidade direta e sem ambiguidades aos 15 relatórios de auditoria da Fase 1 e à síntese transversal da Fase 2.
+- **87 itens técnicos catalogados (86 achados de não-conformidade confirmados + 1 observação de precisão arquitetural)** com rastreabilidade direta e sem ambiguidades aos 15 relatórios de auditoria da Fase 1 e à síntese transversal da Fase 2.
 - **6 Tracks de Trabalho** orientadas à dependência de software real, prontas para serem transformadas em branches/PRs de desenvolvimento.
 - **Critérios de aceite claros** para cada item, garantindo que a equipe de engenharia não apenas aplique correções, mas valide cada uma contra os scripts de reprodução empírica criados durante a auditoria.
 

@@ -181,7 +181,7 @@ Tarefa extra inserida a partir do padrão encontrado acima:
 
 ## Fase 3 — Consolidação
 
-- [x] **backlog-final** — Backlog executivo completo e roadmap de engenharia com 87 achados catalogados e reconciliados (3 Máxima + 21 Crítica + 30 Grave + 28 Média + 5 Baixa) (ver [`audits/backlog-final.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/backlog-final.md)).
+- [x] **backlog-final** — Backlog executivo completo e roadmap de engenharia com 87 itens técnicos catalogados (86 achados de não-conformidade confirmados + 1 observação de precisão arquitetural) (3 Máxima + 21 Crítica + 30 Grave + 28 Média + 5 Baixa) (ver [`audits/backlog-final.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/backlog-final.md)).
   87 itens numerados BL-001 a BL-087, cada um citando arquivo/linhas exatos, mecanismo técnico, relatório de origem (`audits/*.md`), diretriz de remediação arquitetural e critérios de validação.
   Organizado em 6 Tracks Sequenciais de Trabalho: (1) Fundação Relacional & Schema, (2) Concorrência & Escrita Unificada SQLite, (3) Segurança de Fronteira & Governança MCP, (4) Reconciliação, Grafo & Ingestão, (5) Telemetria, SSE & Dashboard HUD, (6) Runtime Cognitivo, Mocks & Código Órfão.
   Dependências críticas invioláveis formalizadas: BL-033 e BL-034 devem ser corrigidos no mesmo commit; BL-001 é o bloqueante estrutural de 12+ subsistemas.
