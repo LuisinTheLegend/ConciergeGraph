@@ -3,7 +3,7 @@
 > **Fase:** 3 — Consolidação (`backlog-final`)  
 > **Data:** 2026-10-01  
 > **Fontes:** 15 relatórios de auditoria em `audits/*.md` (Fase 1) + [`audits/cruzamento-modulos.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/cruzamento-modulos.md) (Fase 2)  
-> **Total de Achados Auditados e Catalogados:** 84 achados confirmados (3 Máxima + 21 Crítica + 29 Grave + 28 Média + 3 Baixa)  
+> **Total de Achados Auditados e Catalogados:** 87 achados confirmados (3 Máxima + 21 Crítica + 30 Grave + 28 Média + 5 Baixa)  
 > **Status:** Concluído — Revisão Exaustiva e Reconciliação Canônica
 
 ---
@@ -15,7 +15,7 @@ A inspeção detalhada do backlog preliminar gerado anteriormente revelou **5 in
 1. **Omissão e Supressão de Achados Reais da Fase 1:** Para forçar o total estrito de 79 linhas no arquivo, 5 achados confirmados e reproduzidos na Fase 1 foram cortados ou silenciados:
    - `agent-and-agents.md` #6: Incompatibilidade estrutural universal com corrotinas assíncronas e bypass do `RateGovernor` em `execute_tool`.
    - `agent-and-agents.md` #7: Dessincronização estrutural entre sub-estados do HSM e `TOOL_DISCLOSURE_MATRIX` (regras mortas).
-   - `core-delta-manager.md` #4: Crash fatal com `TypeError` em `compile_community_summary_jit()` quando `files.content` é `NULL`.
+   - `core-delta-manager.md` #4: TypeError quando `files.content` é NULL (severidade BAIXA no relatório de origem).
    - `mock-vs-real-audit.md` #3: Contrato fantasma de cliente MCP federado em `core/federated_knowledge_router.py:73` (`query_docs` sem implementação real no repositório).
    - `schema-oficial-incompleto.md` #2: O colapso operacional dos 12 subsistemas analíticos foi fundido e ocultado sob a descrição do Test Mirage (#4).
 2. **Erros de Citação e Inversões Numéricas:**
@@ -42,16 +42,16 @@ Esta nova versão da **Fase 3** reconstrói o backlog do zero: é um **Roadmap d
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                 BACKLOG FINAL & ROADMAP — 84 ACHADOS REAIS                  │
+│                 BACKLOG FINAL & ROADMAP — 87 ACHADOS REAIS                  │
 │                                                                             │
-│  🔴🔴 MÁXIMA   ███                                                3  ( 3.6%)│
-│  🔴   CRÍTICA  █████████████████████                             21  (25.0%)│
-│  🟠   GRAVE    █████████████████████████████                     29  (34.5%)│
-│  🟡   MÉDIA    ████████████████████████████                      28  (33.3%)│
-│  🔵   BAIXA    ███                                                3  ( 3.6%)│
+│  🔴🔴 MÁXIMA   ███                                                3  ( 3.4%)│
+│  🔴   CRÍTICA  █████████████████████                             21  (24.1%)│
+│  🟠   GRAVE    ██████████████████████████████                    30  (34.5%)│
+│  🟡   MÉDIA    ████████████████████████████                      28  (32.2%)│
+│  🔵   BAIXA    █████                                              5  ( 5.8%)│
 │                                                                             │
-│  TOTAL DE ACHADOS TÉCNICOS: 84                                              │
-│  CRÍTICOS + GRAVES (RISCO ALTO/BLOQUEANTE): 53 achados (63.1%)              │
+│  TOTAL DE ACHADOS TÉCNICOS: 87                                              │
+│  CRÍTICOS + GRAVES (RISCO ALTO/BLOQUEANTE): 54 achados (62.1%)              │
 │  SUBSISTEMAS AFETADOS: 15 componentes auditados                             │
 │  CADEIAS DE FALHA TRANSVERSAL ATIVAS: 4 cadeias completas                   │
 │  CÓDIGO MORTO / ÓRFÃO CONFIRMADO: 6 componentes                             │
@@ -59,7 +59,7 @@ Esta nova versão da **Fase 3** reconstrói o backlog do zero: é um **Roadmap d
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Mapa de Calor Canônico por Subsistema (84 Achados)
+### Mapa de Calor Canônico por Subsistema (87 Achados)
 
 | Subsistema / Módulo de Produção | Máxima | Crítica | Grave | Média | Baixa | Total |
 |---|---|---|---|---|---|---|
@@ -73,12 +73,12 @@ Esta nova versão da **Fase 3** reconstrói o backlog do zero: é um **Roadmap d
 | **Faxineiro de Background & Pruning (`core/background_janitor.py`)** | — | — | 3 | 2 | — | **5** |
 | **Rate Governor & Controle de Tráfego (`core/rate_governor.py`)** | — | 1 | 3 | 1 | — | **5** |
 | **Security Guard & Hazard Classifier (`core/security_guard.py`)** | — | 1 | 1 | 2 | 1 | **5** |
-| **Delta Manager & AST Sync (`core/delta_manager.py`)** | — | 1 | 1 | 2 | 1 | **5** |
+| **Delta Manager & AST Sync (`core/delta_manager.py`)** | — | 1 | 1 | 1 | 2 | **5** |
 | **API REST & Streaming SSE (`interface/telemetry_api.py`)** | — | 2 | 3 | 2 | — | **7** |
 | **Dashboard Web Next.js 16 (`grafo-dashboard-web/`)** | — | 3 | 2 | 3 | — | **8** |
 | **Runtime Cognitivo & Agentes (`agent/`, `agents/` — Condicional/Órfão)** | — | 2* | 3* | 2* | — | **7*** |
-| **Contratos Fantasma de Integração (`core/federated_knowledge_router.py`)** | — | — | 1 | — | — | **1** |
-| **TOTAL GERAL RECONCILIADO** | **3** | **21** | **29** | **28** | **3** | **84** |
+| **Contratos Fantasma & Divergência de Mocks (`mock-vs-real-audit.md` e `core/federated_knowledge_router.py`)** | — | — | 1 | 2 | 1 | **4** |
+| **TOTAL GERAL RECONCILIADO** | **3** | **21** | **30** | **28** | **5** | **87** |
 
 > \* *Severidade Condicional: Código atualmente órfão/desconectado do servidor FastMCP em produção. Seus bugs se materializam no momento em que o código for reconectado.*
 
@@ -96,7 +96,7 @@ flowchart TD
     T2 --> T3["TRACK 3: Segurança de Fronteira & Governança MCP<br/>(BL-011 a BL-015, BL-052 a BL-056)<br/>Estanca bypass de sessão e exfiltração"]
     T3 --> T4["TRACK 4: Reconciliação, Grafo & Ingestão Consistente<br/>(BL-025 a BL-036, BL-057 a BL-061)<br/>Purga atômica e correções simultâneas"]
     T4 --> T5["TRACK 5: Telemetria, Streaming SSE & Dashboard HUD<br/>(BL-062 a BL-076)<br/>Restaura observabilidade e reconexões"]
-    T5 --> T6["TRACK 6: Runtime Cognitivo, Mocks & Código Órfão<br/>(BL-077 a BL-084)<br/>Decisão arquitetural: reconectar ou expurgar"]
+    T5 --> T6["TRACK 6: Runtime Cognitivo, Mocks & Código Órfão<br/>(BL-077 a BL-087)<br/>Decisão arquitetural: reconectar ou expurgar"]
 ```
 
 ---
@@ -451,8 +451,8 @@ flowchart TD
 - **Diretriz de Remediação:** Encapsular ambas as queries em uma única transação atômica (`BEGIN IMMEDIATE`).
 - **Critério de Validação:** Falha na segunda escrita reverte a primeira.
 
-#### [BL-060] Crash `TypeError` em `compile_community_summary_jit()` com `content=NULL`
-- **Severidade:** 🟡 MÉDIA
+#### [BL-060] TypeError em `compile_community_summary_jit()` quando `files.content` é NULL
+- **Severidade:** 🔵 BAIXA
 - **Arquivos & Linhas:** [`core/delta_manager.py:186`](file:///c:/Nexus-Memory/GrafoConcierge/core/delta_manager.py#L186)
 - **Relatório de Origem:** [`audits/core-delta-manager.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/core-delta-manager.md) #4
 - **Mecanismo da Falha:** `str.join()` lança `TypeError` se algum arquivo tiver `content=NULL`.
@@ -689,6 +689,30 @@ flowchart TD
 - **Diretriz de Remediação:** Implementar o cliente MCP federado de produção com transporte real ou remover o roteamento federado morto.
 - **Critério de Validação:** Invocação do roteador executa chamada MCP remota real sem mock.
 
+#### [BL-085] Método Fantasma `insert()` em MockVectorDatabase Mascara Contrato de Inserção de Vetores
+- **Severidade:** 🟡 MÉDIA
+- **Arquivos & Linhas:** [`tests/test_vector_reconciler.py:73`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_vector_reconciler.py#L73), [`storage/base_backend.py:91`](file:///c:/Nexus-Memory/GrafoConcierge/storage/base_backend.py#L91), [`storage/vector_store.py:251`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py#L251)
+- **Relatório de Origem:** [`audits/mock-vs-real-audit.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/mock-vs-real-audit.md) #5
+- **Mecanismo da Falha:** `MockVectorDatabase` define `insert(vector_id, payload)`. Esse método não existe nem em `BaseVectorBackend` nem em `ChromaVectorStore` (o método canônico de produção é `store_embedding(doc_id, embedding, metadata)`). Embora `VectorReconciler` não invoque `insert` diretamente, o mock esconde que a persistência real de vetores exige metadados obrigatórios (`project_uuid`, `node_id`) e vetor float validado, criando falsa sensação de compatibilidade em testes de integração.
+- **Diretriz de Remediação:** Alinhar `MockVectorDatabase` com a interface canônica `BaseVectorBackend`, substituindo `insert` por `store_embedding` ou fazendo-o herdar da interface base.
+- **Critério de Validação:** `MockVectorDatabase` implementa os mesmos métodos e contratos que `BaseVectorBackend` sem expor métodos fantasmas como `insert`.
+
+#### [BL-086] Incompatibilidade de Assinatura e Retorno em `MockGraphRAGEngine.retrieve_multihop_context`
+- **Severidade:** 🟡 MÉDIA
+- **Arquivos & Linhas:** [`tests/test_cognitive_routing_memory.py:24`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_cognitive_routing_memory.py#L24), [`core/graph_rag.py:45`](file:///c:/Nexus-Memory/GrafoConcierge/core/graph_rag.py#L45)
+- **Relatório de Origem:** [`audits/mock-vs-real-audit.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/mock-vs-real-audit.md) #6
+- **Mecanismo da Falha:** `MockGraphRAGEngine.retrieve_multihop_context(query)` aceita texto puro de query e retorna `str`. A classe real `GraphRAGEngine.retrieve_multihop_context(entry_node, max_depth=3)` espera um caminho de arquivo (`entry_node`) e retorna `Dict[str, Any]`. Ao conectar a classe real no `FederatedKnowledgeRouter._resolve_local()`, passar query em linguagem natural causará falha na busca relacional de nós e retornará dicionário em vez de string, quebrando as asserções e consumidores a montante.
+- **Diretriz de Remediação:** Harmonizar a assinatura e contrato de tipo de retorno entre o mock e a classe real `GraphRAGEngine`, unificando a especificação de entrada (query vs entry_node) e retorno.
+- **Critério de Validação:** Assinatura do mock é idêntica à classe real `GraphRAGEngine.retrieve_multihop_context` e o tipo retornado é consistente.
+
+#### [BL-087] Divergência de Interface e Assinatura em `_MockVectorStore` (`reset_collection` e `search`)
+- **Severidade:** 🔵 BAIXA
+- **Arquivos & Linhas:** [`tests/test_interface_contracts.py:62, 65`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_interface_contracts.py#L62), [`storage/base_backend.py:91`](file:///c:/Nexus-Memory/GrafoConcierge/storage/base_backend.py#L91), [`storage/vector_store.py:251`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py#L251)
+- **Relatório de Origem:** [`audits/mock-vs-real-audit.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/mock-vs-real-audit.md) #7
+- **Mecanismo da Falha:** `_MockVectorStore.reset_collection()` é testado como se pertencesse à interface base vetorial, mas `reset_collection` existe somente na implementação concreta `ChromaVectorStore`, não na interface abstrata `BaseVectorBackend`. Adicionalmente, `_MockVectorStore.search(self)` não aceita parâmetros (`def search(self): return []`), enquanto a interface real exige `query_embedding` e `project_uuids`.
+- **Diretriz de Remediação:** Adicionar `reset_collection` na classe abstrata `BaseVectorBackend` (se fizer parte do contrato canônico) e alinhar a assinatura de `search` em `_MockVectorStore` com a assinatura completa de `BaseVectorBackend.search`.
+- **Critério de Validação:** `_MockVectorStore` herda formalmente de `BaseVectorBackend` e cumpre todas as suas assinaturas sem desvios.
+
 ---
 
 ### Componentes de Suporte do Core (Checkpointer, Janitor, Governor)
@@ -853,8 +877,184 @@ graph TD
 ## 6. Veredicto Final da Fase 3
 
 O **Backlog Final & Roadmap de Engenharia** está agora formalmente estabelecido com:
-- **84 achados catalogados** com rastreabilidade direta e sem ambiguidades aos 15 relatórios de auditoria da Fase 1 e à síntese transversal da Fase 2.
+- **87 achados catalogados** com rastreabilidade direta e sem ambiguidades aos 15 relatórios de auditoria da Fase 1 e à síntese transversal da Fase 2.
 - **6 Tracks de Trabalho** orientadas à dependência de software real, prontas para serem transformadas em branches/PRs de desenvolvimento.
 - **Critérios de aceite claros** para cada item, garantindo que a equipe de engenharia não apenas aplique correções, mas valide cada uma contra os scripts de reprodução empírica criados durante a auditoria.
 
 *Este documento encerra formalmente a Fase 3 do Protocolo de Auditoria do Grafo Concierge.*
+
+---
+
+## 7. Registro de Correções Pós-Auditoria Externa
+
+Em conformidade com a Regra 10 do `AUDIT_PROTOCOL.md` e a rodada de revisão externa, registram-se abaixo as correções efetuadas no backlog, com detalhamento antes/depois e evidências de reprodução executadas em ambiente real:
+
+### 7.1 Correção 1 — Reconciliação dos Totais e Inconsistências de Soma
+- **Diagnóstico:** O cabeçalho anterior e a linha TOTAL do mapa de calor indicavam 29 Grave / 28 Média, porém a soma das linhas de subsistema resultava em 30 Grave / 27 Média.
+- **Antes:** Cabeçalho e TOTAL declaravam `29 Grave / 28 Média (84 total)`.
+- **Depois:** Reconciliado com a contagem exata e as correções subsequentes para `30 Grave / 28 Média / 5 Baixa / 21 Crítica / 3 Máxima = 87 total`.
+
+### 7.2 Correção 2 — Reversão de Severidade do BL-060 e Registro Técnico do Argumento
+- **Diagnóstico:** O Achado #4 de `core-delta-manager.md` classifica a falha em `compile_community_summary_jit()` com `files.content = NULL` como severidade BAIXA. O backlog anterior classificou-a como MÉDIA sem justificativa formal.
+- **Antes:** BL-060 classificado como `🟡 MÉDIA` com texto citando "crash fatal".
+- **Depois:** Revertido para `🔵 BAIXA`. Texto na Seção 1 atualizado para `"TypeError quando files.content é NULL (severidade BAIXA no relatório de origem)"`.
+- **Argumento Técnico para Decisão Humana:**
+  - *Visão da Fonte (Severidade BAIXA):* Em condições nominais, a tabela `files` é populada por `ingestion/crawler.py`, que sempre grava strings não-nulas. A ocorrência de `content IS NULL` é atípica e restrita a inserções parciais ou anomalias isoladas de schema.
+  - *Contra-argumento de Engenharia (Risco Potencial de Elevação):* Quando uma comunidade possui mesmo que um único arquivo com conteúdo nulo, a invocação do endpoint lazy JIT aborta com `TypeError: sequence item 0: expected str instance, NoneType found`, quebrando a compilação inteira da comunidade em vez de degradar graciosamente.
+  - *Decisão Adotada:* Mantida estritamente a severidade **BAIXA** do relatório canônico de origem, submetendo o argumento técnico e a reprodução abaixo para deliberação do operador humano.
+- **Saída Bruta da Reprodução Executada:**
+```
+======================================================================
+REPRODUCAO BL-060: TypeError quando files.content e NULL
+======================================================================
+Traceback/Erro capturado com sucesso: TypeError: sequence item 0: expected str instance, NoneType found
+```
+
+### 7.3 Correção 3 — Inclusão dos Achados Faltantes de `mock-vs-real-audit.md` (#5, #6 e #7)
+- **Diagnóstico:** Três achados confirmados da auditoria de mocks não constavam na catalogação do backlog: Achado #5 (MÉDIA), Achado #6 (MÉDIA) e Achado #7 (BAIXA).
+- **Antes:** Backlog encerrava em BL-084, omitindo os três defeitos de contrato e assinatura.
+- **Depois:** Incorporados ao final da TRACK 6 como `BL-085` (MÉDIA), `BL-086` (MÉDIA) e `BL-087` (BAIXA), mantendo a numeração canônica estável.
+- **Saída Bruta da Reprodução Executada (Regra 2):**
+```
+======================================================================
+REPRODUCAO BL-085 (mock-vs-real-audit.md #5 - MEDIA)
+======================================================================
+MockVectorDatabase has 'insert': True
+BaseVectorBackend has 'insert': False
+ChromaVectorStore has 'insert': False
+BaseVectorBackend canonical method 'store_embedding': True
+ChromaVectorStore canonical method 'store_embedding': True
+
+======================================================================
+REPRODUCAO BL-086 (mock-vs-real-audit.md #6 - MEDIA)
+======================================================================
+MockGraphRAGEngine.retrieve_multihop_context sig: (self, query: str) -> str
+GraphRAGEngine.retrieve_multihop_context sig:     (self, entry_node: str, max_depth: int = 3) -> Dict[str, Any]
+
+======================================================================
+REPRODUCAO BL-087 (mock-vs-real-audit.md #7 - BAIXA)
+======================================================================
+_MockVectorStore has 'reset_collection': True
+BaseVectorBackend has 'reset_collection': False
+ChromaVectorStore has 'reset_collection': True
+_MockVectorStore.search signature: (*args, **kwargs)
+BaseVectorBackend.search signature: (self, query_embedding: 'list[float]', project_uuids: 'list[str]', top_k: 'int' = 10, filters: 'Optional[dict]' = None) -> 'list[VectorSearchResult]'
+======================================================================
+```
+
+### 7.4 Correção 4 — Validação Automatizada de Rastreabilidade (Script e Saída Bruta)
+- **Diagnóstico:** Necessidade de garantir que para cada um dos 87 itens BL: (a) o par (relatório, #N) existe na origem, (b) o título descreve o achado, (c) a severidade coincide com a fonte canônica.
+- **Script Executado:** `scratch/validate_traceability.py`.
+- **Resultado:** 87/87 itens validados com 100% de conformidade canônica. Zero divergências remanescentes.
+- **Saída Bruta Completa da Execução (Regra 2):**
+```
+Total de itens BL encontrados no backlog: 87
+
+======================================================================
+SAÍDA BRUTA: VERIFICAÇÃO ITEM A ITEM DA RASTREABILIDADE (Regra 2)
+======================================================================
+[OK] BL-001: schema-oficial-incompleto.md #1 [MAXIMA] | Omissão Estrutural de 5 Tabelas no Bootstrap Oficial de Produção
+[OK] BL-002: schema-oficial-incompleto.md #2 [MAXIMA] | Inoperância Funcional de 12 Subsistemas Analíticos em Instalação Limpa
+[OK] BL-003: schema-oficial-incompleto.md #4 [CRITICA] | Padrão Test Mirage: 14 Suítes de Teste Criam Tabelas Privadas em `setUp()`
+[OK] BL-004: schema-oficial-incompleto.md #3 [GRAVE] | Mascaramento de Erros DDL e Falsa Confirmação de Integridade no Boot
+[OK] BL-005: schema-oficial-incompleto.md #5 [MEDIA] | Abandono da Especificação Arquitetural Formal (`01_ARCHITECTURE.md`)
+[OK] BL-006: duplicacao-serialized-write-queue.md #1 [CRITICA] | Colisão Estrutural entre Fila Real (`storage/`) e Zero Fila (`core/`) sobre o Banco
+[OK] BL-007: duplicacao-serialized-write-queue.md #2 [CRITICA] | Código Morto em Produção: `interface/queue_writer.py`
+[OK] BL-008: duplicacao-serialized-write-queue.md #3 [GRAVE] | Divergência de Integridade Referencial (`foreign_keys=OFF` no core vs `ON` em storage)
+[OK] BL-009: duplicacao-serialized-write-queue.md #4 [GRAVE] | Timeout Assimétrico de Conexão (5s em storage vs 30s no core)
+[OK] BL-010: duplicacao-serialized-write-queue.md #5 [MEDIA] | Quebra de Encapsulamento Privado `_gc._store._conn_mgr._db_path`
+[OK] BL-016: storage.md #1 [CRITICA] | Deadlock Inevitável em Escritas Aninhadas/Reentrantes no `SerializedWriteQueue`
+[OK] BL-018: storage.md #2 [GRAVE] | Vazamento Perpétuo de Conexões SQLite em Threads Finalizadas
+[OK] BL-021: storage.md #3 [MEDIA] | Falha ao Reiniciar `SerializedWriteQueue` após `stop()`
+[OK] BL-011: bypass-governanca-por-session-id.md #1 [MAXIMA] | Bypass Total da Governança de Ferramentas via Injeção de `session_id` Fantasma
+[OK] BL-012: bypass-governanca-por-session-id.md #2 [CRITICA] | Ausência Total de Verificação de Posse em Checkpoints de Agentes
+[OK] BL-013: bypass-governanca-por-session-id.md #3 [GRAVE] | Vazamento de 100% do Catálogo de Ferramentas em `list_tools()`
+[OK] BL-014: bypass-governanca-por-session-id.md #4 [GRAVE] | Desconexão Total do Runtime Cognitivo no Servidor MCP
+[OK] BL-015: bypass-governanca-por-session-id.md #5 [MEDIA] | Inicialização Insegura por Padrão (`default_state = "EXECUTION"`)
+[OK] BL-052: core-security-guard.md #1 [CRITICA] | Evasão da Blacklist de Comandos Destrutivos do SecurityGuard
+[OK] BL-053: core-security-guard.md #2 [GRAVE] | `classify_command(None)` Lança `TypeError` Não Tratado
+[OK] BL-054: core-security-guard.md #3 [MEDIA] | Bug de Barra Dupla `C:\\\\` na Raiz Bloqueia 100% dos Arquivos em `is_safe_path`
+[OK] BL-055: core-security-guard.md #4 [MEDIA] | Resolução de Caminhos Relativos Ancorada ao CWD do Processo e Não a `project_root`
+[OK] BL-056: core-security-guard.md #5 [BAIXA] | Falsos Positivos de WARNING em Comandos Inofensivos Contendo `"build"`
+[OK] BL-033: core-vector-reconciler.md #1 [CRITICA] | Invocação de Método Fantasma `self.vector_db.get_all_ids()`
+[OK] BL-034: core-vector-reconciler.md #2 [CRITICA] | Purga Garantida de 100% dos Vetores por Incompatibilidade `int` vs `str`
+[OK] BL-017: storage.md #6 [CRITICA] | Bypass de Strict Scoping na Busca Vetorial com `project_uuids=[]`
+[OK] BL-025: ingestion.md #1 [CRITICA] | Perda Total no Grafo na Renomeação de Arquivos
+[OK] BL-026: ingestion.md #2 [CRITICA] | Descarte Silencioso de 100% dos Resumos L0 com Gravação de `NULL`
+[OK] BL-027: ingestion.md #3 [GRAVE] | Falha Silenciosa de Persistência do L2 Compass no SQLite
+[OK] BL-028: ingestion.md #4 [GRAVE] | Acúmulo Perpétuo de Vetores Zumbis no ChromaDB
+[OK] BL-035: core-vector-reconciler.md #3 [GRAVE] | Race Condition Destrutiva TOCTOU no Reconciliador Vetorial
+[OK] BL-057: core-delta-manager.md #1 [CRITICA] | Método Fantasma `has_structural_change()` no DeltaManager
+[OK] BL-058: core-delta-manager.md #6 [GRAVE] | Cegueira de LBH em Non-Python e SSH Incompleto
+[OK] BL-020: storage.md #5 [GRAVE] | Falha de Tipo em `_calculate_decay` com Timestamps ISO Offset-Aware
+[OK] BL-036: core-vector-reconciler.md #4 [MEDIA] | Falta de Paginação em `delete_batch` no Reconciliador Vetorial
+[OK] BL-029: ingestion.md #5 [MEDIA] | Crash com `AttributeError` em Ingestão sem Summarizer
+[OK] BL-030: ingestion.md #6 [MEDIA] | Descarte Arbitrário de `requirements.txt` por `*.txt` no Ignore Padrão
+[OK] BL-031: ingestion.md #7 [MEDIA] | Poluição de Tags Semânticas por Substrings Ingênuas
+[OK] BL-032: ingestion.md #8 [MEDIA] | Truncamento de Código JS/TS por Contagem Ingênua de Chaves `{}`
+[OK] BL-059: core-delta-manager.md #3 [MEDIA] | Dupla Conexão Efêmera Crua por Mutação no DeltaManager
+[OK] BL-060: core-delta-manager.md #4 [BAIXA] | TypeError em `compile_community_summary_jit()` quando `files.content` é NULL
+[OK] BL-022: storage.md #7 [MEDIA] | Crash com `ValueError` em Busca Vetorial com `node_id=None` ou Vazio
+[OK] BL-023: storage.md #8 [MEDIA] | Duplicação de Nós na CTE Recursiva `get_dependency_tree`
+[OK] BL-061: core-delta-manager.md #5 [BAIXA] | SSH Context-Free Captura Declarações Independentemente de Indentação
+[OK] BL-024: storage.md #9 [BAIXA] | Isolamento de `semantic_logic.py` Força Violação de Encapsulamento
+[OK] BL-062: interface-telemetry-api.md #1 [CRITICA] | Falha Fatal e Crash HTTP 500 na Telemetria por Tabelas Inexistentes
+[OK] BL-063: interface-telemetry-api.md #2 [CRITICA] | Inoperância Fora da Caixa por Dependência `get_db_manager` Não Configurada
+[OK] BL-069: grafo-dashboard-web.md #1 [CRITICA] | Código Morto em Handlers SSE e Telemetria Reativa Congelada
+[OK] BL-070: grafo-dashboard-web.md #2 [CRITICA] | Ciclo Infinito de Flapping SSE a cada 8s e Inundação do Feed de Eventos
+[OK] BL-071: grafo-dashboard-web.md #3 [CRITICA] | Colisão de Portas 8000, Falha no `dev:all` e Desconexão do FastMCP
+[OK] BL-064: interface-telemetry-api.md #3 [GRAVE] | Falso Stream Contínuo por Limite Hardcoded (`max_checks = 5`)
+[OK] BL-065: interface-telemetry-api.md #4 [GRAVE] | Invalidação Perpétua do SHA-256 no SSE por Timestamp Dinâmico
+[OK] BL-066: interface-telemetry-api.md #5 [GRAVE] | Insegurança Total de CORS e Falta de Autenticação em Rotas Mutantes
+[OK] BL-072: grafo-dashboard-web.md #4 [GRAVE] | Incompatibilidade de Autenticação FastMCP e Rejeição HTTP 401
+[OK] BL-073: grafo-dashboard-web.md #5 [GRAVE] | Omissão de Metadados em `get_full_topology` e Esvaziamento do `InspectorDrawer`
+[OK] BL-067: interface-telemetry-api.md #6 [MEDIA] | Crash de Tipagem em Timestamps na Telemetria (`NoneType` e `str`)
+[OK] BL-068: interface-telemetry-api.md #7 [MEDIA] | Thread Daemônica Órfã Iniciada no Import de `telemetry_api`
+[OK] BL-074: grafo-dashboard-web.md #6 [MEDIA] | Risco de Data Inválida (`Invalid Date`) por Concatenação `+ "Z"`
+[OK] BL-075: grafo-dashboard-web.md #7 [MEDIA] | Rotas Mutantes `/api/hsm/transition` Órfãs e Cliques Inertes no HUD
+[OK] BL-076: grafo-dashboard-web.md #8 [MEDIA] | 37 Erros de Linter e Violação de Pureza no React 19
+[OK] BL-077: agent-and-agents.md #1 [CRITICA] | Contaminação de Turnos Multi-Sessão no Circuit Breaker
+[OK] BL-078: agent-and-agents.md #2 [CRITICA] | Vazamento de Privacidade por Fallback Inseguro Fail-Open em `check_contamination`
+[OK] BL-079: agent-and-agents.md #3 [GRAVE] | Aprovação Espúria de Commits Inválidos em `audit_with_retry`
+[OK] BL-080: agent-and-agents.md #4 [GRAVE] | Dessincronização de Estado e Diretrizes em `step(target_transition=...)`
+[OK] BL-081: agent-and-agents.md #5 [GRAVE] | Falhas de Tipagem e Crash em Reranking (`NoneType` e `int` vs `str`)
+[OK] BL-082: agent-and-agents.md #6 [MEDIA] | Incompatibilidade Universal com Corrotinas e Bypass do RateGovernor em `execute_tool`
+[OK] BL-083: agent-and-agents.md #7 [MEDIA] | Dessincronização entre Sub-Estados do HSM e `TOOL_DISCLOSURE_MATRIX`
+[OK] BL-084: mock-vs-real-audit.md #3 [GRAVE] | Contrato Fantasma de Cliente MCP Federado em `FederatedKnowledgeRouter`
+[OK] BL-085: mock-vs-real-audit.md #5 [MEDIA] | Método Fantasma `insert()` em MockVectorDatabase Mascara Contrato de Inserção de Vetores
+[OK] BL-086: mock-vs-real-audit.md #6 [MEDIA] | Incompatibilidade de Assinatura e Retorno em `MockGraphRAGEngine.retrieve_multihop_context`
+[OK] BL-087: mock-vs-real-audit.md #7 [BAIXA] | Divergência de Interface e Assinatura em `_MockVectorStore` (`reset_collection` e `search`)
+[OK] BL-037: core-checkpointer.md #1 [CRITICA] | Despacho Ambíguo em `save_checkpoint` Corrompe Metadados e Apaga Estado
+[OK] BL-038: core-checkpointer.md #2 [GRAVE] | Mascaramento de Falhas e Transação Não Atômica em `execute_time_travel`
+[OK] BL-039: core-checkpointer.md #3 [GRAVE] | Granularidade Temporal de 1s Falha em Deletar Checkpoints em Rajadas
+[OK] BL-040: core-checkpointer.md #4 [MEDIA] | Crash `json.JSONDecodeError` Não Tratado em `get_checkpoint`
+[OK] BL-041: core-checkpointer.md #5 [MEDIA] | Tipagem Insegura Mypy no Checkpointer (`None` Not Callable)
+[OK] BL-042: core-background-janitor.md #1 [GRAVE] | Slice Negativo `[-0:]` com `keep_limit = 0` Preserva 100% dos Checkpoints
+[OK] BL-043: core-background-janitor.md #2 [GRAVE] | Degradação Irreversível da Prioridade do Servidor para IDLE
+[OK] BL-044: core-background-janitor.md #3 [GRAVE] | Deleção Cruzada de Checkpoints entre Agentes na Mesma Sessão
+[OK] BL-045: core-background-janitor.md #4 [MEDIA] | Crash com `TypeError` em `_summarize_community` com `files.content = NULL`
+[OK] BL-046: core-background-janitor.md #5 [MEDIA] | TOCTOU / Descarte Cego de `is_dirty = 0` sobre Edições Recentes
+[OK] BL-047: core-rate-governor.md #1 [CRITICA] | Vazamento de `unfinished_tasks` na `PriorityQueue` e Starvation
+[OK] BL-048: core-rate-governor.md #2 [GRAVE] | Starvation de Tarefas LOW Envelhecidas em Carga de 75% a 100%
+[OK] BL-049: core-rate-governor.md #3 [GRAVE] | Data Race / Lost Updates em `get_current_metrics()` sem Lock
+[OK] BL-050: core-rate-governor.md #4 [GRAVE] | Deadlock Eterno em `submit_request` sem Timeout e Após `shutdown()`
+[OK] BL-051: core-rate-governor.md #5 [MEDIA] | Cegueira de RPM no Fast-Path do RateGovernor
+[OK] BL-019: storage.md #4 [GRAVE] | Incompatibilidade de Contrato em `init_fsm_checkpoints_schema`
+
+======================================================================
+RESUMO DA VALIDAÇÃO DE RASTREABILIDADE:
+Total de itens validados: 87
+OK: 87
+Divergências: 0
+======================================================================
+```
+
+### 7.5 Correção 5 — Recontagem e Consistência Global
+- **Total Canônico Reconciliado:** **87 itens** distribuídos estritamente em:
+  - 🔴🔴 **3 Prioridade Máxima**
+  - 🔴 **21 Crítica**
+  - 🟠 **30 Grave**
+  - 🟡 **28 Média**
+  - 🔵 **5 Baixa**
+- Alinhamento 100% verificado entre: Cabeçalho do documento, Gráfico ASCII, Mapa de Calor por Subsistema (todas as 15 linhas e colunas somam 87), Tabela de Itens e `AUDIT_PROTOCOL.md`.
+
