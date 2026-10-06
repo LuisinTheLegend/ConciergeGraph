@@ -3,38 +3,34 @@
 > **Fase:** 3 — Consolidação (`backlog-final`)  
 > **Data:** 2026-10-01  
 > **Fontes:** 15 relatórios de auditoria em `audits/*.md` (Fase 1) + [`audits/cruzamento-modulos.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/cruzamento-modulos.md) (Fase 2)  
-> **Total de Achados Auditados e Catalogados:** 87 achados confirmados (3 Máxima + 21 Crítica + 30 Grave + 28 Média + 5 Baixa)  
+> **Total de Achados Auditados e Catalogados:** 87 itens catalogados (86 achados de não-conformidade confirmados + 1 observação arquitetural de precisão) — 3 Máxima + 21 Crítica + 30 Grave + 28 Média + 5 Baixa  
 > **Status:** Concluído — Revisão Exaustiva e Reconciliação Canônica
 
 ---
 
-## 1. Relatório de Análise Forense da Fase 3 Anterior (Diagnóstico do Trabalho do Opus)
+## 1. Diagnóstico e Reconciliação Estrutural da Consolidação da Fase 3
 
-A inspeção detalhada do backlog preliminar gerado anteriormente revelou **5 inconsistências estruturais graves** que comprometiam sua fidelidade ao protocolo e sua utilidade como guia executável de engenharia:
+A inspeção detalhada do backlog preliminar consolidado revelou **5 pontos de reconciliação estrutural** necessários para garantir a fidelidade aos relatórios de auditoria da Fase 1 e fornecer um roadmap executável para a engenharia:
 
-1. **Omissão e Supressão de Achados Reais da Fase 1:** Para forçar o total estrito de 79 linhas no arquivo, 5 achados confirmados e reproduzidos na Fase 1 foram cortados ou silenciados:
+1. **Lacunas de Cobertura Identificadas na Fase Preliminar:** Itens confirmados na Fase 1 que não haviam sido transpostos:
    - `agent-and-agents.md` #6: Incompatibilidade estrutural universal com corrotinas assíncronas e bypass do `RateGovernor` em `execute_tool`.
    - `agent-and-agents.md` #7: Dessincronização estrutural entre sub-estados do HSM e `TOOL_DISCLOSURE_MATRIX` (regras mortas).
    - `core-delta-manager.md` #4: TypeError quando `files.content` é NULL (severidade BAIXA no relatório de origem).
    - `mock-vs-real-audit.md` #3: Contrato fantasma de cliente MCP federado em `core/federated_knowledge_router.py:73` (`query_docs` sem implementação real no repositório).
-   - `schema-oficial-incompleto.md` #2: O colapso operacional dos 12 subsistemas analíticos foi fundido e ocultado sob a descrição do Test Mirage (#4).
-2. **Erros de Citação e Inversões Numéricas:**
-   - Inversão em `storage.md`: BL-036 citava `#3` para `init_fsm_checkpoints_schema` (que é `#4` no relatório); BL-063 citava `#4` para `RuntimeError` no reinício da fila (que é `#3` no relatório).
-   - Inversão em `core-delta-manager.md`: BL-061 citava `#4` para cegueira LBH em non-Python, quando no relatório original esse é o Achado `#6` (classificado como ALTA).
-   - Inversão em `schema-oficial-incompleto.md`: BL-076 citava `#4` para abandono de especificação formal, quando no relatório esse é o Achado `#5`.
-   - Inconsistência em `interface-telemetry-api.md`: BL-018 citava `#1b`, quando no relatório original trata-se do Achado oficial `#2`.
-3. **Rebaixamento Arbitrário de Severidade:**
-   - `core-security-guard.md` #2 (`classify_command(None)` lança `TypeError` não tratado): classificado como **ALTA** no relatório de origem, foi rebaixado silenciosamente para **MÉDIA** (BL-060) sem justificativa técnica.
-   - `core-delta-manager.md` #6 (cegueira de LBH em non-Python): classificado como **ALTA** no relatório de origem, foi rebaixado para **MÉDIA** (BL-061).
-4. **Superficialidade Extrema e Falta de Acionabilidade (BL-051 a BL-079):**
-   - Mais de 40% do documento anterior era composto por títulos de uma única linha.
-   - Ausência completa de números de linha de código em quase 30 itens.
-   - Ausência de mecanismo técnico, causa-raiz, diretriz de remediação arquitetural e critérios de teste/aceite.
-   - A coluna "Cadeia Transversal" foi sumariamente deletada nas tabelas de Média e Baixa.
-5. **Formato Incompatível com Engenharia Real:**
-   - O backlog anterior era uma lista estática e plana de defeitos, sem agrupamento por pacotes de trabalho (*Work Packages*), sem planos de migração e sem definição de dependências bloqueantes de implementação.
+   - `schema-oficial-incompleto.md` #2: O colapso operacional dos 12 subsistemas analíticos foi integrado e documentado formalmente.
+2. **Correção de Referências Cruzadas e Citações de Origem:**
+   - Em `storage.md`: Alinhamento das referências de `init_fsm_checkpoints_schema` (#4) e `RuntimeError` no reinício da fila (#3).
+   - Em `core-delta-manager.md`: Alinhamento do Achado #6 (cegueira LBH em non-Python).
+   - Em `schema-oficial-incompleto.md`: Alinhamento do Achado #5 (abandono de especificação formal).
+   - Em `interface-telemetry-api.md`: Alinhamento do Achado #2.
+3. **Harmonização de Severidades com os Relatórios Canônicos:**
+   - Restauração das classificações formais definidas nos relatórios da Fase 1 (ex.: `core-security-guard.md` #2 mantido em ALTA e `core-delta-manager.md` #6 mantido em ALTA/GRAVE).
+4. **Elevação da Densidade Técnica e Critérios de Validação:**
+   - Expansão de todos os itens com arquivos e números exatos de linha, mecanismo de falha, diretriz de remediação arquitetural e critérios objetivos de validação e teste.
+5. **Estruturação por Trilhas de Implementação (Work Packages):**
+   - Organização do backlog em 6 Tracks ordenadas por dependência de software real, viabilizando execução paralela e segura por equipes de engenharia.
 
-Esta nova versão da **Fase 3** reconstrói o backlog do zero: é um **Roadmap de Engenharia e Backlog Executivo Completo**, com rastreabilidade 100% canônica com os 15 relatórios de auditoria, trazendo o plano de ação detalhado para cada um dos 84 achados técnicos reais do Grafo Concierge.
+Esta versão consolidada da **Fase 3** estabelece o **Roadmap de Engenharia e Backlog Executivo Completo**, com rastreabilidade 100% canônica com os 15 relatórios de auditoria, totalizando 87 itens técnicos estruturados (86 achados de não-conformidade confirmados + 1 observação de precisão arquitetural catalogada como melhoria técnica).
 
 ---
 
@@ -42,15 +38,15 @@ Esta nova versão da **Fase 3** reconstrói o backlog do zero: é um **Roadmap d
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                 BACKLOG FINAL & ROADMAP — 87 ACHADOS REAIS                  │
+│                 BACKLOG FINAL & ROADMAP — 87 ITENS CATALOGADOS              │
 │                                                                             │
 │  🔴🔴 MÁXIMA   ███                                                3  ( 3.4%)│
 │  🔴   CRÍTICA  █████████████████████                             21  (24.1%)│
 │  🟠   GRAVE    ██████████████████████████████                    30  (34.5%)│
 │  🟡   MÉDIA    ████████████████████████████                      28  (32.2%)│
-│  🔵   BAIXA    █████                                              5  ( 5.8%)│
+│  🔵   BAIXA    █████                                              5  ( 5.7%)│
 │                                                                             │
-│  TOTAL DE ACHADOS TÉCNICOS: 87                                              │
+│  TOTAL DE ITENS NO ROADMAP: 87 (86 achados + 1 observação)                  │
 │  CRÍTICOS + GRAVES (RISCO ALTO/BLOQUEANTE): 54 achados (62.1%)              │
 │  SUBSISTEMAS AFETADOS: 15 componentes auditados                             │
 │  CADEIAS DE FALHA TRANSVERSAL ATIVAS: 4 cadeias completas                   │
@@ -479,7 +475,7 @@ flowchart TD
 - **Severidade:** 🔵 BAIXA
 - **Arquivos & Linhas:** [`core/delta_manager.py:83–97`](file:///c:/Nexus-Memory/GrafoConcierge/core/delta_manager.py#L83)
 - **Relatório de Origem:** [`audits/core-delta-manager.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/core-delta-manager.md) #5
-- **Mecanismo da Falha:** Métodos internos indentados recebem o mesmo tratamento que classes globais.
+- **Mecanismo da Falha (Observação Arquitetural):** Classificado na origem como OBSERVAÇÃO (comportamento conservadoramente seguro, gerando zero falsos negativos). `calculate_ssh()` usa `line.strip()` e captura declarações (`def `, `class `) independentemente de indentação, tratando métodos aninhados da mesma forma que funções de módulo. Isso reduz a especificidade do hash estrutural, embora não cause quebra em runtime. Mantido no roadmap com severidade BAIXA como item de melhoria técnica de precisão para refinamento futuro do algoritmo.
 - **Diretriz de Remediação:** Preservar a indentação relativa no cálculo do hash estrutural.
 - **Critério de Validação:** Mudanças de escopo/aninhamento alteram o SSH gerado.
 
@@ -1126,3 +1122,8 @@ Total de registros como ferramenta MCP / rota HTTP: 0
 (Nenhuma escrita proveniente de ingestion/crawler.py; crawler não referencia tabela files)
 ```
 
+#### 7.6.3 Resolução de Pendências — BL-061, Versionamento de Scripts e Refinamentos de Precisão
+- **Tratamento Epistêmico de BL-061 (Achado vs. Observação):** O Achado #5 de `core-delta-manager.md` é classificado formalmente na origem como `OBSERVAÇÃO` (o algoritmo do SSH é conservadoramente correto e livre de falsos negativos, mas trata declarações aninhadas como top-level, reduzindo a especificidade do hash). A decisão técnica adotada é **mantê-lo no roadmap com severidade BAIXA** como item de melhoria de precisão, preservando a estabilidade da numeração BL-001..BL-087 e das 6 Tracks. Com rigor estatístico, declara-se: o backlog é composto por **86 achados de não-conformidade confirmados + 1 observação de precisão arquitetural**, totalizando **87 itens técnicos catalogados**.
+- **Versionamento de Scripts no Repositório:** Os scripts `scratch/validate_traceability.py` (validador automatizado da matriz canônica) e `scratch/reproduce_all_targets.py` (reprodutor automatizado de alvos específicos) foram integrados diretamente à árvore git em `scratch/`, viabilizando que qualquer revisor execute a validação de ponta a ponta sem dependência de artefatos externos.
+- **Ajuste Numérico de Percentual:** O percentual da severidade BAIXA no gráfico ASCII foi recalculado e ajustado de 5,8% para **5,7%** ($5 / 87 = 5{,}747\%$).
+- **Neutralização de Tom da Seção 1:** A narrativa da Seção 1 foi revista para adotar linguagem estritamente técnica, analítica e de engenharia de software, eliminando menções ad-hominem ou adjetivos não-técnicos.
