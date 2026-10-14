@@ -1,0 +1,942 @@
+{
+ "agent-and-agents.md": [
+  {
+   "num": 1,
+   "sev_raw": "🔴 CRÍTICA (CONDICIONAL / CÓDIGO ÓRFÃO)",
+   "sev": "CRITICA",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "agent/run_agent.py",
+   "line": "47, 82, 95, 123, 154, 160",
+   "mech": "Contaminação de Turnos Multi-Sessão no Circuit Breaker: self.current_substate_turn_count é um inteiro único de instância da classe compartilhado entre todas as sessões. Inicializar ou transicionar uma sessão zera indevidamente o contador de outras; sessões concorrentes somam seus passos no mesmo contador global, provocando bloqueios espúrios em STALL.ERROR_PAUSE (*Cross-Session Denial of Service*)."
+  },
+  {
+   "num": 2,
+   "sev_raw": "🔴 CRÍTICA (CONDICIONAL / CÓDIGO ÓRFÃO)",
+   "sev": "CRITICA",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "agents/revisor_critico.py",
+   "line": "555–573",
+   "mech": "Vazamento de Privacidade por Fallback Inseguro e Sensibilidade a Caixa (Case-Sensitivity): check_contamination usa privacy_hierarchy.get(source_privacy, 0) sem normalizar .upper(). Qualquer string em minúsculas (\"restricted\") ou sinônimo corporativo (\"CONFIDENTIAL\", \"SECRET\") recebe nível 0 (PUBLIC), avaliando source_level > target_level como False e aprovando a transferência de dados ultra-secretos para contextos públicos (violação do princípio de *Fail-Closed*)."
+  },
+  {
+   "num": 3,
+   "sev_raw": "🟠 GRAVE (CONDICIONAL / CÓDIGO ÓRFÃO)",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "agents/revisor_critico.py",
+   "line": "331, 362–381",
+   "mech": "Aprovação Espúria de Commits Inválidos e Incompatibilidade de Assinatura em audit_with_retry: O docstring prescreve Callable(task, outcome, feedback), mas o código chama generate_fn(result.reason) (1 argumento). Se a função lançar exceção no 1º loop, o bloco except aciona break e retorna approved=True, partial_audit=True, loop_count=max_loops, aprovando automaticamente um rascunho com defeito sem ter executado as tentativas."
+  },
+  {
+   "num": 4,
+   "sev_raw": "🟠 GRAVE (CONDICIONAL / CÓDIGO ÓRFÃO)",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "agent/run_agent.py",
+   "line": "151–217",
+   "mech": "Dessincronização de Estado e Diretrizes em step(target_transition=...): step() constrói o prompt dinâmico usando o estado ANTERIOR (current_path) e só depois efetua a transição solicitada. O LLM recebe no prompt instruções e proibições da fase antiga (ex.: PLANNING: Nenhuma mutação física autorizada), enquanto o retorno já indica o novo estado (EXECUTION.CODE_GEN), gerando alucinações e bloqueios cognitivos."
+  },
+  {
+   "num": 5,
+   "sev_raw": "🟠 GRAVE (CONDICIONAL / CÓDIGO ÓRFÃO)",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "agents/revisor_critico.py",
+   "line": "433, 490–498, 504–513",
+   "mech": "Defeitos de Tipagem e Crash em Reranking (NoneType e int vs str): (1) _heuristic_rerank quebra com TypeError se algum nó contiver score_final: None; (2) _llm_rerank força relevance_map[int(nid)], descartando 100% dos candidatos caso node_id venha como str (padrão de nós vetoriais e paths); (3) se o mapa não casar, retorna lista vazia [], violando a garantia de retornar ao menos 1 resultado."
+  },
+  {
+   "num": 6,
+   "sev_raw": "🟡 MÉDIA (CONDICIONAL / CÓDIGO ÓRFÃO)",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "agent/run_agent.py",
+   "line": "243–262",
+   "mech": "Incompatibilidade Estrutural Universal com Corrotinas e Bypass do RateGovernor em execute_tool: Funções assíncronas (async def) nunca funcionam corretamente através do pipeline de governança, independente da configuração: (1) no caminho COM Gating e COM Governor, a worker thread (e o fast-path) do RateGovernor.submit_request executa task_fn() sem await, enquanto o GatingInterceptor executa return execute_fn() sincronicamente, devolvendo uma corrotina crua não executada (Tool actually executed: False); (2) no caminho COM Gating e SEM Governor, execute_fn() chama dummy_fn() sem await, também devolvendo corrotina não-executada; (3) no caminho SEM Gating e COM Governor, a linha if inspect.iscoroutinefunction(dummy_fn): return await dummy_fn() executa a ferramenta diretamente com await, mas ignora e contorna 100% o enfileiramento do RateGovernor (Governor requests recorded: 0). Em nenhuma configuração uma ferramenta assíncrona é governada e executada corretamente."
+  },
+  {
+   "num": 7,
+   "sev_raw": "🟡 MÉDIA (CONDICIONAL / CÓDIGO ÓRFÃO)",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "agent/agent_prompts.py",
+   "line": "82–132",
+   "mech": "Dessincronização Estrutural entre Sub-Estados do HSM e TOOL_DISCLOSURE_MATRIX: parse_state_path decompõe apenas o super-estado. As entradas de sub-estados declaradas na matriz do governor (DISCOVERY, TDD_GREEN, REFACTORING) nunca são consultadas pelo builder, tornando-se regras mortas."
+  }
+ ],
+ "bypass-governanca-por-session-id.md": [
+  {
+   "num": 1,
+   "sev_raw": "🔴🔴 CRÍTICA MÁXIMA",
+   "sev": "MAXIMA",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "interface/mcp_server.py <br> core/mcp_governor.py",
+   "line": "mcp_server.py:249-259 <br> mcp_governor.py:100, 128",
+   "mech": "Bypass Total da Governança de Ferramentas via Injeção de session_id Fantasma: concierge_set_state é READ_ONLY (sempre liberada). Qualquer agente restrito em PLANNING pode criar uma sessão efêmera X em MAINTENANCE e invocar qualquer ferramenta DANGEROUS (ex.: reset_collection) injetando {\"session_id\": \"X\"}. O interceptor valida X como permitido, e o FastMCP descarta o argumento extra não declarado e executa a operação destrutiva."
+  },
+  {
+   "num": 2,
+   "sev_raw": "🔴 CRÍTICA",
+   "sev": "CRITICA",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "core/checkpointer.py <br> interface/mcp_server.py",
+   "line": "core/checkpointer.py:138, 226 <br> interface/mcp_server.py:897, 1731",
+   "mech": "Ausência Total de Verificação de Posse em Checkpoints (Independente do Achado #1): agent_get_checkpoint (READ_ONLY) e agent_save_checkpoint (LOCAL_MUTATION) já estão abertas por padrão no estado EXECUTION. Sem autenticação ou verificação de posse de agent_id/session_id, qualquer chamador pode roubar credenciais da vítima e sobrescrever/envenenar checkpoints alheios sem precisar burlar o governor nem alterar nenhum estado."
+  },
+  {
+   "num": 3,
+   "sev_raw": "🟠 GRAVE",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "interface/mcp_server.py",
+   "line": "mcp_server.py:261-270",
+   "mech": "Vazamento de 100% do Catálogo em list_tools() (Falha no Progressive Disclosure): governed_list_tools só filtra se session_id for fornecido. Clientes MCP oficiais (tools/list) nunca passam session_id. O servidor sempre expõe todas as 31 ferramentas, poluindo o contexto e revelando comandos perigosos."
+  },
+  {
+   "num": 4,
+   "sev_raw": "🟠 GRAVE",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "agent/run_agent.py <br> core/hsm_engine.py <br> interface/mcp_server.py",
+   "line": "Todo o arquivo",
+   "mech": "Desconexão Total do Runtime Cognitivo (CognitiveAgentRunner e HSMEngine Órfãos): A infraestrutura de Harel Statecharts (HSM), Deep History Nodes ($H^*$) e Circuit Breaker de sub-estados nunca é instanciada pelo servidor MCP em produção. O \"estado\" do servidor é uma mera string em memória, sem transição autônoma."
+  },
+  {
+   "num": 5,
+   "sev_raw": "🟡 MÉDIA",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "core/mcp_governor.py",
+   "line": "mcp_governor.py:37-38",
+   "mech": "Inicialização Insegura por Padrão (default_state = \"EXECUTION\"): O governor não inicia em PLANNING. Ferramentas de mutação física local (LOCAL_MUTATION, ex.: concierge_mine, write_file) ficam abertas imediatamente após o boot do servidor."
+  }
+ ],
+ "core-background-janitor.md": [
+  {
+   "num": 1,
+   "sev_raw": "ALTA",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/background_janitor.py",
+   "line": "176–186",
+   "mech": "Falha de slice negativo em Python (remaining[-keep_limit:]) quando keep_limit = 0. Ao solicitar a retenção exclusiva do ponto-zero inicial (keep_limit=0), o slice remaining[-0:] é avaliado em Python como remaining[0:] (a lista inteira). Como resultado, preserve_set preserva 100% dos checkpoints da sessão e ids_to_delete fica vazio ([]), não apagando nenhum registro do banco."
+  },
+  {
+   "num": 2,
+   "sev_raw": "ALTA",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/background_janitor.py",
+   "line": "270–284",
+   "mech": "Degradação irreversível da prioridade do processo inteiro do servidor (p.nice(psutil.IDLE_PRIORITY_CLASS) ou nice(15)). O método process_community_summaries_frugal() rebaixa a prioridade de todo o processo do Concierge (afetando o servidor MCP, API de telemetria, RateGovernor e threads de escrita) antes mesmo de checar a barreira térmica de hardware. Se a barreira falhar, a prioridade já foi rebaixada e nunca é restaurada."
+  },
+  {
+   "num": 3,
+   "sev_raw": "ALTA",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/background_janitor.py",
+   "line": "160–197",
+   "mech": "Destruição de ponto-zero e deleção cruzada de checkpoints entre agentes na mesma sessão. A chave primária de agent_checkpoints é (agent_id, session_id, checkpoint_id). Em interface/mcp_server.py:897, 1731 (agent_save_checkpoint), o checkpoint_id é fornecido diretamente pelo cliente sem namespace de agente nem UUID. Em _prune_single_session, a query agrupa apenas por session_id: (1) apenas o primeiro checkpoint da sessão é protegido como ponto-zero, destruindo o ponto-zero de agentes secundários; (2) o comando DELETE ... WHERE session_id = ? AND checkpoint_id IN (?) não filtra por agent_id, apagando checkpoints homônimos (ex: step_1, plan) de agentes que nada tinham a ver com a poda, como dano colateral."
+  },
+  {
+   "num": 4,
+   "sev_raw": "MÉDIA",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/background_janitor.py",
+   "line": "96–100",
+   "mech": "Crash com TypeError em _summarize_community quando files.content é NULL. Se algum arquivo da comunidade tiver conteúdo nulo no SQLite (arquivos binários, arquivos recém-descobertos sem corpo carregado, ou inicializados apenas com hashes), payload = \"\\n\".join(row[0] for row in files) lança TypeError: sequence item 0: expected str instance, NoneType found, abortando toda a varredura de ociosidade."
+  },
+  {
+   "num": 5,
+   "sev_raw": "MÉDIA",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/background_janitor.py",
+   "line": "106–113",
+   "mech": "TOCTOU / Descarte cego de is_dirty = 0 sobre arquivos modificados durante a geração da SLM. A chamada ao modelo local (local_slm_callback) leva de 5 a 30 segundos. Ao concluir, emite duas queries de escrita (UPDATE communities e UPDATE files). Com write_queue=None em produção (mcp_server.py:166), essas escritas ocorrem em duas conexões físicas efêmeras cruas distintas sem serialização em fila e sem foreign_keys=ON;, permitindo que edições concorrentes de agentes se intercalem entre as duas conexões e resetando cegamente is_dirty = 0."
+  }
+ ],
+ "core-checkpointer.md": [
+  {
+   "num": 1,
+   "sev_raw": "CRÍTICA",
+   "sev": "CRITICA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/checkpointer.py",
+   "line": "73–78, 80–117",
+   "mech": "Despacho ambíguo em save_checkpoint baseado em heurística de tipos (len(args) == 4 and isinstance(args[3], str)). Na chamada real em mcp_server.py:1741 (agent_save_checkpoint), são passados 4 argumentos posicionais. Se o cliente ou agente passar state_dict como string (ex: JSON serializado ou mensagem de status), o método assume erroneamente que se trata de uma chamada FSM (SDD-20). Isso causa: (1) gravação na tabela errada (fsm_checkpoints em vez de agent_checkpoints); (2) inversão cruzada de colunas (session_id recebe agent_id, checkpoint_id recebe session_id, agent_id recebe checkpoint_id); (3) perda total de dados (shared_state_blob é gravado como \"{}\", descartando o estado real); (4) agent_get_checkpoint retorna {} vazio."
+  },
+  {
+   "num": 2,
+   "sev_raw": "ALTA",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/checkpointer.py",
+   "line": "195–210",
+   "mech": "Falha de atomicidade e mascaramento silencioso de falhas de rollback em execute_time_travel. O método monta duas queries separadas (DELETE FROM fsm_checkpoints e UPDATE files) e as executa iterando sobre write_fn(q, params) sem transação envolvente (BEGIN IMMEDIATE). Quando write_fn (execute_write) intercepta erros de escrita (ex: lock, timeout ou ausência de files), retorna (False, error). O loop descarta esse retorno e o método retorna target_data, reportando falso sucesso com rollback não realizado. Em contrapartida, em instalação limpa (schema-oficial-incompleto.md), a ausência de fsm_checkpoints faz a leitura preliminar via read_query (sem try/except no passo 2) lançar OperationalError não tratado antes de alcançar o bloco de escrita."
+  },
+  {
+   "num": 3,
+   "sev_raw": "ALTA",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/checkpointer.py",
+   "line": "196",
+   "mech": "Granularidade temporal insuficiente (1 segundo via CURRENT_TIMESTAMP) em execute_time_travel impede remoção de checkpoints em rajadas rápidas. A coluna created_at em fsm_checkpoints usa DEFAULT CURRENT_TIMESTAMP (resolução de segundos no SQLite). Em execuções rápidas onde múltiplos checkpoints ocorrem dentro do mesmo segundo (ex: transições rápidas de FSM), todos recebem o mesmo timestamp exato. A condição WHERE created_at > ? avalia como False para os checkpoints posteriores no mesmo segundo, fazendo com que checkpoints futuros sobrevivam ao time-travel, quebrando o determinismo da timeline."
+  },
+  {
+   "num": 4,
+   "sev_raw": "MÉDIA",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/checkpointer.py",
+   "line": "226–234",
+   "mech": "Crash com json.JSONDecodeError não tratado em get_checkpoint. Ao contrário de load_checkpoint (que protege a deserialização com try ... except), get_checkpoint executa return json.loads(rows[0][0]) sem bloco protetor. Checkpoints truncados ou corrompidos por falhas de escrita derrubam a ferramenta MCP agent_get_checkpoint."
+  },
+  {
+   "num": 5,
+   "sev_raw": "MÉDIA",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/checkpointer.py",
+   "line": "112–113, 137–138, 201–206",
+   "mech": "Falha de tipagem estática do Mypy e risco de TypeError: 'NoneType' object is not callable na resolução dinâmica de write_fn. O checkpointer usa getattr(..., None) sem validação de nulidade antes da invocação. Apontado formalmente pelo Mypy em 4 pontos distintos do código."
+  }
+ ],
+ "core-delta-manager.md": [
+  {
+   "num": 1,
+   "sev_raw": "CRÍTICA",
+   "sev": "CRITICA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "delta_manager.py / hsm_engine.py",
+   "line": "dm: N/A (método ausente); hsm: 458",
+   "mech": "hsm_engine.py:458 chama delta_manager.has_structural_change(target_task_id). Este método não existe no DeltaManager. Os únicos métodos públicos são: calculate_ssh, calculate_lbh, process_file_change, compile_community_summary_jit. Em runtime, isso lança AttributeError. Os testes em test_hsm_transition_hooks_and_delta.py passam porque usam um MockDeltaManager que define has_structural_change() — o mock oculta o bug no código real."
+  },
+  {
+   "num": 2,
+   "sev_raw": "FALSO POSITIVO (anteriormente MÉDIA)",
+   "sev": "MEDIA",
+   "status_raw": "FALSO POSITIVO (DESCARTADO)",
+   "status": "FALSO_POSITIVO",
+   "file": "delta_manager.py",
+   "line": "81",
+   "mech": "_stripper = DocstringStripper() é atributo de classe (compartilhado entre todas as instâncias). A suspeita inicial apontava race condition por node.body.pop(0). No entanto: (1) DocstringStripper é 100% stateless (self.__dict__ == {}); (2) a AST mutada é alocada localmente por ast.parse(file_content) dentro de calculate_lbh(), sendo estritamente privada à stack frame da thread executora; (3) teste de estresse concorrente com 50 threads e 10.000 chamadas simultâneas resultou em 0 divergências e 0 erros. O compartilhamento de instância stateless é seguro (padrão flyweight)."
+  },
+  {
+   "num": 3,
+   "sev_raw": "MÉDIA",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "delta_manager.py",
+   "line": "204–265, 160–200",
+   "mech": "Todos os métodos internos (_insert_new_file, _update_structural_change, _update_content_only, compile_community_summary_jit) executam 2 write_query separadas sem transação envolvente (BEGIN / COMMIT). Com write_queue=None em produção (mcp_server.py:166), cada query roda em uma conexão física efêmera crua distinta, sem serialização em fila e sem foreign_keys=ON. Se o processo morrer ou houver concorrência entre as duas conexões, o estado do banco corrompe (ex: arquivo marcado DIRTY mas comunidade limpa, ou vice-versa)."
+  },
+  {
+   "num": 4,
+   "sev_raw": "BAIXA",
+   "sev": "BAIXA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "delta_manager.py",
+   "line": "186",
+   "mech": "compile_community_summary_jit() linha 186: payload = \"\\n\".join(row[0] for row in files). Se files.content for NULL no banco, row[0] é None e o str.join() lança TypeError: sequence item 0: expected str instance, NoneType found. Nenhum dos caminhos de inserção (_insert_new_file) define content como NOT NULL, e não há constraint na DDL do teste."
+  },
+  {
+   "num": 5,
+   "sev_raw": "OBSERVAÇÃO",
+   "sev": "OBSERVACAO",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "delta_manager.py",
+   "line": "83–97",
+   "mech": "calculate_ssh() captura todas as linhas com prefixos def , class , import , from  independentemente de indentação (usa line.strip()). Isso significa que def inner_method(self): dentro de uma classe é tratado igual a def top_level(). O SSH é context-free — não distingue nível de aninhamento. Isso é conservadoramente correto (gera false positives, nunca false negatives para mudanças estruturais), mas reduz a precisão do hash."
+  },
+  {
+   "num": 6,
+   "sev_raw": "ALTA",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "delta_manager.py",
+   "line": "99–116, 83–97, 146–151",
+   "mech": "calculate_lbh() retorna \"\" para todo non-Python (LBH universalmente cego). calculate_ssh() captura apenas linhas cujo strip() começa com def /class /import /from  — cobertura incidental e incompleta para non-Python. Ver tabela abaixo."
+  }
+ ],
+ "core-rate-governor.md": [
+  {
+   "num": 1,
+   "sev_raw": "CRÍTICA",
+   "sev": "CRITICA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/rate_governor.py",
+   "line": "250, 255, 261, 272",
+   "mech": "Vazamento cumulativo de unfinished_tasks na PriorityQueue e starvation de cabeça de fila (Head-of-Line). Quando uma tarefa de baixa/média prioridade está congelada, o loop faz get() e em seguida put(req) sem chamar task_done(). Cada ciclo de re-enfileiramento a cada 0.5s incrementa unfinished_tasks em +1 (tarefas fantasmas). Qualquer chamada a request_queue.join() trava para sempre em Deadlock. Além disso, a tarefa mantém seu timestamp original antigo, sendo recolocada no topo da fila e bloqueando outras tarefas do mesmo nível."
+  },
+  {
+   "num": 2,
+   "sev_raw": "ALTA",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/rate_governor.py",
+   "line": "231–252",
+   "mech": "Starvation de tarefas LOW envelhecidas em toda a faixa de 75% a 100% de carga. O branch de envelhecimento (aging) avalia se max_pct < 75.0 para promover a tarefa; caso contrário (max_pct >= 75.0), cai no else e re-enfileira a tarefa com sleep(0.5). Como a fila LOW só congela oficialmente com max_pct >= 85.0 (low_priority_frozen), qualquer tarefa LOW envelhecida fica impedida de executar em toda a faixa de 75% a 100% de carga (inclusive entre 75% e 84.9%, onde a fila LOW nem sequer está congelada), sofrendo inanição contínua e só conseguindo executar se a carga cair abaixo de 75%."
+  },
+  {
+   "num": 3,
+   "sev_raw": "ALTA",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/rate_governor.py",
+   "line": "91, 116–150",
+   "mech": "Data Race / Lost Updates em get_current_metrics(). O método lê, filtra e reatribui self.history = [item for item in self.history if item[0] >= cutoff] sem adquirir self.lock. Como self.lock é um threading.Lock() (não-reentrante), chamadas concorrentes externas (como o endpoint /api/governor/metrics em interface/telemetry_api.py:387) disputam com report_usage(), provocando sobrescrita e perda de registros de consumo recentes."
+  },
+  {
+   "num": 4,
+   "sev_raw": "ALTA",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/rate_governor.py",
+   "line": "196–203, 278–280",
+   "mech": "Deadlock permanente em submit_request se o governor não estiver rodando ou após shutdown(). submit_request enfileira a tarefa e bloqueia em req.future_result.get() sem timeout. Se start() não tiver sido chamado, ou se shutdown() for invocado (o qual apenas seta self.running = False e encerra a thread sem drenar a fila nem responder aos futures pendentes), a thread chamadora fica travada em deadlock eterno."
+  },
+  {
+   "num": 5,
+   "sev_raw": "MÉDIA",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/rate_governor.py",
+   "line": "185–194",
+   "mech": "Cegueira de RPM no Fast-Path. Requisições prioritárias (prioridade 1) sob tráfego verde (< 50%) executam inline instantaneamente sem serem inseridas na fila. Porém, submit_request não registra o timestamp da chamada no histórico deslizante (self.history). Se o chamador não invocar report_usage(), requisições rápidas consecutivas não incrementam current_rpm, mascarando rajadas de chamadas."
+  }
+ ],
+ "core-security-guard.md": [
+  {
+   "num": 1,
+   "sev_raw": "CRÍTICA",
+   "sev": "CRITICA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/security_guard.py",
+   "line": "42–45, 94–95",
+   "mech": "Regex de blacklist \\brm\\s+-rf\\s+/ é facilmente contornada por variações canônicas de comandos destrutivos: rm -fr / (flags invertidas), rm -r -f /, rm --recursive --force /, além de destruição do diretório corrente (rm -rf ., rm -rf *) e comandos destrutivos do Windows (del /f /s /q C:\\*, format C:). Em modo auto-approve, qualquer comando não classificado como CRITICAL é executado automaticamente sem aprovação humana."
+  },
+  {
+   "num": 2,
+   "sev_raw": "ALTA",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/security_guard.py",
+   "line": "94",
+   "mech": "classify_command(command) não valida se command é None antes de executar self.blacklisted_patterns.search(command). Lança TypeError: expected string or bytes-like object, got 'NoneType' não tratado, derrubando o fluxo do interceptador/servidor caso uma chamada venha com payload nulo."
+  },
+  {
+   "num": 3,
+   "sev_raw": "MÉDIA",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/security_guard.py",
+   "line": "75–77",
+   "mech": "Concatenação ingênua de separador self.project_root + os.sep. Se project_root for a raiz de um disco ou volume (C:\\ no Windows ou / no Linux), os.path.realpath já termina com separador. A concatenação gera C:\\\\\\\\ ou //. Como nenhum caminho de arquivo começa com barra dupla, is_safe_path retorna False para 100% dos arquivos válidos dentro do disco/raiz."
+  },
+  {
+   "num": 4,
+   "sev_raw": "MÉDIA",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/security_guard.py",
+   "line": "72–77",
+   "mech": "Resolução de caminhos relativos em is_safe_path via os.path.realpath(target_path) resolve contra o os.getcwd() do processo em vez de self.project_root. Se o project_root for um projeto externo registrado (diferente do CWD do servidor), qualquer caminho relativo legítimo (ex: src/main.py) é resolvido para o CWD do GrafoConcierge e incorretamente rejeitado como fora dos limites (is_safe_path -> False)."
+  },
+  {
+   "num": 5,
+   "sev_raw": "BAIXA",
+   "sev": "BAIXA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/security_guard.py",
+   "line": "48–54, 98–99",
+   "mech": "Verificação de warning_terms usa busca ingênua de substring sem limites de palavra (any(term in command)). O termo \"build\" causa falsos positivos automáticos para comandos inofensivos de desenvolvimento como git log --grep=\"build\", cat build.py, git checkout build-fix ou ls -la build/, disparando prompts interativos desnecessários no modo ask."
+  }
+ ],
+ "core-vector-reconciler.md": [
+  {
+   "num": 1,
+   "sev_raw": "CRÍTICA",
+   "sev": "CRITICA",
+   "status_raw": "CONFIRMADO (já citado em mock-vs-real-audit)",
+   "status": "CONFIRMADO",
+   "file": "core/vector_reconciler.py",
+   "line": "39",
+   "mech": "Invocação de método fantasma self.vector_db.get_all_ids(). Conforme já identificado no Achado #1 de audits/mock-vs-real-audit.md, o método get_all_ids() não existe na interface abstrata BaseVectorBackend, nem no backend padrão de produção ChromaVectorStore (o método canônico é get_all_stored_node_ids()), nem em QdrantVectorStore. Em ambiente real, qualquer execução de reconciliação de vetores quebra com AttributeError: 'ChromaVectorStore' object has no attribute 'get_all_ids'. A suite de testes passou apenas porque MockVectorDatabase inventou um método inexistente."
+  },
+  {
+   "num": 2,
+   "sev_raw": "CRÍTICA",
+   "sev": "CRITICA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/vector_reconciler.py",
+   "line": "40–49, 54",
+   "mech": "Incompatibilidade de TIPO (int vs str) e Domínio Semântico -> Purga Total de Vetores (Catastrophic Data Loss). O reconciliador busca vector_ids no banco vetorial e compara via vector_ids - sqlite_paths com SELECT path FROM files;. No GrafoConcierge real, get_all_stored_node_ids() devolve set[int] (IDs de nós da AST), enquanto a tabela files armazena caminhos de arquivos em texto (set[str]). Em Python, a interseção entre int e str é sempre vazia (set()), de modo que vector_ids - sqlite_paths avalia invariavelmente para vector_ids integralmente. A purga total de 100% dos vetores legítimos é matematicamente garantida, esvaziando o banco vetorial."
+  },
+  {
+   "num": 3,
+   "sev_raw": "ALTA",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/vector_reconciler.py",
+   "line": "31–50",
+   "mech": "Ausência de sincronização atômica e race condition destrutiva com ingestão concorrente (TOCTOU). reconcile_orphans() executa em segundo plano sem qualquer lock (sem threading.Lock) e sem coordenação transacional com o pipeline de ingestão (IngestionOrchestrator). Como a ingestão grava vetores no Step 6 e comita nós/arquivos no SQLite no Step 7/8, uma reconciliação que leia o banco vetorial entre esses dois passos marca os vetores recém-ingeridos como \"órfãos\" e os deleta fisicamente antes que o SQLite confirme a escrita."
+  },
+  {
+   "num": 4,
+   "sev_raw": "MÉDIA",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/vector_reconciler.py",
+   "line": "48–50",
+   "mech": "Falta de paginação em lote e ausência de tratamento de exceções em delete_batch. O método passa a lista inteira de orphan_ids de uma só vez para self.vector_db.delete_batch(orphan_ids) em desacordo com BATCH_SIZE = 100 em ChromaVectorStore. Em bases grandes, listas desmedidas (ex: 500 itens) estouram limites de payload de rede ou buffer de memória, e exceções propagam sem tratamento ou recuperação."
+  }
+ ],
+ "duplicacao-serialized-write-queue.md": [
+  {
+   "num": 1,
+   "sev_raw": "🔴 CRÍTICA",
+   "sev": "CRITICA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "storage/connection.py vs core/database.py (e interface/queue_writer.py)",
+   "line": "storage/connection.py:59, core/database.py:56–70, interface/mcp_server.py:166",
+   "mech": "Colisão entre Fila Real (storage/) e Zero Fila (core/) sobre o Mesmo Banco: A arquitetura projetou duas classes SerializedWriteQueue, mas em produção (interface/mcp_server.py:166) ConciergeDatabaseManager é instanciado com write_queue=None. A realidade operacional de produção não são duas filas colidindo, mas a coexistência de uma fila real (storage/connection.py) disputando o banco data/concierge.db contra zero fila do lado de core/database.py (que dispara conexões SQLite efêmeras cruas a cada escrita, sem serialização, sem mutex e sem foreign_keys=ON)."
+  },
+  {
+   "num": 2,
+   "sev_raw": "🔴 CRÍTICA",
+   "sev": "CRITICA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "interface/mcp_server.py e core/database.py",
+   "line": "interface/mcp_server.py:166 e core/database.py:27–29, 56–70",
+   "mech": "Ilusão dos Testes e Código Morto em Produção: interface/queue_writer.py é testada em 11 suites de teste (tests/), mas em produção (mcp_server.py:166) ConciergeDatabaseManager(resolved_db_path) é instanciado SEM write_queue. Com self.write_queue = None, todas as escritas de core/ em produção executam conexões efêmeras diretas (sqlite3.connect por query), contornando 100% a proteção serializada que a arquitetura alega oferecer."
+  },
+  {
+   "num": 3,
+   "sev_raw": "🟠 GRAVE",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "interface/queue_writer.py e core/database.py",
+   "line": "interface/queue_writer.py:49–52, core/database.py:60, storage/connection.py:155",
+   "mech": "Divergência de Integridade Referencial (foreign_keys=OFF): storage/connection.py ativa PRAGMA foreign_keys=ON;. Porém, interface/queue_writer.py e core/database.py NÃO configuram foreign keys (permanecem desativadas = 0). O core/ consegue gravar arestas e registros com IDs órfãos no banco compartilhado, enquanto storage/ falha com IntegrityError."
+  },
+  {
+   "num": 4,
+   "sev_raw": "🟠 GRAVE",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "storage/connection.py vs interface/queue_writer.py",
+   "line": "storage/connection.py:154 vs interface/queue_writer.py:49",
+   "mech": "Timeout Assimétrico e Falha com OperationalError: database is locked: storage/connection.py configura PRAGMA busy_timeout=5000; (5 segundos). Já interface/queue_writer.py e core/database.py usam timeout=30.0 (30 segundos). Sob contenção sustentada (>5s), a camada de storage/ aborta prematuramente com erro de banco travado, enquanto core/ continua aguardando."
+  },
+  {
+   "num": 5,
+   "sev_raw": "🟡 MÉDIO",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "interface/mcp_server.py",
+   "line": "interface/mcp_server.py:161–166",
+   "mech": "Quebra de Encapsulamento para Bifurcação de Estado: mcp_server.py acessa self._gc._store._conn_mgr._db_path (três atributos privados consecutivos) para criar uma segunda instância desconexa em vez de utilizar uma camada unificada de persistência."
+  }
+ ],
+ "grafo-dashboard-web.md": [
+  {
+   "num": 1,
+   "sev_raw": "🔴 CRÍTICA",
+   "sev": "CRITICA",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "lib/useTelemetryStream.ts",
+   "line": "219–260",
+   "mech": "Código Morto em Handlers SSE e Telemetria Reativa Congelada: lib/useTelemetryStream.ts implementa switch (raw.event_type) para \"RATE_GOVERNOR_UPDATE\", \"HSM_STATE_UPDATE\", \"WAL_WRITE_JOB\" e \"DELTA_DETECTED\". No backend (interface/telemetry_api.py), o SSE emite *exclusivamente* o dicionário bruto consolidado TelemetryPayloadSchema sem event_type. O switch é 100% inalcançável e os mostradores de cota (QuotaGauges) e de estado HSM (HSMStateInspector) nunca são atualizados via SSE, ficando congelados no boot."
+  },
+  {
+   "num": 2,
+   "sev_raw": "🔴 CRÍTICA",
+   "sev": "CRITICA",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "lib/useTelemetryStream.ts, interface/telemetry_api.py",
+   "line": "lib: 280–291, api: 556–572",
+   "mech": "Ciclo Infinito de Flapping SSE e Inundação do Buffer de Eventos: No backend, max_checks = 5 aborta o gerador SSE após 5s. No frontend, es.onerror captura a queda, agenda reconexão após 3s e em onopen adiciona o evento \"Connected to FastAPI Telemetry SSE Stream\". Em 10 min ocorrem 75 ciclos de queda/reconexão, saturando a fila de eventos (limite 200) e fazendo o indicador do HUD piscar sem parar."
+  },
+  {
+   "num": 3,
+   "sev_raw": "🔴 CRÍTICA",
+   "sev": "CRITICA",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "package.json, .env.local, lib/mcp/client.ts",
+   "line": "pkg: 10–11, env: 6, 10, client: 29",
+   "mech": "Colisão de Portas, Inoperância do Script dev:all e Desconexão do FastMCP SSE: main.py roda FastMCP em stdio (ou porta 8000 se SSE); o FastAPI telemetry_api.py também roda na porta 8000 gerando colisão WinError 10048. Ao mesmo tempo, .env.local e client.ts configuram FastMCP na porta 7077 (onde nenhum serviço roda). Ao rodar npm run dev:all, o cliente MCP tenta conectar infinitamente em 7077 e a telemetria falha pois telemetry_api.py não é iniciado por main.py."
+  },
+  {
+   "num": 4,
+   "sev_raw": "🟠 GRAVE",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "lib/mcp/client.ts, interface/mcp_server.py",
+   "line": "client: 78, 294–298, server: 186–212",
+   "mech": "Incompatibilidade de Autenticação FastMCP e Rejeição Total com HTTP 401: O backend ativa validação HTTP quando GRAFO_API_KEY existe. O frontend usa EventSource (que não aceita headers customizados) e requisições fetch(POST) sem passar o cabeçalho Authorization nem query param ?token=. Se a API Key for ativada, o dashboard é imediatamente bloqueado com 401 em todas as chamadas."
+  },
+  {
+   "num": 5,
+   "sev_raw": "🟠 GRAVE",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "storage/store.py, app/hooks/useGraphTopology.ts, app/components/InspectorDrawer.tsx",
+   "line": "store: 259–273, hook: 106–115, drawer: 124–152",
+   "mech": "Omissão de Metadados em get_full_topology e Esvaziamento do InspectorDrawer: store.get_lightweight_topology() projeta apenas id, label, node_type e omite deliberadamente summary e tags para poupar banda. O InspectorDrawer pressupõe que esses campos existem no objeto do nó e não faz fetch sob demanda. Ao clicar em qualquer nó no universo 3D/2D, \"Pipeline Description\" e \"Semantic Tags\" aparecem permanentemente vazios."
+  },
+  {
+   "num": 6,
+   "sev_raw": "🟡 MÉDIA",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "app/components/CoreMemoryPanel.tsx",
+   "line": "137–146",
+   "mech": "Risco de Crash e Corrupção de Data (Invalid Date) em CoreMemoryPanel: CoreMemoryPanel.tsx:137 concatena + \"Z\" cegamente em block.updated_at. Se o backend enviar um timestamp ISO com timezone ou sufixo \"Z\" pré-existente, o resultado \"2026-09-25T12:00:00ZZ\" torna-se um Invalid Date, gerando RangeError no toLocaleString() ou renderizando \"Invalid Date\" no HUD."
+  },
+  {
+   "num": 7,
+   "sev_raw": "🟡 MÉDIA",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "app/page.tsx, components/hsm/HSMStateInspector.tsx",
+   "line": "page: 478–482, hsm: 191",
+   "mech": "Rotas Mutantes Órfãs e Callbacks Inertes no HUD: HSMStateInspector renderiza botões para cada sub-estado que disparam onSelectState(qualified). No entanto, app/page.tsx instancia o componente sem fornecer onSelectState. A rota backend POST /api/hsm/transition nunca é invocada pelo dashboard, tornando os cliques na árvore de estados totalmente inertes."
+  },
+  {
+   "num": 8,
+   "sev_raw": "🟡 MÉDIA",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "components/telemetry/LiveEventFeed.tsx, lib/useTelemetryStream.ts",
+   "line": "feed: 93–121, stream: 191",
+   "mech": "37 Erros de Linter, Impureza em Render React 19 e Efeitos em Cascata: LiveEventFeed.tsx invoca Date.now() dentro do render em useMemo violando regras de funções puras do React 19 (react-hooks/purity). useTelemetryStream.ts dispara hydrateRest síncrono no efeito (react-hooks/set-state-in-effect), gerando 42 problemas (37 erros) no npm run lint."
+  }
+ ],
+ "ingestion.md": [
+  {
+   "num": 1,
+   "sev_raw": "🔴 CRÍTICA",
+   "sev": "CRITICA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "ingestion/crawler.py <br> ingestion/orchestrator.py",
+   "line": "560, 765",
+   "mech": "find_node_by_hash busca nó apenas por (project_uuid, file_hash) ignorando relative_path. Ao renomear um arquivo sem alterar conteúdo, o crawler classifica o novo arquivo como inalterado (is_new=False), não o ingere, e _detect_deleted_nodes marca o caminho antigo como deletado. O GC do orquestrador purga os nós do caminho antigo, resultando na perda total do arquivo no grafo (0 nós)."
+  },
+  {
+   "num": 2,
+   "sev_raw": "🔴 CRÍTICA",
+   "sev": "CRITICA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "ingestion/orchestrator.py <br> ingestion/orchestrator.py",
+   "line": "191, 201, 571",
+   "mech": "_step_summarize chama o LLM e retorna list[SummaryResult], mas essa lista nunca é atribuída aos chunks nem repassada para _step_store_sqlite. Em _step_store_sqlite:571, o código busca chunk.cached_summary (que é sempre None para novos chunks). Todos os nós são gravados no SQLite com summary = NULL. Como consequência, generate_project_context:843 encontra 0 resumos e pula L1 e L2."
+  },
+  {
+   "num": 3,
+   "sev_raw": "🟠 GRAVE",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "ingestion/summarizer.py <br> ingestion/orchestrator.py",
+   "line": "789, 880-883",
+   "mech": "summarize_l2 recebe project_name (folder_name, ex: \"MeuProjeto\") vindo do orquestrador e chama _store.update_project(project_name, summary=...). SqliteStore.update_project executa WHERE uuid = ?. A query não casa com o UUID real (proj-uuid-...), afeta 0 linhas e não lança exceção no SQLite. O try/except nunca captura a falha e o código emite logger.info(\"L2 Compass persisted...\"), gerando uma falsa confirmação de sucesso no log enquanto o resumo L2 é permanentemente perdido."
+  },
+  {
+   "num": 4,
+   "sev_raw": "🟠 GRAVE",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "ingestion/orchestrator.py <br> ingestion/orchestrator.py",
+   "line": "213, 234-239",
+   "mech": "Ao reingerir um arquivo modificado, _store.cleanup_obsolete_nodes deleta chunks antigos apenas no SQLite. O Step 7 (_step_garbage_collection), que reconcilia o Chroma via verify_sync, é protegido por if crawl_report.deleted_node_ids:. Como a modificação não deleta arquivos do disco, deleted_node_ids fica vazio, o GC é pulado e os vetores antigos permanecem para sempre como zumbis no ChromaDB."
+  },
+  {
+   "num": 5,
+   "sev_raw": "🟡 MÉDIA",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "ingestion/orchestrator.py <br> ingestion/orchestrator.py",
+   "line": "442, 449",
+   "mech": "Em _step_summarize, a Fase 2 checa if small_chunks and self._summarizer:, mas a Fase 3 (regular chunks) checa apenas if regular_chunks:. Se self._summarizer is None, a task assíncrona invoca await self._summarizer.summarize_l0_async(chunk), explodindo com AttributeError: 'NoneType' object has no attribute 'summarize_l0_async' e poluindo result.errors para cada chunk."
+  },
+  {
+   "num": 6,
+   "sev_raw": "🟡 MÉDIA",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "ingestion/crawler.py <br> ingestion/crawler.py",
+   "line": "395, 481",
+   "mech": "DEFAULT_IGNORE_PATTERNS inclui indevidamente \"*.txt\". Na inicialização do crawler sem .gitignore de usuário, a Camada 1 injeta essa regra, fazendo com que arquivos como requirements.txt e documentações .txt sejam sumariamente descartados do grafo, em contradição direta com o EXTENSION_MAP que mapeia .txt para FileCategory.DOC."
+  },
+  {
+   "num": 7,
+   "sev_raw": "🟡 MÉDIA",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "ingestion/parser.py <br> ingestion/parser.py",
+   "line": "100-111, 973-975",
+   "mech": "_detect_tags faz busca ingênua de substring keyword in content_lower sem limites de palavra (\\b). Termos comuns de código Python como chamadas à builtin next() e identificadores contendo reaction provocam a inclusão espúria de tags de frameworks frontend como nextjs e react em código puramente backend."
+  },
+  {
+   "num": 8,
+   "sev_raw": "🟡 MÉDIA",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "ingestion/parser.py <br> ingestion/parser.py",
+   "line": "701-715",
+   "mech": "O parser de JS/TS usa contagem ingênua de caracteres { e } (_find_block_end_braces) sem máquina de estados léxica. Strings contendo chaves (ex.: templates HTML <div>}</div>), expressões regulares ou comentários de código fecham prematuramente o bloco da função, truncando o chunk antes do return e corrompendo a integridade do grafo."
+  }
+ ],
+ "interface-telemetry-api.md": [
+  {
+   "num": 1,
+   "sev_raw": "🔴 CRÍTICA",
+   "sev": "CRITICA",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "interface/telemetry_api.py",
+   "line": "153–161, 181–184, 252, 550, 564",
+   "mech": "Falha Fatal em Produção por Suposição de Esquema Inexistente (OperationalError: no such table: files e agent_checkpoints): _build_telemetry_payload executa SELECT COUNT(*) FROM files e consulta agent_checkpoints. No banco de produção (data/concierge.db) e no SchemaManager, estas tabelas não existem (foram forjadas exclusivamente no setUp dos testes). Qualquer requisição a GET /api/telemetry/snapshot ou GET /api/telemetry/stream em produção quebra imediatamente com HTTP 500."
+  },
+  {
+   "num": 2,
+   "sev_raw": "🔴 CRÍTICA",
+   "sev": "CRITICA",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "interface/telemetry_api.py",
+   "line": "114–126, 74–89",
+   "mech": "Inoperância Fora da Caixa por Dependência Não Configurada (RuntimeError): _db_manager_instance inicia como None. get_db_manager() é exigido por quase todos os endpoints. Como o módulo não possui lifespan handler nem resolução via variáveis de ambiente (GRAFO_DB_PATH), subir o app com uvicorn interface.telemetry_api:app resulta em falha 500 imediata em qualquer chamada."
+  },
+  {
+   "num": 3,
+   "sev_raw": "🟠 GRAVE",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "interface/telemetry_api.py",
+   "line": "556–572",
+   "mech": "Falso Stream Contínuo: SSE Aborta após 5 Segundos por Trava de Teste Codificada em Produção (max_checks = 5): O gerador assíncrono _telemetry_event_generator limita o loop a max_checks = 5 (\"Limit to prevent infinite loop in tests\"). A conexão com o dashboard web é abruptamente encerrada a cada 5 segundos, forçando o frontend a cair em ciclo infinito de reconexões (reconnect loop)."
+  },
+  {
+   "num": 4,
+   "sev_raw": "🟠 GRAVE",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "interface/telemetry_api.py",
+   "line": "226, 234–237, 563–570",
+   "mech": "Invalidação Perpétua do SHA-256 no SSE por Timestamp Dinâmico (datetime.now()): O gerador SSE promete emitir dados apenas quando o hash do payload mudar. Porém, _build_telemetry_payload gera next_scheduled_run = datetime.now(tz=timezone.utc) com milissegundos em cada execução. O hash SHA-256 é diferente a cada segundo mesmo em banco ocioso, anulando 100% o algoritmo de detecção de mudanças e saturando a rede."
+  },
+  {
+   "num": 5,
+   "sev_raw": "🟠 GRAVE",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "interface/telemetry_api.py",
+   "line": "98–105, 357–369, 431–447, 325–347, 398–408",
+   "mech": "Insegurança Total de CORS e Ausência Completa de Autenticação em Endpoints Mutantes: Configuração de CORS com allow_origins=[\"*\"] e allow_credentials=True combinada com ausência total de tokens ou API keys. Qualquer página web aberta no navegador do usuário pode disparar POSTs para http://localhost:8000 alterando o estado do MCP (/api/mcp/state), relaxando o regime de segurança para auto-approve (/api/gating/config) ou corrompendo checkpoints (/api/checkpoints/time-travel)."
+  },
+  {
+   "num": 6,
+   "sev_raw": "🟡 MÉDIA",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "interface/telemetry_api.py",
+   "line": "166, 199, 304–319",
+   "mech": "Dessincronização de Esquema e Crash de Tipagem em Timestamps (NoneType e str): (1) _build_telemetry_payload chama datetime.fromtimestamp(ts), falhando com TypeError se ts for NULL ou string ISO ('2026-09-24 21:00:00'); (2) dessincronização interna: enquanto o snapshot lê de agent_checkpoints com coluna timestamp, o endpoint /api/checkpoints/{session_id} lê de fsm_checkpoints com colunas state_name, task_id, created_at."
+  },
+  {
+   "num": 7,
+   "sev_raw": "🟡 MÉDIA",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "interface/telemetry_api.py",
+   "line": "56–68",
+   "mech": "Thread Daemônica Órfã e Singletons Desconectados no Import do Módulo: A mera importação de interface.telemetry_api (feita por interface/mcp_server.py:151) invoca rate_governor_service.start(), subindo uma thread consumidora que roda em loop contínuo consumindo CPU sem receber requisições de produção. Singletons de SecurityGuard e GatingInterceptor também são instanciados sem governar as ferramentas reais do FastMCP."
+  }
+ ],
+ "mock-vs-real-audit.md": [
+  {
+   "num": 1,
+   "sev_raw": "CRÍTICA",
+   "sev": "CRITICA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "tests/test_vector_reconciler.py / core/vector_reconciler.py",
+   "line": "test: 83; vr: 39",
+   "mech": "core/vector_reconciler.py:39 invoca self.vector_db.get_all_ids(). Esse método não existe nem na interface BaseVectorBackend nem na classe real ChromaVectorStore (o método real é get_all_stored_node_ids()). Em runtime, quando o VectorReconciler roda com a classe real, sofre AttributeError: 'ChromaVectorStore' object has no attribute 'get_all_ids'. Os testes em test_vector_reconciler.py e test_e2e_concierge_integration.py passam apenas porque usam MockVectorDatabase que inventa get_all_ids(). Padrão idêntico ao Achado #1 do delta_manager.py."
+  },
+  {
+   "num": 2,
+   "sev_raw": "CRÍTICA",
+   "sev": "CRITICA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "tests/test_hsm_transition_hooks_and_delta.py / core/hsm_engine.py",
+   "line": "test: 32; hsm: 458",
+   "mech": "core/hsm_engine.py:458 chama delta_manager.has_structural_change(target_task_id). O método não existe em DeltaManager. O MockDeltaManager implementou esse método artificialmente, mascarando o bug nos testes."
+  },
+  {
+   "num": 3,
+   "sev_raw": "ALTA",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO (AMBÍGUO / INEXISTENTE)",
+   "status": "CONFIRMADO",
+   "file": "tests/test_cognitive_routing_memory.py / core/federated_knowledge_router.py",
+   "line": "test: 30; fkr: 73",
+   "mech": "MockExternalMCP define query_docs(self, query). O roteador FederatedKnowledgeRouter (core/federated_knowledge_router.py:73) invoca self.external_mcp.query_docs(query). Contudo, não existe nenhuma classe de produção em todo o repositório que implemente esse cliente MCP federado. O mock testa um contrato puramente fantasma sem correspondente real."
+  },
+  {
+   "num": 4,
+   "sev_raw": "FALSO POSITIVO (OBSERVAÇÃO)",
+   "sev": "OBSERVACAO",
+   "status_raw": "FALSO POSITIVO (RESOLVIDO / OBSERVADO)",
+   "status": "FALSO_POSITIVO",
+   "file": "tests/test_mcp_server_handlers.py / interface/mcp_server.py",
+   "line": "test: 116; mcp: 135; js: 107",
+   "mech": "MockJanitor define signal_mine_start, signal_mine_end, is_running, last_reports. A classe real usada pelo servidor MCP (interface/mcp_server.py:135) é JanitorService de services/janitor.py, a qual implementa 100% desses 4 métodos. Em runtime de produção, o servidor funciona perfeitamente com a classe real. A aparente divergência ocorreria apenas se o mock substituísse core/background_janitor.py (BackgroundJanitor). Não há quebra em runtime (falso positivo de defeito). Resta apenas uma observação arquitetural de duplicidade conceitual de nomenclatura entre core/background_janitor.py e services/janitor.py."
+  },
+  {
+   "num": 5,
+   "sev_raw": "MÉDIA",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "tests/test_vector_reconciler.py / storage/base_backend.py",
+   "line": "test: 73; bb: 91",
+   "mech": "MockVectorDatabase define insert(vector_id, payload). insert não existe em BaseVectorBackend nem em ChromaVectorStore (o método real de produção é store_embedding(doc_id, embedding, metadata)). Embora VectorReconciler não chame insert, o mock esconde que a inserção de vetores real requer metadados obrigatórios (project_uuid, node_id) e vetor float validado."
+  },
+  {
+   "num": 6,
+   "sev_raw": "MÉDIA",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "tests/test_cognitive_routing_memory.py / core/graph_rag.py",
+   "line": "test: 24; gr: 45",
+   "mech": "MockGraphRAGEngine.retrieve_multihop_context(query) aceita texto puro de query e retorna str. A classe real GraphRAGEngine.retrieve_multihop_context(entry_node, max_depth=3) espera o caminho de um arquivo (entry_node) e retorna um Dict[str, Any]. Ao plugar a classe real no FederatedKnowledgeRouter._resolve_local(), passar uma query em linguagem natural falhará na busca relacional de files.path e retornará um dicionário em vez de texto, quebrando as expectativas de contexto das camadas superiores."
+  },
+  {
+   "num": 7,
+   "sev_raw": "BAIXA",
+   "sev": "BAIXA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "tests/test_interface_contracts.py / storage/base_backend.py",
+   "line": "test: 59, 63; bb: 91",
+   "mech": "_MockVectorStore.reset_collection() é testado como se fizesse parte da interface de vetor, mas reset_collection existe apenas na classe concreta ChromaVectorStore, não na interface abstrata BaseVectorBackend. Além disso, _MockVectorStore.search(self, *args, kwargs) é excessivamente permissivo: por aceitar quaisquer argumentos variáveis, o mock não valida a assinatura canônica de BaseVectorBackend.search e deixaria passar chamadores que violassem seus parâmetros obrigatórios (query_embedding, project_uuids, top_k, filters)."
+  }
+ ],
+ "schema-oficial-incompleto.md": [
+  {
+   "num": 1,
+   "sev_raw": "🔴 CRÍTICA MÁXIMA",
+   "sev": "MAXIMA",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "storage/schema.py<br>storage/store.py<br>core/database.py",
+   "line": "schema.py:51–144, 285–305<br>store.py:91–107<br>database.py:32–41",
+   "mech": "Omissão Estrutural de 5 Tabelas Relacionais no Bootstrap Oficial: O schema oficial de produção define apenas 8 tabelas legadas + 1 FTS5. As tabelas files, communities, ast_edges, agent_checkpoints e fsm_checkpoints não possuem DDL em nenhum arquivo de inicialização de produção. ConciergeDatabaseManager._init_tables() cria apenas a tabela temporária test_log."
+  },
+  {
+   "num": 2,
+   "sev_raw": "🔴 CRÍTICA MÁXIMA",
+   "sev": "MAXIMA",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "12 Módulos de core/ e interface/",
+   "line": "12 arquivos (ver lista detalhada na Seção 3)",
+   "mech": "Inoperância Funcional de Todos os Subsistemas Analíticos em Instalação Limpa: Em um banco oficialmente bootstrapado, operações essenciais quebram imediatamente: reconcile_orphans() (no such table: files), process_file_change() (no such table: files), run_idle_summarization() (no such table: communities), detect_logical_communities() (no such table: ast_edges), get_telemetry_snapshot() (no such table: files), ferramentas MCP de checkpoints (no such table: agent_checkpoints)."
+  },
+  {
+   "num": 3,
+   "sev_raw": "🟠 GRAVE",
+   "sev": "GRAVE",
+   "status_raw": "CONFIRMADO E REPRODUZIDO",
+   "status": "CONFIRMADO",
+   "file": "storage/store.py<br>storage/schema.py<br>core/database.py<br>core/checkpointer.py<br>interface/watcher.py",
+   "line": "store.py:107<br>schema.py:285–305<br>database.py:66–67<br>checkpointer.py:146–149<br>watcher.py:93–100",
+   "mech": "Mascaramento Silencioso de Erros DDL e Falsa Confirmação no Boot: core/database.py::execute_write engole exceções retornando (False, error). AgnosticCheckpointer.save_checkpoint retorna False sem propagar erro ou registrar log crítico. interface/watcher.py::hydrate_known_hashes captura exceções silenciosamente com except Exception: pass. Agravando o cenário, storage/store.py:107 loga Schema v3.8.0 verified - all tables and triggers OK. porque verify_tables_exist() valida apenas o subset restrito que o próprio SchemaManager conhece, entregando ao operador uma falsa confirmação de integridade no boot enquanto 5 tabelas críticas de core/* estão ausentes."
+  },
+  {
+   "num": 4,
+   "sev_raw": "🔴 CRÍTICA",
+   "sev": "CRITICA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "Suítes de Teste (tests/)",
+   "line": "14 arquivos de teste em tests/",
+   "mech": "A Ilusão dos Testes (Test Mirage): A cobertura de testes do projeto mascara a quebra estrutural porque 14 suítes de teste independentes criam privadamente as tabelas files, communities, ast_edges e agent_checkpoints em suas rotinas de fixture setUp(), simulando um schema que a aplicação real em produção nunca possui."
+  },
+  {
+   "num": 5,
+   "sev_raw": "🟡 MÉDIO",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "docs-grafo-concierge/01_ARCHITECTURE.md<br>storage/schema.py",
+   "line": "01_ARCHITECTURE.md:130–169 vs schema.py:51–144",
+   "mech": "Abandono de Especificação Arquitetural: A documentação formal de arquitetura em 01_ARCHITECTURE.md lista com clareza as 13 tabelas necessárias, divididas entre \"SURVIVAL & DELTA ENGINE TABLES\" (tabelas 1 a 4) e \"COGNITIVE GRAPH & FACT TABLES\" (tabelas 5 a 12). No entanto, o código de schema.py implementou apenas as tabelas 5 a 12, abandonando as tabelas 1 a 4 sem qualquer migração ou aviso."
+  }
+ ],
+ "storage.md": [
+  {
+   "num": 1,
+   "sev_raw": "🔴 CRÍTICO",
+   "sev": "CRITICA",
+   "status_raw": "",
+   "status": "?",
+   "file": "storage/connection.py",
+   "line": "",
+   "mech": "Deadlock Inevitável em Escritas Reentrantes/Aninhadas no SerializedWriteQueue: Qualquer operação executada dentro do worker da fila de escrita que tente invocar direta ou indiretamente um método de escrita submete novo job e bloqueia em result_event.wait(), travando permanentemente o worker thread em auto-espera."
+  },
+  {
+   "num": 2,
+   "sev_raw": "🟠 GRAVE",
+   "sev": "GRAVE",
+   "status_raw": "",
+   "status": "?",
+   "file": "storage/connection.py",
+   "line": "",
+   "mech": "Vazamento Perpétuo de Conexões SQLite de Threads Finalizadas: get_read_connection() retém referências fortes de todas as conexões criadas na lista _read_connections. Quando threads efêmeras morrem, os objetos sqlite3.Connection continuam presos na lista global, vazando descritores de arquivos e memória WAL até o encerramento do processo."
+  },
+  {
+   "num": 3,
+   "sev_raw": "🟡 MÉDIO",
+   "sev": "MEDIA",
+   "status_raw": "",
+   "status": "?",
+   "file": "storage/connection.py",
+   "line": "",
+   "mech": "Falha ao Reiniciar SerializedWriteQueue após stop() (RuntimeError): O objeto threading.Thread é instanciado apenas uma vez no __init__. Se stop() for invocado (ou via ConnectionManager.close()) e posteriormente start() for chamado para reconexão, o Python lança RuntimeError: threads can only be started once, inutilizando a instância."
+  },
+  {
+   "num": 4,
+   "sev_raw": "🟠 GRAVE",
+   "sev": "GRAVE",
+   "status_raw": "",
+   "status": "?",
+   "file": "storage/relational_db.py <br> storage/store.py",
+   "line": "",
+   "mech": "Incompatibilidade de Contrato: init_fsm_checkpoints_schema Falha Silenciosamente: A função espera um gerenciador com execute_write ou write_query (padrão core/database.py), mas a fachada oficial SqliteStore só expõe write_callback. O init retorna False sem criar a tabela fsm_checkpoints. Além disso, SchemaManager.apply_full_schema omite completamente as tabelas de checkpoints."
+  },
+  {
+   "num": 5,
+   "sev_raw": "🟠 GRAVE",
+   "sev": "GRAVE",
+   "status_raw": "",
+   "status": "?",
+   "file": "storage/logic.py",
+   "line": "",
+   "mech": "Falha de Tipo em _calculate_decay com Timestamps ISO Offset-Aware (Degradação para 0.01): A subtração entre datetime.utcnow() (offset-naive) e datetime.fromisoformat() (offset-aware quando contendo Z ou +00:00) lança TypeError, que é engolido pelo bloco except e força o retorno de RECENCY_MIN_SCORE (0.01) para commits imediatos."
+  },
+  {
+   "num": 6,
+   "sev_raw": "🔴 CRÍTICO",
+   "sev": "CRITICA",
+   "status_raw": "",
+   "status": "?",
+   "file": "storage/vector_store.py, <br> storage/vector_store.py",
+   "line": "",
+   "mech": "Bypass de Isolamento Estrito (*Strict Scoping*) em ChromaVectorStore.search: Quando project_uuids=[], _build_where_filter não adiciona nenhum filtro de projeto, executando a busca sobre todos os vetores de todos os projetos da coleção e vazando dados confidenciais (*Cross-Project Leakage*)."
+  },
+  {
+   "num": 7,
+   "sev_raw": "🟡 MÉDIO",
+   "sev": "MEDIA",
+   "status_raw": "",
+   "status": "?",
+   "file": "storage/vector_store.py, <br> storage/vector_store.py",
+   "line": "",
+   "mech": "Crash com ValueError em ChromaVectorStore.search por node_id Vazio ou None: O validador não checa o tipo de node_id. Se node_id=None for passado, _sanitize_metadata converte para string vazia \"\". Em search(), int(meta.get(\"node_id\", 0)) tenta executar int(\"\"), explodindo a busca com ValueError."
+  },
+  {
+   "num": 8,
+   "sev_raw": "🟡 MÉDIO",
+   "sev": "MEDIA",
+   "status_raw": "",
+   "status": "?",
+   "file": "storage/logic.py",
+   "line": "",
+   "mech": "Duplicação de Nós na CTE Recursiva get_dependency_tree: A projeção da CTE inclui dt.depth + 1 e utiliza UNION ALL. No SELECT DISTINCT * FROM dep_tree, como a coluna depth faz parte da tupla distinta, nós alcançáveis por múltiplos caminhos de profundidades distintas aparecem repetidos no resultado final."
+  },
+  {
+   "num": 9,
+   "sev_raw": "🔵 BAIXO",
+   "sev": "BAIXA",
+   "status_raw": "",
+   "status": "?",
+   "file": "storage/semantic_logic.py <br> storage/store.py",
+   "line": "",
+   "mech": "Isolamento de semantic_logic.py e Violação de Encapsulamento em Módulos Externos: A fachada SqliteStore não expõe métodos para manipular a tabela semantic_facts, forçando chamadores externos (ex.: core/middleware.py:632) a acessarem diretamente o atributo privado store._conn_mgr.read()."
+  }
+ ]
+}
