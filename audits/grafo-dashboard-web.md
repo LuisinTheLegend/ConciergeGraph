@@ -2,6 +2,7 @@
 
 > **Data:** 25 de Setembro de 2026  
 > **Status:** AUDITADO / PARADO NO GATE (Regra 7)  
+> **Disponibilidade da Evidência:** código em `grafo-dashboard-web/`, diretório excluído do repositório público (`.gitignore`); links `#Lnn` não são verificáveis em clones públicos (disponíveis apenas no ambiente de origem da auditoria).  
 > **Prioridade Geral:** 🔴 **CRÍTICA (CÓDIGO MORTO DE EVENTOS, CICLO INFINITO DE FLAPPING SSE, COLISÃO DE PORTAS E REJEIÇÃO 401 FORA DA CAIXA)**  
 > **Arquivos Auditados:**
 > - [`grafo-dashboard-web/lib/useTelemetryStream.ts`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/useTelemetryStream.ts) (343 linhas)

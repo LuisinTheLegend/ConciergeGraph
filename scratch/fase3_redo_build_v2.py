@@ -27,7 +27,7 @@ TRACKS = [
       "core-background-janitor.md", "core-rate-governor.md"]),
     ("C. Segurança e Governança", ["bypass-governanca-por-session-id.md", "core-security-guard.md"]),
     ("D. Ingestão, Reconciliação e Delta", ["ingestion.md", "core-vector-reconciler.md",
-                                            "core-delta-manager.md"]),
+                                            "core-delta-manager.md", "core-alias-tracker.md"]),
     ("E. Telemetria e Dashboard", ["interface-telemetry-api.md", "grafo-dashboard-web.md"]),
     ("F. Runtime Cognitivo e Contratos de Mock", ["agent-and-agents.md", "mock-vs-real-audit.md"]),
 ]
@@ -38,7 +38,7 @@ LABEL = {"MAXIMA": "Máxima", "CRITICA": "Crítica", "GRAVE": "Grave",
 out = ["# Backlog Final — Versão 2 (refeita de forma independente)", "",
        "> **Status:** reconstrução independente da Fase 3. Gerada por "
        "`scratch/fase3_redo_build_v2.py` a partir de `scratch/fase3_redo_inventory.json` "
-       "(15 relatórios da Fase 1). **Não** foi derivada de `audits/backlog-final.md`, que "
+       "(16 relatórios da Fase 1). **Não** foi derivada de `audits/backlog-final.md`, que "
        "permanece intacto como versão v1.",
        "> **Critério de trilha:** por relatório de origem (mecânico). IDs `V2-nnn` são "
        "independentes da numeração BL.",

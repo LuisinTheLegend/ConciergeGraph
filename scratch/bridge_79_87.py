@@ -36,12 +36,19 @@ CORRECOES_79 = {
 CITE_RE = re.compile(r"\[`?(?:audits/)?([\w\-]+\.md)`?\]\([^)]*\)\s*#(\d+)")
 
 
-def git_show(rev):
-    out = subprocess.run(
-        ["git", "show", f"{rev}:{PATH}"],
-        capture_output=True, check=True,
-    ).stdout
-    return out.decode("utf-8")
+def get_text(rev):
+    if rev == "WORKING":
+        with open(PATH, encoding="utf-8") as f:
+            return f.read()
+    try:
+        out = subprocess.run(
+            ["git", "show", f"{rev}:{PATH}"],
+            capture_output=True, check=True,
+        ).stdout
+        return out.decode("utf-8")
+    except Exception:
+        with open(PATH, encoding="utf-8") as f:
+            return f.read()
 
 
 def norm_sev(s):
@@ -158,23 +165,41 @@ def stage(old, new, old_label, new_label):
 def main():
     print("Lendo versões via git show...")
     print("Versão 79 (1535c79):")
-    v79 = by_achado(parse_79(git_show("1535c79")), "79")
+    v79 = by_achado(parse_79(get_text("1535c79")), "79")
     print("Versão 84 (503aa6f):")
-    v84 = by_achado(parse_blocks(git_show("503aa6f")), "84")
-    print("Versão 87 (HEAD):")
-    v87 = by_achado(parse_blocks(git_show("HEAD")), "87")
-    print(f"Achados distintos: 79-ver={len(v79)} | 84-ver={len(v84)} | 87-ver={len(v87)}")
+    v84 = by_achado(parse_blocks(get_text("503aa6f")), "84")
+    print("Versão 87 (7a713a9):")
+    v87 = by_achado(parse_blocks(get_text("7a713a9")), "87")
 
-    print("\n=== CITAÇÕES CORRIGIDAS DA VERSÃO 79 -> ID NAS VERSÕES 84 E 87 ===")
+    # Versão 88: tenta HEAD; se HEAD for a mesma 87 ou tiver < 88 itens, usa WORKING copy
+    head_raw = get_text("HEAD")
+    head_parsed = parse_blocks(head_raw)
+    if len(head_parsed) < 88:
+        work_raw = get_text("WORKING")
+        work_parsed = parse_blocks(work_raw)
+        if len(work_parsed) >= 88:
+            head_parsed = work_parsed
+            print("Versão 88 (WORKING copy pré-commit):")
+        else:
+            print("Versão 88 (HEAD):")
+    else:
+        print("Versão 88 (HEAD):")
+    v88 = by_achado(head_parsed, "88")
+
+    print(f"Achados distintos: 79-ver={len(v79)} | 84-ver={len(v84)} | 87-ver={len(v87)} | 88-ver={len(v88)}")
+
+    print("\n=== CITAÇÕES CORRIGIDAS DA VERSÃO 79 -> ID NAS VERSÕES 84, 87 E 88 ===")
     for bl79, key in sorted(CORRECOES_79.items()):
         a84 = v84.get(key, ("ausente", "-"))
         a87 = v87.get(key, ("ausente", "-"))
+        a88 = v88.get(key, ("ausente", "-"))
         print(f"  79:{bl79} [{v79[key][1]}] = {key[0]} #{key[1]} -> "
-              f"84:{a84[0]} [{a84[1]}] -> 87:{a87[0]} [{a87[1]}]")
+              f"84:{a84[0]} [{a84[1]}] -> 87:{a87[0]} [{a87[1]}] -> 88:{a88[0]} [{a88[1]}]")
 
     stage(v79, v84, "79", "84")
     stage(v84, v87, "84", "87")
-    stage(v79, v87, "79", "87")
+    stage(v87, v88, "87", "88")
+    stage(v79, v88, "79", "88")
 
 
 if __name__ == "__main__":

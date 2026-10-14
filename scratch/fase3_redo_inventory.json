@@ -123,6 +123,18 @@
    "mech": "Inicialização Insegura por Padrão (default_state = \"EXECUTION\"): O governor não inicia em PLANNING. Ferramentas de mutação física local (LOCAL_MUTATION, ex.: concierge_mine, write_file) ficam abertas imediatamente após o boot do servidor."
   }
  ],
+ "core-alias-tracker.md": [
+  {
+   "num": 1,
+   "sev_raw": "MÉDIA",
+   "sev": "MEDIA",
+   "status_raw": "CONFIRMADO",
+   "status": "CONFIRMADO",
+   "file": "core/alias_tracker.py",
+   "line": "185–259",
+   "mech": "apply_alias_migration não é atômico. A função aplica UPDATEs em files, nodes, ast_edges e fsm_checkpoints em loop sequencial, onde cada chamada a execute_write/write_query confirma a transação isoladamente. Se ocorrer uma falha intermediária (ex: timeout SQLite, erro de coluna ou interrupção de I/O), as mutações anteriores permanecem persistidas e commitadas. A função captura a exceção, registra log de erro crítico e retorna False sem desfazer os UPDATEs prévios, deixando o banco de dados em estado inconsistente e corrompido de migração parcial."
+  }
+ ],
  "core-background-janitor.md": [
   {
    "num": 1,

@@ -61,6 +61,7 @@ forma independente**, não aceitar de graça:
 - [x] `core/alias_tracker.py` — achado: `apply_alias_migration` não é
   atômico (loop de UPDATEs sem transação envolvente) e referencia coluna
   `task_id` inexistente em `fsm_checkpoints`.
+  **Correção pós-auditoria:** A afirmação de que a coluna `task_id` é inexistente em `fsm_checkpoints` está incorreta: `storage/relational_db.py:14` define explicitamente `task_id TEXT` na DDL de criação da tabela. Cabe anotar também que a tabela `fsm_checkpoints` não existe no schema oficial de bootstrap (Achado BL-001). Em relação à semântica de `task_id`, `core/checkpointer.py:201` e `core/hsm_engine.py:296` usam `task_id` coerentemente como caminho do arquivo da tarefa (`path`), portanto o uso em `alias_tracker.py:239` é aderente às convenções internas. A parte do achado relativa à falta de atomicidade em `apply_alias_migration` (loop de UPDATEs sem transação unificada) foi confirmada empiricamente via reprodução em `scratch/fase3_redo_repro_alias.py` e catalogada formalmente como BL-088.
 - [x] `interface/queue_writer.py` — achado: fila em memória (`queue.Queue`)
   sem persistência nem tratamento de sinal; risco de perda em SIGKILL.
 - [x] `core/parser_factory.py` + `core/parsers/` — achado: só suporta
@@ -75,6 +76,7 @@ forma independente**, não aceitar de graça:
   chama `update_fact_utility` (mutação real) mas está classificado como
   `READ_ONLY`. **Pendência:** ler o arquivo completo (69KB, só uma função
   foi conferida).
+  **Correção pós-auditoria:** `concierge_feedback` está classificado como `LOCAL_MUTATION` em `core/mcp_governor.py:116` (commit `47dd451`). A afirmação de que estaria como `READ_ONLY` foi contradita pela checagem no histórico e código atual. A pendência de ler o arquivo completo permanece válida.
 
 Auditado nesta sessão do Antigravity, confirmado de forma independente:
 
@@ -181,8 +183,8 @@ Tarefa extra inserida a partir do padrão encontrado acima:
 
 ## Fase 3 — Consolidação
 
-- [x] **backlog-final** — Backlog executivo completo e roadmap de engenharia com 87 itens técnicos catalogados (86 achados de não-conformidade confirmados + 1 observação de precisão arquitetural) (3 Máxima + 21 Crítica + 30 Grave + 28 Média + 5 Baixa) (ver [`audits/backlog-final.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/backlog-final.md)).
-  87 itens numerados BL-001 a BL-087, cada um citando arquivo/linhas exatos, mecanismo técnico, relatório de origem (`audits/*.md`), diretriz de remediação arquitetural e critérios de validação.
+- [x] **backlog-final** — Backlog executivo completo e roadmap de engenharia com 88 itens técnicos catalogados (87 achados de não-conformidade confirmados + 1 observação de precisão arquitetural) (3 Máxima + 21 Crítica + 30 Grave + 29 Média + 5 Baixa) (ver [`audits/backlog-final.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/backlog-final.md)).
+  88 itens numerados BL-001 a BL-088, cada um citando arquivo/linhas exatos, mecanismo técnico, relatório de origem (`audits/*.md`), diretriz de remediação arquitetural e critérios de validação.
   Organizado em 6 Tracks Sequenciais de Trabalho: (1) Fundação Relacional & Schema, (2) Concorrência & Escrita Unificada SQLite, (3) Segurança de Fronteira & Governança MCP, (4) Reconciliação, Grafo & Ingestão, (5) Telemetria, SSE & Dashboard HUD, (6) Runtime Cognitivo, Mocks & Código Órfão.
   Dependências críticas invioláveis formalizadas: BL-033 e BL-034 devem ser corrigidos no mesmo commit; BL-001 é o bloqueante estrutural de 12+ subsistemas.
   Item concluído [x] e verificado com correções pós-auditoria externa. Auditoria 100% concluída: NÃO há próximo item.

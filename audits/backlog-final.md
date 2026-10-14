@@ -2,8 +2,8 @@
 
 > **Fase:** 3 — Consolidação (`backlog-final`)  
 > **Data:** 2026-10-01  
-> **Fontes:** 15 relatórios de auditoria em `audits/*.md` (Fase 1) + [`audits/cruzamento-modulos.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/cruzamento-modulos.md) (Fase 2)  
-> **Total de Achados Auditados e Catalogados:** 87 itens catalogados (86 achados de não-conformidade confirmados + 1 observação arquitetural de precisão) — 3 Máxima + 21 Crítica + 30 Grave + 28 Média + 5 Baixa  
+> **Fontes:** 16 relatórios de auditoria em `audits/*.md` (Fase 1) + [`audits/cruzamento-modulos.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/cruzamento-modulos.md) (Fase 2)  
+> **Total de Achados Auditados e Catalogados:** 88 itens catalogados (87 achados de não-conformidade confirmados + 1 observação arquitetural de precisão) — 3 Máxima + 21 Crítica + 30 Grave + 29 Média + 5 Baixa  
 > **Status:** Concluído — Revisão Exaustiva e Reconciliação Canônica
 
 ---
@@ -30,7 +30,7 @@ A inspeção detalhada do backlog preliminar consolidado revelou **5 pontos de r
 5. **Estruturação por Trilhas de Implementação (Work Packages):**
    - Organização do backlog em 6 Tracks ordenadas por dependência de software real, viabilizando execução paralela e segura por equipes de engenharia.
 
-Esta versão consolidada da **Fase 3** estabelece o **Roadmap de Engenharia e Backlog Executivo Completo**, com rastreabilidade 100% canônica com os 15 relatórios de auditoria, totalizando 87 itens técnicos estruturados (86 achados de não-conformidade confirmados + 1 observação de precisão arquitetural catalogada como melhoria técnica).
+Esta versão consolidada da **Fase 3** estabelece o **Roadmap de Engenharia e Backlog Executivo Completo**, com rastreabilidade 100% canônica com os 16 relatórios de auditoria, totalizando 88 itens técnicos estruturados (87 achados de não-conformidade confirmados + 1 observação de precisão arquitetural catalogada como melhoria técnica).
 
 ### 1.1 Reconciliação com a Fase 2 (79 → 84 → 87)
 
@@ -70,30 +70,41 @@ O relatório da Fase 2 ([`audits/cruzamento-modulos.md`](file:///c:/Nexus-Memory
 
 Conferência por linha: Máxima 3+1−1=3; Crítica 20+0+1=21; Grave 27+1+2=30; Média 26+3−2=27 e 27+2−1=28; Baixa 3+0+0=3 e 3+1+1=5; Total 79+5=84 e 84+3=87.
 
+### 1.2 Reconciliação 87 → 88
+
+Após a rodada de revisão externa do commit `7a713a9`, o achado sobre a falta de atomicidade em `apply_alias_migration` (`core/alias_tracker.py`), previamente declarado no protocolo da Fase 1 sem relatório formal, foi reproduzido empiricamente com sucesso via [`scratch/fase3_redo_repro_alias.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/fase3_redo_repro_alias.py). O relatório canônico [`audits/core-alias-tracker.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/core-alias-tracker.md) foi formalizado e o defeito integrado como **BL-088** ao final da TRACK 4.
+
+A ponte foi recalculada pelo script [`scratch/bridge_79_87.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/bridge_79_87.py), comparando a versão fixa do commit `7a713a9` (87 itens) com a versão atual:
+
+- **1 achado adicionado:** `core-alias-tracker.md` #1 (BL-088, Média).
+- **0 mudanças de severidade.**
+- **0 achados removidos.**
+- **Saldo 87 → 88:** Média +1 (28 → 29). Total: 87 → 88 itens catalogados (87 achados + 1 observação).
+
 ---
 
 ## 2. Visão Executiva e Métricas Consolidadas
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                 BACKLOG FINAL & ROADMAP — 87 ITENS CATALOGADOS              │
+│                 BACKLOG FINAL & ROADMAP — 88 ITENS CATALOGADOS              │
 │                                                                             │
 │  🔴🔴 MÁXIMA   ███                                                3  ( 3.4%)│
-│  🔴   CRÍTICA  █████████████████████                             21  (24.1%)│
-│  🟠   GRAVE    ██████████████████████████████                    30  (34.5%)│
-│  🟡   MÉDIA    ████████████████████████████                      28  (32.2%)│
+│  🔴   CRÍTICA  █████████████████████                             21  (23.9%)│
+│  🟠   GRAVE    ██████████████████████████████                    30  (34.1%)│
+│  🟡   MÉDIA    █████████████████████████████                     29  (33.0%)│
 │  🔵   BAIXA    █████                                              5  ( 5.7%)│
 │                                                                             │
-│  TOTAL DE ITENS NO ROADMAP: 87 (86 achados + 1 observação)                  │
-│  CRÍTICOS + GRAVES (RISCO ALTO/BLOQUEANTE): 54 achados (62.1%)              │
-│  SUBSISTEMAS AFETADOS: 15 componentes auditados                             │
+│  TOTAL DE ITENS NO ROADMAP: 88 (87 achados + 1 observação)                  │
+│  CRÍTICOS + GRAVES (RISCO ALTO/BLOQUEANTE): 54 achados (61.4%)              │
+│  SUBSISTEMAS AFETADOS: 16 componentes auditados                             │
 │  CADEIAS DE FALHA TRANSVERSAL ATIVAS: 4 cadeias completas                   │
 │  CÓDIGO MORTO / ÓRFÃO CONFIRMADO: 6 componentes                             │
 │  TEST MIRAGE: 14 suítes mascarando bugs reais de produção                   │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Mapa de Calor Canônico por Subsistema (87 Achados)
+### Mapa de Calor Canônico por Subsistema (88 Itens)
 
 | Subsistema / Módulo de Produção | Máxima | Crítica | Grave | Média | Baixa | Total |
 |---|---|---|---|---|---|---|
@@ -103,6 +114,7 @@ Conferência por linha: Máxima 3+1−1=3; Crítica 20+0+1=21; Grave 27+1+2=30; 
 | **Persistência Relacional e Vetorial (`storage/`)** | — | 2 | 3 | 3 | 1 | **9** |
 | **Pipeline de Ingestão (`ingestion/`)** | — | 2 | 2 | 4 | — | **8** |
 | **Reconciliação Vetorial (`core/vector_reconciler.py`)** | — | 2 | 1 | 1 | — | **4** |
+| **Migração de Alias & Renomeação (`core/alias_tracker.py`)** | — | — | — | 1 | — | **1** |
 | **Checkpointer & Viagem no Tempo (`core/checkpointer.py`)** | — | 1 | 2 | 2 | — | **5** |
 | **Faxineiro de Background & Pruning (`core/background_janitor.py`)** | — | — | 3 | 2 | — | **5** |
 | **Rate Governor & Controle de Tráfego (`core/rate_governor.py`)** | — | 1 | 3 | 1 | — | **5** |
@@ -112,7 +124,7 @@ Conferência por linha: Máxima 3+1−1=3; Crítica 20+0+1=21; Grave 27+1+2=30; 
 | **Dashboard Web Next.js 16 (`grafo-dashboard-web/`)** | — | 3 | 2 | 3 | — | **8** |
 | **Runtime Cognitivo & Agentes (`agent/`, `agents/` — Condicional/Órfão)** | — | 2* | 3* | 2* | — | **7*** |
 | **Contratos Fantasma & Divergência de Mocks (`mock-vs-real-audit.md` e `core/federated_knowledge_router.py`)** | — | — | 1 | 2 | 1 | **4** |
-| **TOTAL GERAL RECONCILIADO** | **3** | **21** | **30** | **28** | **5** | **87** |
+| **TOTAL GERAL RECONCILIADO** | **3** | **21** | **30** | **29** | **5** | **88** |
 
 > \* *Severidade Condicional: Código atualmente órfão/desconectado do servidor FastMCP em produção. Seus bugs se materializam no momento em que o código for reconectado.*
 
@@ -128,7 +140,7 @@ A ordem mandatória de execução está estruturada em **6 Tracks Sequenciais**:
 flowchart TD
     T1["TRACK 1: Fundação Relacional & Unificação do Schema<br/>(BL-001 a BL-005)<br/>Desbloqueia o banco em instalação limpa"] --> T2["TRACK 2: Concorrência, Filas & Escrita Unificada<br/>(BL-006 a BL-010, BL-016, BL-021)<br/>Elimina colisões de conexão e deadlocks"]
     T2 --> T3["TRACK 3: Segurança de Fronteira & Governança MCP<br/>(BL-011 a BL-015, BL-052 a BL-056)<br/>Estanca bypass de sessão e exfiltração"]
-    T3 --> T4["TRACK 4: Reconciliação, Grafo & Ingestão Consistente<br/>(BL-025 a BL-036, BL-057 a BL-061)<br/>Purga atômica e correções simultâneas"]
+    T3 --> T4["TRACK 4: Reconciliação, Grafo & Ingestão Consistente<br/>(BL-025 a BL-036, BL-057 a BL-061, BL-088)<br/>Purga atômica e correções simultâneas"]
     T4 --> T5["TRACK 5: Telemetria, Streaming SSE & Dashboard HUD<br/>(BL-062 a BL-076)<br/>Restaura observabilidade e reconexões"]
     T5 --> T6["TRACK 6: Runtime Cognitivo, Mocks & Código Órfão<br/>(BL-077 a BL-087)<br/>Decisão arquitetural: reconectar ou expurgar"]
 ```
@@ -525,9 +537,20 @@ flowchart TD
 - **Diretriz de Remediação:** Delegar métodos públicos em `SqliteStore` para `SemanticLogic`.
 - **Critério de Validação:** Manipulação de fatos sem acesso a `store._conn_mgr`.
 
+#### [BL-088] Falha de Atomicidade em `apply_alias_migration` (Migração Parcial sem Rollback)
+- **Severidade:** 🟡 MÉDIA
+- **Arquivos & Linhas:** [`core/alias_tracker.py:185–259`](file:///c:/Nexus-Memory/GrafoConcierge/core/alias_tracker.py#L185), [`interface/watcher.py:179, 240`](file:///c:/Nexus-Memory/GrafoConcierge/interface/watcher.py#L179)
+- **Relatório de Origem:** [`audits/core-alias-tracker.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/core-alias-tracker.md) #1
+- **Mecanismo da Falha:** A função aplica UPDATEs em `files`, `nodes`, `ast_edges` e `fsm_checkpoints` em loop sequencial, e cada `execute_write`/`write_query` confirma a transação sozinho. Uma falha no meio deixa a migração parcial persistida e a função retorna `False` sem desfazer os UPDATEs anteriores.
+- **Diretriz de Remediação:** Executar todos os UPDATEs numa única transação com rollback automático (depende do suporte a transação da fila unificada, BL-006).
+- **Critério de Validação:** Teste que injeta falha no 3º UPDATE e prova que nenhuma tabela mudou.
+
 ---
 
 ### TRACK 5: Telemetria, Streaming SSE & Dashboard HUD
+
+> [!WARNING]
+> **Disponibilidade da Evidência:** código em `grafo-dashboard-web/`, diretório excluído do repositório público (`.gitignore`); links `#Lnn` não são verificáveis em clones públicos (disponíveis apenas no ambiente de origem da auditoria).
 
 > [!IMPORTANT]
 > **OBSERVABILIDADE EM TEMPO REAL:** Corrige o flapping incessante de SSE a cada 8 segundos, desbloqueia o feed do dashboard e reativa mostradores congelados.
@@ -552,6 +575,7 @@ flowchart TD
 - **Severidade:** 🔴 CRÍTICA
 - **Arquivos & Linhas:** [`grafo-dashboard-web/lib/useTelemetryStream.ts:219–260`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/useTelemetryStream.ts#L219)
 - **Relatório de Origem:** [`audits/grafo-dashboard-web.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/grafo-dashboard-web.md) #1 | Cadeia §6.2
+- **Disponibilidade da Evidência:** código em grafo-dashboard-web/, diretório excluído do repositório público (.gitignore); links #Lnn não verificáveis em clones públicos.
 - **Mecanismo da Falha:** O frontend tem switch para `event_type` (`RATE_GOVERNOR_UPDATE`, etc.), mas o backend envia payload bruto sem `event_type`. O switch é inalcançável e os mostradores de cota e estados do HSM ficam permanentemente congelados.
 - **Diretriz de Remediação:** Backend deve emitir eventos digitados no stream SSE ou o frontend deve parsear o payload consolidado e despachar para os stores locais.
 - **Critério de Validação:** Mostradores de cota no dashboard reagem dinamicamente à carga do RateGovernor.
@@ -560,6 +584,7 @@ flowchart TD
 - **Severidade:** 🔴 CRÍTICA
 - **Arquivos & Linhas:** [`grafo-dashboard-web/lib/useTelemetryStream.ts:280–291`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/useTelemetryStream.ts#L280), [`interface/telemetry_api.py:556–572`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L556)
 - **Relatório de Origem:** [`audits/grafo-dashboard-web.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/grafo-dashboard-web.md) #2 | Cadeia §6.2
+- **Disponibilidade da Evidência:** código em grafo-dashboard-web/, diretório excluído do repositório público (.gitignore); links #Lnn não verificáveis em clones públicos.
 - **Mecanismo da Falha:** Trava de teste `max_checks = 5` mantida em produção no backend mata a conexão SSE a cada 5s. O frontend reconecta a cada 3s, gerando 75 quedas em 10 minutos, poluindo o buffer e fazendo o HUD piscar.
 - **Diretriz de Remediação:** Remover `max_checks = 5` em produção (ou torná-lo ativo apenas sob flag de teste). Manter o gerador rodando indefinidamente via `while True:` com `asyncio.sleep(1)`.
 - **Critério de Validação:** Conexão SSE permanece estável por mais de 30 minutos sem reconectar.
@@ -568,6 +593,7 @@ flowchart TD
 - **Severidade:** 🔴 CRÍTICA
 - **Arquivos & Linhas:** [`grafo-dashboard-web/package.json:10–11`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/package.json#L10), [`.env.local:6, 10`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/.env.local#L6), [`lib/mcp/client.ts:29`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/mcp/client.ts#L29)
 - **Relatório de Origem:** [`audits/grafo-dashboard-web.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/grafo-dashboard-web.md) #3
+- **Disponibilidade da Evidência:** código em grafo-dashboard-web/, diretório excluído do repositório público (.gitignore); links #Lnn não verificáveis em clones públicos.
 - **Mecanismo da Falha:** FastAPI e FastMCP tentam escutar na porta 8000 (colisão `WinError 10048`), enquanto o frontend foi configurado para buscar o FastMCP na porta fantasma 7077.
 - **Diretriz de Remediação:** Padronizar portas: FastAPI Telemetria na porta `8001`, FastMCP na porta `8000` (ou `7077`), e alinhar `.env.local` e scripts de `package.json`.
 - **Critério de Validação:** `npm run dev:all` sobe todos os serviços sem conflito de portas e com conexão estabelecida.
@@ -600,6 +626,7 @@ flowchart TD
 - **Severidade:** 🟠 GRAVE
 - **Arquivos & Linhas:** [`grafo-dashboard-web/lib/mcp/client.ts:78, 294–298`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/mcp/client.ts#L78), [`interface/mcp_server.py:186–212`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L186)
 - **Relatório de Origem:** [`audits/grafo-dashboard-web.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/grafo-dashboard-web.md) #4
+- **Disponibilidade da Evidência:** código em grafo-dashboard-web/, diretório excluído do repositório público (.gitignore); links #Lnn não verificáveis em clones públicos.
 - **Mecanismo da Falha:** Backend exige autenticação quando `GRAFO_API_KEY` existe. O frontend usa `EventSource` nativo (sem suporte a headers) e `fetch` sem cabeçalhos de auth, sendo bloqueado com 401 em todas as requisições.
 - **Diretriz de Remediação:** Adicionar suporte a passagem de token via query string no SSE e cabeçalho `Authorization` nos requests de fetch.
 - **Critério de Validação:** Dashboard opera com `GRAFO_API_KEY` ativada sem receber HTTP 401.
@@ -608,6 +635,7 @@ flowchart TD
 - **Severidade:** 🟠 GRAVE
 - **Arquivos & Linhas:** [`storage/store.py:259–273`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py#L259), [`grafo-dashboard-web/app/components/InspectorDrawer.tsx:124–152`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/app/components/InspectorDrawer.tsx#L124)
 - **Relatório de Origem:** [`audits/grafo-dashboard-web.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/grafo-dashboard-web.md) #5
+- **Disponibilidade da Evidência:** código em grafo-dashboard-web/, diretório excluído do repositório público (.gitignore); links #Lnn não verificáveis em clones públicos.
 - **Mecanismo da Falha:** `get_lightweight_topology` omite `summary` e `tags`. O drawer do frontend espera esses dados no nó e não busca sob demanda, exibindo descrição e tags vazias ao clicar em nós 3D/2D.
 - **Diretriz de Remediação:** Incluir endpoint de detalhe sob demanda no frontend ao selecionar um nó ou incluir resumos compactos na topologia inicial.
 - **Critério de Validação:** Clicar em nó no grafo 3D exibe descrição semântica e tags preenchidas.
@@ -632,6 +660,7 @@ flowchart TD
 - **Severidade:** 🟡 MÉDIA
 - **Arquivos & Linhas:** [`grafo-dashboard-web/app/components/CoreMemoryPanel.tsx:137–146`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/app/components/CoreMemoryPanel.tsx#L137)
 - **Relatório de Origem:** [`audits/grafo-dashboard-web.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/grafo-dashboard-web.md) #6
+- **Disponibilidade da Evidência:** código em grafo-dashboard-web/, diretório excluído do repositório público (.gitignore); links #Lnn não verificáveis em clones públicos.
 - **Mecanismo da Falha:** Concatena `"Z"` cegamente em strings ISO que já possuem timezone ou sufixo `"Z"`, gerando `"ZZ"` e quebrando o renderizador.
 - **Diretriz de Remediação:** Usar `date-fns` ou validar `endsWith("Z")` antes de concatenar.
 - **Critério de Validação:** Renderização de datas sem nenhum erro `"Invalid Date"`.
@@ -640,6 +669,7 @@ flowchart TD
 - **Severidade:** 🟡 MÉDIA
 - **Arquivos & Linhas:** [`grafo-dashboard-web/app/page.tsx:478–482`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/app/page.tsx#L478)
 - **Relatório de Origem:** [`audits/grafo-dashboard-web.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/grafo-dashboard-web.md) #7
+- **Disponibilidade da Evidência:** código em grafo-dashboard-web/, diretório excluído do repositório público (.gitignore); links #Lnn não verificáveis em clones públicos.
 - **Mecanismo da Falha:** Prop `onSelectState` omitida na instanciação de `HSMStateInspector`.
 - **Diretriz de Remediação:** Conectar o callback ao hook de transição de estado da API.
 - **Critério de Validação:** Clicar no estado aciona a transição no backend.
@@ -648,6 +678,7 @@ flowchart TD
 - **Severidade:** 🟡 MÉDIA
 - **Arquivos & Linhas:** [`grafo-dashboard-web/components/telemetry/LiveEventFeed.tsx:93–121`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/components/telemetry/LiveEventFeed.tsx#L93), [`lib/useTelemetryStream.ts:191`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/useTelemetryStream.ts#L191)
 - **Relatório de Origem:** [`audits/grafo-dashboard-web.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/grafo-dashboard-web.md) #8
+- **Disponibilidade da Evidência:** código em grafo-dashboard-web/, diretório excluído do repositório público (.gitignore); links #Lnn não verificáveis em clones públicos.
 - **Mecanismo da Falha:** Chamadas a `Date.now()` no corpo do render e disparos síncronos de `setState` em efeitos.
 - **Diretriz de Remediação:** Corrigir os hooks e purificar os componentes de renderização.
 - **Critério de Validação:** `npm run lint` passa com 0 erros.
@@ -911,7 +942,7 @@ graph TD
 ## 6. Veredicto Final da Fase 3
 
 O **Backlog Final & Roadmap de Engenharia** está agora formalmente estabelecido com:
-- **87 itens técnicos catalogados (86 achados de não-conformidade confirmados + 1 observação de precisão arquitetural)** com rastreabilidade direta e sem ambiguidades aos 15 relatórios de auditoria da Fase 1 e à síntese transversal da Fase 2.
+- **88 itens técnicos catalogados (87 achados de não-conformidade confirmados + 1 observação de precisão arquitetural)** com rastreabilidade direta e sem ambiguidades aos 16 relatórios de auditoria da Fase 1 e à síntese transversal da Fase 2.
 - **6 Tracks de Trabalho** orientadas à dependência de software real, prontas para serem transformadas em branches/PRs de desenvolvimento.
 - **Critérios de aceite claros** para cada item, garantindo que a equipe de engenharia não apenas aplique correções, mas valide cada uma contra os scripts de reprodução empírica criados durante a auditoria.
 
@@ -1165,3 +1196,110 @@ Total de registros como ferramenta MCP / rota HTTP: 0
 - **Versionamento de Scripts no Repositório:** Os scripts `scratch/validate_traceability.py` (validador automatizado da matriz canônica) e `scratch/reproduce_all_targets.py` (reprodutor automatizado de alvos específicos) foram integrados diretamente à árvore git em `scratch/`, viabilizando que qualquer revisor execute a validação de ponta a ponta sem dependência de artefatos externos.
 - **Ajuste Numérico de Percentual:** O percentual da severidade BAIXA no gráfico ASCII foi recalculado e ajustado de 5,8% para **5,7%** ($5 / 87 = 5{,}747\%$).
 - **Neutralização de Tom da Seção 1:** A narrativa da Seção 1 foi revista para adotar linguagem estritamente técnica, analítica e de engenharia de software, eliminando menções ad-hominem ou adjetivos não-técnicos.
+
+### 7.7 Rodada pós-revisão externa do commit 7a713a9
+
+Em conformidade com a Regra 10 do `AUDIT_PROTOCOL.md`, registram-se abaixo as correções efetuadas nas seis frentes da rodada pós-revisão externa do commit `7a713a9`, acompanhadas das respectivas evidências e saídas brutas:
+
+#### 7.7.1 Frente 1 — Aviso sobre Disponibilidade de Evidências do Dashboard (`grafo-dashboard-web/`)
+- **Diagnóstico:** O diretório `grafo-dashboard-web/` está registrado no `.gitignore` e não é versionado no repositório git. O script comparador reportava seus links `#Lnn` como "arquivo inexistente" ao rodar em clones públicos. Os itens BL-069 a BL-076 apontam para código inacessível em clones limpos.
+- **Antes:** BL-069 a BL-076 não continham nota de disponibilidade; TRACK 5 e `audits/grafo-dashboard-web.md` não explicitavam a ausência no repositório público; o comparador tratava como erro genérico.
+- **Depois:**
+  - Adicionada a linha `- **Disponibilidade da Evidência:** código em grafo-dashboard-web/, diretório excluído do repositório público (.gitignore); links #Lnn não verificáveis em clones públicos.` nos itens BL-069 a BL-076.
+  - Inserido parágrafo de aviso no início da TRACK 5 e no topo de `audits/grafo-dashboard-web.md`.
+  - Ajustado `scratch/fase3_redo_compare.py` para classificar esses links como `"não verificável (diretório ignorado pelo git)"` sem ocultar a contagem.
+- **Saída Bruta dos Comandos (Frente 1a):**
+```text
+.gitignore:63:grafo-dashboard-web/	grafo-dashboard-web
+0
+```
+
+#### 7.7.2 Frente 2 — Retificação de Links Verificados em `audits/comparacao-fase3.md`
+- **Diagnóstico:** A linha 23 de `audits/comparacao-fase3.md` afirmava "128, 0 problemas", o que só era válido na máquina de desenvolvimento onde o dashboard local existia. Em um clone público, apenas os links de código versionado são verificáveis.
+- **Antes:** Linha 23: `| Links arquivo#Lnn do v1 verificados contra o código atual | 128, **0 problemas** |`.
+- **Depois:** Linha 23 reescrita detalhando os dois números: 119 links verificados no clone público com 0 problemas, e 11 links de `grafo-dashboard-web/` verificados apenas no ambiente de origem onde o diretório local existe (total de 130 links).
+- **Saída Bruta da Seção E em Clone Limpo (Frente 2a):**
+```text
+======================================================================
+E. CITAÇÕES arquivo:linha DOS BL CONTRA O CÓDIGO ATUAL
+  Links verificados: 130 | problemas: 11
+    BL-069: grafo-dashboard-web/lib/useTelemetryStream.ts#L219 -> não verificável (diretório ignorado pelo git)
+    BL-070: grafo-dashboard-web/lib/useTelemetryStream.ts#L280 -> não verificável (diretório ignorado pelo git)
+    BL-071: grafo-dashboard-web/package.json#L10 -> não verificável (diretório ignorado pelo git)
+    BL-071: grafo-dashboard-web/.env.local#L6 -> não verificável (diretório ignorado pelo git)
+    BL-071: grafo-dashboard-web/lib/mcp/client.ts#L29 -> não verificável (diretório ignorado pelo git)
+    BL-072: grafo-dashboard-web/lib/mcp/client.ts#L78 -> não verificável (diretório ignorado pelo git)
+    BL-073: grafo-dashboard-web/app/components/InspectorDrawer.tsx#L124 -> não verificável (diretório ignorado pelo git)
+    BL-074: grafo-dashboard-web/app/components/CoreMemoryPanel.tsx#L137 -> não verificável (diretório ignorado pelo git)
+    BL-075: grafo-dashboard-web/app/page.tsx#L478 -> não verificável (diretório ignorado pelo git)
+    BL-076: grafo-dashboard-web/components/telemetry/LiveEventFeed.tsx#L93 -> não verificável (diretório ignorado pelo git)
+    BL-076: grafo-dashboard-web/lib/useTelemetryStream.ts#L191 -> não verificável (diretório ignorado pelo git)
+```
+
+#### 7.7.3 Frente 3 — Notas de Correção Pós-Auditoria em `AUDIT_PROTOCOL.md`
+- **Diagnóstico:** No protocolo, a nota de `core/alias_tracker.py` afirmava inexistência de `task_id` em `fsm_checkpoints` (incorreto: `storage/relational_db.py:14` define `task_id TEXT`). A nota de `interface/mcp_server.py` afirmava que `concierge_feedback` estava como `READ_ONLY` (incorreto: é `LOCAL_MUTATION` em `core/mcp_governor.py:116`).
+- **Antes:** Notas originais sem retratação ou evidência histórica.
+- **Depois:** Texto original mantido integralmente, adicionando logo abaixo de cada uma o bloco `**Correção pós-auditoria:**` com a evidência técnica do código atual.
+- **Saída Bruta do Histórico e Grep de `concierge_feedback` (Frente 3):**
+```text
+47dd451 feat(cognition): complete Pillar 2 (SDDs 17-22) and update docs v4.0.0
+core/mcp_governor.py:116:            "concierge_feedback": "LOCAL_MUTATION",
+```
+
+#### 7.7.4 Frente 4 — Formalização do BL-088 (`apply_alias_migration` Não Atômico)
+- **Diagnóstico:** O método `apply_alias_migration` executa múltiplos UPDATEs em loop sequencial, comitando cada instrução individualmente. Falhas intermediárias deixam o banco em migração parcial sem rollback.
+- **Antes:** Backlog possuía 87 itens (encerrando em BL-087). `core/alias_tracker.py` não possuía relatório formal em `audits/`.
+- **Depois:**
+  - Achado reproduzido empiricamente via `scratch/fase3_redo_repro_alias.py`.
+  - Criado relatório oficial [`audits/core-alias-tracker.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/core-alias-tracker.md) com tabela padronizada.
+  - BL-088 incorporado no final da TRACK 4 com severidade MÉDIA.
+  - Totais do backlog atualizados para 88 itens (87 achados + 1 observação): 3 Máxima, 21 Crítica, 30 Grave, 29 Média, 5 Baixa.
+  - Subseção 1.2 "Reconciliação 87 → 88" adicionada com delta comprovado via `scratch/bridge_79_87.py`.
+  - `scratch/fase3_redo_inventory.py`, `fase3_redo_build_v2.py` e `fase3_redo_compare.py` regenerados com 88 itens.
+- **Saída Bruta da Reprodução do BL-088 (Frente 4a):**
+```text
+[ALIAS-TRACKER] Critical failure migrating alias old.py -> new.py: Transaction failed: no such column: parent_node_id
+apply_alias_migration retornou: False
+files.path após a chamada: [('new.py',)]
+nodes.label após a chamada: [('new.py',)]
+RESULTADO: CONFIRMADO — falha no 3º UPDATE, mas files e nodes já foram migrados e commitados (migração parcial, não atômica).
+```
+- **Saída Bruta do Estágio 87 → 88 em `bridge_79_87.py` (Frente 4e):**
+```text
+=== ETAPA 87 -> 88 ===
+Achados adicionados (1):
+  + core-alias-tracker.md #1 [MEDIA] (88: BL-088)
+Achados removidos (0):
+Mudanças de severidade (0):
+Totais 87: MAXIMA: 3 | CRITICA: 21 | GRAVE: 30 | MEDIA: 28 | BAIXA: 5 | TOTAL: 87
+Totais 88: MAXIMA: 3 | CRITICA: 21 | GRAVE: 30 | MEDIA: 29 | BAIXA: 5 | TOTAL: 88
+Delta por severidade (adições / mudanças de severidade / total):
+  MAXIMA  : +0 / +0 / +0  [OK]
+  CRITICA : +0 / +0 / +0  [OK]
+  GRAVE   : +0 / +0 / +0  [OK]
+  MEDIA   : +1 / +0 / +1  [OK]
+  BAIXA   : +0 / +0 / +0  [OK]
+```
+
+#### 7.7.5 Frente 5 — Registro de Observações em `audits/fora-de-escopo.md`
+- **Diagnóstico:** Divergências documentais em modos de gating (`VALID_MODES`) e divergência de nome de parâmetro em mock (`MockIngestionManager.mine` `path` vs `source_path`) não configuram defeitos ativos de runtime de produção.
+- **Antes:** Não constavam formalmente em `audits/fora-de-escopo.md`.
+- **Depois:** Incorporadas como Observação 3 (gating, sob nova seção "2. Divergências Documentais") e Observação 4 (mock, sob seção 1).
+- **Saída Bruta do Grep de Modos de Gating (Frente 5):**
+```text
+core/gating_interceptor.py:46:    VALID_MODES = {"plan-only", "ask", "auto-approve"}
+docs-grafo-concierge/01_ARCHITECTURE.md:456:  * `auto_read`: Non-mutating tools (`READ_ONLY`) execute autonomously; mutating tools require explicit confirmation.
+docs-grafo-concierge/01_ARCHITECTURE.md:457:  * `autonomous`: Full autonomy within the allowed bounds of the current HSM state.
+docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md:368:| **`/api/gating/config`** | `GET` / `POST` | `{"mode": "ask" \| "auto_read" \| "autonomous"}` | Inspects or toggles the runtime adaptive gating autonomy mode. |
+```
+- **Saída Bruta da Inspeção AST e Chamada Real de `mine` (Frente 5):**
+```text
+AST MockIngestionManager.mine (tests/test_mcp_server_handlers.py:83): args=['self', 'project_uuid', 'path', 'auto_tag']
+AST IngestionManager.mine (ingestion/orchestrator.py:127): args=['self', 'project_uuid', 'source_path', 'auto_tag']
+interface/mcp_server.py:1076: result = self._gc.mine(project_uuid, path, auto_tag=auto_tag)
+```
+
+#### 7.7.6 Frente 6 — Verificação de Rastreabilidade e Consistência Global
+- **Execução:** `python scratch/validate_traceability.py` executado contra o backlog final.
+- **Resultado:** 88 de 88 itens validados com **0 divergências**. Severidades rigorosamente alinhadas: 3 Máxima, 21 Crítica, 30 Grave, 29 Média e 5 Baixa.
+
