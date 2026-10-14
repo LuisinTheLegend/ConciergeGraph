@@ -189,6 +189,10 @@ Tarefa extra inserida a partir do padrão encontrado acima:
   Dependências críticas invioláveis formalizadas: BL-033 e BL-034 devem ser corrigidos no mesmo commit; BL-001 é o bloqueante estrutural de 12+ subsistemas.
   Item concluído [x] e verificado com correções pós-auditoria externa. Auditoria 100% concluída: NÃO há próximo item.
 
+> [!NOTE]
+> **Adendo de Governança — Versionamento de `grafo-dashboard-web/` (14/10/2026):**  
+> Por decisão expressa do usuário, concedeu-se autorização de exceção à Regra 8 para absorver o painel frontend `grafo-dashboard-web/` como arquivos normais versionados no repositório principal, sem alteração de código ou lógica de componentes. O histórico anterior do repositório aninhado (.git com commits `c782183` e `8a57ee6`) foi preservado em backup externo em `C:\Nexus-Memory\_backup\grafo-dashboard-web.git`. O `.gitignore` raiz e interno foram ajustados com exceções controladas, e `.env.example` foi criado preservando a linha 6 para BL-071, permitindo a verificação íntegra de 100% dos links de evidência dos itens BL-069 a BL-076 (11 links de código do dashboard) em qualquer clone limpo público.
+
 ---
 
 ## Como retomar após uma parada

@@ -182,10 +182,7 @@ for i, d in sorted(bl.items()):
         full = os.path.join(ROOT, path.replace("/", os.sep))
         checked += 1
         if not os.path.exists(full):
-            if path.startswith("grafo-dashboard-web/") or path.startswith("grafo-dashboard-web\\") or path == "grafo-dashboard-web":
-                bad.append((i, path, ln, "não verificável (diretório ignorado pelo git)"))
-            else:
-                bad.append((i, path, ln, "arquivo inexistente"))
+            bad.append((i, path, ln, "arquivo inexistente"))
             continue
         if ln and os.path.isfile(full):
             if full not in line_cache:

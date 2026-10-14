@@ -59,14 +59,15 @@ _test_*_tmp/
 colossus_report.json
 relatorio_stress_test_v2.txt
 
-# 🌐 Frontend Web Dashboard (repositório independente / junção local)
-grafo-dashboard-web/
+# 🌐 Frontend Web Dashboard (absorvido e versionado no repositório principal)
 plano_stress_test_v2.txt
 
 # 📦 Dependências Javascript / Node.js
 node_modules/
 package.json
 package-lock.json
+!grafo-dashboard-web/package.json
+!grafo-dashboard-web/package-lock.json
 
 # 🛠️ Configurações Locais de IDEs
 .vscode/

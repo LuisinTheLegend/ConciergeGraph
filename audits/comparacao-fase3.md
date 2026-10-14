@@ -20,7 +20,7 @@ O inventário de **achados** do v1 está correto e completo. Refeito do zero, o 
 | BL do v1 que citam achado inexistente, falso positivo ou duplicata | **0** |
 | Achado citado por mais de um BL | **0** |
 | Divergências de severidade (fonte × BL) | **0** |
-| Links `arquivo#Lnn` do v1 verificados contra o código atual | 119 verificados no clone público (**0 problemas**) + 11 links de `grafo-dashboard-web/` verificados apenas na origem (diretório excluído pelo `.gitignore`, sem reprodução por revisão externa); total de 130 links |
+| Links `arquivo#Lnn` do v1 verificados contra o código atual | 130, **0 problemas** |
 
 Totais por severidade:
 
@@ -72,5 +72,5 @@ Resumo: **1 reproduzido e resolvido como BL-088**, **1 divergência documental c
 ## 6. Decisões para você
 
 1. **Corrigir v1?** Reorganizar a Seção 3/4 para remover a lacuna das faixas e o "sétimo agrupamento" (só texto, sem mexer em BL).
-2. **Dashboard (`grafo-dashboard-web/`):** Decidir se o diretório do frontend web entra no repositório versionado ou permanece excluído via `.gitignore`.
+2. **Dashboard (`grafo-dashboard-web/`):** Decidido pelo usuário: absorvido e versionado no repositório principal (exceção autorizada à Regra 8; backup do histórico `.git` preservado externamente; 11 links de evidência agora verificáveis em qualquer clone limpo).
 3. **Manter o v2** como índice mecânico auxiliar, ou removê-lo.

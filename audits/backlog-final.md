@@ -549,9 +549,6 @@ flowchart TD
 
 ### TRACK 5: Telemetria, Streaming SSE & Dashboard HUD
 
-> [!WARNING]
-> **Disponibilidade da Evidência:** código em `grafo-dashboard-web/`, diretório excluído do repositório público (`.gitignore`); links `#Lnn` não são verificáveis em clones públicos (disponíveis apenas no ambiente de origem da auditoria).
-
 > [!IMPORTANT]
 > **OBSERVABILIDADE EM TEMPO REAL:** Corrige o flapping incessante de SSE a cada 8 segundos, desbloqueia o feed do dashboard e reativa mostradores congelados.
 
@@ -575,7 +572,6 @@ flowchart TD
 - **Severidade:** 🔴 CRÍTICA
 - **Arquivos & Linhas:** [`grafo-dashboard-web/lib/useTelemetryStream.ts:219–260`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/useTelemetryStream.ts#L219)
 - **Relatório de Origem:** [`audits/grafo-dashboard-web.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/grafo-dashboard-web.md) #1 | Cadeia §6.2
-- **Disponibilidade da Evidência:** código em grafo-dashboard-web/, diretório excluído do repositório público (.gitignore); links #Lnn não verificáveis em clones públicos.
 - **Mecanismo da Falha:** O frontend tem switch para `event_type` (`RATE_GOVERNOR_UPDATE`, etc.), mas o backend envia payload bruto sem `event_type`. O switch é inalcançável e os mostradores de cota e estados do HSM ficam permanentemente congelados.
 - **Diretriz de Remediação:** Backend deve emitir eventos digitados no stream SSE ou o frontend deve parsear o payload consolidado e despachar para os stores locais.
 - **Critério de Validação:** Mostradores de cota no dashboard reagem dinamicamente à carga do RateGovernor.
@@ -584,18 +580,16 @@ flowchart TD
 - **Severidade:** 🔴 CRÍTICA
 - **Arquivos & Linhas:** [`grafo-dashboard-web/lib/useTelemetryStream.ts:280–291`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/useTelemetryStream.ts#L280), [`interface/telemetry_api.py:556–572`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L556)
 - **Relatório de Origem:** [`audits/grafo-dashboard-web.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/grafo-dashboard-web.md) #2 | Cadeia §6.2
-- **Disponibilidade da Evidência:** código em grafo-dashboard-web/, diretório excluído do repositório público (.gitignore); links #Lnn não verificáveis em clones públicos.
 - **Mecanismo da Falha:** Trava de teste `max_checks = 5` mantida em produção no backend mata a conexão SSE a cada 5s. O frontend reconecta a cada 3s, gerando 75 quedas em 10 minutos, poluindo o buffer e fazendo o HUD piscar.
 - **Diretriz de Remediação:** Remover `max_checks = 5` em produção (ou torná-lo ativo apenas sob flag de teste). Manter o gerador rodando indefinidamente via `while True:` com `asyncio.sleep(1)`.
 - **Critério de Validação:** Conexão SSE permanece estável por mais de 30 minutos sem reconectar.
 
 #### [BL-071] Colisão de Portas 8000, Falha no `dev:all` e Desconexão do FastMCP
 - **Severidade:** 🔴 CRÍTICA
-- **Arquivos & Linhas:** [`grafo-dashboard-web/package.json:10–11`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/package.json#L10), [`.env.local:6, 10`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/.env.local#L6), [`lib/mcp/client.ts:29`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/mcp/client.ts#L29)
+- **Arquivos & Linhas:** [`grafo-dashboard-web/package.json:10–11`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/package.json#L10), [`grafo-dashboard-web/.env.example:6, 10`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/.env.example#L6), [`grafo-dashboard-web/lib/mcp/client.ts:29`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/mcp/client.ts#L29)
 - **Relatório de Origem:** [`audits/grafo-dashboard-web.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/grafo-dashboard-web.md) #3
-- **Disponibilidade da Evidência:** código em grafo-dashboard-web/, diretório excluído do repositório público (.gitignore); links #Lnn não verificáveis em clones públicos.
 - **Mecanismo da Falha:** FastAPI e FastMCP tentam escutar na porta 8000 (colisão `WinError 10048`), enquanto o frontend foi configurado para buscar o FastMCP na porta fantasma 7077.
-- **Diretriz de Remediação:** Padronizar portas: FastAPI Telemetria na porta `8001`, FastMCP na porta `8000` (ou `7077`), e alinhar `.env.local` e scripts de `package.json`.
+- **Diretriz de Remediação:** Padronizar portas: FastAPI Telemetria na porta `8001`, FastMCP na porta `8000` (ou `7077`), e alinhar `.env.example` e scripts de `package.json`.
 - **Critério de Validação:** `npm run dev:all` sobe todos os serviços sem conflito de portas e com conexão estabelecida.
 
 #### [BL-064] Falso Stream Contínuo por Limite Hardcoded (`max_checks = 5`)
@@ -626,7 +620,6 @@ flowchart TD
 - **Severidade:** 🟠 GRAVE
 - **Arquivos & Linhas:** [`grafo-dashboard-web/lib/mcp/client.ts:78, 294–298`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/mcp/client.ts#L78), [`interface/mcp_server.py:186–212`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L186)
 - **Relatório de Origem:** [`audits/grafo-dashboard-web.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/grafo-dashboard-web.md) #4
-- **Disponibilidade da Evidência:** código em grafo-dashboard-web/, diretório excluído do repositório público (.gitignore); links #Lnn não verificáveis em clones públicos.
 - **Mecanismo da Falha:** Backend exige autenticação quando `GRAFO_API_KEY` existe. O frontend usa `EventSource` nativo (sem suporte a headers) e `fetch` sem cabeçalhos de auth, sendo bloqueado com 401 em todas as requisições.
 - **Diretriz de Remediação:** Adicionar suporte a passagem de token via query string no SSE e cabeçalho `Authorization` nos requests de fetch.
 - **Critério de Validação:** Dashboard opera com `GRAFO_API_KEY` ativada sem receber HTTP 401.
@@ -635,7 +628,6 @@ flowchart TD
 - **Severidade:** 🟠 GRAVE
 - **Arquivos & Linhas:** [`storage/store.py:259–273`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py#L259), [`grafo-dashboard-web/app/components/InspectorDrawer.tsx:124–152`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/app/components/InspectorDrawer.tsx#L124)
 - **Relatório de Origem:** [`audits/grafo-dashboard-web.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/grafo-dashboard-web.md) #5
-- **Disponibilidade da Evidência:** código em grafo-dashboard-web/, diretório excluído do repositório público (.gitignore); links #Lnn não verificáveis em clones públicos.
 - **Mecanismo da Falha:** `get_lightweight_topology` omite `summary` e `tags`. O drawer do frontend espera esses dados no nó e não busca sob demanda, exibindo descrição e tags vazias ao clicar em nós 3D/2D.
 - **Diretriz de Remediação:** Incluir endpoint de detalhe sob demanda no frontend ao selecionar um nó ou incluir resumos compactos na topologia inicial.
 - **Critério de Validação:** Clicar em nó no grafo 3D exibe descrição semântica e tags preenchidas.
@@ -660,7 +652,6 @@ flowchart TD
 - **Severidade:** 🟡 MÉDIA
 - **Arquivos & Linhas:** [`grafo-dashboard-web/app/components/CoreMemoryPanel.tsx:137–146`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/app/components/CoreMemoryPanel.tsx#L137)
 - **Relatório de Origem:** [`audits/grafo-dashboard-web.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/grafo-dashboard-web.md) #6
-- **Disponibilidade da Evidência:** código em grafo-dashboard-web/, diretório excluído do repositório público (.gitignore); links #Lnn não verificáveis em clones públicos.
 - **Mecanismo da Falha:** Concatena `"Z"` cegamente em strings ISO que já possuem timezone ou sufixo `"Z"`, gerando `"ZZ"` e quebrando o renderizador.
 - **Diretriz de Remediação:** Usar `date-fns` ou validar `endsWith("Z")` antes de concatenar.
 - **Critério de Validação:** Renderização de datas sem nenhum erro `"Invalid Date"`.
@@ -669,16 +660,14 @@ flowchart TD
 - **Severidade:** 🟡 MÉDIA
 - **Arquivos & Linhas:** [`grafo-dashboard-web/app/page.tsx:478–482`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/app/page.tsx#L478)
 - **Relatório de Origem:** [`audits/grafo-dashboard-web.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/grafo-dashboard-web.md) #7
-- **Disponibilidade da Evidência:** código em grafo-dashboard-web/, diretório excluído do repositório público (.gitignore); links #Lnn não verificáveis em clones públicos.
 - **Mecanismo da Falha:** Prop `onSelectState` omitida na instanciação de `HSMStateInspector`.
 - **Diretriz de Remediação:** Conectar o callback ao hook de transição de estado da API.
 - **Critério de Validação:** Clicar no estado aciona a transição no backend.
 
 #### [BL-076] 37 Erros de Linter e Violação de Pureza no React 19
 - **Severidade:** 🟡 MÉDIA
-- **Arquivos & Linhas:** [`grafo-dashboard-web/components/telemetry/LiveEventFeed.tsx:93–121`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/components/telemetry/LiveEventFeed.tsx#L93), [`lib/useTelemetryStream.ts:191`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/useTelemetryStream.ts#L191)
+- **Arquivos & Linhas:** [`grafo-dashboard-web/components/telemetry/LiveEventFeed.tsx:93–121`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/components/telemetry/LiveEventFeed.tsx#L93), [`grafo-dashboard-web/lib/useTelemetryStream.ts:191`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/useTelemetryStream.ts#L191)
 - **Relatório de Origem:** [`audits/grafo-dashboard-web.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/grafo-dashboard-web.md) #8
-- **Disponibilidade da Evidência:** código em grafo-dashboard-web/, diretório excluído do repositório público (.gitignore); links #Lnn não verificáveis em clones públicos.
 - **Mecanismo da Falha:** Chamadas a `Date.now()` no corpo do render e disparos síncronos de `setState` em efeitos.
 - **Diretriz de Remediação:** Corrigir os hooks e purificar os componentes de renderização.
 - **Critério de Validação:** `npm run lint` passa com 0 erros.
