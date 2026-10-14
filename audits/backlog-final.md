@@ -1248,10 +1248,20 @@ core/mcp_governor.py:116:            "concierge_feedback": "LOCAL_MUTATION",
 
 #### 7.7.4 Frente 4 — Formalização do BL-088 (`apply_alias_migration` Não Atômico)
 - **Diagnóstico:** O método `apply_alias_migration` executa múltiplos UPDATEs em loop sequencial, comitando cada instrução individualmente. Falhas intermediárias deixam o banco em migração parcial sem rollback.
-- **Antes:** Backlog possuía 87 itens (encerrando em BL-087). `core/alias_tracker.py` não possuía relatório formal em `audits/`.
-- **Depois:**
+- **Antes (commit `7a713a9`):** Backlog possuía 87 itens (encerrando em BL-087). `core/alias_tracker.py` não possuía relatório formal em `audits/`. As linhas originais eram:
+  - Cabeçalho (`7a713a9:audits/backlog-final.md:5-6`):
+    `> **Fontes:** 15 relatórios de auditoria em audits/*.md (Fase 1) + ...`
+    `> **Total de Achados Auditados e Catalogados:** 87 itens catalogados (86 achados de não-conformidade confirmados + 1 observação arquitetural de precisão) — 3 Máxima + 21 Crítica + 30 Grave + 28 Média + 5 Baixa`
+    *(Nota de fidelidade: o rótulo `> **Escopo Consolidado:**` era inexistente no commit anterior `7a713a9`).*
+  - Rótulo TRACK 4 no fluxograma da Seção 3 (`7a713a9:audits/backlog-final.md:131`):
+    `T3 --> T4["TRACK 4: Reconciliação, Grafo & Ingestão Consistente<br/>(BL-025 a BL-036, BL-057 a BL-061)<br/>Purga atômica e correções simultâneas"]`
+    *(Nota de fidelidade: a menção a `T4["TRACK 4 — Governança..."]` era inexistente no commit anterior `7a713a9`).*
+  - Seção 6 (`7a713a9:audits/backlog-final.md:914`):
+    `- **87 itens técnicos catalogados (86 achados de não-conformidade confirmados + 1 observação de precisão arquitetural)**`
+    *(Nota de fidelidade: a Seção 6 intitula-se "Veredicto Final da Fase 3"; qualquer suposta tabela com colunas de Sprint ou "Matriz de Risco" era inexistente no commit anterior).*
+- **Depois (commit `c81d2ae`):**
   - Achado reproduzido empiricamente via `scratch/fase3_redo_repro_alias.py`.
-  - Criado relatório oficial [`audits/core-alias-tracker.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/core-alias-tracker.md) com tabela padronizada.
+  - Criado relatório oficial [`audits/core-alias-tracker.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/core-alias-tracker.md) com tabela padronizada (57 linhas adicionadas, conforme `git show --stat c81d2ae`).
   - BL-088 incorporado no final da TRACK 4 com severidade MÉDIA.
   - Totais do backlog atualizados para 88 itens (87 achados + 1 observação): 3 Máxima, 21 Crítica, 30 Grave, 29 Média, 5 Baixa.
   - Subseção 1.2 "Reconciliação 87 → 88" adicionada com delta comprovado via `scratch/bridge_79_87.py`.
@@ -1264,6 +1274,15 @@ files.path após a chamada: [('new.py',)]
 nodes.label após a chamada: [('new.py',)]
 RESULTADO: CONFIRMADO — falha no 3º UPDATE, mas files e nodes já foram migrados e commitados (migração parcial, não atômica).
 ```
+- **Saída Bruta Literal de `scratch/fase3_redo_inventory.py` (Frente 4f):**
+```text
+======================================================================
+TOTAL DE LINHAS DE ACHADO NAS FONTES PRIMÁRIAS: 92
+Por severidade: {'CRITICA': 23, 'GRAVE': 30, 'MEDIA': 30, 'MAXIMA': 3, 'BAIXA': 4, 'OBSERVACAO': 2}
+Por status: {'CONFIRMADO': 81, 'FALSO_POSITIVO': 2, '?': 9}
+Inventário salvo em scratch\fase3_redo_inventory.json
+```
+*(Nota de retificação: a menção anterior a "Relatórios lidos: 16" e exclusões "storage.md #10–#12 DUPLICADO" foi redigida incorretamente; o script real lista achados por arquivo e imprime o total acima. `storage.md` possui exatamente 9 achados).*
 - **Saída Bruta do Estágio 87 → 88 em `bridge_79_87.py` (Frente 4e):**
 ```text
 === ETAPA 87 -> 88 ===
