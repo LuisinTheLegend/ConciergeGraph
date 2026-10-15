@@ -1,0 +1,80 @@
+
+==================== TABLE: files ====================
+  [tests/test_agent_hsm_coupling.py:33]
+    path TEXT PRIMARY KEY, community_id TEXT, is_dirty INTEGER, last_modified REAL
+  [tests/test_alias_tracker.py:33]
+    path TEXT PRIMARY KEY, community_id TEXT, is_dirty INTEGER, last_modified REAL
+  [tests/test_cognitive_routing_memory.py:41]
+    path TEXT PRIMARY KEY, community_id TEXT, is_dirty INTEGER, last_modified REAL
+  [tests/test_delta_sync.py:70]
+    path TEXT PRIMARY KEY, content TEXT, ssh_hash TEXT, body_hash TEXT, is_dirty INTEGER, community_id TEXT
+  [tests/test_durable_checkpoints_timetravel.py:35]
+    path TEXT PRIMARY KEY, community_id TEXT, is_dirty INTEGER, last_modified REAL
+  [tests/test_e2e_concierge_integration.py:199]
+    path TEXT PRIMARY KEY, content TEXT, ssh_hash TEXT, body_hash TEXT, is_dirty INTEGER, community_id TEXT
+  [tests/test_graph_rag_frugal.py:36]
+    path TEXT PRIMARY KEY, community_id TEXT, is_dirty INTEGER, last_modified REAL
+  [tests/test_graph_rag_janitor.py:78]
+    path TEXT PRIMARY KEY, content TEXT, is_dirty INTEGER, community_id TEXT
+  [tests/test_hierarchical_state_machine.py:50]
+    path TEXT PRIMARY KEY, community_id TEXT, is_dirty INTEGER, last_modified REAL
+  [tests/test_hsm_transition_hooks_and_delta.py:133]
+    path TEXT PRIMARY KEY, community_id TEXT, is_dirty INTEGER, last_modified REAL
+  [tests/test_hsm_transition_hooks_and_delta.py:302]
+    path TEXT PRIMARY KEY, community_id TEXT, is_dirty INTEGER, last_modified REAL
+  [tests/test_local_graph_rag_recursion.py:23]
+    path TEXT PRIMARY KEY, community_id TEXT, is_dirty INTEGER, last_modified REAL
+  [tests/test_telemetry_api.py:38]
+    path TEXT PRIMARY KEY, community_id TEXT, is_dirty INTEGER, last_modified REAL
+  [tests/test_vector_reconciler.py:106]
+    path TEXT PRIMARY KEY, content TEXT, ssh_hash TEXT, is_dirty INTEGER, community_id TEXT
+
+==================== TABLE: communities ====================
+  [tests/test_delta_sync.py:76]
+    id TEXT PRIMARY KEY, summary_text TEXT, is_dirty INTEGER
+  [tests/test_e2e_concierge_integration.py:205]
+    id TEXT PRIMARY KEY, summary_text TEXT, is_dirty INTEGER
+  [tests/test_graph_rag_janitor.py:83]
+    id TEXT PRIMARY KEY, summary_text TEXT, is_dirty INTEGER
+
+==================== TABLE: ast_edges ====================
+  [tests/test_alias_tracker.py:38]
+    parent_node_id TEXT, child_node_id TEXT
+  [tests/test_e2e_concierge_integration.py:210]
+    parent_node TEXT, child_node TEXT, UNIQUE(parent_node, child_node
+  [tests/test_graph_rag_frugal.py:41]
+    parent_node TEXT, child_node TEXT, UNIQUE(parent_node, child_node
+  [tests/test_graph_rag_janitor.py:88]
+    parent_node TEXT, child_node TEXT, UNIQUE(parent_node, child_node
+  [tests/test_graph_rag_loops.py:30]
+    parent_node TEXT, child_node TEXT, UNIQUE(parent_node, child_node
+  [tests/test_local_graph_rag_recursion.py:28]
+    parent_node_id TEXT, child_node_id TEXT
+  [tests/test_mcp_server_extensions.py:141]
+    parent_node TEXT, child_node TEXT, UNIQUE(parent_node, child_node
+
+==================== TABLE: agent_checkpoints ====================
+  [tests/test_agent_checkpointer.py:69]
+    agent_id TEXT, session_id TEXT, checkpoint_id TEXT, state_blob TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (agent_id, session_id, checkpoint_id
+  [tests/test_checkpoint_pruning.py:78]
+    agent_id TEXT, session_id TEXT, checkpoint_id TEXT, state_blob TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (agent_id, session_id, checkpoint_id
+  [tests/test_e2e_concierge_integration.py:215]
+    agent_id TEXT, session_id TEXT, checkpoint_id TEXT, state_blob TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (agent_id, session_id, checkpoint_id
+  [tests/test_mcp_server_extensions.py:134]
+    agent_id TEXT, session_id TEXT, checkpoint_id TEXT, state_blob TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (agent_id, session_id, checkpoint_id
+  [tests/test_telemetry_api.py:43]
+    id INTEGER PRIMARY KEY AUTOINCREMENT, agent_id TEXT, session_id TEXT, checkpoint_id TEXT, timestamp REAL
+
+==================== TABLE: fsm_checkpoints ====================
+  [tests/test_agent_hsm_coupling.py:38]
+    checkpoint_id TEXT, session_id TEXT, agent_id TEXT, state_name TEXT, shared_state_blob TEXT, task_id TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (session_id, checkpoint_id
+  [tests/test_alias_tracker.py:43]
+    checkpoint_id TEXT PRIMARY KEY, task_id TEXT, state_name TEXT
+  [tests/test_durable_checkpoints_timetravel.py:40]
+    checkpoint_id TEXT, session_id TEXT, agent_id TEXT, state_name TEXT, shared_state_blob TEXT, task_id TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (session_id, checkpoint_id
+  [tests/test_hierarchical_state_machine.py:55]
+    checkpoint_id TEXT, session_id TEXT, agent_id TEXT, state_name TEXT, shared_state_blob TEXT, task_id TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (session_id, checkpoint_id
+  [tests/test_hsm_transition_hooks_and_delta.py:126]
+    checkpoint_id TEXT, session_id TEXT, agent_id TEXT, state_name TEXT, shared_state_blob TEXT, task_id TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (session_id, checkpoint_id
+  [tests/test_hsm_transition_hooks_and_delta.py:295]
+    checkpoint_id TEXT, session_id TEXT, agent_id TEXT, state_name TEXT, shared_state_blob TEXT, task_id TEXT, created_at REAL, PRIMARY KEY (session_id, checkpoint_id

@@ -1,0 +1,293 @@
+
+======================================================================
+TABLE: files — USAGE IN PRODUCTION CODE
+======================================================================
+
+[core/alias_tracker.py:214] if "files" in existing_tables:
+  Snippet: if "files" in existing_tables: "UPDATE files SET path = ?, last_modified = ?, is_dirty = 1 WHERE path = ?;", "UPDATE nodes SET label = ? WHERE label = ?;",
+
+[core/alias_tracker.py:216] "UPDATE files SET path = ?, last_modified = ?, is_dirty = 1 WHERE path = ?;",
+  Snippet: if "files" in existing_tables: "UPDATE files SET path = ?, last_modified = ?, is_dirty = 1 WHERE path = ?;", "UPDATE nodes SET label = ? WHERE label = ?;",
+
+[core/background_janitor.py:95] # Aggregate content of all files in the community
+  Snippet: and persists result while resetting dirty flags. # Aggregate content of all files in the community files = self.db_manager.read_query( "SELECT content FROM files WHERE community_id = ?;", payload = "\n".join(row[0] for row in files)
+
+[core/background_janitor.py:96] files = self.db_manager.read_query(
+  Snippet: and persists result while resetting dirty flags. # Aggregate content of all files in the community files = self.db_manager.read_query( "SELECT content FROM files WHERE community_id = ?;", payload = "\n".join(row[0] for row in files)
+
+[core/background_janitor.py:97] "SELECT content FROM files WHERE community_id = ?;",
+  Snippet: and persists result while resetting dirty flags. # Aggregate content of all files in the community files = self.db_manager.read_query( "SELECT content FROM files WHERE community_id = ?;", payload = "\n".join(row[0] for row in files)
+
+[core/background_janitor.py:100] payload = "\n".join(row[0] for row in files)
+  Snippet: files = self.db_manager.read_query( "SELECT content FROM files WHERE community_id = ?;", payload = "\n".join(row[0] for row in files) "UPDATE communities SET summary_text = ?, is_dirty = 0 WHERE id = ?;",
+
+[core/background_janitor.py:111] "UPDATE files SET is_dirty = 0 WHERE community_id = ?;",
+  Snippet: "UPDATE communities SET summary_text = ?, is_dirty = 0 WHERE id = ?;", "UPDATE files SET is_dirty = 0 WHERE community_id = ?;",
+
+[core/background_janitor.py:240] "SELECT MAX(last_modified) FROM files;"
+  Snippet: "SELECT MAX(last_modified) FROM files;"
+
+[core/checkpointer.py:201] queries.append(("UPDATE files SET is_dirty = 1, last_modified = ? WHERE path = ?;", (time.time(), task_id)))
+  Snippet: queries.append(("UPDATE files SET is_dirty = 1, last_modified = ? WHERE path = ?;", (time.time(), task_id)))
+
+[core/delta_manager.py:134] "SELECT ssh_hash, body_hash FROM files WHERE path = ?;", (file_path,)
+  Snippet: "SELECT ssh_hash, body_hash FROM files WHERE path = ?;", (file_path,) return self._insert_new_file(
+
+[core/delta_manager.py:182] files = self.db_manager.read_query(
+  Snippet: files = self.db_manager.read_query( "SELECT content FROM files WHERE community_id = ?;", payload = "\n".join(row[0] for row in files)
+
+[core/delta_manager.py:183] "SELECT content FROM files WHERE community_id = ?;",
+  Snippet: files = self.db_manager.read_query( "SELECT content FROM files WHERE community_id = ?;", payload = "\n".join(row[0] for row in files)
+
+[core/delta_manager.py:186] payload = "\n".join(row[0] for row in files)
+  Snippet: files = self.db_manager.read_query( "SELECT content FROM files WHERE community_id = ?;", payload = "\n".join(row[0] for row in files) "UPDATE communities SET summary_text = ?, is_dirty = 0 WHERE id = ?;",
+
+[core/delta_manager.py:196] "UPDATE files SET is_dirty = 0 WHERE community_id = ?;",
+  Snippet: "UPDATE communities SET summary_text = ?, is_dirty = 0 WHERE id = ?;", "UPDATE files SET is_dirty = 0 WHERE community_id = ?;",
+
+[core/delta_manager.py:214] "INSERT INTO files (path, content, ssh_hash, body_hash, is_dirty, community_id) "
+  Snippet: "INSERT INTO files (path, content, ssh_hash, body_hash, is_dirty, community_id) " "VALUES (?, ?, ?, ?, 1, ?);", "UPDATE communities SET is_dirty = 1 WHERE id = ?;",
+
+[core/delta_manager.py:229] Clears dirty flag for file and reconciles community if all its files are clean.
+  Snippet: Updates content only (internal logic/cosmetic change). Clears dirty flag for file and reconciles community if all its files are clean. "UPDATE files SET content = ?, is_dirty = 0 WHERE path = ?;",
+
+[core/delta_manager.py:232] "UPDATE files SET content = ?, is_dirty = 0 WHERE path = ?;",
+  Snippet: Updates content only (internal logic/cosmetic change). Clears dirty flag for file and reconciles community if all its files are clean. "UPDATE files SET content = ?, is_dirty = 0 WHERE path = ?;", "SELECT COUNT(*) FROM files WHERE community_id = ? AND is_dirty = 1;",
+
+[core/delta_manager.py:237] "SELECT COUNT(*) FROM files WHERE community_id = ? AND is_dirty = 1;",
+  Snippet: "SELECT COUNT(*) FROM files WHERE community_id = ? AND is_dirty = 1;", "UPDATE communities SET is_dirty = 0 WHERE id = ?;",
+
+[core/delta_manager.py:257] "UPDATE files SET content = ?, ssh_hash = ?, body_hash = ?, is_dirty = 1 "
+  Snippet: """Updates file with new signature/body and propagates DIRTY to community.""" "UPDATE files SET content = ?, ssh_hash = ?, body_hash = ?, is_dirty = 1 " "WHERE path = ?;", "UPDATE communities SET is_dirty = 1 WHERE id = ?;",
+
+[core/graph_rag.py:56] "SELECT path, community_id, is_dirty FROM files WHERE path = ?;",
+  Snippet: "SELECT path, community_id, is_dirty FROM files WHERE path = ?;",
+
+[core/graph_rag.py:126] nodes_query = f"SELECT path, community_id, is_dirty FROM files WHERE path IN ({placeholders});"
+  Snippet: nodes_query = f"SELECT path, community_id, is_dirty FROM files WHERE path IN ({placeholders});"
+
+[core/graph_rag.py:244] # 4. Group files by community
+  Snippet: # 4. Group files by community all_files = [ r[0] for r in self.db_manager.read_query("SELECT path FROM files;") for file_path in all_files:
+
+[core/graph_rag.py:246] r[0] for r in self.db_manager.read_query("SELECT path FROM files;")
+  Snippet: # 4. Group files by community all_files = [ r[0] for r in self.db_manager.read_query("SELECT path FROM files;") for file_path in all_files:
+
+[core/intent_classifier.py:62] query_sql = f"SELECT COUNT(*) FROM files WHERE {like_conditions};"
+  Snippet: query_sql = f"SELECT COUNT(*) FROM files WHERE {like_conditions};"
+
+[core/middleware.py:19] - mine()              → Ingests files (concierge mine)
+  Snippet: - mine()              → Ingests files (concierge mine) - delete_project()    → Cascaded project deletion
+
+[core/search_engine.py:58] f"SELECT path FROM files WHERE path IN ({placeholders});",
+  Snippet: f"SELECT path FROM files WHERE path IN ({placeholders});",
+
+[core/vector_reconciler.py:54] rows = self.db_manager.read_query("SELECT path FROM files;")
+  Snippet: def _get_all_sqlite_paths(self) -> set: rows = self.db_manager.read_query("SELECT path FROM files;")
+
+[interface/telemetry_api.py:147] 3. Counts queue backlog (dirty files)
+  Snippet: 1. Counts total indexed files in SQLite 2. Collects dirty files (is_dirty=1) for dirty_queue 3. Counts queue backlog (dirty files) 6. Computes simple integrity_score (% of clean files) # Total indexed files total_files_rows = db_manager.read_query( "SELECT COUNT(*) FROM files;"
+
+[interface/telemetry_api.py:150] 6. Computes simple integrity_score (% of clean files)
+  Snippet: 2. Collects dirty files (is_dirty=1) for dirty_queue 3. Counts queue backlog (dirty files) 6. Computes simple integrity_score (% of clean files) # Total indexed files total_files_rows = db_manager.read_query( "SELECT COUNT(*) FROM files;" sqlite_total_files = total_files_rows[0][0] if total_files_ro
+
+[interface/telemetry_api.py:152] # Total indexed files
+  Snippet: 6. Computes simple integrity_score (% of clean files) # Total indexed files total_files_rows = db_manager.read_query( "SELECT COUNT(*) FROM files;" sqlite_total_files = total_files_rows[0][0] if total_files_rows else 0 # Dirty files (dirty_queue)
+
+[interface/telemetry_api.py:154] "SELECT COUNT(*) FROM files;"
+  Snippet: 6. Computes simple integrity_score (% of clean files) # Total indexed files total_files_rows = db_manager.read_query( "SELECT COUNT(*) FROM files;" sqlite_total_files = total_files_rows[0][0] if total_files_rows else 0 # Dirty files (dirty_queue) "SELECT path, community_id, last_modified FROM files 
+
+[interface/telemetry_api.py:158] # Dirty files (dirty_queue)
+  Snippet: "SELECT COUNT(*) FROM files;" sqlite_total_files = total_files_rows[0][0] if total_files_rows else 0 # Dirty files (dirty_queue) "SELECT path, community_id, last_modified FROM files WHERE is_dirty = 1;" DirtyFileSchema(
+
+[interface/telemetry_api.py:160] "SELECT path, community_id, last_modified FROM files WHERE is_dirty = 1;"
+  Snippet: sqlite_total_files = total_files_rows[0][0] if total_files_rows else 0 # Dirty files (dirty_queue) "SELECT path, community_id, last_modified FROM files WHERE is_dirty = 1;" DirtyFileSchema( last_modified=datetime.fromtimestamp(row[2], tz=timezone.utc),
+
+[interface/watcher.py:14] - Startup and Offline Deletion Protection: hydrate_known_hashes detects files
+  Snippet: - Zombie Protection: if a deleted file does not match in AliasTracker, timeout purge automatically triggers on_delete_callback. - Startup and Offline Deletion Protection: hydrate_known_hashes detects files from typing import Optional, Dict, Any, List
+
+[interface/watcher.py:86] rows = db_manager.read_query("SELECT path, structural_hash FROM files;")
+  Snippet: rows = db_manager.read_query("SELECT path, structural_hash FROM files;")
+
+[interface/watcher.py:95] rows = db_manager.read_query("SELECT path FROM files;")
+  Snippet: rows = db_manager.read_query("SELECT path FROM files;")
+
+[interface/watcher.py:208] "SELECT structural_hash FROM files WHERE path = ? LIMIT 1;",
+  Snippet: # Fallback: retrieve last persisted hash from database "SELECT structural_hash FROM files WHERE path = ? LIMIT 1;",
+
+[ingestion/crawler.py:10] - Compare hashes with SqliteStore to skip unmodified files.
+  Snippet: - Respect ignore patterns (.gitignore + IGNORE_DIRS from config). - Compare hashes with SqliteStore to skip unmodified files. - Classify files by type (code, doc, config, conversation). - Detect deleted files for Garbage Collection.
+
+[ingestion/crawler.py:11] - Classify files by type (code, doc, config, conversation).
+  Snippet: - Respect ignore patterns (.gitignore + IGNORE_DIRS from config). - Compare hashes with SqliteStore to skip unmodified files. - Classify files by type (code, doc, config, conversation). - Detect deleted files for Garbage Collection.
+
+[ingestion/crawler.py:12] - Detect deleted files for Garbage Collection.
+  Snippet: - Respect ignore patterns (.gitignore + IGNORE_DIRS from config). - Compare hashes with SqliteStore to skip unmodified files. - Classify files by type (code, doc, config, conversation). - Detect deleted files for Garbage Collection.
+
+[ingestion/crawler.py:145] new_files: New or modified files (for processing).
+  Snippet: new_files: New or modified files (for processing). unchanged_files: Files whose hash has not changed (skip). deleted_node_ids: SQLite node IDs whose files no longer exist (GC). total_scanned: Total scanned files. new_files: list[CrawlResult] = field(default_factory=list) unchanged_files: list[CrawlR
+
+[ingestion/crawler.py:146] unchanged_files: Files whose hash has not changed (skip).
+  Snippet: new_files: New or modified files (for processing). unchanged_files: Files whose hash has not changed (skip). deleted_node_ids: SQLite node IDs whose files no longer exist (GC). total_scanned: Total scanned files. new_files: list[CrawlResult] = field(default_factory=list) unchanged_files: list[CrawlR
+
+[ingestion/crawler.py:147] deleted_node_ids: SQLite node IDs whose files no longer exist (GC).
+  Snippet: new_files: New or modified files (for processing). unchanged_files: Files whose hash has not changed (skip). deleted_node_ids: SQLite node IDs whose files no longer exist (GC). total_scanned: Total scanned files. new_files: list[CrawlResult] = field(default_factory=list) unchanged_files: list[CrawlR
+
+[ingestion/crawler.py:149] total_scanned: Total scanned files.
+  Snippet: new_files: New or modified files (for processing). unchanged_files: Files whose hash has not changed (skip). deleted_node_ids: SQLite node IDs whose files no longer exist (GC). total_scanned: Total scanned files. new_files: list[CrawlResult] = field(default_factory=list) unchanged_files: list[CrawlR
+
+[ingestion/crawler.py:369] 6. Detects orphan nodes (deleted files) for Garbage Collection.
+  Snippet: 6. Detects orphan nodes (deleted files) for Garbage Collection.
+
+[ingestion/crawler.py:451] 3. Traverses files recursively.
+  Snippet: 3. Traverses files recursively. 6. Returns CrawlReport with new_files, unchanged, and deleted.
+
+[ingestion/crawler.py:670] """Detects nodes in SQLite whose files no longer exist on disk.
+  Snippet: current_files: set[str], """Detects nodes in SQLite whose files no longer exist on disk. Compares the relative paths of project nodes in SQLite with the list of files existing on disk. Nodes belonging to files that are no longer in current_files SECURITY: Only nodes that are not directories or proje
+
+[ingestion/crawler.py:672] Compares the relative paths of project nodes in SQLite with the list of files
+  Snippet: current_files: set[str], """Detects nodes in SQLite whose files no longer exist on disk. Compares the relative paths of project nodes in SQLite with the list of files existing on disk. Nodes belonging to files that are no longer in current_files SECURITY: Only nodes that are not directories or proje
+
+[ingestion/crawler.py:673] existing on disk. Nodes belonging to files that are no longer in current_files
+  Snippet: """Detects nodes in SQLite whose files no longer exist on disk. Compares the relative paths of project nodes in SQLite with the list of files existing on disk. Nodes belonging to files that are no longer in current_files SECURITY: Only nodes that are not directories or projects are deleted. current_
+
+[ingestion/crawler.py:680] current_files: Set of relative paths of files existing on disk.
+  Snippet: SECURITY: Only nodes that are not directories or projects are deleted. current_files: Set of relative paths of files existing on disk.
+
+[ingestion/orchestrator.py:11] 2. PARSE: FileParser splits new/modified files into semantic chunks.
+  Snippet: 1. CRAWL: ProjectCrawler scans the filesystem, detects deltas (SHA256). 2. PARSE: FileParser splits new/modified files into semantic chunks. 7. GARBAGE COLLECTION: Removes nodes and vectors of deleted files.
+
+[ingestion/orchestrator.py:16] 7. GARBAGE COLLECTION: Removes nodes and vectors of deleted files.
+  Snippet: 7. GARBAGE COLLECTION: Removes nodes and vectors of deleted files. "files_processed": int,
+
+[ingestion/orchestrator.py:209] # Remove obsolete nodes of files that were modified
+  Snippet: # Update file_hash of cached nodes to avoid Garbage Collection self._apply_cache_updates(chunks, project_uuid) # Remove obsolete nodes of files that were modified if crawl_report.new_files: for f in crawl_report.new_files:
+
+======================================================================
+TABLE: communities — USAGE IN PRODUCTION CODE
+======================================================================
+
+[core/background_janitor.py:77] # Locate all dirty communities
+  Snippet: # Locate all dirty communities dirty_communities = self.db_manager.read_query( "SELECT id FROM communities WHERE is_dirty = 1;" for (community_id,) in dirty_communities:
+
+[core/background_janitor.py:79] "SELECT id FROM communities WHERE is_dirty = 1;"
+  Snippet: # Locate all dirty communities dirty_communities = self.db_manager.read_query( "SELECT id FROM communities WHERE is_dirty = 1;" for (community_id,) in dirty_communities:
+
+[core/background_janitor.py:107] "UPDATE communities SET summary_text = ?, is_dirty = 0 WHERE id = ?;",
+  Snippet: "UPDATE communities SET summary_text = ?, is_dirty = 0 WHERE id = ?;", "UPDATE files SET is_dirty = 0 WHERE community_id = ?;",
+
+[core/delta_manager.py:169] "SELECT is_dirty, summary_text FROM communities WHERE id = ?;",
+  Snippet: "SELECT is_dirty, summary_text FROM communities WHERE id = ?;",
+
+[core/delta_manager.py:192] "UPDATE communities SET summary_text = ?, is_dirty = 0 WHERE id = ?;",
+  Snippet: "UPDATE communities SET summary_text = ?, is_dirty = 0 WHERE id = ?;", "UPDATE files SET is_dirty = 0 WHERE community_id = ?;",
+
+[core/delta_manager.py:219] "UPDATE communities SET is_dirty = 1 WHERE id = ?;",
+  Snippet: "VALUES (?, ?, ?, ?, 1, ?);", "UPDATE communities SET is_dirty = 1 WHERE id = ?;", def _update_content_only(
+
+[core/delta_manager.py:242] "UPDATE communities SET is_dirty = 0 WHERE id = ?;",
+  Snippet: "UPDATE communities SET is_dirty = 0 WHERE id = ?;", def _update_structural_change(
+
+[core/delta_manager.py:262] "UPDATE communities SET is_dirty = 1 WHERE id = ?;",
+  Snippet: "WHERE path = ?;", "UPDATE communities SET is_dirty = 1 WHERE id = ?;",
+
+[core/graph_rag.py:249] communities: dict = {}
+  Snippet: r[0] for r in self.db_manager.read_query("SELECT path FROM files;") communities: dict = {}
+
+[services/janitor.py:510] communities: dict[int, list[int]] = {}
+  Snippet: def detect_communities(self, project_uuid: str) -> dict[int, list[int]]: """Detects communities in the graph using WITH RECURSIVE and FTS5. communities: dict[int, list[int]] = {} SELECT n.id FROM nodes n
+
+[services/janitor.py:552] communities[sn_id] = [row["id"] for row in community_rows]
+  Snippet: SELECT DISTINCT id FROM community communities[sn_id] = [row["id"] for row in community_rows] return communities
+
+[services/janitor.py:557] return communities
+  Snippet: return communities communities: dict[int, list[int]], """Generates summaries for the detected communities, saves as INSIGHT nodes and updates Qdrant."""
+
+[services/janitor.py:562] communities: dict[int, list[int]],
+  Snippet: communities: dict[int, list[int]], """Generates summaries for the detected communities, saves as INSIGHT nodes and updates Qdrant.""" for community_id, node_ids in communities.items():
+
+[services/janitor.py:564] """Generates summaries for the detected communities, saves as INSIGHT nodes and updates Qdrant."""
+  Snippet: communities: dict[int, list[int]], """Generates summaries for the detected communities, saves as INSIGHT nodes and updates Qdrant.""" for community_id, node_ids in communities.items():
+
+[services/janitor.py:568] for community_id, node_ids in communities.items():
+  Snippet: """Generates summaries for the detected communities, saves as INSIGHT nodes and updates Qdrant.""" for community_id, node_ids in communities.items():
+
+======================================================================
+TABLE: ast_edges — USAGE IN PRODUCTION CODE
+======================================================================
+
+[core/alias_tracker.py:225] if "ast_edges" in existing_tables:
+  Snippet: "UPDATE nodes SET label = ? WHERE label = ?;", if "ast_edges" in existing_tables: f"UPDATE ast_edges SET {parent_col} = ? WHERE {parent_col} = ?;", f"UPDATE ast_edges SET {child_col} = ? WHERE {child_col} = ?;",
+
+[core/alias_tracker.py:228] f"UPDATE ast_edges SET {parent_col} = ? WHERE {parent_col} = ?;",
+  Snippet: if "ast_edges" in existing_tables: f"UPDATE ast_edges SET {parent_col} = ? WHERE {parent_col} = ?;", f"UPDATE ast_edges SET {child_col} = ? WHERE {child_col} = ?;",
+
+[core/alias_tracker.py:232] f"UPDATE ast_edges SET {child_col} = ? WHERE {child_col} = ?;",
+  Snippet: f"UPDATE ast_edges SET {parent_col} = ? WHERE {parent_col} = ?;", f"UPDATE ast_edges SET {child_col} = ? WHERE {child_col} = ?;", "UPDATE fsm_checkpoints SET task_id = ? WHERE task_id = ?;",
+
+[core/graph_rag.py:84] FROM ast_edges
+  Snippet: FROM ast_edges WHERE {parent_col} = ? SELECT
+
+[core/graph_rag.py:94] FROM ast_edges e
+  Snippet: FROM ast_edges e WHERE c.depth < ? SELECT DISTINCT {parent_col}, {child_col}, depth FROM CallChain;
+
+[core/graph_rag.py:179] "  FROM ast_edges e"
+  Snippet: "  SELECT e.child_node AS node," "  FROM ast_edges e" "  WHERE cc.depth < ?" ") SELECT DISTINCT node, depth FROM call_chain WHERE node != ?;",
+
+[core/graph_rag.py:210] "FROM ast_edges "
+  Snippet: "SELECT child_node, COUNT(*) as in_degree " "FROM ast_edges "
+
+[core/graph_rag.py:219] "SELECT parent_node, child_node FROM ast_edges;"
+  Snippet: "SELECT parent_node, child_node FROM ast_edges;"
+
+======================================================================
+TABLE: agent_checkpoints — USAGE IN PRODUCTION CODE
+======================================================================
+
+[core/background_janitor.py:143] "SELECT DISTINCT session_id FROM agent_checkpoints;"
+  Snippet: "SELECT DISTINCT session_id FROM agent_checkpoints;"
+
+[core/background_janitor.py:161] "SELECT checkpoint_id FROM agent_checkpoints "
+  Snippet: the N most recent) and deletes all other intermediate records. # Select all session checkpoints in chronological order "SELECT checkpoint_id FROM agent_checkpoints " "WHERE session_id = ? "
+
+[core/background_janitor.py:194] f"DELETE FROM agent_checkpoints "
+  Snippet: # Batch delete via SerializedWriteQueue placeholders = ", ".join("?" for _ in ids_to_delete) f"DELETE FROM agent_checkpoints " f"WHERE session_id = ? AND checkpoint_id IN ({placeholders});", (session_id, *ids_to_delete), "SDD-12: Session '%s' pruning complete — %d checkpoints deleted, "
+
+[core/checkpointer.py:139] "INSERT OR REPLACE INTO agent_checkpoints "
+  Snippet: "INSERT OR REPLACE INTO agent_checkpoints " "VALUES (?, ?, ?, ?);",
+
+[core/checkpointer.py:227] "SELECT state_blob FROM agent_checkpoints "
+  Snippet: "SELECT state_blob FROM agent_checkpoints " "WHERE agent_id = ? AND session_id = ? AND checkpoint_id = ?;",
+
+[core/checkpointer.py:247] "SELECT checkpoint_id, created_at FROM agent_checkpoints "
+  Snippet: "SELECT checkpoint_id, created_at FROM agent_checkpoints " "WHERE agent_id = ? AND session_id = ? "
+
+[interface/telemetry_api.py:183] "FROM agent_checkpoints ORDER BY timestamp ASC;"
+  Snippet: "SELECT agent_id, session_id, checkpoint_id, timestamp " "FROM agent_checkpoints ORDER BY timestamp ASC;"
+
+======================================================================
+TABLE: fsm_checkpoints — USAGE IN PRODUCTION CODE
+======================================================================
+
+[core/alias_tracker.py:237] if "fsm_checkpoints" in existing_tables:
+  Snippet: if "fsm_checkpoints" in existing_tables: "UPDATE fsm_checkpoints SET task_id = ? WHERE task_id = ?;",
+
+[core/alias_tracker.py:239] "UPDATE fsm_checkpoints SET task_id = ? WHERE task_id = ?;",
+  Snippet: if "fsm_checkpoints" in existing_tables: "UPDATE fsm_checkpoints SET task_id = ? WHERE task_id = ?;",
+
+[core/checkpointer.py:105] INSERT INTO fsm_checkpoints (checkpoint_id, session_id, agent_id, state_name, shared_state_blob, task_id)
+  Snippet: INSERT INTO fsm_checkpoints (checkpoint_id, session_id, agent_id, state_name, shared_state_blob, task_id) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(session_id, checkpoint_id) DO UPDATE SET
+
+[core/checkpointer.py:152] query = "SELECT state_name, shared_state_blob, agent_id, task_id FROM fsm_checkpoints WHERE session_id = ? AND checkpoint_id = ?;"
+  Snippet: query = "SELECT state_name, shared_state_blob, agent_id, task_id FROM fsm_checkpoints WHERE session_id = ? AND checkpoint_id = ?;"
+
+[core/checkpointer.py:187] time_query = "SELECT created_at, task_id FROM fsm_checkpoints WHERE session_id = ? AND checkpoint_id = ?;"
+  Snippet: time_query = "SELECT created_at, task_id FROM fsm_checkpoints WHERE session_id = ? AND checkpoint_id = ?;" # 3. Atomic Transaction: Delete "future" checkpoints and mark associated file as dirty
+
+[core/checkpointer.py:196] ("DELETE FROM fsm_checkpoints WHERE session_id = ? AND created_at > ?;", (session_id, created_at)),
+  Snippet: # 3. Atomic Transaction: Delete "future" checkpoints and mark associated file as dirty ("DELETE FROM fsm_checkpoints WHERE session_id = ? AND created_at > ?;", (session_id, created_at)), queries.append(("UPDATE files SET is_dirty = 1, last_modified = ? WHERE path = ?;", (time.time(), task_id)))
+
+[core/hsm_engine.py:421] FROM fsm_checkpoints
+  Snippet: SELECT checkpoint_id, state_name, created_at, task_id FROM fsm_checkpoints WHERE session_id = ?
+
+[interface/telemetry_api.py:306] FROM fsm_checkpoints
+  Snippet: SELECT checkpoint_id, state_name, task_id, created_at FROM fsm_checkpoints WHERE session_id = ?
