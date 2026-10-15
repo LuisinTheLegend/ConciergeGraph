@@ -197,6 +197,14 @@ Porque 14 suítes de teste em `tests/` criam as tabelas localmente em suas rotin
 
 Essa prática gerou uma **falsa sensação de integridade**: nenhum teste de ponta a ponta utilizava o caminho de bootstrap real de `main.py` e `storage/store.py` sem pré-injetar essas tabelas.
 
+> [!NOTE]
+> **Nota de Retificação pós-auditoria (15/10/2026, Regra 10 — Contagem Real de Suítes):**  
+> Uma varredura exaustiva por regex (`CREATE TABLE IF NOT EXISTS (files|communities|ast_edges|agent_checkpoints|fsm_checkpoints)`) identificou que são **17 suítes de teste** (e não 14) que criam tabelas privadamente em seus métodos `setUp()`. As 3 suítes adicionais identificadas são:  
+> - [`tests/test_agent_checkpointer.py:69`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_agent_checkpointer.py#L69): Cria `agent_checkpoints`;  
+> - [`tests/test_agent_hsm_coupling.py:33, 38`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_agent_hsm_coupling.py#L33): Cria `files` e `fsm_checkpoints`;  
+> - [`tests/test_cognitive_routing_memory.py:41`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_cognitive_routing_memory.py#L41): Cria `files`.  
+> A lista completa e canônica de 17 suítes foi retificada no item BL-003 do backlog executivo.
+
 ---
 
 ### Achado #5: Abandono da Especificação de Arquitetura

@@ -100,7 +100,7 @@ A ponte foi recalculada pelo script [`scratch/bridge_79_87.py`](file:///c:/Nexus
 │  SUBSISTEMAS AFETADOS: 16 componentes auditados                             │
 │  CADEIAS DE FALHA TRANSVERSAL ATIVAS: 4 cadeias completas                   │
 │  CÓDIGO MORTO / ÓRFÃO CONFIRMADO: 6 componentes                             │
-│  TEST MIRAGE: 14 suítes mascarando bugs reais de produção                   │
+│  TEST MIRAGE: 17 suítes mascarando bugs reais de produção                   │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -162,7 +162,7 @@ flowchart TD
 - **Relatório de Origem:** [`audits/schema-oficial-incompleto.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/schema-oficial-incompleto.md) #1 | Eixo Central §1.2
 - **Mecanismo da Falha:** `storage/schema.py::SchemaManager.apply_full_schema()` define apenas 8 tabelas legadas (`projects`, `nodes`, `edges`, etc.). Nenhuma instrução DDL de produção cria `files`, `communities`, `ast_edges`, `agent_checkpoints` e `fsm_checkpoints`. `ConciergeDatabaseManager._init_tables()` cria apenas a tabela temporária `test_log`.
 - **Diretriz de Remediação:** Integrar formalmente as 5 DDLs completas em `storage/schema.py::TABLES_SQL` e unificar a execução em `SchemaManager.apply_full_schema()`. Adicionar índices adequados para `files.path`, `communities.community_id` e `fsm_checkpoints.session_id`.
-- **Critério de Validação:** Apagar `data/concierge.db`, rodar `python -c "from storage import SqliteStore; SqliteStore('data/concierge.db')"` e verificar via script `sqlite3` que `SELECT count(*) FROM sqlite_master WHERE type='table'` retorna as 13 tabelas completas.
+- **Critério de Validação:** Apagar `data/concierge.db`, rodar `python -c "from storage import SqliteStore; SqliteStore('data/concierge.db')"` e verificar via script `sqlite3` que o conjunto de nomes de tabelas em `sqlite_master` contém integralmente as 13 tabelas de negócio (`projects`, `nodes`, `edges`, `reference_wings`, `trajectories`, `commit_log`, `user_core_memory`, `semantic_facts`, `files`, `communities`, `ast_edges`, `agent_checkpoints`, `fsm_checkpoints`) e a tabela virtual `nodes_fts`, ignorando tabelas-sombra (`nodes_fts_*`) e `sqlite_sequence`.
 
 #### [BL-002] Inoperância Funcional de 12 Subsistemas Analíticos em Instalação Limpa
 - **Severidade:** 🔴🔴 PRIORIDADE MÁXIMA
@@ -172,21 +172,21 @@ flowchart TD
 - **Diretriz de Remediação:** Desbloqueado diretamente pela resolução do BL-001. Garantir que nenhum módulo de `core/` tente realizar queries em tabelas sem antes verificar ou confiar na integridade do boot do `SchemaManager`.
 - **Critério de Validação:** Execução sem erros de um script E2E que instancia sucessivamente `DeltaManager`, `VectorReconciler`, `BackgroundJanitor` e `AgnosticCheckpointer` contra um banco inicializado de forma limpa.
 
-#### [BL-003] Padrão Test Mirage: 14 Suítes de Teste Criam Tabelas Privadas em `setUp()`
+#### [BL-003] Padrão Test Mirage: 17 Suítes de Teste Criam Tabelas Privadas em `setUp()`
 - **Severidade:** 🔴 CRÍTICA
-- **Arquivos & Linhas:** 14 suítes de teste em [`tests/`](file:///c:/Nexus-Memory/GrafoConcierge/tests) (incluindo `test_delta_sync.py:28`, `test_vector_reconciler.py:35`, `test_telemetry_api.py:38`, `test_checkpoint_pruning.py:22`)
+- **Arquivos & Linhas:** 17 suítes de teste em [`tests/`](file:///c:/Nexus-Memory/GrafoConcierge/tests) (`test_agent_checkpointer.py:69`, `test_agent_hsm_coupling.py:33, 38`, `test_alias_tracker.py:33, 38, 43`, `test_checkpoint_pruning.py:78`, `test_cognitive_routing_memory.py:41`, `test_delta_sync.py:70, 76`, `test_durable_checkpoints_timetravel.py:35, 40`, `test_e2e_concierge_integration.py:199, 205, 210, 215`, `test_graph_rag_frugal.py:36, 41`, `test_graph_rag_janitor.py:78, 83, 88`, `test_graph_rag_loops.py:30`, `test_hierarchical_state_machine.py:50, 55`, `test_hsm_transition_hooks_and_delta.py:126, 133, 295, 302`, `test_local_graph_rag_recursion.py:23, 28`, `test_mcp_server_extensions.py:134, 141`, `test_telemetry_api.py:38, 43`, `test_vector_reconciler.py:106`)
 - **Relatório de Origem:** [`audits/schema-oficial-incompleto.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/schema-oficial-incompleto.md) #4 | Eixo Central §1.2
 - **Mecanismo da Falha:** Testes automatizados mascaram a ausência do schema de produção injetando `CREATE TABLE IF NOT EXISTS` em seus métodos de fixture `setUp()`. As suítes passavam com 100% de sucesso testando uma aplicação imaginária.
-- **Diretriz de Remediação:** Purgar todas as instruções SQL de `CREATE TABLE` dos métodos `setUp()` das 14 suítes de teste. Configurar as fixtures de teste para inicializarem o banco exclusivamente chamando a API oficial `SqliteStore(db_path)` ou `SchemaManager(conn).apply_full_schema()`.
+- **Diretriz de Remediação:** Purgar todas as instruções SQL de `CREATE TABLE` dos métodos `setUp()` das 17 suítes de teste. Configurar as fixtures de teste para inicializarem o banco exclusivamente chamando a API oficial `SqliteStore(db_path)` ou `SchemaManager(conn).apply_full_schema()`.
 - **Critério de Validação:** Executar `pytest tests/` e garantir que todos os testes passem sem conter nenhuma linha de DDL hardcoded nas suítes de teste.
 
 #### [BL-004] Mascaramento de Erros DDL e Falsa Confirmação de Integridade no Boot
 - **Severidade:** 🟠 GRAVE
-- **Arquivos & Linhas:** [`storage/store.py:107`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py#L107), [`storage/schema.py:285–305`](file:///c:/Nexus-Memory/GrafoConcierge/storage/schema.py#L285), [`core/database.py:66–67`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py#L66), [`interface/watcher.py:93–100`](file:///c:/Nexus-Memory/GrafoConcierge/interface/watcher.py#L93)
+- **Arquivos & Linhas:** [`storage/store.py:95–107`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py#L95), [`storage/schema.py:285–305`](file:///c:/Nexus-Memory/GrafoConcierge/storage/schema.py#L285), [`core/database.py:66–67`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py#L66), [`interface/watcher.py:93–100`](file:///c:/Nexus-Memory/GrafoConcierge/interface/watcher.py#L93)
 - **Relatório de Origem:** [`audits/schema-oficial-incompleto.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/schema-oficial-incompleto.md) #3 | Eixo Central §1.2
-- **Mecanismo da Falha:** `core/database.py::execute_write` engole exceções retornando `(False, error)`. `storage/store.py:107` loga `"Schema v3.8.0 verified - all tables and triggers OK"` porque `verify_tables_exist()` valida apenas o subset restrito legado, enganando o operador enquanto 5 tabelas críticas inexistem.
-- **Diretriz de Remediação:** Atualizar `verify_tables_exist()` para validar as 13 tabelas obrigatórias. Se qualquer tabela faltar, lançar `RuntimeError` impeditivo no boot em vez de logar confirmação enganosa.
-- **Critério de Validação:** Simular ausência da tabela `fsm_checkpoints` e verificar que `store._boot_schema()` levanta exceção fatal e recusa o boot.
+- **Mecanismo da Falha:** `storage/store.py:95–100` já possui a lógica de validação que lança `RuntimeError(f"Incomplete schema: {missing}")`, mas delega para `SchemaManager.verify_tables_exist()`, que valida apenas 9 nomes legados (`storage/schema.py:293–297`), omitindo as 5 tabelas críticas de `core/*`. Como consequência, o boot registra a mensagem enganosa `"Schema v3.8.0 verified - all tables and triggers OK."` enquanto 5 tabelas essenciais inexistem. Adicionalmente, `core/database.py::execute_write` engole exceções retornando `(False, error)`.
+- **Diretriz de Remediação:** Ampliar a lista `required_tables` em `SchemaManager.verify_tables_exist()` para incluir as 14 tabelas obrigatórias (13 de negócio + `nodes_fts`). Com isso, a checagem já existente em `storage/store.py` barrará o boot com `RuntimeError` caso qualquer tabela esteja ausente.
+- **Critério de Validação:** Simular ausência da tabela `fsm_checkpoints` e verificar que `store._boot_schema()` levanta `RuntimeError` fatal e recusa o boot.
 
 #### [BL-005] Abandono da Especificação Arquitetural Formal (`01_ARCHITECTURE.md`)
 - **Severidade:** 🟡 MÉDIA

@@ -187,11 +187,25 @@ Tarefa extra inserida a partir do padrão encontrado acima:
   88 itens numerados BL-001 a BL-088, cada um citando arquivo/linhas exatos, mecanismo técnico, relatório de origem (`audits/*.md`), diretriz de remediação arquitetural e critérios de validação.
   Organizado em 6 Tracks Sequenciais de Trabalho: (1) Fundação Relacional & Schema, (2) Concorrência & Escrita Unificada SQLite, (3) Segurança de Fronteira & Governança MCP, (4) Reconciliação, Grafo & Ingestão, (5) Telemetria, SSE & Dashboard HUD, (6) Runtime Cognitivo, Mocks & Código Órfão.
   Dependências críticas invioláveis formalizadas: BL-033 e BL-034 devem ser corrigidos no mesmo commit; BL-001 é o bloqueante estrutural de 12+ subsistemas.
-  Item concluído [x] e verificado com correções pós-auditoria externa. Auditoria 100% concluída: NÃO há próximo item.
+  Item concluído [x] e aprovado pelo usuário no commit `40b20c9`.
 
 > [!NOTE]
 > **Adendo de Governança — Versionamento de `grafo-dashboard-web/` (14/10/2026):**  
 > Por decisão expressa do usuário, concedeu-se autorização de exceção à Regra 8 para absorver o painel frontend `grafo-dashboard-web/` como arquivos normais versionados no repositório principal, sem alteração de código ou lógica de componentes. O histórico anterior do repositório aninhado (.git com commits `c782183` e `8a57ee6`) foi preservado em backup externo em `C:\Nexus-Memory\_backup\grafo-dashboard-web.git`. O `.gitignore` raiz e interno foram ajustados com exceções controladas, e `.env.example` foi criado preservando a linha 6 para BL-071, permitindo a verificação íntegra de 100% dos links de evidência dos itens BL-069 a BL-076 (11 links de código do dashboard) em qualquer clone limpo público.
+
+---
+
+## Fase 4 — Correções de código
+
+Aprovada pelo usuário no commit `40b20c9`. Esta fase implementa as remediações técnicas do backlog seguindo a ordem de precedência das 6 Tracks. Regras de governança e execução:
+
+1. **Escopo por Commit:** Uma rodada cobre um grupo pequeno de BL, e cada BL tem seu próprio commit.
+2. **Linha de Base de Testes:** Antes de mudar código, registre a linha de base: `pytest tests/ -q` num clone limpo, com o número exato de passed/failed/skipped/errors, salva em `scratch/baseline_fase4_<data>.txt`.
+3. **Teste Primeiro (TDD / Reprodução Obrigatória):** Cada correção tem um teste que falha antes (saída colada) e passa depois (saída colada).
+4. **Proibição de DDL em Testes:** Nenhum teste novo pode conter DDL próprio. O schema vem sempre de `SqliteStore(db_path)` ou `SchemaManager(conn).apply_full_schema()`.
+5. **Verificação de Regressão:** Ao final de cada rodada, rode a suíte completa e compare com a linha de base. Qualquer teste que passava e agora falha é reportado antes do commit.
+6. **Contenção de Escopo:** O que for notado fora do escopo da rodada vai para `audits/fora-de-escopo.md`, sem ser corrigido.
+7. **Ponto de Parada Arquitetural:** Decisão de desenho com mais de uma resposta razoável (nome ou tipo de coluna, por exemplo) é marcada `DECISÃO HUMANA` e para no gate.
 
 ---
 
