@@ -1,0 +1,74 @@
+{
+  "agent/run_agent.py": {
+    "mcp_server_rc": 0,
+    "mcp_server_out": "OK",
+    "main_rc": 0,
+    "main_out": "OK",
+    "pytest_rc": 2,
+    "pytest_collected": "324",
+    "pytest_out_tail": "tests\\test_agent_hsm_coupling.py:15: in <module>\n    from agent.agent_prompts import DynamicPromptBuilder\nagent\\__init__.py:11: in <module>\n    from agent.run_agent import CognitiveAgentRunner, HermesAgentRunner\nE   ModuleNotFoundError: No module named 'agent.run_agent'\n============================== warnings summary ===============================\n..\\..\\..\\Roaming\\Python\\Python314\\site-packages\\chromadb\\telemetry\\opentelemetry\\__init__.py:128\n  C:\\Users\\guial\\AppData\\Roaming\\Python\\Python314\\site-packages\\chromadb\\telemetry\\opentelemetry\\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead\n    if asyncio.iscoroutinefunction(f):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ===========================\nERROR tests/test_agent_hsm_coupling.py\n!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!\n324 tests collected, 1 error in 17.99s"
+  },
+  "agent/agent_prompts.py": {
+    "mcp_server_rc": 0,
+    "mcp_server_out": "OK",
+    "main_rc": 0,
+    "main_out": "OK",
+    "pytest_rc": 2,
+    "pytest_collected": "324",
+    "pytest_out_tail": "agent\\__init__.py:11: in <module>\n    from agent.run_agent import CognitiveAgentRunner, HermesAgentRunner\nagent\\run_agent.py:23: in <module>\n    from agent.agent_prompts import DynamicPromptBuilder\nE   ModuleNotFoundError: No module named 'agent.agent_prompts'\n============================== warnings summary ===============================\n..\\..\\..\\Roaming\\Python\\Python314\\site-packages\\chromadb\\telemetry\\opentelemetry\\__init__.py:128\n  C:\\Users\\guial\\AppData\\Roaming\\Python\\Python314\\site-packages\\chromadb\\telemetry\\opentelemetry\\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead\n    if asyncio.iscoroutinefunction(f):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ===========================\nERROR tests/test_agent_hsm_coupling.py\n!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!\n324 tests collected, 1 error in 17.23s"
+  },
+  "agents/revisor_critico.py": {
+    "mcp_server_rc": 1,
+    "mcp_server_out": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\n    import interface.mcp_server; print('OK')\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\guial\\AppData\\Local\\Temp\\grafo_sim_revisor_critico\\interface\\__init__.py\", line 11, in <module>\n    from interface.action_hooks import ActionHooks\n  File \"C:\\Users\\guial\\AppData\\Local\\Temp\\grafo_sim_revisor_critico\\interface\\action_hooks.py\", line 32, in <module>\n    from agents.revisor_critico import RevisorCritico\n  File \"C:\\Users\\guial\\AppData\\Local\\Temp\\grafo_sim_revisor_critico\\agents\\__init__.py\", line 10, in <module>\n    from agents.revisor_critico import RevisorCritico\nModuleNotFoundError: No module named 'agents.revisor_critico'",
+    "main_rc": 0,
+    "main_out": "OK",
+    "pytest_rc": 2,
+    "pytest_collected": "301",
+    "pytest_out_tail": "agents\\__init__.py:10: in <module>\n    from agents.revisor_critico import RevisorCritico\nE   ModuleNotFoundError: No module named 'agents.revisor_critico'\n============================== warnings summary ===============================\n..\\..\\..\\Roaming\\Python\\Python314\\site-packages\\chromadb\\telemetry\\opentelemetry\\__init__.py:128\n  C:\\Users\\guial\\AppData\\Roaming\\Python\\Python314\\site-packages\\chromadb\\telemetry\\opentelemetry\\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead\n    if asyncio.iscoroutinefunction(f):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ===========================\nERROR tests/test_durable_checkpoints_timetravel.py\nERROR tests/test_interface_contracts.py\nERROR tests/test_revisor_critico.py\n!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!\n301 tests collected, 3 errors in 19.91s"
+  },
+  "interface/telemetry_api.py": {
+    "mcp_server_rc": 0,
+    "mcp_server_out": "OK",
+    "main_rc": 0,
+    "main_out": "OK",
+    "pytest_rc": 2,
+    "pytest_collected": "324",
+    "pytest_out_tail": "tests\\test_telemetry_api.py:24: in <module>\n    from interface.telemetry_api import app, get_db_manager\nE   ModuleNotFoundError: No module named 'interface.telemetry_api'\n============================== warnings summary ===============================\n..\\..\\..\\Roaming\\Python\\Python314\\site-packages\\chromadb\\telemetry\\opentelemetry\\__init__.py:128\n  C:\\Users\\guial\\AppData\\Roaming\\Python\\Python314\\site-packages\\chromadb\\telemetry\\opentelemetry\\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead\n    if asyncio.iscoroutinefunction(f):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ===========================\nERROR tests/test_durable_checkpoints_timetravel.py\nERROR tests/test_progressive_tool_disclosure.py\nERROR tests/test_telemetry_api.py\n!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!\n324 tests collected, 3 errors in 18.58s"
+  },
+  "core/rate_governor.py": {
+    "mcp_server_rc": 0,
+    "mcp_server_out": "OK",
+    "main_rc": 0,
+    "main_out": "OK",
+    "pytest_rc": 2,
+    "pytest_collected": "303",
+    "pytest_out_tail": "E   ModuleNotFoundError: No module named 'core.rate_governor'\n============================== warnings summary ===============================\n..\\..\\..\\Roaming\\Python\\Python314\\site-packages\\chromadb\\telemetry\\opentelemetry\\__init__.py:128\n  C:\\Users\\guial\\AppData\\Roaming\\Python\\Python314\\site-packages\\chromadb\\telemetry\\opentelemetry\\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead\n    if asyncio.iscoroutinefunction(f):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ===========================\nERROR tests/test_agent_hsm_coupling.py\nERROR tests/test_durable_checkpoints_timetravel.py\nERROR tests/test_progressive_tool_disclosure.py\nERROR tests/test_rate_governor_priority.py\nERROR tests/test_telemetry_api.py\n!!!!!!!!!!!!!!!!!!! Interrupted: 5 errors during collection !!!!!!!!!!!!!!!!!!!\n303 tests collected, 5 errors in 17.97s"
+  },
+  "core/gating_interceptor.py": {
+    "mcp_server_rc": 0,
+    "mcp_server_out": "OK",
+    "main_rc": 0,
+    "main_out": "OK",
+    "pytest_rc": 2,
+    "pytest_collected": "299",
+    "pytest_out_tail": "E   ModuleNotFoundError: No module named 'core.gating_interceptor'\n============================== warnings summary ===============================\n..\\..\\..\\Roaming\\Python\\Python314\\site-packages\\chromadb\\telemetry\\opentelemetry\\__init__.py:128\n  C:\\Users\\guial\\AppData\\Roaming\\Python\\Python314\\site-packages\\chromadb\\telemetry\\opentelemetry\\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead\n    if asyncio.iscoroutinefunction(f):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ===========================\nERROR tests/test_adaptive_gating.py\nERROR tests/test_agent_hsm_coupling.py\nERROR tests/test_durable_checkpoints_timetravel.py\nERROR tests/test_progressive_tool_disclosure.py\nERROR tests/test_telemetry_api.py\n!!!!!!!!!!!!!!!!!!! Interrupted: 5 errors during collection !!!!!!!!!!!!!!!!!!!\n299 tests collected, 5 errors in 19.00s"
+  },
+  "core/nozomio_router.py": {
+    "mcp_server_rc": 0,
+    "mcp_server_out": "OK",
+    "main_rc": 0,
+    "main_out": "OK",
+    "pytest_rc": 0,
+    "pytest_collected": "337",
+    "pytest_out_tail": "tests/test_topology.py::test_middleware_topology_delegation\ntests/test_vector_reconciler.py::TestVectorReconciliationAndSelfHealing::test_background_reconciler_should_delete_orphans_from_vector_db\ntests/test_vector_reconciler.py::TestVectorReconciliationAndSelfHealing::test_should_filter_out_orphan_vectors_at_query_time\ntests/test_watcher_ignore.py::TestWatcherIgnore::test_hydrate_known_hashes_handles_offline_deletions\ntests/test_watcher_ignore.py::TestWatcherIgnore::test_should_allow_and_process_legitimate_code_files\ntests/test_watcher_ignore.py::TestWatcherIgnore::test_should_ignore_node_modules_files\ntests/test_watcher_ignore.py::TestWatcherIgnore::test_should_ignore_private_env_file\n\n============================== warnings summary ===============================\n..\\..\\..\\Roaming\\Python\\Python314\\site-packages\\chromadb\\telemetry\\opentelemetry\\__init__.py:128\n  C:\\Users\\guial\\AppData\\Roaming\\Python\\Python314\\site-packages\\chromadb\\telemetry\\opentelemetry\\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead\n    if asyncio.iscoroutinefunction(f):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n337 tests collected in 17.75s"
+  },
+  "grafo-dashboard-web": {
+    "mcp_server_rc": 0,
+    "mcp_server_out": "OK",
+    "main_rc": 0,
+    "main_out": "OK",
+    "pytest_rc": 0,
+    "pytest_collected": "337",
+    "pytest_out_tail": "tests/test_topology.py::test_middleware_topology_delegation\ntests/test_vector_reconciler.py::TestVectorReconciliationAndSelfHealing::test_background_reconciler_should_delete_orphans_from_vector_db\ntests/test_vector_reconciler.py::TestVectorReconciliationAndSelfHealing::test_should_filter_out_orphan_vectors_at_query_time\ntests/test_watcher_ignore.py::TestWatcherIgnore::test_hydrate_known_hashes_handles_offline_deletions\ntests/test_watcher_ignore.py::TestWatcherIgnore::test_should_allow_and_process_legitimate_code_files\ntests/test_watcher_ignore.py::TestWatcherIgnore::test_should_ignore_node_modules_files\ntests/test_watcher_ignore.py::TestWatcherIgnore::test_should_ignore_private_env_file\n\n============================== warnings summary ===============================\n..\\..\\..\\Roaming\\Python\\Python314\\site-packages\\chromadb\\telemetry\\opentelemetry\\__init__.py:128\n  C:\\Users\\guial\\AppData\\Roaming\\Python\\Python314\\site-packages\\chromadb\\telemetry\\opentelemetry\\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead\n    if asyncio.iscoroutinefunction(f):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n337 tests collected in 18.51s"
+  }
+}

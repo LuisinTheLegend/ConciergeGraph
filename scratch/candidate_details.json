@@ -1,0 +1,326 @@
+{
+  "agent/run_agent.py": {
+    "importing_tests": [
+      {
+        "file": "tests\\test_agent_hsm_coupling.py",
+        "tests": 13
+      }
+    ],
+    "citing_docs": [
+      "docs-grafo-concierge\\01_ARCHITECTURE.md",
+      "docs-grafo-concierge\\03_COGNITIVE_MEMORY_AND_FACTS.md",
+      "docs-grafo-concierge\\README.md",
+      "ATTRIBUTION_AND_LINEAGE.md"
+    ],
+    "citing_bls": [
+      {
+        "bl_id": "BL-014",
+        "title": "Desconexão Total do Runtime Cognitivo no Servidor MCP",
+        "severity": "🟠 GRAVE",
+        "files_field": "[`agent/run_agent.py`](file:///c:/Nexus-Memory/GrafoConcierge/agent/run_agent.py), [`core/hsm_engine.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/hsm_engine.py), [`interface/mcp_server.py:1–1786`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L1)"
+      },
+      {
+        "bl_id": "BL-077",
+        "title": "Contaminação de Turnos Multi-Sessão no Circuit Breaker",
+        "severity": "🔴 CRÍTICA CONDICIONAL",
+        "files_field": "[`agent/run_agent.py:47, 82, 95, 123, 154, 160`](file:///c:/Nexus-Memory/GrafoConcierge/agent/run_agent.py#L47)"
+      },
+      {
+        "bl_id": "BL-080",
+        "title": "Dessincronização de Estado e Diretrizes em `step(target_transition=...)`",
+        "severity": "🟠 GRAVE CONDICIONAL",
+        "files_field": "[`agent/run_agent.py:151–217`](file:///c:/Nexus-Memory/GrafoConcierge/agent/run_agent.py#L151)"
+      },
+      {
+        "bl_id": "BL-082",
+        "title": "Incompatibilidade Universal com Corrotinas e Bypass do RateGovernor em `execute_tool`",
+        "severity": "🟡 MÉDIA CONDICIONAL",
+        "files_field": "[`agent/run_agent.py:243–262`](file:///c:/Nexus-Memory/GrafoConcierge/agent/run_agent.py#L243)"
+      }
+    ]
+  },
+  "agent/agent_prompts.py": {
+    "importing_tests": [
+      {
+        "file": "tests\\test_agent_hsm_coupling.py",
+        "tests": 13
+      }
+    ],
+    "citing_docs": [],
+    "citing_bls": [
+      {
+        "bl_id": "BL-083",
+        "title": "Dessincronização entre Sub-Estados do HSM e `TOOL_DISCLOSURE_MATRIX`",
+        "severity": "🟡 MÉDIA CONDICIONAL",
+        "files_field": "[`agent/agent_prompts.py:82–132`](file:///c:/Nexus-Memory/GrafoConcierge/agent/agent_prompts.py#L82)"
+      }
+    ]
+  },
+  "agents/revisor_critico.py": {
+    "importing_tests": [
+      {
+        "file": "tests\\colossus_benchmark.py",
+        "tests": 0
+      },
+      {
+        "file": "tests\\stress_test_v2_setup.py",
+        "tests": 0
+      },
+      {
+        "file": "tests\\test_revisor_critico.py",
+        "tests": 11
+      }
+    ],
+    "citing_docs": [
+      "docs-grafo-concierge\\07_MIGRATION_AND_OPERATIONS.md",
+      "ATTRIBUTION_AND_LINEAGE.md"
+    ],
+    "citing_bls": [
+      {
+        "bl_id": "BL-078",
+        "title": "Vazamento de Privacidade por Fallback Inseguro Fail-Open em `check_contamination`",
+        "severity": "🔴 CRÍTICA CONDICIONAL",
+        "files_field": "[`agents/revisor_critico.py:555–573`](file:///c:/Nexus-Memory/GrafoConcierge/agents/revisor_critico.py#L555)"
+      },
+      {
+        "bl_id": "BL-079",
+        "title": "Aprovação Espúria de Commits Inválidos em `audit_with_retry`",
+        "severity": "🟠 GRAVE CONDICIONAL",
+        "files_field": "[`agents/revisor_critico.py:331, 362–381`](file:///c:/Nexus-Memory/GrafoConcierge/agents/revisor_critico.py#L331)"
+      },
+      {
+        "bl_id": "BL-081",
+        "title": "Falhas de Tipagem e Crash em Reranking (`NoneType` e `int` vs `str`)",
+        "severity": "🟠 GRAVE CONDICIONAL",
+        "files_field": "[`agents/revisor_critico.py:433, 490–498, 504–513`](file:///c:/Nexus-Memory/GrafoConcierge/agents/revisor_critico.py#L433)"
+      }
+    ]
+  },
+  "interface/telemetry_api.py": {
+    "importing_tests": [
+      {
+        "file": "tests\\test_durable_checkpoints_timetravel.py",
+        "tests": 3
+      },
+      {
+        "file": "tests\\test_hierarchical_state_machine.py",
+        "tests": 43
+      },
+      {
+        "file": "tests\\test_progressive_tool_disclosure.py",
+        "tests": 5
+      },
+      {
+        "file": "tests\\test_telemetry_api.py",
+        "tests": 5
+      }
+    ],
+    "citing_docs": [
+      "docs-grafo-concierge\\01_ARCHITECTURE.md",
+      "docs-grafo-concierge\\06_DEPLOY_AND_CONFIGURATION.md",
+      "docs-grafo-concierge\\07_MIGRATION_AND_OPERATIONS.md",
+      "docs-grafo-concierge\\README.md",
+      "README.md",
+      "ATTRIBUTION_AND_LINEAGE.md"
+    ],
+    "citing_bls": [
+      {
+        "bl_id": "BL-003",
+        "title": "Padrão Test Mirage: 17 Suítes de Teste Criam Tabelas Privadas em `setUp()`",
+        "severity": "🔴 CRÍTICA",
+        "files_field": "17 suítes de teste em [`tests/`](file:///c:/Nexus-Memory/GrafoConcierge/tests) (`test_agent_checkpointer.py:69`, `test_agent_hsm_coupling.py:33, 38`, `test_alias_tracker.py:33, 38, 43`, `test_checkpoint_pruning.py:78`, `test_cognitive_routing_memory.py:41`, `test_delta_sync.py:70, 76`, `test_durable_checkpoints_timetravel.py:35, 40`, `test_e2e_concierge_integration.py:199, 205, 210, 215`, `test_graph_rag_frugal.py:36, 41`, `test_graph_rag_janitor.py:78, 83, 88`, `test_graph_rag_loops.py:30`, `test_hierarchical_state_machine.py:50, 55`, `test_hsm_transition_hooks_and_delta.py:126, 133, 295, 302`, `test_local_graph_rag_recursion.py:23, 28`, `test_mcp_server_extensions.py:134, 141`, `test_telemetry_api.py:38, 43`, `test_vector_reconciler.py:106`)"
+      },
+      {
+        "bl_id": "BL-062",
+        "title": "Falha Fatal e Crash HTTP 500 na Telemetria por Tabelas Inexistentes",
+        "severity": "🔴 CRÍTICA",
+        "files_field": "[`interface/telemetry_api.py:153–161, 181–184`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L153)"
+      },
+      {
+        "bl_id": "BL-063",
+        "title": "Inoperância Fora da Caixa por Dependência `get_db_manager` Não Configurada",
+        "severity": "🔴 CRÍTICA",
+        "files_field": "[`interface/telemetry_api.py:114–126, 74–89`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L114)"
+      },
+      {
+        "bl_id": "BL-070",
+        "title": "Ciclo Infinito de Flapping SSE a cada 8s e Inundação do Feed de Eventos",
+        "severity": "🔴 CRÍTICA",
+        "files_field": "[`grafo-dashboard-web/lib/useTelemetryStream.ts:280–291`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/useTelemetryStream.ts#L280), [`interface/telemetry_api.py:556–572`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L556)"
+      },
+      {
+        "bl_id": "BL-064",
+        "title": "Falso Stream Contínuo por Limite Hardcoded (`max_checks = 5`)",
+        "severity": "🟠 GRAVE",
+        "files_field": "[`interface/telemetry_api.py:556–572`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L556)"
+      },
+      {
+        "bl_id": "BL-065",
+        "title": "Invalidação Perpétua do SHA-256 no SSE por Timestamp Dinâmico",
+        "severity": "🟠 GRAVE",
+        "files_field": "[`interface/telemetry_api.py:226, 234–237, 563–570`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L226)"
+      },
+      {
+        "bl_id": "BL-066",
+        "title": "Insegurança Total de CORS e Falta de Autenticação em Rotas Mutantes",
+        "severity": "🟠 GRAVE",
+        "files_field": "[`interface/telemetry_api.py:98–105, 325–347, 357–369`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L98)"
+      },
+      {
+        "bl_id": "BL-067",
+        "title": "Crash de Tipagem em Timestamps na Telemetria (`NoneType` e `str`)",
+        "severity": "🟡 MÉDIA",
+        "files_field": "[`interface/telemetry_api.py:166, 199, 304–319`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L166)"
+      },
+      {
+        "bl_id": "BL-068",
+        "title": "Thread Daemônica Órfã Iniciada no Import de `telemetry_api`",
+        "severity": "🟡 MÉDIA",
+        "files_field": "[`interface/telemetry_api.py:56–68`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L56)"
+      }
+    ]
+  },
+  "core/rate_governor.py": {
+    "importing_tests": [
+      {
+        "file": "tests\\test_agent_hsm_coupling.py",
+        "tests": 13
+      },
+      {
+        "file": "tests\\test_rate_governor_priority.py",
+        "tests": 8
+      }
+    ],
+    "citing_docs": [
+      "docs-grafo-concierge\\01_ARCHITECTURE.md",
+      "docs-grafo-concierge\\05_HYBRID_SEARCH_AND_ROUTING.md",
+      "docs-grafo-concierge\\07_MIGRATION_AND_OPERATIONS.md",
+      "docs-grafo-concierge\\README.md",
+      "README.md",
+      "CONTRIBUTING.md",
+      "ATTRIBUTION_AND_LINEAGE.md"
+    ],
+    "citing_bls": [
+      {
+        "bl_id": "BL-047",
+        "title": "Vazamento de `unfinished_tasks` na `PriorityQueue` e Starvation",
+        "severity": "🔴 CRÍTICA",
+        "files_field": "[`core/rate_governor.py:250, 255, 261, 272`](file:///c:/Nexus-Memory/GrafoConcierge/core/rate_governor.py#L250)"
+      },
+      {
+        "bl_id": "BL-048",
+        "title": "Starvation de Tarefas LOW Envelhecidas em Carga de 75% a 100%",
+        "severity": "🟠 GRAVE",
+        "files_field": "[`core/rate_governor.py:231–252`](file:///c:/Nexus-Memory/GrafoConcierge/core/rate_governor.py#L231)"
+      },
+      {
+        "bl_id": "BL-049",
+        "title": "Data Race / Lost Updates em `get_current_metrics()` sem Lock",
+        "severity": "🟠 GRAVE",
+        "files_field": "[`core/rate_governor.py:91, 116–150`](file:///c:/Nexus-Memory/GrafoConcierge/core/rate_governor.py#L91)"
+      },
+      {
+        "bl_id": "BL-050",
+        "title": "Deadlock Eterno em `submit_request` sem Timeout e Após `shutdown()`",
+        "severity": "🟠 GRAVE",
+        "files_field": "[`core/rate_governor.py:196–203, 278–280`](file:///c:/Nexus-Memory/GrafoConcierge/core/rate_governor.py#L196)"
+      },
+      {
+        "bl_id": "BL-051",
+        "title": "Cegueira de RPM no Fast-Path do RateGovernor",
+        "severity": "🟡 MÉDIA",
+        "files_field": "[`core/rate_governor.py:185–194`](file:///c:/Nexus-Memory/GrafoConcierge/core/rate_governor.py#L185)"
+      }
+    ]
+  },
+  "core/gating_interceptor.py": {
+    "importing_tests": [
+      {
+        "file": "tests\\test_adaptive_gating.py",
+        "tests": 12
+      },
+      {
+        "file": "tests\\test_agent_hsm_coupling.py",
+        "tests": 13
+      }
+    ],
+    "citing_docs": [
+      "docs-grafo-concierge\\01_ARCHITECTURE.md",
+      "docs-grafo-concierge\\07_MIGRATION_AND_OPERATIONS.md",
+      "docs-grafo-concierge\\README.md",
+      "README.md",
+      "CONTRIBUTING.md",
+      "ATTRIBUTION_AND_LINEAGE.md"
+    ],
+    "citing_bls": []
+  },
+  "core/nozomio_router.py": {
+    "importing_tests": [],
+    "citing_docs": [
+      "docs-grafo-concierge\\05_HYBRID_SEARCH_AND_ROUTING.md",
+      "ATTRIBUTION_AND_LINEAGE.md"
+    ],
+    "citing_bls": []
+  },
+  "grafo-dashboard-web": {
+    "importing_tests": [],
+    "citing_docs": [
+      "docs-grafo-concierge\\01_ARCHITECTURE.md",
+      "docs-grafo-concierge\\04_INGESTION_AND_AST.md",
+      "docs-grafo-concierge\\06_DEPLOY_AND_CONFIGURATION.md",
+      "docs-grafo-concierge\\README.md",
+      "README.md",
+      "ATTRIBUTION_AND_LINEAGE.md"
+    ],
+    "citing_bls": [
+      {
+        "bl_id": "BL-069",
+        "title": "Código Morto em Handlers SSE e Telemetria Reativa Congelada",
+        "severity": "🔴 CRÍTICA",
+        "files_field": "[`grafo-dashboard-web/lib/useTelemetryStream.ts:219–260`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/useTelemetryStream.ts#L219)"
+      },
+      {
+        "bl_id": "BL-070",
+        "title": "Ciclo Infinito de Flapping SSE a cada 8s e Inundação do Feed de Eventos",
+        "severity": "🔴 CRÍTICA",
+        "files_field": "[`grafo-dashboard-web/lib/useTelemetryStream.ts:280–291`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/useTelemetryStream.ts#L280), [`interface/telemetry_api.py:556–572`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L556)"
+      },
+      {
+        "bl_id": "BL-071",
+        "title": "Colisão de Portas 8000, Falha no `dev:all` e Desconexão do FastMCP",
+        "severity": "🔴 CRÍTICA",
+        "files_field": "[`grafo-dashboard-web/package.json:10–11`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/package.json#L10), [`grafo-dashboard-web/.env.example:6, 10`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/.env.example#L6), [`grafo-dashboard-web/lib/mcp/client.ts:29`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/mcp/client.ts#L29)"
+      },
+      {
+        "bl_id": "BL-072",
+        "title": "Incompatibilidade de Autenticação FastMCP e Rejeição HTTP 401",
+        "severity": "🟠 GRAVE",
+        "files_field": "[`grafo-dashboard-web/lib/mcp/client.ts:78, 294–298`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/mcp/client.ts#L78), [`interface/mcp_server.py:186–212`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L186)"
+      },
+      {
+        "bl_id": "BL-073",
+        "title": "Omissão de Metadados em `get_full_topology` e Esvaziamento do `InspectorDrawer`",
+        "severity": "🟠 GRAVE",
+        "files_field": "[`storage/store.py:259–273`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py#L259), [`grafo-dashboard-web/app/components/InspectorDrawer.tsx:124–152`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/app/components/InspectorDrawer.tsx#L124)"
+      },
+      {
+        "bl_id": "BL-074",
+        "title": "Risco de Data Inválida (`Invalid Date`) por Concatenação `+ \"Z\"`",
+        "severity": "🟡 MÉDIA",
+        "files_field": "[`grafo-dashboard-web/app/components/CoreMemoryPanel.tsx:137–146`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/app/components/CoreMemoryPanel.tsx#L137)"
+      },
+      {
+        "bl_id": "BL-075",
+        "title": "Rotas Mutantes `/api/hsm/transition` Órfãs e Cliques Inertes no HUD",
+        "severity": "🟡 MÉDIA",
+        "files_field": "[`grafo-dashboard-web/app/page.tsx:478–482`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/app/page.tsx#L478)"
+      },
+      {
+        "bl_id": "BL-076",
+        "title": "37 Erros de Linter e Violação de Pureza no React 19",
+        "severity": "🟡 MÉDIA",
+        "files_field": "[`grafo-dashboard-web/components/telemetry/LiveEventFeed.tsx:93–121`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/components/telemetry/LiveEventFeed.tsx#L93), [`grafo-dashboard-web/lib/useTelemetryStream.ts:191`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/useTelemetryStream.ts#L191)"
+      }
+    ]
+  }
+}

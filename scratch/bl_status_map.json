@@ -1,0 +1,530 @@
+{
+  "BL-001": {
+    "title": "Omissão Estrutural de 5 Tabelas no Bootstrap Oficial de Produção",
+    "sev": "🔴🔴 PRIORIDADE MÁXIMA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-002": {
+    "title": "Inoperância Funcional de 12 Subsistemas Analíticos em Instalação Limpa",
+    "sev": "🔴🔴 PRIORIDADE MÁXIMA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-003": {
+    "title": "Padrão Test Mirage: 17 Suítes de Teste Criam Tabelas Privadas em `setUp()`",
+    "sev": "🔴 CRÍTICA",
+    "status": "ATIVO",
+    "just": "Essencial para purgar Test Mirage e unificar schema oficial no core, mesmo que suítes de módulos podados sejam arquivadas."
+  },
+  "BL-004": {
+    "title": "Mascaramento de Erros DDL e Falsa Confirmação de Integridade no Boot",
+    "sev": "🟠 GRAVE",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-005": {
+    "title": "Abandono da Especificação Arquitetural Formal (`01_ARCHITECTURE.md`)",
+    "sev": "🟡 MÉDIA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-006": {
+    "title": "Colisão Estrutural entre Fila Real (`storage/`) e Zero Fila (`core/`) sobre o Banco",
+    "sev": "🔴 CRÍTICA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-007": {
+    "title": "Código Morto em Produção: `interface/queue_writer.py`",
+    "sev": "🔴 CRÍTICA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-008": {
+    "title": "Divergência de Integridade Referencial (`foreign_keys=OFF` no core vs `ON` em storage)",
+    "sev": "🟠 GRAVE",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-009": {
+    "title": "Timeout Assimétrico de Conexão (5s em storage vs 30s no core)",
+    "sev": "🟠 GRAVE",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-010": {
+    "title": "Quebra de Encapsulamento Privado `_gc._store._conn_mgr._db_path`",
+    "sev": "🟡 MÉDIA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-016": {
+    "title": "Deadlock Inevitável em Escritas Aninhadas/Reentrantes no `SerializedWriteQueue`",
+    "sev": "🔴 CRÍTICA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-018": {
+    "title": "Vazamento Perpétuo de Conexões SQLite em Threads Finalizadas",
+    "sev": "🟠 GRAVE",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-021": {
+    "title": "Falha ao Reiniciar `SerializedWriteQueue` após `stop()`",
+    "sev": "🟡 MÉDIA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-011": {
+    "title": "Bypass Total da Governança de Ferramentas via Injeção de `session_id` Fantasma",
+    "sev": "🔴🔴 PRIORIDADE MÁXIMA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-012": {
+    "title": "Ausência Total de Verificação de Posse em Checkpoints de Agentes",
+    "sev": "🔴 CRÍTICA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-013": {
+    "title": "Vazamento de 100% do Catálogo de Ferramentas em `list_tools()`",
+    "sev": "🟠 GRAVE",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-014": {
+    "title": "Desconexão Total do Runtime Cognitivo no Servidor MCP",
+    "sev": "🟠 GRAVE",
+    "status": "DEPENDE",
+    "just": "Cruza agent/run_agent.py (candidato), core/hsm_engine.py e interface/mcp_server.py (ativos). Se podar run_agent, o MCP não integra com runner mas mantém FSM."
+  },
+  "BL-015": {
+    "title": "Inicialização Insegura por Padrão (`default_state = \"EXECUTION\"`)",
+    "sev": "🟡 MÉDIA",
+    "status": "DEPENDE",
+    "just": "Cruza core/mcp_governor.py (ativo) e interface/telemetry_api.py:357 (candidato). O MCPToolGovernor precisa de correção de estado inicial independentemente da telemetria."
+  },
+  "BL-052": {
+    "title": "Evasão da Blacklist de Comandos Destrutivos do SecurityGuard",
+    "sev": "🔴 CRÍTICA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-053": {
+    "title": "`classify_command(None)` Lança `TypeError` Não Tratado",
+    "sev": "🟠 GRAVE",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-054": {
+    "title": "Bug de Barra Dupla `C:\\\\\\\\` na Raiz Bloqueia 100% dos Arquivos em `is_safe_path`",
+    "sev": "🟡 MÉDIA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-055": {
+    "title": "Resolução de Caminhos Relativos Ancorada ao CWD do Processo e Não a `project_root`",
+    "sev": "🟡 MÉDIA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-056": {
+    "title": "Falsos Positivos de WARNING em Comandos Inofensivos Contendo `\"build\"`",
+    "sev": "🔵 BAIXA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-033": {
+    "title": "Invocação de Método Fantasma `self.vector_db.get_all_ids()`",
+    "sev": "🔴 CRÍTICA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-034": {
+    "title": "Purga Garantida de 100% dos Vetores por Incompatibilidade `int` vs `str`",
+    "sev": "🔴 CRÍTICA (Perda Catastrófica de Dados)",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-017": {
+    "title": "Bypass de Strict Scoping na Busca Vetorial com `project_uuids=[]`",
+    "sev": "🔴 CRÍTICA (Vazamento Cross-Project)",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-025": {
+    "title": "Perda Total no Grafo na Renomeação de Arquivos",
+    "sev": "🔴 CRÍTICA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-026": {
+    "title": "Descarte Silencioso de 100% dos Resumos L0 com Gravação de `NULL`",
+    "sev": "🔴 CRÍTICA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-027": {
+    "title": "Falha Silenciosa de Persistência do L2 Compass no SQLite",
+    "sev": "🟠 GRAVE",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-028": {
+    "title": "Acúmulo Perpétuo de Vetores Zumbis no ChromaDB",
+    "sev": "🟠 GRAVE",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-035": {
+    "title": "Race Condition Destrutiva TOCTOU no Reconciliador Vetorial",
+    "sev": "🟠 GRAVE",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-057": {
+    "title": "Método Fantasma `has_structural_change()` no DeltaManager",
+    "sev": "🔴 CRÍTICA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-058": {
+    "title": "Cegueira de LBH em Non-Python e SSH Incompleto",
+    "sev": "🟠 GRAVE",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-020": {
+    "title": "Falha de Tipo em `_calculate_decay` com Timestamps ISO Offset-Aware",
+    "sev": "🟠 GRAVE",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-036": {
+    "title": "Falta de Paginação em `delete_batch` no Reconciliador Vetorial",
+    "sev": "🟡 MÉDIA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-029": {
+    "title": "Crash com `AttributeError` em Ingestão sem Summarizer",
+    "sev": "🟡 MÉDIA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-030": {
+    "title": "Descarte Arbitrário de `requirements.txt` por `*.txt` no Ignore Padrão",
+    "sev": "🟡 MÉDIA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-031": {
+    "title": "Poluição de Tags Semânticas por Substrings Ingênuas",
+    "sev": "🟡 MÉDIA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-032": {
+    "title": "Truncamento de Código JS/TS por Contagem Ingênua de Chaves `{}`",
+    "sev": "🟡 MÉDIA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-059": {
+    "title": "Dupla Conexão Efêmera Crua por Mutação no DeltaManager",
+    "sev": "🟡 MÉDIA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-060": {
+    "title": "TypeError em `compile_community_summary_jit()` quando `files.content` é NULL",
+    "sev": "🔵 BAIXA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-022": {
+    "title": "Crash com `ValueError` em Busca Vetorial com `node_id=None` ou Vazio",
+    "sev": "🟡 MÉDIA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-023": {
+    "title": "Duplicação de Nós na CTE Recursiva `get_dependency_tree`",
+    "sev": "🟡 MÉDIA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-061": {
+    "title": "SSH Context-Free Captura Declarações Independentemente de Indentação",
+    "sev": "🔵 BAIXA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-024": {
+    "title": "Isolamento de `semantic_logic.py` Força Violação de Encapsulamento",
+    "sev": "🔵 BAIXA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-088": {
+    "title": "Falha de Atomicidade em `apply_alias_migration` (Migração Parcial sem Rollback)",
+    "sev": "🟡 MÉDIA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-062": {
+    "title": "Falha Fatal e Crash HTTP 500 na Telemetria por Tabelas Inexistentes",
+    "sev": "🔴 CRÍTICA",
+    "status": "QUARENTENA",
+    "just": "Módulo periférico interface/telemetry_api.py proposto para arquivamento temporário."
+  },
+  "BL-063": {
+    "title": "Inoperância Fora da Caixa por Dependência `get_db_manager` Não Configurada",
+    "sev": "🔴 CRÍTICA",
+    "status": "QUARENTENA",
+    "just": "Módulo periférico interface/telemetry_api.py proposto para arquivamento temporário."
+  },
+  "BL-069": {
+    "title": "Código Morto em Handlers SSE e Telemetria Reativa Congelada",
+    "sev": "🔴 CRÍTICA",
+    "status": "QUARENTENA",
+    "just": "Frontend periférico grafo-dashboard-web proposto para arquivamento temporário."
+  },
+  "BL-070": {
+    "title": "Ciclo Infinito de Flapping SSE a cada 8s e Inundação do Feed de Eventos",
+    "sev": "🔴 CRÍTICA",
+    "status": "DEPENDE",
+    "just": "Cruza grafo-dashboard-web e interface/telemetry_api.py:556. Se ambos forem podados, vai para QUARENTENA; se um for mantido, permanece ativo."
+  },
+  "BL-071": {
+    "title": "Colisão de Portas 8000, Falha no `dev:all` e Desconexão do FastMCP",
+    "sev": "🔴 CRÍTICA",
+    "status": "QUARENTENA",
+    "just": "Frontend periférico grafo-dashboard-web proposto para arquivamento temporário."
+  },
+  "BL-064": {
+    "title": "Falso Stream Contínuo por Limite Hardcoded (`max_checks = 5`)",
+    "sev": "🟠 GRAVE",
+    "status": "QUARENTENA",
+    "just": "Módulo periférico interface/telemetry_api.py proposto para arquivamento temporário."
+  },
+  "BL-065": {
+    "title": "Invalidação Perpétua do SHA-256 no SSE por Timestamp Dinâmico",
+    "sev": "🟠 GRAVE",
+    "status": "QUARENTENA",
+    "just": "Módulo periférico interface/telemetry_api.py proposto para arquivamento temporário."
+  },
+  "BL-066": {
+    "title": "Insegurança Total de CORS e Falta de Autenticação em Rotas Mutantes",
+    "sev": "🟠 GRAVE",
+    "status": "QUARENTENA",
+    "just": "Módulo periférico interface/telemetry_api.py proposto para arquivamento temporário."
+  },
+  "BL-072": {
+    "title": "Incompatibilidade de Autenticação FastMCP e Rejeição HTTP 401",
+    "sev": "🟠 GRAVE",
+    "status": "DEPENDE",
+    "just": "Cruza grafo-dashboard-web (candidato) e interface/mcp_server.py:186 (ativo). A rejeição HTTP 401 afeta o cliente MCP do dashboard e qualquer cliente FastMCP externo."
+  },
+  "BL-073": {
+    "title": "Omissão de Metadados em `get_full_topology` e Esvaziamento do `InspectorDrawer`",
+    "sev": "🟠 GRAVE",
+    "status": "DEPENDE",
+    "just": "Cruza storage/store.py (ativo) e InspectorDrawer.tsx (candidato). A omissão de metadados em get_full_topology afeta a ferramenta MCP de topologia do núcleo."
+  },
+  "BL-067": {
+    "title": "Crash de Tipagem em Timestamps na Telemetria (`NoneType` e `str`)",
+    "sev": "🟡 MÉDIA",
+    "status": "QUARENTENA",
+    "just": "Módulo periférico interface/telemetry_api.py proposto para arquivamento temporário."
+  },
+  "BL-068": {
+    "title": "Thread Daemônica Órfã Iniciada no Import de `telemetry_api`",
+    "sev": "🟡 MÉDIA",
+    "status": "QUARENTENA",
+    "just": "Módulo periférico interface/telemetry_api.py proposto para arquivamento temporário."
+  },
+  "BL-074": {
+    "title": "Risco de Data Inválida (`Invalid Date`) por Concatenação `+ \"Z\"`",
+    "sev": "🟡 MÉDIA",
+    "status": "QUARENTENA",
+    "just": "Frontend periférico grafo-dashboard-web proposto para arquivamento temporário."
+  },
+  "BL-075": {
+    "title": "Rotas Mutantes `/api/hsm/transition` Órfãs e Cliques Inertes no HUD",
+    "sev": "🟡 MÉDIA",
+    "status": "QUARENTENA",
+    "just": "Frontend periférico grafo-dashboard-web proposto para arquivamento temporário."
+  },
+  "BL-076": {
+    "title": "37 Erros de Linter e Violação de Pureza no React 19",
+    "sev": "🟡 MÉDIA",
+    "status": "QUARENTENA",
+    "just": "Frontend periférico grafo-dashboard-web proposto para arquivamento temporário."
+  },
+  "BL-077": {
+    "title": "Contaminação de Turnos Multi-Sessão no Circuit Breaker",
+    "sev": "🔴 CRÍTICA CONDICIONAL",
+    "status": "QUARENTENA",
+    "just": "Runtime de agente experimental (agent/run_agent.py ou agent_prompts.py) proposto para arquivamento."
+  },
+  "BL-078": {
+    "title": "Vazamento de Privacidade por Fallback Inseguro Fail-Open em `check_contamination`",
+    "sev": "🔴 CRÍTICA CONDICIONAL",
+    "status": "QUARENTENA",
+    "just": "Agente de auditoria periférico (agents/revisor_critico.py) proposto para arquivamento."
+  },
+  "BL-079": {
+    "title": "Aprovação Espúria de Commits Inválidos em `audit_with_retry`",
+    "sev": "🟠 GRAVE CONDICIONAL",
+    "status": "QUARENTENA",
+    "just": "Agente de auditoria periférico (agents/revisor_critico.py) proposto para arquivamento."
+  },
+  "BL-080": {
+    "title": "Dessincronização de Estado e Diretrizes em `step(target_transition=...)`",
+    "sev": "🟠 GRAVE CONDICIONAL",
+    "status": "QUARENTENA",
+    "just": "Runtime de agente experimental (agent/run_agent.py ou agent_prompts.py) proposto para arquivamento."
+  },
+  "BL-081": {
+    "title": "Falhas de Tipagem e Crash em Reranking (`NoneType` e `int` vs `str`)",
+    "sev": "🟠 GRAVE CONDICIONAL",
+    "status": "QUARENTENA",
+    "just": "Agente de auditoria periférico (agents/revisor_critico.py) proposto para arquivamento."
+  },
+  "BL-082": {
+    "title": "Incompatibilidade Universal com Corrotinas e Bypass do RateGovernor em `execute_tool`",
+    "sev": "🟡 MÉDIA CONDICIONAL",
+    "status": "QUARENTENA",
+    "just": "Runtime de agente experimental (agent/run_agent.py ou agent_prompts.py) proposto para arquivamento."
+  },
+  "BL-083": {
+    "title": "Dessincronização entre Sub-Estados do HSM e `TOOL_DISCLOSURE_MATRIX`",
+    "sev": "🟡 MÉDIA CONDICIONAL",
+    "status": "QUARENTENA",
+    "just": "Runtime de agente experimental (agent/run_agent.py ou agent_prompts.py) proposto para arquivamento."
+  },
+  "BL-084": {
+    "title": "Contrato Fantasma de Cliente MCP Federado em `FederatedKnowledgeRouter`",
+    "sev": "🟠 GRAVE",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-085": {
+    "title": "Método Fantasma `insert()` em MockVectorDatabase Mascara Contrato de Inserção de Vetores",
+    "sev": "🟡 MÉDIA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-086": {
+    "title": "Incompatibilidade de Assinatura e Retorno em `MockGraphRAGEngine.retrieve_multihop_context`",
+    "sev": "🟡 MÉDIA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-087": {
+    "title": "Mock Permissivo com `*args, **kwargs` e Divergência de Interface em `_MockVectorStore`",
+    "sev": "🔵 BAIXA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-037": {
+    "title": "Despacho Ambíguo em `save_checkpoint` Corrompe Metadados e Apaga Estado",
+    "sev": "🔴 CRÍTICA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-038": {
+    "title": "Mascaramento de Falhas e Transação Não Atômica em `execute_time_travel`",
+    "sev": "🟠 GRAVE",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-039": {
+    "title": "Granularidade Temporal de 1s Falha em Deletar Checkpoints em Rajadas",
+    "sev": "🟠 GRAVE",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-040": {
+    "title": "Crash `json.JSONDecodeError` Não Tratado em `get_checkpoint`",
+    "sev": "🟡 MÉDIA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-041": {
+    "title": "Tipagem Insegura Mypy no Checkpointer (`None` Not Callable)",
+    "sev": "🟡 MÉDIA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-042": {
+    "title": "Slice Negativo `[-0:]` com `keep_limit = 0` Preserva 100% dos Checkpoints",
+    "sev": "🟠 GRAVE",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-043": {
+    "title": "Degradação Irreversível da Prioridade do Servidor para IDLE",
+    "sev": "🟠 GRAVE",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-044": {
+    "title": "Deleção Cruzada de Checkpoints entre Agentes na Mesma Sessão",
+    "sev": "🟠 GRAVE",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-045": {
+    "title": "Crash com `TypeError` em `_summarize_community` com `files.content = NULL`",
+    "sev": "🟡 MÉDIA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-046": {
+    "title": "TOCTOU / Descarte Cego de `is_dirty = 0` sobre Edições Recentes",
+    "sev": "🟡 MÉDIA",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  },
+  "BL-047": {
+    "title": "Vazamento de `unfinished_tasks` na `PriorityQueue` e Starvation",
+    "sev": "🔴 CRÍTICA",
+    "status": "QUARENTENA",
+    "just": "Mecanismo complexo de rate limiting multi-thread (core/rate_governor.py) proposto para arquivamento."
+  },
+  "BL-048": {
+    "title": "Starvation de Tarefas LOW Envelhecidas em Carga de 75% a 100%",
+    "sev": "🟠 GRAVE",
+    "status": "QUARENTENA",
+    "just": "Mecanismo complexo de rate limiting multi-thread (core/rate_governor.py) proposto para arquivamento."
+  },
+  "BL-049": {
+    "title": "Data Race / Lost Updates em `get_current_metrics()` sem Lock",
+    "sev": "🟠 GRAVE",
+    "status": "QUARENTENA",
+    "just": "Mecanismo complexo de rate limiting multi-thread (core/rate_governor.py) proposto para arquivamento."
+  },
+  "BL-050": {
+    "title": "Deadlock Eterno em `submit_request` sem Timeout e Após `shutdown()`",
+    "sev": "🟠 GRAVE",
+    "status": "QUARENTENA",
+    "just": "Mecanismo complexo de rate limiting multi-thread (core/rate_governor.py) proposto para arquivamento."
+  },
+  "BL-051": {
+    "title": "Cegueira de RPM no Fast-Path do RateGovernor",
+    "sev": "🟡 MÉDIA",
+    "status": "QUARENTENA",
+    "just": "Mecanismo complexo de rate limiting multi-thread (core/rate_governor.py) proposto para arquivamento."
+  },
+  "BL-019": {
+    "title": "Incompatibilidade de Contrato em `init_fsm_checkpoints_schema`",
+    "sev": "🟠 GRAVE",
+    "status": "ATIVO",
+    "just": "Núcleo essencial do sistema mantido em produção."
+  }
+}
