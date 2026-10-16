@@ -1,0 +1,677 @@
+{
+  "modules_moment_a": [
+    "agents",
+    "agents.revisor_critico",
+    "core",
+    "core.checkpointer",
+    "core.config",
+    "core.database",
+    "core.gating_interceptor",
+    "core.graph_rag",
+    "core.hybrid_search",
+    "core.mcp_governor",
+    "core.memory_extractor",
+    "core.middleware",
+    "core.project_index",
+    "core.rate_governor",
+    "core.security_guard",
+    "core.telemetry_schemas",
+    "ingestion",
+    "ingestion.crawler",
+    "ingestion.orchestrator",
+    "ingestion.parser",
+    "ingestion.summarizer",
+    "interface",
+    "interface.action_hooks",
+    "interface.mcp_server",
+    "interface.queue_writer",
+    "interface.telemetry_api",
+    "services",
+    "services.janitor",
+    "storage",
+    "storage.base_backend",
+    "storage.connection",
+    "storage.logic",
+    "storage.schema",
+    "storage.semantic_logic",
+    "storage.store",
+    "storage.vector_store"
+  ],
+  "modules_moment_b": [
+    "agents",
+    "agents.revisor_critico",
+    "core",
+    "core.checkpointer",
+    "core.config",
+    "core.database",
+    "core.gating_interceptor",
+    "core.graph_rag",
+    "core.hybrid_search",
+    "core.mcp_governor",
+    "core.memory_extractor",
+    "core.middleware",
+    "core.project_index",
+    "core.rate_governor",
+    "core.security_guard",
+    "core.telemetry_schemas",
+    "ingestion",
+    "ingestion.crawler",
+    "ingestion.orchestrator",
+    "ingestion.parser",
+    "ingestion.summarizer",
+    "interface",
+    "interface.action_hooks",
+    "interface.mcp_server",
+    "interface.queue_writer",
+    "interface.telemetry_api",
+    "services",
+    "services.janitor",
+    "storage",
+    "storage.base_backend",
+    "storage.connection",
+    "storage.logic",
+    "storage.schema",
+    "storage.semantic_logic",
+    "storage.store",
+    "storage.vector_store"
+  ],
+  "new_modules_after_tools": [],
+  "db_state_l": {
+    "tables": [
+      "commit_log",
+      "edges",
+      "nodes",
+      "projects",
+      "reference_wings",
+      "semantic_facts",
+      "test_log",
+      "trajectories",
+      "user_core_memory"
+    ],
+    "counts": {
+      "nodes": 0,
+      "edges": 0,
+      "semantic_facts": 0,
+      "files": "tabela ausente",
+      "communities": "tabela ausente",
+      "ast_edges": "tabela ausente",
+      "agent_checkpoints": "tabela ausente",
+      "fsm_checkpoints": "tabela ausente"
+    }
+  },
+  "db_state_p": {
+    "tables": [
+      "commit_log",
+      "edges",
+      "nodes",
+      "projects",
+      "reference_wings",
+      "semantic_facts",
+      "test_log",
+      "trajectories",
+      "user_core_memory"
+    ],
+    "counts": {
+      "nodes": 10,
+      "edges": 12,
+      "semantic_facts": 0,
+      "files": "tabela ausente",
+      "communities": "tabela ausente",
+      "ast_edges": "tabela ausente",
+      "agent_checkpoints": "tabela ausente",
+      "fsm_checkpoints": "tabela ausente"
+    }
+  },
+  "results_l": {
+    "concierge_list_projects": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"projects\": {},\\n  \"success\": true,\\n  \"duration_seconds\": 0.001\\n}', annotations=None, meta=None)]",
+      "no_such_table": false,
+      "args": {}
+    },
+    "concierge_status": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": true,\\n  \"system\": \"Grafo Concierge v3.8.0\",\\n  \"components\": {\\n    \"sqlite\": {\\n      \"status\": \"healthy\",\\n      \"total_projects\": 0\\n    },\\n    \"ja",
+      "no_such_table": false,
+      "args": {
+        "project_uuid": "00000000-0000-0000-0000-000000000000"
+      }
+    },
+    "get_full_topology": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": false,\\n  \"error\": \"Project \\'test_proj\\' not found. Please list available projects using concierge_list_projects.\",\\n  \"duration_seconds\": 0.0\\n}', ann",
+      "no_such_table": false,
+      "args": {
+        "project_identifier": "test_proj"
+      }
+    },
+    "count_embeddings": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": false,\\n  \"error\": \"Project \\'test_proj\\' not found. Please list available projects using concierge_list_projects.\",\\n  \"duration_seconds\": 0.0\\n}', ann",
+      "no_such_table": false,
+      "args": {
+        "project_identifier": "test_proj"
+      }
+    },
+    "concierge_search": {
+      "status": "OK vazio",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": false,\\n  \"error\": \"Project \\'\\' not found. Please list available projects using concierge_list_projects.\",\\n  \"query\": \"compute_total\",\\n  \"project_uui",
+      "no_such_table": false,
+      "args": {
+        "query": "compute_total"
+      }
+    },
+    "search_symbols": {
+      "status": "OK vazio",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": true,\\n  \"symbols\": [],\\n  \"duration_seconds\": 0.001\\n}', annotations=None, meta=None)]",
+      "no_such_table": false,
+      "args": {
+        "query": "add",
+        "project_uuid": "00000000-0000-0000-0000-000000000000"
+      }
+    },
+    "get_implementations": {
+      "status": "EXCEÇÃO",
+      "msg": "ToolError: Error executing tool get_implementations: 1 validation error for get_implementationsArguments\nsymbol_id\n  Input should be a valid integer, unable to parse string as an integer [type=int_par",
+      "no_such_table": false,
+      "args": {
+        "symbol_id": "compute_total"
+      }
+    },
+    "get_callers": {
+      "status": "EXCEÇÃO",
+      "msg": "ToolError: Error executing tool get_callers: 1 validation error for get_callersArguments\nsymbol_id\n  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_valu",
+      "no_such_table": false,
+      "args": {
+        "symbol_id": "add"
+      }
+    },
+    "concierge_get_call_chain": {
+      "status": "EXCEÇÃO",
+      "msg": "ToolError: Error executing tool concierge_get_call_chain: no such table: ast_edges",
+      "no_such_table": true,
+      "args": {
+        "start_node": "calc.py",
+        "depth_limit": 3
+      }
+    },
+    "concierge_load": {
+      "status": "EXCEÇÃO",
+      "msg": "ToolError: Error executing tool concierge_load: 1 validation error for concierge_loadArguments\nnode_id\n  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_",
+      "no_such_table": false,
+      "args": {
+        "node_id": "math_ops.py"
+      }
+    },
+    "concierge_wakeup": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": false,\\n  \"error\": \"Project not found: 00000000-0000-0000-0000-000000000000\",\\n  \"duration_seconds\": 0.0\\n}', annotations=None, meta=None)]",
+      "no_such_table": false,
+      "args": {
+        "project_uuid": "00000000-0000-0000-0000-000000000000"
+      }
+    },
+    "concierge_resume": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": false,\\n  \"error\": \"Project not found: 00000000-0000-0000-0000-000000000000\",\\n  \"duration_seconds\": 0.0\\n}', annotations=None, meta=None)]",
+      "no_such_table": false,
+      "args": {
+        "project_uuid": "00000000-0000-0000-0000-000000000000"
+      }
+    },
+    "concierge_set_state": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": true,\\n  \"session_id\": \"default\",\\n  \"active_state\": \"EXECUTION\"\\n}', annotations=None, meta=None)]",
+      "no_such_table": false,
+      "args": {
+        "state_name": "ANALYSIS",
+        "session_id": "default"
+      }
+    },
+    "concierge_store_fact": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": false,\\n  \"error\": \"Invalid scope_type \\'project\\'. Must be one of: [\\'agent\\', \\'org\\', \\'session\\', \\'user\\']\",\\n  \"duration_seconds\": 0.0\\n}', annota",
+      "no_such_table": false,
+      "args": {
+        "scope_type": "project",
+        "scope_id": "test_proj",
+        "fact_statement": "Fixture uses add"
+      }
+    },
+    "concierge_list_facts": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": false,\\n  \"error\": \"Invalid scope_type \\'project\\'. Must be one of: [\\'agent\\', \\'org\\', \\'session\\', \\'user\\']\",\\n  \"duration_seconds\": 0.0\\n}', annota",
+      "no_such_table": false,
+      "args": {
+        "scope_type": "project",
+        "scope_id": "test_proj"
+      }
+    },
+    "concierge_set_memory": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": false,\\n  \"error\": \"Invalid scope_type \\'project\\'. Must be one of: [\\'agent\\', \\'org\\', \\'session\\', \\'user\\']\",\\n  \"duration_seconds\": 0.0\\n}', annota",
+      "no_such_table": false,
+      "args": {
+        "scope_type": "project",
+        "scope_id": "test_proj",
+        "block_label": "notes",
+        "content": "Sample note"
+      }
+    },
+    "concierge_get_memory": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": false,\\n  \"error\": \"Invalid scope_type \\'project\\'. Must be one of: [\\'agent\\', \\'org\\', \\'session\\', \\'user\\']\",\\n  \"duration_seconds\": 0.0\\n}', annota",
+      "no_such_table": false,
+      "args": {
+        "scope_type": "project",
+        "scope_id": "test_proj"
+      }
+    },
+    "concierge_feedback": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": true,\\n  \"fact_id\": 1,\\n  \"was_useful\": true,\\n  \"updated_field\": \"utility_alpha\",\\n  \"message\": \"utility_alpha incremented for fact 1.\",\\n  \"duration_s",
+      "no_such_table": false,
+      "args": {
+        "fact_id": 1,
+        "was_useful": true
+      }
+    },
+    "find_similar": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": false,\\n  \"error\": \"Project \\'test_proj\\' not found. Please list available projects using concierge_list_projects.\",\\n  \"duration_seconds\": 0.0\\n}', ann",
+      "no_such_table": false,
+      "args": {
+        "project_identifier": "test_proj"
+      }
+    },
+    "get_trajectories": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": false,\\n  \"error\": \"Project \\'test_proj\\' not found. Please list available projects using concierge_list_projects.\",\\n  \"duration_seconds\": 0.0\\n}', ann",
+      "no_such_table": false,
+      "args": {
+        "project_identifier": "test_proj"
+      }
+    },
+    "add_reference_wing": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": false,\\n  \"error\": \"Project \\'test_proj\\' not found. Please list available projects using concierge_list_projects.\",\\n  \"duration_seconds\": 0.0\\n}', ann",
+      "no_such_table": false,
+      "args": {
+        "project_identifier": "test_proj",
+        "wing_name": "WING_TEST"
+      }
+    },
+    "remove_reference_wing": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": false,\\n  \"error\": \"Project \\'test_proj\\' not found. Please list available projects using concierge_list_projects.\",\\n  \"duration_seconds\": 0.0\\n}', ann",
+      "no_such_table": false,
+      "args": {
+        "project_identifier": "test_proj",
+        "wing_name": "WING_TEST"
+      }
+    },
+    "update_project": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": false,\\n  \"error\": \"Project \\'test_proj\\' not found. Please list available projects using concierge_list_projects.\",\\n  \"duration_seconds\": 0.0\\n}', ann",
+      "no_such_table": false,
+      "args": {
+        "project_identifier": "test_proj",
+        "summary": "Updated summary"
+      }
+    },
+    "agent_save_checkpoint": {
+      "status": "OK com dados",
+      "msg": "([TextContent(type='text', text='{\"success\": false, \"message\": \"Failed to save checkpoint \\'chk_1\\' for agent \\'probe_agent\\'\"}', annotations=None, meta=None)], {'result': '{\"success\": false, \"message",
+      "no_such_table": false,
+      "args": {
+        "agent_id": "probe_agent",
+        "session_id": "probe_sess",
+        "checkpoint_id": "chk_1",
+        "state_dict": {
+          "k": "v"
+        }
+      }
+    },
+    "agent_get_checkpoint": {
+      "status": "EXCEÇÃO",
+      "msg": "ToolError: Error executing tool agent_get_checkpoint: no such table: agent_checkpoints",
+      "no_such_table": true,
+      "args": {
+        "agent_id": "probe_agent",
+        "session_id": "probe_sess",
+        "checkpoint_id": "chk_1"
+      }
+    },
+    "agent_list_checkpoints": {
+      "status": "EXCEÇÃO",
+      "msg": "ToolError: Error executing tool agent_list_checkpoints: no such table: agent_checkpoints",
+      "no_such_table": true,
+      "args": {
+        "agent_id": "probe_agent",
+        "session_id": "probe_sess"
+      }
+    },
+    "concierge_commit": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": false,\\n  \"error\": \"updated_pointers is mandatory and cannot be empty.\",\\n  \"duration_seconds\": 0.0\\n}', annotations=None, meta=None)]",
+      "no_such_table": false,
+      "args": {
+        "project_uuid": "00000000-0000-0000-0000-000000000000",
+        "phase": "TEST",
+        "technical_changes": "Initial test commit",
+        "updated_pointers": []
+      }
+    },
+    "concierge_register": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": true,\\n  \"project_uuid\": \"6266931f-02ae-42fe-a0b9-aad1ec7da66f\",\\n  \"folder_name\": \"fixture_project\",\\n  \"wing\": \"DEFAULT\",\\n  \"privacy_level\": \"INTERNA",
+      "no_such_table": false,
+      "args": {
+        "project_path": "C:\\Users\\guial\\AppData\\Local\\Temp\\fase4_0b_probe_mi_zmasf\\fixture_project",
+        "wing": "DEFAULT",
+        "privacy_level": "INTERNAL",
+        "summary": "Fixture project"
+      }
+    },
+    "concierge_mine": {
+      "status": "EXCEÇÃO",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": false,\\n  \"error\": \"not all arguments converted during string formatting\",\\n  \"traceback\": \"Traceback (most recent call last):\\\\n  File \\\\\"C:\\\\\\\\Nexus-M",
+      "no_such_table": false,
+      "args": {
+        "path": "C:\\Users\\guial\\AppData\\Local\\Temp\\fase4_0b_probe_mi_zmasf\\fixture_project",
+        "project_identifier": "C:\\Users\\guial\\AppData\\Local\\Temp\\fase4_0b_probe_mi_zmasf\\fixture_project",
+        "auto_tag": true
+      }
+    },
+    "reset_collection": {
+      "status": "EXCEÇÃO",
+      "msg": "SecurityException: Access denied: tool 'reset_collection' (category 'DANGEROUS') is blocked during state 'EXECUTION' for session 'default'.",
+      "no_such_table": false,
+      "args": {}
+    },
+    "delete_project": {
+      "status": "EXCEÇÃO",
+      "msg": "SecurityException: Access denied: tool 'delete_project' (category 'DANGEROUS') is blocked during state 'EXECUTION' for session 'default'.",
+      "no_such_table": false,
+      "args": {
+        "project_identifier": "nonexistent_proj"
+      }
+    }
+  },
+  "results_p": {
+    "concierge_list_projects": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"projects\": {\\n    \"fixture_project\": {\\n      \"uuid\": \"6266931f-02ae-42fe-a0b9-aad1ec7da66f\",\\n      \"updated_at\": \"2026-10-16\"\\n    }\\n  },\\n  \"success\": true,\\n",
+      "no_such_table": false,
+      "args": {}
+    },
+    "concierge_status": {
+      "status": "OK vazio",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": true,\\n  \"system\": \"Grafo Concierge v3.8.0\",\\n  \"components\": {\\n    \"sqlite\": {\\n      \"status\": \"healthy\",\\n      \"total_projects\": 1\\n    },\\n    \"ja",
+      "no_such_table": false,
+      "args": {
+        "project_uuid": "6266931f-02ae-42fe-a0b9-aad1ec7da66f"
+      }
+    },
+    "get_full_topology": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": true,\\n  \"nodes\": [\\n    {\\n      \"node_id\": 1,\\n      \"name\": \"<root>\",\\n      \"node_type\": \"FACT\"\\n    },\\n    {\\n      \"node_id\": 2,\\n      \"name\": \"",
+      "no_such_table": false,
+      "args": {
+        "project_identifier": "6266931f-02ae-42fe-a0b9-aad1ec7da66f"
+      }
+    },
+    "count_embeddings": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": true,\\n  \"project_uuid\": \"6266931f-02ae-42fe-a0b9-aad1ec7da66f\",\\n  \"count\": 0,\\n  \"duration_seconds\": 0.025\\n}', annotations=None, meta=None)]",
+      "no_such_table": false,
+      "args": {
+        "project_identifier": "6266931f-02ae-42fe-a0b9-aad1ec7da66f"
+      }
+    },
+    "concierge_search": {
+      "status": "OK vazio",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": false,\\n  \"error\": \"Project \\'\\' not found. Please list available projects using concierge_list_projects.\",\\n  \"query\": \"compute_total\",\\n  \"project_uui",
+      "no_such_table": false,
+      "args": {
+        "query": "compute_total"
+      }
+    },
+    "search_symbols": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": true,\\n  \"symbols\": [\\n    {\\n      \"id\": 4,\\n      \"label\": \"math_ops.py::add\",\\n      \"node_type\": \"FUNCTION\",\\n      \"file_path\": \"math_ops.py::add\",",
+      "no_such_table": false,
+      "args": {
+        "query": "add",
+        "project_uuid": "6266931f-02ae-42fe-a0b9-aad1ec7da66f"
+      }
+    },
+    "get_implementations": {
+      "status": "EXCEÇÃO",
+      "msg": "ToolError: Error executing tool get_implementations: 1 validation error for get_implementationsArguments\nsymbol_id\n  Input should be a valid integer, unable to parse string as an integer [type=int_par",
+      "no_such_table": false,
+      "args": {
+        "symbol_id": "compute_total"
+      }
+    },
+    "get_callers": {
+      "status": "EXCEÇÃO",
+      "msg": "ToolError: Error executing tool get_callers: 1 validation error for get_callersArguments\nsymbol_id\n  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_valu",
+      "no_such_table": false,
+      "args": {
+        "symbol_id": "add"
+      }
+    },
+    "concierge_get_call_chain": {
+      "status": "EXCEÇÃO",
+      "msg": "ToolError: Error executing tool concierge_get_call_chain: no such table: ast_edges",
+      "no_such_table": true,
+      "args": {
+        "start_node": "calc.py",
+        "depth_limit": 3
+      }
+    },
+    "concierge_load": {
+      "status": "EXCEÇÃO",
+      "msg": "ToolError: Error executing tool concierge_load: 1 validation error for concierge_loadArguments\nnode_id\n  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_",
+      "no_such_table": false,
+      "args": {
+        "node_id": "math_ops.py"
+      }
+    },
+    "concierge_wakeup": {
+      "status": "OK vazio",
+      "msg": "[TextContent(type='text', text='{\\n  \"project\": {\\n    \"uuid\": \"6266931f-02ae-42fe-a0b9-aad1ec7da66f\",\\n    \"folder_name\": \"fixture_project\",\\n    \"primary_wing\": \"DEFAULT\",\\n    \"privacy_level\": \"INT",
+      "no_such_table": false,
+      "args": {
+        "project_uuid": "6266931f-02ae-42fe-a0b9-aad1ec7da66f"
+      }
+    },
+    "concierge_resume": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": true,\\n  \"project_uuid\": \"6266931f-02ae-42fe-a0b9-aad1ec7da66f\",\\n  \"folder_name\": \"fixture_project\",\\n  \"primary_wing\": \"DEFAULT\",\\n  \"resume\": \"Fixtur",
+      "no_such_table": false,
+      "args": {
+        "project_uuid": "6266931f-02ae-42fe-a0b9-aad1ec7da66f"
+      }
+    },
+    "concierge_set_state": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": true,\\n  \"session_id\": \"default\",\\n  \"active_state\": \"EXECUTION\"\\n}', annotations=None, meta=None)]",
+      "no_such_table": false,
+      "args": {
+        "state_name": "ANALYSIS",
+        "session_id": "default"
+      }
+    },
+    "concierge_store_fact": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": false,\\n  \"error\": \"Invalid scope_type \\'project\\'. Must be one of: [\\'agent\\', \\'org\\', \\'session\\', \\'user\\']\",\\n  \"duration_seconds\": 0.0\\n}', annota",
+      "no_such_table": false,
+      "args": {
+        "scope_type": "project",
+        "scope_id": "6266931f-02ae-42fe-a0b9-aad1ec7da66f",
+        "fact_statement": "Fixture uses add"
+      }
+    },
+    "concierge_list_facts": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": false,\\n  \"error\": \"Invalid scope_type \\'project\\'. Must be one of: [\\'agent\\', \\'org\\', \\'session\\', \\'user\\']\",\\n  \"duration_seconds\": 0.0\\n}', annota",
+      "no_such_table": false,
+      "args": {
+        "scope_type": "project",
+        "scope_id": "6266931f-02ae-42fe-a0b9-aad1ec7da66f"
+      }
+    },
+    "concierge_set_memory": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": false,\\n  \"error\": \"Invalid scope_type \\'project\\'. Must be one of: [\\'agent\\', \\'org\\', \\'session\\', \\'user\\']\",\\n  \"duration_seconds\": 0.0\\n}', annota",
+      "no_such_table": false,
+      "args": {
+        "scope_type": "project",
+        "scope_id": "6266931f-02ae-42fe-a0b9-aad1ec7da66f",
+        "block_label": "notes",
+        "content": "Sample note"
+      }
+    },
+    "concierge_get_memory": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": false,\\n  \"error\": \"Invalid scope_type \\'project\\'. Must be one of: [\\'agent\\', \\'org\\', \\'session\\', \\'user\\']\",\\n  \"duration_seconds\": 0.0\\n}', annota",
+      "no_such_table": false,
+      "args": {
+        "scope_type": "project",
+        "scope_id": "6266931f-02ae-42fe-a0b9-aad1ec7da66f"
+      }
+    },
+    "concierge_feedback": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": true,\\n  \"fact_id\": 1,\\n  \"was_useful\": true,\\n  \"updated_field\": \"utility_alpha\",\\n  \"message\": \"utility_alpha incremented for fact 1.\",\\n  \"duration_s",
+      "no_such_table": false,
+      "args": {
+        "fact_id": 1,
+        "was_useful": true
+      }
+    },
+    "find_similar": {
+      "status": "OK vazio",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": true,\\n  \"project_uuid\": \"6266931f-02ae-42fe-a0b9-aad1ec7da66f\",\\n  \"similar_projects\": [],\\n  \"duration_seconds\": 0.003\\n}', annotations=None, meta=Non",
+      "no_such_table": false,
+      "args": {
+        "project_identifier": "6266931f-02ae-42fe-a0b9-aad1ec7da66f"
+      }
+    },
+    "get_trajectories": {
+      "status": "OK vazio",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": true,\\n  \"project_uuid\": \"6266931f-02ae-42fe-a0b9-aad1ec7da66f\",\\n  \"trajectories\": [],\\n  \"duration_seconds\": 0.002\\n}', annotations=None, meta=None)]",
+      "no_such_table": false,
+      "args": {
+        "project_identifier": "6266931f-02ae-42fe-a0b9-aad1ec7da66f"
+      }
+    },
+    "add_reference_wing": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": true,\\n  \"project_uuid\": \"6266931f-02ae-42fe-a0b9-aad1ec7da66f\",\\n  \"wing_name\": \"WING_TEST\",\\n  \"duration_seconds\": 0.006\\n}', annotations=None, meta=N",
+      "no_such_table": false,
+      "args": {
+        "project_identifier": "6266931f-02ae-42fe-a0b9-aad1ec7da66f",
+        "wing_name": "WING_TEST"
+      }
+    },
+    "remove_reference_wing": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": true,\\n  \"project_uuid\": \"6266931f-02ae-42fe-a0b9-aad1ec7da66f\",\\n  \"wing_name\": \"WING_TEST\",\\n  \"duration_seconds\": 0.006\\n}', annotations=None, meta=N",
+      "no_such_table": false,
+      "args": {
+        "project_identifier": "6266931f-02ae-42fe-a0b9-aad1ec7da66f",
+        "wing_name": "WING_TEST"
+      }
+    },
+    "update_project": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": true,\\n  \"project_uuid\": \"6266931f-02ae-42fe-a0b9-aad1ec7da66f\",\\n  \"updated_fields\": [\\n    \"summary\"\\n  ],\\n  \"duration_seconds\": 0.005\\n}', annotatio",
+      "no_such_table": false,
+      "args": {
+        "project_identifier": "6266931f-02ae-42fe-a0b9-aad1ec7da66f",
+        "summary": "Updated summary"
+      }
+    },
+    "agent_save_checkpoint": {
+      "status": "OK com dados",
+      "msg": "([TextContent(type='text', text='{\"success\": false, \"message\": \"Failed to save checkpoint \\'chk_1\\' for agent \\'probe_agent\\'\"}', annotations=None, meta=None)], {'result': '{\"success\": false, \"message",
+      "no_such_table": false,
+      "args": {
+        "agent_id": "probe_agent",
+        "session_id": "probe_sess",
+        "checkpoint_id": "chk_1",
+        "state_dict": {
+          "k": "v"
+        }
+      }
+    },
+    "agent_get_checkpoint": {
+      "status": "EXCEÇÃO",
+      "msg": "ToolError: Error executing tool agent_get_checkpoint: no such table: agent_checkpoints",
+      "no_such_table": true,
+      "args": {
+        "agent_id": "probe_agent",
+        "session_id": "probe_sess",
+        "checkpoint_id": "chk_1"
+      }
+    },
+    "agent_list_checkpoints": {
+      "status": "EXCEÇÃO",
+      "msg": "ToolError: Error executing tool agent_list_checkpoints: no such table: agent_checkpoints",
+      "no_such_table": true,
+      "args": {
+        "agent_id": "probe_agent",
+        "session_id": "probe_sess"
+      }
+    },
+    "concierge_commit": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": false,\\n  \"error\": \"updated_pointers is mandatory and cannot be empty.\",\\n  \"duration_seconds\": 0.0\\n}', annotations=None, meta=None)]",
+      "no_such_table": false,
+      "args": {
+        "project_uuid": "6266931f-02ae-42fe-a0b9-aad1ec7da66f",
+        "phase": "TEST",
+        "technical_changes": "Initial test commit",
+        "updated_pointers": []
+      }
+    },
+    "concierge_register": {
+      "status": "OK com dados",
+      "msg": "[TextContent(type='text', text='{\\n  \"success\": true,\\n  \"project_uuid\": \"6266931f-02ae-42fe-a0b9-aad1ec7da66f\",\\n  \"folder_name\": \"fixture_project\",\\n  \"wing\": \"DEFAULT\",\\n  \"privacy_level\": \"INTERNA",
+      "no_such_table": false,
+      "args": {
+        "project_path": "C:\\Users\\guial\\AppData\\Local\\Temp\\fase4_0b_probe_mi_zmasf\\fixture_project",
+        "wing": "DEFAULT",
+        "privacy_level": "INTERNAL",
+        "summary": "Fixture project"
+      }
+    },
+    "concierge_mine": {
+      "status": "OK vazio",
+      "msg": "[TextContent(type='text', text='{\\n  \"files_processed\": 0,\\n  \"categories\": {\\n    \"code\": 3,\\n    \"doc\": 1\\n  },\\n  \"nodes_created\": 0,\\n  \"embeddings_stored\": 0,\\n  \"tags_applied\": [],\\n  \"files_ski",
+      "no_such_table": false,
+      "args": {
+        "path": "C:\\Users\\guial\\AppData\\Local\\Temp\\fase4_0b_probe_mi_zmasf\\fixture_project",
+        "project_identifier": "6266931f-02ae-42fe-a0b9-aad1ec7da66f",
+        "auto_tag": true
+      }
+    },
+    "reset_collection": {
+      "status": "EXCEÇÃO",
+      "msg": "SecurityException: Access denied: tool 'reset_collection' (category 'DANGEROUS') is blocked during state 'EXECUTION' for session 'default'.",
+      "no_such_table": false,
+      "args": {}
+    },
+    "delete_project": {
+      "status": "EXCEÇÃO",
+      "msg": "SecurityException: Access denied: tool 'delete_project' (category 'DANGEROUS') is blocked during state 'EXECUTION' for session 'default'.",
+      "no_such_table": false,
+      "args": {
+        "project_identifier": "6266931f-02ae-42fe-a0b9-aad1ec7da66f"
+      }
+    }
+  }
+}

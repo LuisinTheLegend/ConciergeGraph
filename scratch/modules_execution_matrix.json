@@ -1,0 +1,578 @@
+[
+  {
+    "filepath": "agent/__init__.py",
+    "module": "agent",
+    "lines": 13,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "agent/agent_prompts.py",
+    "module": "agent.agent_prompts",
+    "lines": 176,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "agent/run_agent.py",
+    "module": "agent.run_agent",
+    "lines": 266,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "agents/__init__.py",
+    "module": "agents",
+    "lines": 14,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "CARREGADO MAS NUNCA CHAMADO"
+  },
+  {
+    "filepath": "agents/revisor_critico.py",
+    "module": "agents.revisor_critico",
+    "lines": 610,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "CARREGADO MAS NUNCA CHAMADO"
+  },
+  {
+    "filepath": "core/__init__.py",
+    "module": "core",
+    "lines": 23,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "core/alias_tracker.py",
+    "module": "core.alias_tracker",
+    "lines": 259,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "core/background_janitor.py",
+    "module": "core.background_janitor",
+    "lines": 290,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "core/checkpointer.py",
+    "module": "core.checkpointer",
+    "lines": 255,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "core/config.py",
+    "module": "core.config",
+    "lines": 192,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "core/database.py",
+    "module": "core.database",
+    "lines": 73,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "core/delta_manager.py",
+    "module": "core.delta_manager",
+    "lines": 265,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "core/delta_sync.py",
+    "module": "core.delta_sync",
+    "lines": 12,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "core/dependencies.py",
+    "module": "core.dependencies",
+    "lines": 39,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "core/federated_knowledge_router.py",
+    "module": "core.federated_knowledge_router",
+    "lines": 100,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "core/gating_interceptor.py",
+    "module": "core.gating_interceptor",
+    "lines": 176,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "CARREGADO MAS NUNCA CHAMADO"
+  },
+  {
+    "filepath": "core/global_memory_adapter.py",
+    "module": "core.global_memory_adapter",
+    "lines": 85,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "core/graph_rag.py",
+    "module": "core.graph_rag",
+    "lines": 260,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "core/hsm_engine.py",
+    "module": "core.hsm_engine",
+    "lines": 511,
+    "reachable": "S",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "core/hybrid_search.py",
+    "module": "core.hybrid_search",
+    "lines": 288,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "core/intent_classifier.py",
+    "module": "core.intent_classifier",
+    "lines": 98,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "core/janitor.py",
+    "module": "core.janitor",
+    "lines": 12,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "core/mcp_governor.py",
+    "module": "core.mcp_governor",
+    "lines": 192,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "core/memory_extractor.py",
+    "module": "core.memory_extractor",
+    "lines": 245,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "core/middleware.py",
+    "module": "core.middleware",
+    "lines": 780,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "core/nozomio_router.py",
+    "module": "core.nozomio_router",
+    "lines": 21,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "core/parser_factory.py",
+    "module": "core.parser_factory",
+    "lines": 80,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "core/parsers/__init__.py",
+    "module": "core.parsers",
+    "lines": 20,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "core/parsers/base.py",
+    "module": "core.parsers.base",
+    "lines": 41,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "core/parsers/python_parser.py",
+    "module": "core.parsers.python_parser",
+    "lines": 90,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "core/parsers/ts_js_parser.py",
+    "module": "core.parsers.ts_js_parser",
+    "lines": 265,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "core/probabilistic_retriever.py",
+    "module": "core.probabilistic_retriever",
+    "lines": 108,
+    "reachable": "S",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "core/project_index.py",
+    "module": "core.project_index",
+    "lines": 316,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "core/rate_governor.py",
+    "module": "core.rate_governor",
+    "lines": 280,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "CARREGADO MAS NUNCA CHAMADO"
+  },
+  {
+    "filepath": "core/search_engine.py",
+    "module": "core.search_engine",
+    "lines": 61,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "core/security_guard.py",
+    "module": "core.security_guard",
+    "lines": 101,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "core/telemetry_schemas.py",
+    "module": "core.telemetry_schemas",
+    "lines": 82,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "CARREGADO MAS NUNCA CHAMADO"
+  },
+  {
+    "filepath": "core/vector_backend.py",
+    "module": "core.vector_backend",
+    "lines": 471,
+    "reachable": "S",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "core/vector_reconciler.py",
+    "module": "core.vector_reconciler",
+    "lines": 55,
+    "reachable": "S",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "ingestion/__init__.py",
+    "module": "ingestion",
+    "lines": 25,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "ingestion/crawler.py",
+    "module": "ingestion.crawler",
+    "lines": 722,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "ingestion/orchestrator.py",
+    "module": "ingestion.orchestrator",
+    "lines": 920,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "ingestion/parser.py",
+    "module": "ingestion.parser",
+    "lines": 984,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "ingestion/summarizer.py",
+    "module": "ingestion.summarizer",
+    "lines": 948,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "interface/__init__.py",
+    "module": "interface",
+    "lines": 16,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "interface/action_hooks.py",
+    "module": "interface.action_hooks",
+    "lines": 261,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "CARREGADO MAS NUNCA CHAMADO"
+  },
+  {
+    "filepath": "interface/cli.py",
+    "module": "interface.cli",
+    "lines": 392,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "interface/mcp_server.py",
+    "module": "interface.mcp_server",
+    "lines": 1785,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "interface/queue_writer.py",
+    "module": "interface.queue_writer",
+    "lines": 148,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "CARREGADO MAS NUNCA CHAMADO"
+  },
+  {
+    "filepath": "interface/telemetry_api.py",
+    "module": "interface.telemetry_api",
+    "lines": 595,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "CARREGADO MAS NUNCA CHAMADO"
+  },
+  {
+    "filepath": "interface/watcher.py",
+    "module": "interface.watcher",
+    "lines": 243,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "main.py",
+    "module": "main",
+    "lines": 282,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "scripts/bootstrap_core_memory.py",
+    "module": "scripts.bootstrap_core_memory",
+    "lines": 93,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "services/__init__.py",
+    "module": "services",
+    "lines": 13,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "services/janitor.py",
+    "module": "services.janitor",
+    "lines": 762,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "storage/__init__.py",
+    "module": "storage",
+    "lines": 31,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "storage/base_backend.py",
+    "module": "storage.base_backend",
+    "lines": 241,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "storage/connection.py",
+    "module": "storage.connection",
+    "lines": 310,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "storage/logic.py",
+    "module": "storage.logic",
+    "lines": 703,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "storage/relational_db.py",
+    "module": "storage.relational_db",
+    "lines": 35,
+    "reachable": "N",
+    "bootstrap": "N",
+    "after_use": "N",
+    "classification": "NÃO CARREGADO"
+  },
+  {
+    "filepath": "storage/schema.py",
+    "module": "storage.schema",
+    "lines": 390,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "storage/semantic_logic.py",
+    "module": "storage.semantic_logic",
+    "lines": 125,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "storage/store.py",
+    "module": "storage.store",
+    "lines": 802,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  },
+  {
+    "filepath": "storage/vector_store.py",
+    "module": "storage.vector_store",
+    "lines": 759,
+    "reachable": "S",
+    "bootstrap": "S",
+    "after_use": "S",
+    "classification": "EM USO"
+  }
+]

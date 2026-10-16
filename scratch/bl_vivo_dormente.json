@@ -1,0 +1,706 @@
+[
+  {
+    "bl_id": "BL-001",
+    "title": "Omissão Estrutural de 5 Tabelas no Bootstrap Oficial de Produção",
+    "severity": "🔴🔴 PRIORIDADE MÁXIMA",
+    "files": "[`storage/schema.py:51–144, 285–305`](file:///c:/Nexus-Memory/GrafoConcierge/storage/schema.py#L51), [`storage/store.py:91–107`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py#L91), [`core/database.py:32–41`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py#L32)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-002",
+    "title": "Inoperância Funcional de 12 Subsistemas Analíticos em Instalação Limpa",
+    "severity": "🔴🔴 PRIORIDADE MÁXIMA",
+    "files": "12 arquivos de `core/*` e `interface/*` (ex: [`core/delta_manager.py:204`](file:///c:/Nexus-Memory/GrafoConcierge/core/delta_manager.py#L204), [`core/vector_reconciler.py:54`](file:///c:/Nexus-Memory/GrafoConcierge/core/vector_reconciler.py#L54), [`core/checkpointer.py:100`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py#L100))",
+    "status": "DORMENTE",
+    "justification": "Módulo primário afetado é dormente (core/delta_manager.py (NÃO CARREGADO), core/vector_reconciler.py (NÃO CARREGADO)), embora interaja com interfaces do núcleo."
+  },
+  {
+    "bl_id": "BL-003",
+    "title": "Padrão Test Mirage: 17 Suítes de Teste Criam Tabelas Privadas em `setUp()`",
+    "severity": "🔴 CRÍTICA",
+    "files": "17 suítes de teste em [`tests/`](file:///c:/Nexus-Memory/GrafoConcierge/tests) (`test_agent_checkpointer.py:69`, `test_agent_hsm_coupling.py:33, 38`, `test_alias_tracker.py:33, 38, 43`, `test_checkpoint_pruning.py:78`, `test_cognitive_routing_memory.py:41`, `test_delta_sync.py:70, 76`, `test_durable_checkpoints_timetravel.py:35, 40`, `test_e2e_concierge_integration.py:199, 205, 210, 215`, `test_graph_rag_frugal.py:36, 41`, `test_graph_rag_janitor.py:78, 83, 88`, `test_graph_rag_loops.py:30`, `test_hierarchical_state_machine.py:50, 55`, `test_hsm_transition_hooks_and_delta.py:126, 133, 295, 302`, `test_local_graph_rag_recursion.py:23, 28`, `test_mcp_server_extensions.py:134, 141`, `test_telemetry_api.py:38, 43`, `test_vector_reconciler.py:106`)",
+    "status": "DORMENTE",
+    "justification": "Módulo primário afetado é dormente (), embora interaja com interfaces do núcleo."
+  },
+  {
+    "bl_id": "BL-004",
+    "title": "Mascaramento de Erros DDL e Falsa Confirmação de Integridade no Boot",
+    "severity": "🟠 GRAVE",
+    "files": "[`storage/store.py:95–107`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py#L95), [`storage/schema.py:285–305`](file:///c:/Nexus-Memory/GrafoConcierge/storage/schema.py#L285), [`core/database.py:66–67`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py#L66), [`interface/watcher.py:93–100`](file:///c:/Nexus-Memory/GrafoConcierge/interface/watcher.py#L93)",
+    "status": "DORMENTE",
+    "justification": "Módulo primário afetado é dormente (interface/watcher.py (NÃO CARREGADO)), embora interaja com interfaces do núcleo."
+  },
+  {
+    "bl_id": "BL-005",
+    "title": "Abandono da Especificação Arquitetural Formal (`01_ARCHITECTURE.md`)",
+    "severity": "🟡 MÉDIA",
+    "files": "[`docs-grafo-concierge/01_ARCHITECTURE.md:130–169`](file:///c:/Nexus-Memory/GrafoConcierge/docs-grafo-concierge/01_ARCHITECTURE.md#L130), [`storage/schema.py:51–144`](file:///c:/Nexus-Memory/GrafoConcierge/storage/schema.py#L51)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-006",
+    "title": "Colisão Estrutural entre Fila Real (`storage/`) e Zero Fila (`core/`) sobre o Banco",
+    "severity": "🔴 CRÍTICA",
+    "files": "[`storage/connection.py:59`](file:///c:/Nexus-Memory/GrafoConcierge/storage/connection.py#L59), [`core/database.py:56–70`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py#L56), [`interface/mcp_server.py:166`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L166)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-007",
+    "title": "Código Morto em Produção: `interface/queue_writer.py`",
+    "severity": "🔴 CRÍTICA",
+    "files": "[`interface/queue_writer.py:32–120`](file:///c:/Nexus-Memory/GrafoConcierge/interface/queue_writer.py#L32), [`interface/mcp_server.py:166`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L166)",
+    "status": "VIVO",
+    "justification": "Núcleo ativo em execução no runtime padrão."
+  },
+  {
+    "bl_id": "BL-008",
+    "title": "Divergência de Integridade Referencial (`foreign_keys=OFF` no core vs `ON` em storage)",
+    "severity": "🟠 GRAVE",
+    "files": "[`core/database.py:60`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py#L60), [`storage/connection.py:155`](file:///c:/Nexus-Memory/GrafoConcierge/storage/connection.py#L155), [`interface/queue_writer.py:49–52`](file:///c:/Nexus-Memory/GrafoConcierge/interface/queue_writer.py#L49)",
+    "status": "VIVO",
+    "justification": "Núcleo ativo em execução no runtime padrão."
+  },
+  {
+    "bl_id": "BL-009",
+    "title": "Timeout Assimétrico de Conexão (5s em storage vs 30s no core)",
+    "severity": "🟠 GRAVE",
+    "files": "[`storage/connection.py:154`](file:///c:/Nexus-Memory/GrafoConcierge/storage/connection.py#L154), [`core/database.py:60`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py#L60)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-010",
+    "title": "Quebra de Encapsulamento Privado `_gc._store._conn_mgr._db_path`",
+    "severity": "🟡 MÉDIA",
+    "files": "[`interface/mcp_server.py:161–166`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L161)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-016",
+    "title": "Deadlock Inevitável em Escritas Aninhadas/Reentrantes no `SerializedWriteQueue`",
+    "severity": "🔴 CRÍTICA",
+    "files": "[`storage/connection.py:111–140`](file:///c:/Nexus-Memory/GrafoConcierge/storage/connection.py#L111)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-018",
+    "title": "Vazamento Perpétuo de Conexões SQLite em Threads Finalizadas",
+    "severity": "🟠 GRAVE",
+    "files": "[`storage/connection.py:257–273`](file:///c:/Nexus-Memory/GrafoConcierge/storage/connection.py#L257)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-021",
+    "title": "Falha ao Reiniciar `SerializedWriteQueue` após `stop()`",
+    "severity": "🟡 MÉDIA",
+    "files": "[`storage/connection.py:75–110`](file:///c:/Nexus-Memory/GrafoConcierge/storage/connection.py#L75)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-011",
+    "title": "Bypass Total da Governança de Ferramentas via Injeção de `session_id` Fantasma",
+    "severity": "🔴🔴 PRIORIDADE MÁXIMA",
+    "files": "[`interface/mcp_server.py:249–259`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L249), [`core/mcp_governor.py:100, 128–193`](file:///c:/Nexus-Memory/GrafoConcierge/core/mcp_governor.py#L100)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-012",
+    "title": "Ausência Total de Verificação de Posse em Checkpoints de Agentes",
+    "severity": "🔴 CRÍTICA",
+    "files": "[`core/mcp_governor.py:39`](file:///c:/Nexus-Memory/GrafoConcierge/core/mcp_governor.py#L39), [`core/checkpointer.py:138, 226`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py#L138), [`interface/mcp_server.py:897–960, 1731`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L897)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-013",
+    "title": "Vazamento de 100% do Catálogo de Ferramentas em `list_tools()`",
+    "severity": "🟠 GRAVE",
+    "files": "[`interface/mcp_server.py:261–270`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L261)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-014",
+    "title": "Desconexão Total do Runtime Cognitivo no Servidor MCP",
+    "severity": "🟠 GRAVE",
+    "files": "[`agent/run_agent.py`](file:///c:/Nexus-Memory/GrafoConcierge/agent/run_agent.py), [`core/hsm_engine.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/hsm_engine.py), [`interface/mcp_server.py:1–1786`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L1)",
+    "status": "DORMENTE",
+    "justification": "Módulo primário afetado é dormente (agent/run_agent.py (NÃO CARREGADO), core/hsm_engine.py (NÃO CARREGADO)), embora interaja com interfaces do núcleo."
+  },
+  {
+    "bl_id": "BL-015",
+    "title": "Inicialização Insegura por Padrão (`default_state = \"EXECUTION\"`)",
+    "severity": "🟡 MÉDIA",
+    "files": "[`core/mcp_governor.py:37–38`](file:///c:/Nexus-Memory/GrafoConcierge/core/mcp_governor.py#L37)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-052",
+    "title": "Evasão da Blacklist de Comandos Destrutivos do SecurityGuard",
+    "severity": "🔴 CRÍTICA",
+    "files": "[`core/security_guard.py:42–45, 94–95`](file:///c:/Nexus-Memory/GrafoConcierge/core/security_guard.py#L42)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-053",
+    "title": "`classify_command(None)` Lança `TypeError` Não Tratado",
+    "severity": "🟠 GRAVE",
+    "files": "[`core/security_guard.py:94`](file:///c:/Nexus-Memory/GrafoConcierge/core/security_guard.py#L94)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-054",
+    "title": "Bug de Barra Dupla `C:\\\\\\\\` na Raiz Bloqueia 100% dos Arquivos em `is_safe_path`",
+    "severity": "🟡 MÉDIA",
+    "files": "[`core/security_guard.py:75–77`](file:///c:/Nexus-Memory/GrafoConcierge/core/security_guard.py#L75)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-055",
+    "title": "Resolução de Caminhos Relativos Ancorada ao CWD do Processo e Não a `project_root`",
+    "severity": "🟡 MÉDIA",
+    "files": "[`core/security_guard.py:72–77`](file:///c:/Nexus-Memory/GrafoConcierge/core/security_guard.py#L72)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-056",
+    "title": "Falsos Positivos de WARNING em Comandos Inofensivos Contendo `\"build\"`",
+    "severity": "🔵 BAIXA",
+    "files": "[`core/security_guard.py:48–54, 98–99`](file:///c:/Nexus-Memory/GrafoConcierge/core/security_guard.py#L48)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-033",
+    "title": "Invocação de Método Fantasma `self.vector_db.get_all_ids()`",
+    "severity": "🔴 CRÍTICA",
+    "files": "[`core/vector_reconciler.py:39`](file:///c:/Nexus-Memory/GrafoConcierge/core/vector_reconciler.py#L39), [`storage/base_backend.py:91`](file:///c:/Nexus-Memory/GrafoConcierge/storage/base_backend.py#L91), [`storage/vector_store.py:263`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py#L263)",
+    "status": "VIVO",
+    "justification": "Núcleo ativo em execução no runtime padrão."
+  },
+  {
+    "bl_id": "BL-034",
+    "title": "Purga Garantida de 100% dos Vetores por Incompatibilidade `int` vs `str`",
+    "severity": "🔴 CRÍTICA (Perda Catastrófica de Dados)",
+    "files": "[`core/vector_reconciler.py:40–49, 54`](file:///c:/Nexus-Memory/GrafoConcierge/core/vector_reconciler.py#L40)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: core/vector_reconciler.py (NÃO CARREGADO)"
+  },
+  {
+    "bl_id": "BL-017",
+    "title": "Bypass de Strict Scoping na Busca Vetorial com `project_uuids=[]`",
+    "severity": "🔴 CRÍTICA (Vazamento Cross-Project)",
+    "files": "[`storage/vector_store.py:449–458, 711–740`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py#L449)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-025",
+    "title": "Perda Total no Grafo na Renomeação de Arquivos",
+    "severity": "🔴 CRÍTICA",
+    "files": "[`ingestion/crawler.py:560`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/crawler.py#L560), [`ingestion/orchestrator.py:765`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L765)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-026",
+    "title": "Descarte Silencioso de 100% dos Resumos L0 com Gravação de `NULL`",
+    "severity": "🔴 CRÍTICA",
+    "files": "[`ingestion/orchestrator.py:191, 201, 571, 843`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L191)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-027",
+    "title": "Falha Silenciosa de Persistência do L2 Compass no SQLite",
+    "severity": "🟠 GRAVE",
+    "files": "[`ingestion/summarizer.py:789`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/summarizer.py#L789), [`ingestion/orchestrator.py:880–883`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L880)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-028",
+    "title": "Acúmulo Perpétuo de Vetores Zumbis no ChromaDB",
+    "severity": "🟠 GRAVE",
+    "files": "[`ingestion/orchestrator.py:213, 234–239`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L213)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-035",
+    "title": "Race Condition Destrutiva TOCTOU no Reconciliador Vetorial",
+    "severity": "🟠 GRAVE",
+    "files": "[`core/vector_reconciler.py:31–50`](file:///c:/Nexus-Memory/GrafoConcierge/core/vector_reconciler.py#L31)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: core/vector_reconciler.py (NÃO CARREGADO)"
+  },
+  {
+    "bl_id": "BL-057",
+    "title": "Método Fantasma `has_structural_change()` no DeltaManager",
+    "severity": "🔴 CRÍTICA",
+    "files": "[`core/delta_manager.py:70`](file:///c:/Nexus-Memory/GrafoConcierge/core/delta_manager.py#L70), [`core/hsm_engine.py:458`](file:///c:/Nexus-Memory/GrafoConcierge/core/hsm_engine.py#L458), [`tests/test_hsm_transition_hooks_and_delta.py:25`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_hsm_transition_hooks_and_delta.py#L25)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: core/delta_manager.py (NÃO CARREGADO), core/hsm_engine.py (NÃO CARREGADO)"
+  },
+  {
+    "bl_id": "BL-058",
+    "title": "Cegueira de LBH em Non-Python e SSH Incompleto",
+    "severity": "🟠 GRAVE",
+    "files": "[`core/delta_manager.py:83–97, 99–116`](file:///c:/Nexus-Memory/GrafoConcierge/core/delta_manager.py#L83), [`tests/test_ssh_language_coverage.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_ssh_language_coverage.py)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: core/delta_manager.py (NÃO CARREGADO)"
+  },
+  {
+    "bl_id": "BL-020",
+    "title": "Falha de Tipo em `_calculate_decay` com Timestamps ISO Offset-Aware",
+    "severity": "🟠 GRAVE",
+    "files": "[`storage/logic.py:330–350`](file:///c:/Nexus-Memory/GrafoConcierge/storage/logic.py#L330)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-036",
+    "title": "Falta de Paginação em `delete_batch` no Reconciliador Vetorial",
+    "severity": "🟡 MÉDIA",
+    "files": "[`core/vector_reconciler.py:48–50`](file:///c:/Nexus-Memory/GrafoConcierge/core/vector_reconciler.py#L48)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: core/vector_reconciler.py (NÃO CARREGADO)"
+  },
+  {
+    "bl_id": "BL-029",
+    "title": "Crash com `AttributeError` em Ingestão sem Summarizer",
+    "severity": "🟡 MÉDIA",
+    "files": "[`ingestion/orchestrator.py:442, 449`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L442)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-030",
+    "title": "Descarte Arbitrário de `requirements.txt` por `*.txt` no Ignore Padrão",
+    "severity": "🟡 MÉDIA",
+    "files": "[`ingestion/crawler.py:395, 481`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/crawler.py#L395)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-031",
+    "title": "Poluição de Tags Semânticas por Substrings Ingênuas",
+    "severity": "🟡 MÉDIA",
+    "files": "[`ingestion/parser.py:100–111, 973–975`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/parser.py#L100)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-032",
+    "title": "Truncamento de Código JS/TS por Contagem Ingênua de Chaves `{}`",
+    "severity": "🟡 MÉDIA",
+    "files": "[`ingestion/parser.py:701–715`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/parser.py#L701)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-059",
+    "title": "Dupla Conexão Efêmera Crua por Mutação no DeltaManager",
+    "severity": "🟡 MÉDIA",
+    "files": "[`core/delta_manager.py:160–200, 204–265`](file:///c:/Nexus-Memory/GrafoConcierge/core/delta_manager.py#L160)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: core/delta_manager.py (NÃO CARREGADO)"
+  },
+  {
+    "bl_id": "BL-060",
+    "title": "TypeError em `compile_community_summary_jit()` quando `files.content` é NULL",
+    "severity": "🔵 BAIXA",
+    "files": "[`core/delta_manager.py:186`](file:///c:/Nexus-Memory/GrafoConcierge/core/delta_manager.py#L186)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: core/delta_manager.py (NÃO CARREGADO)"
+  },
+  {
+    "bl_id": "BL-022",
+    "title": "Crash com `ValueError` em Busca Vetorial com `node_id=None` ou Vazio",
+    "severity": "🟡 MÉDIA",
+    "files": "[`storage/vector_store.py:477, 695–708`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py#L477)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-023",
+    "title": "Duplicação de Nós na CTE Recursiva `get_dependency_tree`",
+    "severity": "🟡 MÉDIA",
+    "files": "[`storage/logic.py:578–593`](file:///c:/Nexus-Memory/GrafoConcierge/storage/logic.py#L578)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-061",
+    "title": "SSH Context-Free Captura Declarações Independentemente de Indentação",
+    "severity": "🔵 BAIXA",
+    "files": "[`core/delta_manager.py:83–97`](file:///c:/Nexus-Memory/GrafoConcierge/core/delta_manager.py#L83)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: core/delta_manager.py (NÃO CARREGADO)"
+  },
+  {
+    "bl_id": "BL-024",
+    "title": "Isolamento de `semantic_logic.py` Força Violação de Encapsulamento",
+    "severity": "🔵 BAIXA",
+    "files": "[`storage/semantic_logic.py:1–126`](file:///c:/Nexus-Memory/GrafoConcierge/storage/semantic_logic.py#L1), [`storage/store.py:1–803`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py#L1)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-088",
+    "title": "Falha de Atomicidade em `apply_alias_migration` (Migração Parcial sem Rollback)",
+    "severity": "🟡 MÉDIA",
+    "files": "[`core/alias_tracker.py:185–259`](file:///c:/Nexus-Memory/GrafoConcierge/core/alias_tracker.py#L185), [`interface/watcher.py:179, 240`](file:///c:/Nexus-Memory/GrafoConcierge/interface/watcher.py#L179)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: core/alias_tracker.py (NÃO CARREGADO), interface/watcher.py (NÃO CARREGADO)"
+  },
+  {
+    "bl_id": "BL-062",
+    "title": "Falha Fatal e Crash HTTP 500 na Telemetria por Tabelas Inexistentes",
+    "severity": "🔴 CRÍTICA",
+    "files": "[`interface/telemetry_api.py:153–161, 181–184`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L153)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: interface/telemetry_api.py (CARREGADO MAS NUNCA CHAMADO)"
+  },
+  {
+    "bl_id": "BL-063",
+    "title": "Inoperância Fora da Caixa por Dependência `get_db_manager` Não Configurada",
+    "severity": "🔴 CRÍTICA",
+    "files": "[`interface/telemetry_api.py:114–126, 74–89`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L114)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: interface/telemetry_api.py (CARREGADO MAS NUNCA CHAMADO)"
+  },
+  {
+    "bl_id": "BL-069",
+    "title": "Código Morto em Handlers SSE e Telemetria Reativa Congelada",
+    "severity": "🔴 CRÍTICA",
+    "files": "[`grafo-dashboard-web/lib/useTelemetryStream.ts:219–260`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/useTelemetryStream.ts#L219)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: grafo-dashboard-web (frontend não executado no server), grafo-dashboard-web (frontend não executado no server)"
+  },
+  {
+    "bl_id": "BL-070",
+    "title": "Ciclo Infinito de Flapping SSE a cada 8s e Inundação do Feed de Eventos",
+    "severity": "🔴 CRÍTICA",
+    "files": "[`grafo-dashboard-web/lib/useTelemetryStream.ts:280–291`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/useTelemetryStream.ts#L280), [`interface/telemetry_api.py:556–572`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L556)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: grafo-dashboard-web (frontend não executado no server), grafo-dashboard-web (frontend não executado no server), interface/telemetry_api.py (CARREGADO MAS NUNCA CHAMADO)"
+  },
+  {
+    "bl_id": "BL-071",
+    "title": "Colisão de Portas 8000, Falha no `dev:all` e Desconexão do FastMCP",
+    "severity": "🔴 CRÍTICA",
+    "files": "[`grafo-dashboard-web/package.json:10–11`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/package.json#L10), [`grafo-dashboard-web/.env.example:6, 10`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/.env.example#L6), [`grafo-dashboard-web/lib/mcp/client.ts:29`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/mcp/client.ts#L29)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: grafo-dashboard-web (frontend não executado no server), grafo-dashboard-web (frontend não executado no server), grafo-dashboard-web (frontend não executado no server), grafo-dashboard-web (frontend não executado no server)"
+  },
+  {
+    "bl_id": "BL-064",
+    "title": "Falso Stream Contínuo por Limite Hardcoded (`max_checks = 5`)",
+    "severity": "🟠 GRAVE",
+    "files": "[`interface/telemetry_api.py:556–572`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L556)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: interface/telemetry_api.py (CARREGADO MAS NUNCA CHAMADO)"
+  },
+  {
+    "bl_id": "BL-065",
+    "title": "Invalidação Perpétua do SHA-256 no SSE por Timestamp Dinâmico",
+    "severity": "🟠 GRAVE",
+    "files": "[`interface/telemetry_api.py:226, 234–237, 563–570`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L226)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: interface/telemetry_api.py (CARREGADO MAS NUNCA CHAMADO)"
+  },
+  {
+    "bl_id": "BL-066",
+    "title": "Insegurança Total de CORS e Falta de Autenticação em Rotas Mutantes",
+    "severity": "🟠 GRAVE",
+    "files": "[`interface/telemetry_api.py:98–105, 325–347, 357–369`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L98)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: interface/telemetry_api.py (CARREGADO MAS NUNCA CHAMADO)"
+  },
+  {
+    "bl_id": "BL-072",
+    "title": "Incompatibilidade de Autenticação FastMCP e Rejeição HTTP 401",
+    "severity": "🟠 GRAVE",
+    "files": "[`grafo-dashboard-web/lib/mcp/client.ts:78, 294–298`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/mcp/client.ts#L78), [`interface/mcp_server.py:186–212`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L186)",
+    "status": "DORMENTE",
+    "justification": "Módulo primário afetado é dormente (grafo-dashboard-web (frontend não executado no server), grafo-dashboard-web (frontend não executado no server)), embora interaja com interfaces do núcleo."
+  },
+  {
+    "bl_id": "BL-073",
+    "title": "Omissão de Metadados em `get_full_topology` e Esvaziamento do `InspectorDrawer`",
+    "severity": "🟠 GRAVE",
+    "files": "[`storage/store.py:259–273`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py#L259), [`grafo-dashboard-web/app/components/InspectorDrawer.tsx:124–152`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/app/components/InspectorDrawer.tsx#L124)",
+    "status": "DORMENTE",
+    "justification": "Módulo primário afetado é dormente (grafo-dashboard-web (frontend não executado no server), grafo-dashboard-web (frontend não executado no server)), embora interaja com interfaces do núcleo."
+  },
+  {
+    "bl_id": "BL-067",
+    "title": "Crash de Tipagem em Timestamps na Telemetria (`NoneType` e `str`)",
+    "severity": "🟡 MÉDIA",
+    "files": "[`interface/telemetry_api.py:166, 199, 304–319`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L166)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: interface/telemetry_api.py (CARREGADO MAS NUNCA CHAMADO)"
+  },
+  {
+    "bl_id": "BL-068",
+    "title": "Thread Daemônica Órfã Iniciada no Import de `telemetry_api`",
+    "severity": "🟡 MÉDIA",
+    "files": "[`interface/telemetry_api.py:56–68`](file:///c:/Nexus-Memory/GrafoConcierge/interface/telemetry_api.py#L56)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: interface/telemetry_api.py (CARREGADO MAS NUNCA CHAMADO)"
+  },
+  {
+    "bl_id": "BL-074",
+    "title": "Risco de Data Inválida (`Invalid Date`) por Concatenação `+ \"Z\"`",
+    "severity": "🟡 MÉDIA",
+    "files": "[`grafo-dashboard-web/app/components/CoreMemoryPanel.tsx:137–146`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/app/components/CoreMemoryPanel.tsx#L137)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: grafo-dashboard-web (frontend não executado no server), grafo-dashboard-web (frontend não executado no server)"
+  },
+  {
+    "bl_id": "BL-075",
+    "title": "Rotas Mutantes `/api/hsm/transition` Órfãs e Cliques Inertes no HUD",
+    "severity": "🟡 MÉDIA",
+    "files": "[`grafo-dashboard-web/app/page.tsx:478–482`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/app/page.tsx#L478)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: grafo-dashboard-web (frontend não executado no server), grafo-dashboard-web (frontend não executado no server)"
+  },
+  {
+    "bl_id": "BL-076",
+    "title": "37 Erros de Linter e Violação de Pureza no React 19",
+    "severity": "🟡 MÉDIA",
+    "files": "[`grafo-dashboard-web/components/telemetry/LiveEventFeed.tsx:93–121`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/components/telemetry/LiveEventFeed.tsx#L93), [`grafo-dashboard-web/lib/useTelemetryStream.ts:191`](file:///c:/Nexus-Memory/GrafoConcierge/grafo-dashboard-web/lib/useTelemetryStream.ts#L191)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: grafo-dashboard-web (frontend não executado no server), grafo-dashboard-web (frontend não executado no server), grafo-dashboard-web (frontend não executado no server), grafo-dashboard-web (frontend não executado no server)"
+  },
+  {
+    "bl_id": "BL-077",
+    "title": "Contaminação de Turnos Multi-Sessão no Circuit Breaker",
+    "severity": "🔴 CRÍTICA CONDICIONAL",
+    "files": "[`agent/run_agent.py:47, 82, 95, 123, 154, 160`](file:///c:/Nexus-Memory/GrafoConcierge/agent/run_agent.py#L47)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: agent/run_agent.py (NÃO CARREGADO)"
+  },
+  {
+    "bl_id": "BL-078",
+    "title": "Vazamento de Privacidade por Fallback Inseguro Fail-Open em `check_contamination`",
+    "severity": "🔴 CRÍTICA CONDICIONAL",
+    "files": "[`agents/revisor_critico.py:555–573`](file:///c:/Nexus-Memory/GrafoConcierge/agents/revisor_critico.py#L555)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: agents/revisor_critico.py (CARREGADO MAS NUNCA CHAMADO)"
+  },
+  {
+    "bl_id": "BL-079",
+    "title": "Aprovação Espúria de Commits Inválidos em `audit_with_retry`",
+    "severity": "🟠 GRAVE CONDICIONAL",
+    "files": "[`agents/revisor_critico.py:331, 362–381`](file:///c:/Nexus-Memory/GrafoConcierge/agents/revisor_critico.py#L331)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: agents/revisor_critico.py (CARREGADO MAS NUNCA CHAMADO)"
+  },
+  {
+    "bl_id": "BL-080",
+    "title": "Dessincronização de Estado e Diretrizes em `step(target_transition=...)`",
+    "severity": "🟠 GRAVE CONDICIONAL",
+    "files": "[`agent/run_agent.py:151–217`](file:///c:/Nexus-Memory/GrafoConcierge/agent/run_agent.py#L151)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: agent/run_agent.py (NÃO CARREGADO)"
+  },
+  {
+    "bl_id": "BL-081",
+    "title": "Falhas de Tipagem e Crash em Reranking (`NoneType` e `int` vs `str`)",
+    "severity": "🟠 GRAVE CONDICIONAL",
+    "files": "[`agents/revisor_critico.py:433, 490–498, 504–513`](file:///c:/Nexus-Memory/GrafoConcierge/agents/revisor_critico.py#L433)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: agents/revisor_critico.py (CARREGADO MAS NUNCA CHAMADO)"
+  },
+  {
+    "bl_id": "BL-082",
+    "title": "Incompatibilidade Universal com Corrotinas e Bypass do RateGovernor em `execute_tool`",
+    "severity": "🟡 MÉDIA CONDICIONAL",
+    "files": "[`agent/run_agent.py:243–262`](file:///c:/Nexus-Memory/GrafoConcierge/agent/run_agent.py#L243)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: agent/run_agent.py (NÃO CARREGADO)"
+  },
+  {
+    "bl_id": "BL-083",
+    "title": "Dessincronização entre Sub-Estados do HSM e `TOOL_DISCLOSURE_MATRIX`",
+    "severity": "🟡 MÉDIA CONDICIONAL",
+    "files": "[`agent/agent_prompts.py:82–132`](file:///c:/Nexus-Memory/GrafoConcierge/agent/agent_prompts.py#L82)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: agent/agent_prompts.py (NÃO CARREGADO)"
+  },
+  {
+    "bl_id": "BL-084",
+    "title": "Contrato Fantasma de Cliente MCP Federado em `FederatedKnowledgeRouter`",
+    "severity": "🟠 GRAVE",
+    "files": "[`core/federated_knowledge_router.py:73`](file:///c:/Nexus-Memory/GrafoConcierge/core/federated_knowledge_router.py#L73), [`tests/test_cognitive_routing_memory.py:28–30`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_cognitive_routing_memory.py#L28)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: core/federated_knowledge_router.py (NÃO CARREGADO)"
+  },
+  {
+    "bl_id": "BL-085",
+    "title": "Método Fantasma `insert()` em MockVectorDatabase Mascara Contrato de Inserção de Vetores",
+    "severity": "🟡 MÉDIA",
+    "files": "[`tests/test_vector_reconciler.py:73`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_vector_reconciler.py#L73), [`storage/base_backend.py:91`](file:///c:/Nexus-Memory/GrafoConcierge/storage/base_backend.py#L91), [`storage/vector_store.py:251`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py#L251)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-086",
+    "title": "Incompatibilidade de Assinatura e Retorno em `MockGraphRAGEngine.retrieve_multihop_context`",
+    "severity": "🟡 MÉDIA",
+    "files": "[`tests/test_cognitive_routing_memory.py:24`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_cognitive_routing_memory.py#L24), [`core/graph_rag.py:45`](file:///c:/Nexus-Memory/GrafoConcierge/core/graph_rag.py#L45)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-087",
+    "title": "Mock Permissivo com `*args, **kwargs` e Divergência de Interface em `_MockVectorStore`",
+    "severity": "🔵 BAIXA",
+    "files": "[`tests/test_interface_contracts.py:59, 63`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_interface_contracts.py#L59), [`storage/base_backend.py:91`](file:///c:/Nexus-Memory/GrafoConcierge/storage/base_backend.py#L91), [`storage/vector_store.py:251`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py#L251)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-037",
+    "title": "Despacho Ambíguo em `save_checkpoint` Corrompe Metadados e Apaga Estado",
+    "severity": "🔴 CRÍTICA",
+    "files": "[`core/checkpointer.py:73–78, 80–117`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py#L73), [`interface/mcp_server.py:1741`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L1741)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-038",
+    "title": "Mascaramento de Falhas e Transação Não Atômica em `execute_time_travel`",
+    "severity": "🟠 GRAVE",
+    "files": "[`core/checkpointer.py:195–210`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py#L195)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-039",
+    "title": "Granularidade Temporal de 1s Falha em Deletar Checkpoints em Rajadas",
+    "severity": "🟠 GRAVE",
+    "files": "[`core/checkpointer.py:196`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py#L196)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-040",
+    "title": "Crash `json.JSONDecodeError` Não Tratado em `get_checkpoint`",
+    "severity": "🟡 MÉDIA",
+    "files": "[`core/checkpointer.py:226–234`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py#L226)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-041",
+    "title": "Tipagem Insegura Mypy no Checkpointer (`None` Not Callable)",
+    "severity": "🟡 MÉDIA",
+    "files": "[`core/checkpointer.py:112–113, 137–138, 201–206`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py#L112)",
+    "status": "VIVO",
+    "justification": "Módulos citados estão EM USO no runtime padrão."
+  },
+  {
+    "bl_id": "BL-042",
+    "title": "Slice Negativo `[-0:]` com `keep_limit = 0` Preserva 100% dos Checkpoints",
+    "severity": "🟠 GRAVE",
+    "files": "[`core/background_janitor.py:176–186`](file:///c:/Nexus-Memory/GrafoConcierge/core/background_janitor.py#L176)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: core/background_janitor.py (NÃO CARREGADO)"
+  },
+  {
+    "bl_id": "BL-043",
+    "title": "Degradação Irreversível da Prioridade do Servidor para IDLE",
+    "severity": "🟠 GRAVE",
+    "files": "[`core/background_janitor.py:270–284`](file:///c:/Nexus-Memory/GrafoConcierge/core/background_janitor.py#L270)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: core/background_janitor.py (NÃO CARREGADO)"
+  },
+  {
+    "bl_id": "BL-044",
+    "title": "Deleção Cruzada de Checkpoints entre Agentes na Mesma Sessão",
+    "severity": "🟠 GRAVE",
+    "files": "[`core/background_janitor.py:160–197`](file:///c:/Nexus-Memory/GrafoConcierge/core/background_janitor.py#L160)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: core/background_janitor.py (NÃO CARREGADO)"
+  },
+  {
+    "bl_id": "BL-045",
+    "title": "Crash com `TypeError` em `_summarize_community` com `files.content = NULL`",
+    "severity": "🟡 MÉDIA",
+    "files": "[`core/background_janitor.py:96–100`](file:///c:/Nexus-Memory/GrafoConcierge/core/background_janitor.py#L96)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: core/background_janitor.py (NÃO CARREGADO)"
+  },
+  {
+    "bl_id": "BL-046",
+    "title": "TOCTOU / Descarte Cego de `is_dirty = 0` sobre Edições Recentes",
+    "severity": "🟡 MÉDIA",
+    "files": "[`core/background_janitor.py:106–113`](file:///c:/Nexus-Memory/GrafoConcierge/core/background_janitor.py#L106)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: core/background_janitor.py (NÃO CARREGADO)"
+  },
+  {
+    "bl_id": "BL-047",
+    "title": "Vazamento de `unfinished_tasks` na `PriorityQueue` e Starvation",
+    "severity": "🔴 CRÍTICA",
+    "files": "[`core/rate_governor.py:250, 255, 261, 272`](file:///c:/Nexus-Memory/GrafoConcierge/core/rate_governor.py#L250)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: core/rate_governor.py (CARREGADO MAS NUNCA CHAMADO)"
+  },
+  {
+    "bl_id": "BL-048",
+    "title": "Starvation de Tarefas LOW Envelhecidas em Carga de 75% a 100%",
+    "severity": "🟠 GRAVE",
+    "files": "[`core/rate_governor.py:231–252`](file:///c:/Nexus-Memory/GrafoConcierge/core/rate_governor.py#L231)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: core/rate_governor.py (CARREGADO MAS NUNCA CHAMADO)"
+  },
+  {
+    "bl_id": "BL-049",
+    "title": "Data Race / Lost Updates em `get_current_metrics()` sem Lock",
+    "severity": "🟠 GRAVE",
+    "files": "[`core/rate_governor.py:91, 116–150`](file:///c:/Nexus-Memory/GrafoConcierge/core/rate_governor.py#L91)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: core/rate_governor.py (CARREGADO MAS NUNCA CHAMADO)"
+  },
+  {
+    "bl_id": "BL-050",
+    "title": "Deadlock Eterno em `submit_request` sem Timeout e Após `shutdown()`",
+    "severity": "🟠 GRAVE",
+    "files": "[`core/rate_governor.py:196–203, 278–280`](file:///c:/Nexus-Memory/GrafoConcierge/core/rate_governor.py#L196)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: core/rate_governor.py (CARREGADO MAS NUNCA CHAMADO)"
+  },
+  {
+    "bl_id": "BL-051",
+    "title": "Cegueira de RPM no Fast-Path do RateGovernor",
+    "severity": "🟡 MÉDIA",
+    "files": "[`core/rate_governor.py:185–194`](file:///c:/Nexus-Memory/GrafoConcierge/core/rate_governor.py#L185)",
+    "status": "DORMENTE",
+    "justification": "Módulos citados são dormentes: core/rate_governor.py (CARREGADO MAS NUNCA CHAMADO)"
+  },
+  {
+    "bl_id": "BL-019",
+    "title": "Incompatibilidade de Contrato em `init_fsm_checkpoints_schema`",
+    "severity": "🟠 GRAVE",
+    "files": "[`storage/relational_db.py:27–35`](file:///c:/Nexus-Memory/GrafoConcierge/storage/relational_db.py#L27), [`storage/store.py:84–110`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py#L84)",
+    "status": "VIVO",
+    "justification": "Núcleo ativo em execução no runtime padrão."
+  }
+]
