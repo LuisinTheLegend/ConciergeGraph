@@ -1,0 +1,1618 @@
+{
+  "db_state_l": {
+    "tables": [
+      "commit_log",
+      "edges",
+      "nodes",
+      "projects",
+      "reference_wings",
+      "semantic_facts",
+      "test_log",
+      "trajectories",
+      "user_core_memory"
+    ],
+    "counts": {
+      "nodes": 0,
+      "edges": 0,
+      "semantic_facts": 0,
+      "files": "tabela ausente",
+      "communities": "tabela ausente",
+      "ast_edges": "tabela ausente",
+      "agent_checkpoints": "tabela ausente",
+      "fsm_checkpoints": "tabela ausente",
+      "projects": 0,
+      "commit_log": 0,
+      "user_core_memory": 0
+    }
+  },
+  "db_state_p": {
+    "tables": [
+      "commit_log",
+      "edges",
+      "nodes",
+      "projects",
+      "reference_wings",
+      "semantic_facts",
+      "test_log",
+      "trajectories",
+      "user_core_memory"
+    ],
+    "counts": {
+      "nodes": 10,
+      "edges": 12,
+      "semantic_facts": 2,
+      "files": "tabela ausente",
+      "communities": "tabela ausente",
+      "ast_edges": "tabela ausente",
+      "agent_checkpoints": "tabela ausente",
+      "fsm_checkpoints": "tabela ausente",
+      "projects": 1,
+      "commit_log": 0,
+      "user_core_memory": 1
+    }
+  },
+  "proj_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+  "file_node_id": 1,
+  "symbol_node_id": 9,
+  "real_fact_id": 2,
+  "args_used_l": {
+    "concierge_list_projects": {},
+    "concierge_status": {
+      "project_uuid": "00000000-0000-0000-0000-000000000000"
+    },
+    "get_full_topology": {},
+    "count_embeddings": {},
+    "concierge_search": {
+      "query": "compute_total",
+      "all_wings": true
+    },
+    "search_symbols": {
+      "query": "add"
+    },
+    "get_implementations": {
+      "symbol_id": 1
+    },
+    "get_callers": {
+      "symbol_id": 1
+    },
+    "concierge_get_call_chain": {
+      "start_node": "calc.py",
+      "depth_limit": 3
+    },
+    "concierge_load": {
+      "node_id": 1
+    },
+    "concierge_wakeup": {
+      "project_uuid": "00000000-0000-0000-0000-000000000000"
+    },
+    "concierge_resume": {
+      "project_uuid": "00000000-0000-0000-0000-000000000000"
+    },
+    "concierge_set_state": {
+      "state_name": "EXECUTION",
+      "session_id": "default"
+    },
+    "concierge_store_fact": {
+      "scope_type": "session",
+      "scope_id": "test_sess",
+      "fact_statement": "Fato inicial em L"
+    },
+    "concierge_list_facts": {
+      "scope_type": "session",
+      "scope_id": "test_sess"
+    },
+    "concierge_set_memory": {
+      "scope_type": "session",
+      "scope_id": "test_sess",
+      "block_label": "notes",
+      "content": "Nota em L"
+    },
+    "concierge_get_memory": {
+      "scope_type": "session",
+      "scope_id": "test_sess"
+    },
+    "concierge_feedback": {
+      "fact_id": 1,
+      "was_useful": true
+    },
+    "find_similar": {
+      "project_identifier": "00000000-0000-0000-0000-000000000000"
+    },
+    "get_trajectories": {
+      "project_identifier": "00000000-0000-0000-0000-000000000000"
+    },
+    "add_reference_wing": {
+      "project_identifier": "00000000-0000-0000-0000-000000000000",
+      "wing_name": "WING_TEST"
+    },
+    "remove_reference_wing": {
+      "project_identifier": "00000000-0000-0000-0000-000000000000",
+      "wing_name": "WING_TEST"
+    },
+    "update_project": {
+      "project_identifier": "00000000-0000-0000-0000-000000000000",
+      "summary": "Atualizacao em L"
+    },
+    "agent_save_checkpoint": {
+      "agent_id": "test_agent_1",
+      "session_id": "sess_l",
+      "checkpoint_id": "chk_l",
+      "state_dict": {
+        "init": true
+      }
+    },
+    "agent_get_checkpoint": {
+      "agent_id": "test_agent_1",
+      "session_id": "sess_l",
+      "checkpoint_id": "chk_l"
+    },
+    "agent_list_checkpoints": {
+      "agent_id": "test_agent_1",
+      "session_id": "sess_l"
+    },
+    "concierge_commit": {
+      "project_uuid": "00000000-0000-0000-0000-000000000000",
+      "phase": "TEST",
+      "technical_changes": "Commit em L",
+      "updated_pointers": [
+        "file1.py"
+      ]
+    },
+    "concierge_register": {
+      "project_path": "C:\\Users\\guial\\AppData\\Local\\Temp\\fase4_0c_matrix_p387kgtn\\fixture_project",
+      "summary": "Projeto Fixture L"
+    },
+    "concierge_mine": {
+      "path": "C:\\Users\\guial\\AppData\\Local\\Temp\\fase4_0c_matrix_p387kgtn\\fixture_project",
+      "project_identifier": "00000000-0000-0000-0000-000000000000",
+      "auto_tag": true
+    },
+    "reset_collection": {},
+    "delete_project": {
+      "project_identifier": "00000000-0000-0000-0000-000000000000"
+    }
+  },
+  "args_used_p": {
+    "concierge_list_projects": {},
+    "concierge_status": {
+      "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e"
+    },
+    "get_full_topology": {
+      "project_identifier": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e"
+    },
+    "count_embeddings": {
+      "project_identifier": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e"
+    },
+    "concierge_search": {
+      "query": "compute_total",
+      "project_identifier": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e"
+    },
+    "search_symbols": {
+      "query": "add",
+      "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e"
+    },
+    "get_implementations": {
+      "symbol_id": 9
+    },
+    "get_callers": {
+      "symbol_id": 9
+    },
+    "concierge_get_call_chain": {
+      "start_node": "calc.py",
+      "depth_limit": 3
+    },
+    "concierge_load": {
+      "node_id": 1
+    },
+    "concierge_wakeup": {
+      "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e"
+    },
+    "concierge_resume": {
+      "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e"
+    },
+    "concierge_set_state": {
+      "state_name": "EXECUTION",
+      "session_id": "default"
+    },
+    "concierge_store_fact": {
+      "scope_type": "session",
+      "scope_id": "test_sess",
+      "fact_statement": "Fato adicional no estado P"
+    },
+    "concierge_list_facts": {
+      "scope_type": "session",
+      "scope_id": "test_sess"
+    },
+    "concierge_set_memory": {
+      "scope_type": "session",
+      "scope_id": "test_sess",
+      "block_label": "notes",
+      "content": "Nota persistida no estado P"
+    },
+    "concierge_get_memory": {
+      "scope_type": "session",
+      "scope_id": "test_sess"
+    },
+    "concierge_feedback": {
+      "fact_id": 2,
+      "was_useful": true
+    },
+    "find_similar": {
+      "project_identifier": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e"
+    },
+    "get_trajectories": {
+      "project_identifier": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e"
+    },
+    "add_reference_wing": {
+      "project_identifier": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+      "wing_name": "WING_TEST"
+    },
+    "remove_reference_wing": {
+      "project_identifier": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+      "wing_name": "WING_TEST"
+    },
+    "update_project": {
+      "project_identifier": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+      "summary": "Projeto Fixture Atualizado"
+    },
+    "agent_save_checkpoint": {
+      "agent_id": "test_agent_1",
+      "session_id": "sess_p",
+      "checkpoint_id": "chk_p2",
+      "state_dict": {
+        "step": "p2"
+      }
+    },
+    "agent_get_checkpoint": {
+      "agent_id": "test_agent_1",
+      "session_id": "sess_p",
+      "checkpoint_id": "chk_p"
+    },
+    "agent_list_checkpoints": {
+      "agent_id": "test_agent_1",
+      "session_id": "sess_p"
+    },
+    "concierge_commit": {
+      "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+      "phase": "TEST",
+      "technical_changes": "Commit consolidado em P",
+      "updated_pointers": [
+        "math_ops.py",
+        "calc.py"
+      ]
+    },
+    "concierge_register": {
+      "project_path": "C:\\Users\\guial\\AppData\\Local\\Temp\\fase4_0c_matrix_p387kgtn\\fixture_project",
+      "summary": "Novo registro em P"
+    },
+    "concierge_mine": {
+      "path": "C:\\Users\\guial\\AppData\\Local\\Temp\\fase4_0c_matrix_p387kgtn\\fixture_project",
+      "project_identifier": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+      "auto_tag": true
+    },
+    "reset_collection": {},
+    "delete_project": {
+      "project_identifier": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e"
+    }
+  },
+  "results_l": {
+    "concierge_list_projects": {
+      "class": "SUCESSO VAZIO",
+      "detail": "{'projects': {}, 'success': True, 'duration_seconds': 0.001}",
+      "parsed": {
+        "projects": {},
+        "success": true,
+        "duration_seconds": 0.001
+      },
+      "args": {}
+    },
+    "concierge_status": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'system': 'Grafo Concierge v3.8.0', 'components': {'sqlite': {'status': 'healthy', 'total_projects': 0}, 'janitor': {'status': 'idle",
+      "parsed": {
+        "success": true,
+        "system": "Grafo Concierge v3.8.0",
+        "components": {
+          "sqlite": {
+            "status": "healthy",
+            "total_projects": 0
+          },
+          "janitor": {
+            "status": "idle",
+            "total_runs": 0
+          }
+        },
+        "project": {
+          "uuid": "00000000-0000-0000-0000-000000000000",
+          "error": "Project not found: 00000000-0000-0000-0000-000000000000"
+        },
+        "duration_seconds": 0.001
+      },
+      "args": {
+        "project_uuid": "00000000-0000-0000-0000-000000000000"
+      }
+    },
+    "get_full_topology": {
+      "class": "SUCESSO VAZIO",
+      "detail": "{'success': True, 'nodes': [], 'edges': [], 'duration_seconds': 0.002}",
+      "parsed": {
+        "success": true,
+        "nodes": [],
+        "edges": [],
+        "duration_seconds": 0.002
+      },
+      "args": {}
+    },
+    "count_embeddings": {
+      "class": "SUCESSO VAZIO",
+      "detail": "{'success': True, 'project_uuid': None, 'count': 0, 'duration_seconds': 0.004}",
+      "parsed": {
+        "success": true,
+        "project_uuid": null,
+        "count": 0,
+        "duration_seconds": 0.004
+      },
+      "args": {}
+    },
+    "concierge_search": {
+      "class": "SUCESSO VAZIO",
+      "detail": "{'success': True, 'query': 'compute_total', 'project_uuid': '', 'results_count': 0, 'results': [], 'duration_seconds': 0.005}",
+      "parsed": {
+        "success": true,
+        "query": "compute_total",
+        "project_uuid": "",
+        "results_count": 0,
+        "results": [],
+        "duration_seconds": 0.005
+      },
+      "args": {
+        "query": "compute_total",
+        "all_wings": true
+      }
+    },
+    "search_symbols": {
+      "class": "SUCESSO VAZIO",
+      "detail": "{'success': True, 'symbols': [], 'duration_seconds': 0.0}",
+      "parsed": {
+        "success": true,
+        "symbols": [],
+        "duration_seconds": 0.0
+      },
+      "args": {
+        "query": "add"
+      }
+    },
+    "get_implementations": {
+      "class": "ERRO DE NEGÓCIO",
+      "detail": "Node not found: 1",
+      "parsed": {
+        "success": false,
+        "error": "Node not found: 1",
+        "duration_seconds": 0.0
+      },
+      "args": {
+        "symbol_id": 1
+      }
+    },
+    "get_callers": {
+      "class": "SUCESSO VAZIO",
+      "detail": "{'success': True, 'symbol_id': 1, 'callers': [], 'duration_seconds': 0.0}",
+      "parsed": {
+        "success": true,
+        "symbol_id": 1,
+        "callers": [],
+        "duration_seconds": 0.0
+      },
+      "args": {
+        "symbol_id": 1
+      }
+    },
+    "concierge_get_call_chain": {
+      "class": "EXCEÇÃO",
+      "detail": "ToolError: Error executing tool concierge_get_call_chain: no such table: ast_edges",
+      "parsed": {
+        "exception": "Error executing tool concierge_get_call_chain: no such table: ast_edges",
+        "type": "ToolError"
+      },
+      "args": {
+        "start_node": "calc.py",
+        "depth_limit": 3
+      }
+    },
+    "concierge_load": {
+      "class": "ERRO DE NEGÓCIO",
+      "detail": "Node not found: 1",
+      "parsed": {
+        "success": false,
+        "error": "Node not found: 1",
+        "duration_seconds": 0.0
+      },
+      "args": {
+        "node_id": 1
+      }
+    },
+    "concierge_wakeup": {
+      "class": "ERRO DE NEGÓCIO",
+      "detail": "Project not found: 00000000-0000-0000-0000-000000000000",
+      "parsed": {
+        "success": false,
+        "error": "Project not found: 00000000-0000-0000-0000-000000000000",
+        "duration_seconds": 0.0
+      },
+      "args": {
+        "project_uuid": "00000000-0000-0000-0000-000000000000"
+      }
+    },
+    "concierge_resume": {
+      "class": "ERRO DE NEGÓCIO",
+      "detail": "Project not found: 00000000-0000-0000-0000-000000000000",
+      "parsed": {
+        "success": false,
+        "error": "Project not found: 00000000-0000-0000-0000-000000000000",
+        "duration_seconds": 0.0
+      },
+      "args": {
+        "project_uuid": "00000000-0000-0000-0000-000000000000"
+      }
+    },
+    "concierge_set_state": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'session_id': 'default', 'active_state': 'EXECUTION'}",
+      "parsed": {
+        "success": true,
+        "session_id": "default",
+        "active_state": "EXECUTION"
+      },
+      "args": {
+        "state_name": "EXECUTION",
+        "session_id": "default"
+      }
+    },
+    "concierge_store_fact": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'scope_type': 'session', 'scope_id': 'test_sess', 'decisions': [{'fact': 'Fato inicial em L', 'action': 'ADD', 'target_id': None, 'f",
+      "parsed": {
+        "success": true,
+        "scope_type": "session",
+        "scope_id": "test_sess",
+        "decisions": [
+          {
+            "fact": "Fato inicial em L",
+            "action": "ADD",
+            "target_id": null,
+            "fact_id": 1
+          }
+        ],
+        "duration_seconds": 0.009
+      },
+      "args": {
+        "scope_type": "session",
+        "scope_id": "test_sess",
+        "fact_statement": "Fato inicial em L"
+      }
+    },
+    "concierge_list_facts": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'scope_type': 'session', 'scope_id': 'test_sess', 'facts_count': 1, 'facts': [{'id': 1, 'scope_type': 'session', 'scope_id': 'test_s",
+      "parsed": {
+        "success": true,
+        "scope_type": "session",
+        "scope_id": "test_sess",
+        "facts_count": 1,
+        "facts": [
+          {
+            "id": 1,
+            "scope_type": "session",
+            "scope_id": "test_sess",
+            "fact_statement": "Fato inicial em L",
+            "t_valid": "2026-10-17 01:33:05",
+            "t_invalid": null,
+            "utility_alpha": 1.0,
+            "utility_beta": 1.0,
+            "created_at": "2026-10-17 01:33:05"
+          }
+        ],
+        "duration_seconds": 0.004
+      },
+      "args": {
+        "scope_type": "session",
+        "scope_id": "test_sess"
+      }
+    },
+    "concierge_set_memory": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'memory_id': 1, 'scope_type': 'session', 'scope_id': 'test_sess', 'block_label': 'notes', 'duration_seconds': 0.005}",
+      "parsed": {
+        "success": true,
+        "memory_id": 1,
+        "scope_type": "session",
+        "scope_id": "test_sess",
+        "block_label": "notes",
+        "duration_seconds": 0.005
+      },
+      "args": {
+        "scope_type": "session",
+        "scope_id": "test_sess",
+        "block_label": "notes",
+        "content": "Nota em L"
+      }
+    },
+    "concierge_get_memory": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'scope_type': 'session', 'scope_id': 'test_sess', 'block_label': None, 'blocks': [{'id': 1, 'scope_type': 'session', 'scope_id': 'te",
+      "parsed": {
+        "success": true,
+        "scope_type": "session",
+        "scope_id": "test_sess",
+        "block_label": null,
+        "blocks": [
+          {
+            "id": 1,
+            "scope_type": "session",
+            "scope_id": "test_sess",
+            "block_label": "notes",
+            "content": "Nota em L",
+            "updated_at": "2026-10-17 01:33:05"
+          }
+        ],
+        "duration_seconds": 0.005
+      },
+      "args": {
+        "scope_type": "session",
+        "scope_id": "test_sess"
+      }
+    },
+    "concierge_feedback": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'fact_id': 1, 'was_useful': True, 'updated_field': 'utility_alpha', 'message': 'utility_alpha incremented for fact 1.', 'duration_se",
+      "parsed": {
+        "success": true,
+        "fact_id": 1,
+        "was_useful": true,
+        "updated_field": "utility_alpha",
+        "message": "utility_alpha incremented for fact 1.",
+        "duration_seconds": 0.008
+      },
+      "args": {
+        "fact_id": 1,
+        "was_useful": true
+      }
+    },
+    "find_similar": {
+      "class": "ERRO DE NEGÓCIO",
+      "detail": "Project not found: 00000000-0000-0000-0000-000000000000",
+      "parsed": {
+        "success": false,
+        "error": "Project not found: 00000000-0000-0000-0000-000000000000",
+        "duration_seconds": 0.0
+      },
+      "args": {
+        "project_identifier": "00000000-0000-0000-0000-000000000000"
+      }
+    },
+    "get_trajectories": {
+      "class": "SUCESSO VAZIO",
+      "detail": "{'success': True, 'project_uuid': '00000000-0000-0000-0000-000000000000', 'trajectories': [], 'duration_seconds': 0.002}",
+      "parsed": {
+        "success": true,
+        "project_uuid": "00000000-0000-0000-0000-000000000000",
+        "trajectories": [],
+        "duration_seconds": 0.002
+      },
+      "args": {
+        "project_identifier": "00000000-0000-0000-0000-000000000000"
+      }
+    },
+    "add_reference_wing": {
+      "class": "ERRO DE NEGÓCIO",
+      "detail": "FOREIGN KEY constraint failed",
+      "parsed": {
+        "success": false,
+        "error": "FOREIGN KEY constraint failed",
+        "duration_seconds": 0.005
+      },
+      "args": {
+        "project_identifier": "00000000-0000-0000-0000-000000000000",
+        "wing_name": "WING_TEST"
+      }
+    },
+    "remove_reference_wing": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'project_uuid': '00000000-0000-0000-0000-000000000000', 'wing_name': 'WING_TEST', 'duration_seconds': 0.004}",
+      "parsed": {
+        "success": true,
+        "project_uuid": "00000000-0000-0000-0000-000000000000",
+        "wing_name": "WING_TEST",
+        "duration_seconds": 0.004
+      },
+      "args": {
+        "project_identifier": "00000000-0000-0000-0000-000000000000",
+        "wing_name": "WING_TEST"
+      }
+    },
+    "update_project": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'project_uuid': '00000000-0000-0000-0000-000000000000', 'updated_fields': ['summary'], 'duration_seconds': 0.004}",
+      "parsed": {
+        "success": true,
+        "project_uuid": "00000000-0000-0000-0000-000000000000",
+        "updated_fields": [
+          "summary"
+        ],
+        "duration_seconds": 0.004
+      },
+      "args": {
+        "project_identifier": "00000000-0000-0000-0000-000000000000",
+        "summary": "Atualizacao em L"
+      }
+    },
+    "agent_save_checkpoint": {
+      "class": "ERRO DE NEGÓCIO",
+      "detail": "Failed to save checkpoint 'chk_l' for agent 'test_agent_1'",
+      "parsed": {
+        "success": false,
+        "message": "Failed to save checkpoint 'chk_l' for agent 'test_agent_1'"
+      },
+      "args": {
+        "agent_id": "test_agent_1",
+        "session_id": "sess_l",
+        "checkpoint_id": "chk_l",
+        "state_dict": {
+          "init": true
+        }
+      }
+    },
+    "agent_get_checkpoint": {
+      "class": "EXCEÇÃO",
+      "detail": "ToolError: Error executing tool agent_get_checkpoint: no such table: agent_checkpoints",
+      "parsed": {
+        "exception": "Error executing tool agent_get_checkpoint: no such table: agent_checkpoints",
+        "type": "ToolError"
+      },
+      "args": {
+        "agent_id": "test_agent_1",
+        "session_id": "sess_l",
+        "checkpoint_id": "chk_l"
+      }
+    },
+    "agent_list_checkpoints": {
+      "class": "EXCEÇÃO",
+      "detail": "ToolError: Error executing tool agent_list_checkpoints: no such table: agent_checkpoints",
+      "parsed": {
+        "exception": "Error executing tool agent_list_checkpoints: no such table: agent_checkpoints",
+        "type": "ToolError"
+      },
+      "args": {
+        "agent_id": "test_agent_1",
+        "session_id": "sess_l"
+      }
+    },
+    "concierge_commit": {
+      "class": "ERRO DE NEGÓCIO",
+      "detail": "FOREIGN KEY constraint failed",
+      "parsed": {
+        "success": false,
+        "error": "FOREIGN KEY constraint failed",
+        "duration_seconds": 0.004
+      },
+      "args": {
+        "project_uuid": "00000000-0000-0000-0000-000000000000",
+        "phase": "TEST",
+        "technical_changes": "Commit em L",
+        "updated_pointers": [
+          "file1.py"
+        ]
+      }
+    },
+    "concierge_register": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'project_uuid': '0f6669f2-4486-48bf-af44-9fa1e1b1e19e', 'folder_name': 'fixture_project', 'wing': 'geral', 'privacy_level': 'PUBLIC'",
+      "parsed": {
+        "success": true,
+        "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+        "folder_name": "fixture_project",
+        "wing": "geral",
+        "privacy_level": "PUBLIC",
+        "duration_seconds": 0.006
+      },
+      "args": {
+        "project_path": "C:\\Users\\guial\\AppData\\Local\\Temp\\fase4_0c_matrix_p387kgtn\\fixture_project",
+        "summary": "Projeto Fixture L"
+      }
+    },
+    "concierge_mine": {
+      "class": "ERRO DE NEGÓCIO",
+      "detail": "Project not found: 00000000-0000-0000-0000-000000000000",
+      "parsed": {
+        "success": false,
+        "error": "Project not found: 00000000-0000-0000-0000-000000000000",
+        "traceback": "Traceback (most recent call last):\n  File \"C:\\Nexus-Memory\\GrafoConcierge\\interface\\mcp_server.py\", line 1061, in _handle_mine\n    project = self._gc.store.get_project(project_uuid)\n  File \"C:\\Nexus-Memory\\GrafoConcierge\\storage\\store.py\", line 151, in get_project\n    raise ProjectNotFoundError(f\"Project not found: {project_id}\")\nstorage.store.ProjectNotFoundError: Project not found: 00000000-0000-0000-0000-000000000000\n",
+        "project_name": "00000000-0000-0000-0000-000000000000",
+        "path": "C:\\Users\\guial\\AppData\\Local\\Temp\\fase4_0c_matrix_p387kgtn\\fixture_project",
+        "duration_seconds": 0.0
+      },
+      "args": {
+        "path": "C:\\Users\\guial\\AppData\\Local\\Temp\\fase4_0c_matrix_p387kgtn\\fixture_project",
+        "project_identifier": "00000000-0000-0000-0000-000000000000",
+        "auto_tag": true
+      }
+    },
+    "reset_collection": {
+      "class": "NEGADO PELO GOVERNOR",
+      "detail": "Access denied: tool 'reset_collection' (category 'DANGEROUS') is blocked during state 'EXECUTION' for session 'default'.",
+      "parsed": {
+        "exception": "Access denied: tool 'reset_collection' (category 'DANGEROUS') is blocked during state 'EXECUTION' for session 'default'.",
+        "type": "SecurityException"
+      },
+      "args": {}
+    },
+    "delete_project": {
+      "class": "NEGADO PELO GOVERNOR",
+      "detail": "Access denied: tool 'delete_project' (category 'DANGEROUS') is blocked during state 'EXECUTION' for session 'default'.",
+      "parsed": {
+        "exception": "Access denied: tool 'delete_project' (category 'DANGEROUS') is blocked during state 'EXECUTION' for session 'default'.",
+        "type": "SecurityException"
+      },
+      "args": {
+        "project_identifier": "00000000-0000-0000-0000-000000000000"
+      }
+    }
+  },
+  "results_p": {
+    "concierge_list_projects": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'projects': {'fixture_project': {'uuid': '0f6669f2-4486-48bf-af44-9fa1e1b1e19e', 'updated_at': '2026-10-17'}}, 'success': True, 'duration_seconds': 0",
+      "parsed": {
+        "projects": {
+          "fixture_project": {
+            "uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+            "updated_at": "2026-10-17"
+          }
+        },
+        "success": true,
+        "duration_seconds": 0.0
+      },
+      "args": {}
+    },
+    "concierge_status": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'system': 'Grafo Concierge v3.8.0', 'components': {'sqlite': {'status': 'healthy', 'total_projects': 1}, 'janitor': {'status': 'idle",
+      "parsed": {
+        "success": true,
+        "system": "Grafo Concierge v3.8.0",
+        "components": {
+          "sqlite": {
+            "status": "healthy",
+            "total_projects": 1
+          },
+          "janitor": {
+            "status": "idle",
+            "total_runs": 0
+          }
+        },
+        "project": {
+          "project": {
+            "uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+            "folder_name": "fixture_project",
+            "primary_wing": "geral",
+            "privacy_level": "PUBLIC",
+            "summary": "Projeto Fixture L",
+            "created_at": "2026-10-17 01:33:05",
+            "updated_at": "2026-10-17 01:33:05"
+          },
+          "stats": {
+            "nodes": 10,
+            "nodes_by_type": {
+              "CLASS": 1,
+              "FACT": 2,
+              "FUNCTION": 3,
+              "METHOD": 1,
+              "MODULE": 3
+            },
+            "edges": 12,
+            "commits": 0,
+            "last_commit_at": null,
+            "trajectories": 0,
+            "trajectories_active": 0
+          },
+          "reference_wings": [],
+          "last_commit_phase": null
+        },
+        "duration_seconds": 0.002
+      },
+      "args": {
+        "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e"
+      }
+    },
+    "get_full_topology": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'nodes': [{'node_id': 1, 'name': '<root>', 'node_type': 'FACT'}, {'node_id': 2, 'name': 'calc.py::compute_total', 'node_type': 'FUNC",
+      "parsed": {
+        "success": true,
+        "nodes": [
+          {
+            "node_id": 1,
+            "name": "<root>",
+            "node_type": "FACT"
+          },
+          {
+            "node_id": 2,
+            "name": "calc.py::compute_total",
+            "node_type": "FUNCTION"
+          },
+          {
+            "node_id": 3,
+            "name": "calc.py::<module>",
+            "node_type": "MODULE"
+          },
+          {
+            "node_id": 4,
+            "name": "math_ops.py::add",
+            "node_type": "FUNCTION"
+          },
+          {
+            "node_id": 5,
+            "name": "math_ops.py::multiply",
+            "node_type": "FUNCTION"
+          },
+          {
+            "node_id": 6,
+            "name": "math_ops.py::<module>",
+            "node_type": "MODULE"
+          },
+          {
+            "node_id": 7,
+            "name": "README.md::Fixture Project",
+            "node_type": "FACT"
+          },
+          {
+            "node_id": 8,
+            "name": "service.py::CalculatorService.run",
+            "node_type": "METHOD"
+          },
+          {
+            "node_id": 9,
+            "name": "service.py::CalculatorService",
+            "node_type": "CLASS"
+          },
+          {
+            "node_id": 10,
+            "name": "service.py::<module>",
+            "node_type": "MODULE"
+          }
+        ],
+        "edges": [
+          {
+            "source": 1,
+            "target": 3,
+            "edge_type": "contains"
+          },
+          {
+            "source": 1,
+            "target": 6,
+            "edge_type": "contains"
+          },
+          {
+            "source": 1,
+            "target": 7,
+            "edge_type": "contains"
+          },
+          {
+            "source": 1,
+            "target": 10,
+            "edge_type": "contains"
+          },
+          {
+            "source": 2,
+            "target": 4,
+            "edge_type": "calls"
+          },
+          {
+            "source": 2,
+            "target": 5,
+            "edge_type": "calls"
+          },
+          {
+            "source": 3,
+            "target": 2,
+            "edge_type": "contains"
+          },
+          {
+            "source": 6,
+            "target": 4,
+            "edge_type": "contains"
+          },
+          {
+            "source": 6,
+            "target": 5,
+            "edge_type": "contains"
+          },
+          {
+            "source": 8,
+            "target": 2,
+            "edge_type": "calls"
+          },
+          {
+            "source": 10,
+            "target": 8,
+            "edge_type": "contains"
+          },
+          {
+            "source": 10,
+            "target": 9,
+            "edge_type": "contains"
+          }
+        ],
+        "duration_seconds": 0.002
+      },
+      "args": {
+        "project_identifier": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e"
+      }
+    },
+    "count_embeddings": {
+      "class": "SUCESSO VAZIO",
+      "detail": "{'success': True, 'project_uuid': '0f6669f2-4486-48bf-af44-9fa1e1b1e19e', 'count': 0, 'duration_seconds': 0.004}",
+      "parsed": {
+        "success": true,
+        "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+        "count": 0,
+        "duration_seconds": 0.004
+      },
+      "args": {
+        "project_identifier": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e"
+      }
+    },
+    "concierge_search": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'query': 'compute_total', 'project_uuid': '0f6669f2-4486-48bf-af44-9fa1e1b1e19e', 'results_count': 1, 'results': [{'node_id': 2, 'la",
+      "parsed": {
+        "success": true,
+        "query": "compute_total",
+        "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+        "results_count": 1,
+        "results": [
+          {
+            "node_id": 2,
+            "label": "calc.py::compute_total",
+            "summary": null,
+            "node_type": "FUNCTION",
+            "tags": null,
+            "hybrid_score": 0.3,
+            "vector_score": 0.0,
+            "fts_score": 1.0,
+            "recency_score": 0.01,
+            "centrality_score": 0.2,
+            "is_super_node": false
+          }
+        ],
+        "duration_seconds": 5.287
+      },
+      "args": {
+        "query": "compute_total",
+        "project_identifier": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e"
+      }
+    },
+    "search_symbols": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'symbols': [{'id': 4, 'label': 'math_ops.py::add', 'node_type': 'FUNCTION', 'file_path': 'math_ops.py::add', 'summary': None}], 'dur",
+      "parsed": {
+        "success": true,
+        "symbols": [
+          {
+            "id": 4,
+            "label": "math_ops.py::add",
+            "node_type": "FUNCTION",
+            "file_path": "math_ops.py::add",
+            "summary": null
+          }
+        ],
+        "duration_seconds": 0.0
+      },
+      "args": {
+        "query": "add",
+        "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e"
+      }
+    },
+    "get_implementations": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'symbol_id': 9, 'label': 'service.py::CalculatorService', 'type': 'class', 'implementation': 'class CalculatorService:\\n    def run(",
+      "parsed": {
+        "success": true,
+        "symbol_id": 9,
+        "label": "service.py::CalculatorService",
+        "type": "class",
+        "implementation": "class CalculatorService:\n    def run(self, val: int) -> int:\n        return compute_total(val)",
+        "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+        "duration_seconds": 0.0
+      },
+      "args": {
+        "symbol_id": 9
+      }
+    },
+    "get_callers": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'symbol_id': 9, 'callers': [{'id': 10, 'label': 'service.py::<module>', 'node_type': 'MODULE', 'relation_type': 'contains'}], 'durat",
+      "parsed": {
+        "success": true,
+        "symbol_id": 9,
+        "callers": [
+          {
+            "id": 10,
+            "label": "service.py::<module>",
+            "node_type": "MODULE",
+            "relation_type": "contains"
+          }
+        ],
+        "duration_seconds": 0.0
+      },
+      "args": {
+        "symbol_id": 9
+      }
+    },
+    "concierge_get_call_chain": {
+      "class": "EXCEÇÃO",
+      "detail": "ToolError: Error executing tool concierge_get_call_chain: no such table: ast_edges",
+      "parsed": {
+        "exception": "Error executing tool concierge_get_call_chain: no such table: ast_edges",
+        "type": "ToolError"
+      },
+      "args": {
+        "start_node": "calc.py",
+        "depth_limit": 3
+      }
+    },
+    "concierge_load": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'node': {'id': 1, 'project_uuid': '0f6669f2-4486-48bf-af44-9fa1e1b1e19e', 'label': '<root>', 'summary': None, 'content': None, 'node",
+      "parsed": {
+        "success": true,
+        "node": {
+          "id": 1,
+          "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+          "label": "<root>",
+          "summary": null,
+          "content": null,
+          "node_type": "FACT",
+          "type": "directory",
+          "tags": null,
+          "file_hash": null,
+          "last_accessed": null,
+          "last_commit_at": null,
+          "status": "ACTIVE",
+          "valid_from_commit": null,
+          "valid_to_commit": null,
+          "edges_out": [
+            {
+              "source_id": 1,
+              "target_id": 3,
+              "relation_type": "contains",
+              "weight": 1.0,
+              "valid_from_commit": null,
+              "valid_to_commit": null,
+              "confidence_tag": "EXTRACTED"
+            },
+            {
+              "source_id": 1,
+              "target_id": 6,
+              "relation_type": "contains",
+              "weight": 1.0,
+              "valid_from_commit": null,
+              "valid_to_commit": null,
+              "confidence_tag": "EXTRACTED"
+            },
+            {
+              "source_id": 1,
+              "target_id": 7,
+              "relation_type": "contains",
+              "weight": 1.0,
+              "valid_from_commit": null,
+              "valid_to_commit": null,
+              "confidence_tag": "EXTRACTED"
+            },
+            {
+              "source_id": 1,
+              "target_id": 10,
+              "relation_type": "contains",
+              "weight": 1.0,
+              "valid_from_commit": null,
+              "valid_to_commit": null,
+              "confidence_tag": "EXTRACTED"
+            }
+          ]
+        },
+        "duration_seconds": 0.004
+      },
+      "args": {
+        "node_id": 1
+      }
+    },
+    "concierge_wakeup": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'project': {'uuid': '0f6669f2-4486-48bf-af44-9fa1e1b1e19e', 'folder_name': 'fixture_project', 'primary_wing': 'geral', 'privacy_level': 'PUBLIC', 'su",
+      "parsed": {
+        "project": {
+          "uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+          "folder_name": "fixture_project",
+          "primary_wing": "geral",
+          "privacy_level": "PUBLIC",
+          "summary": "Projeto Fixture L",
+          "created_at": "2026-10-17 01:33:05",
+          "updated_at": "2026-10-17 01:33:05"
+        },
+        "resume": "Projeto Fixture L",
+        "reference_wings": [],
+        "recent_commits": [],
+        "stats": {
+          "nodes": 10,
+          "nodes_by_type": {
+            "CLASS": 1,
+            "FACT": 2,
+            "FUNCTION": 3,
+            "METHOD": 1,
+            "MODULE": 3
+          },
+          "edges": 12,
+          "commits": 0,
+          "last_commit_at": null,
+          "trajectories": 0,
+          "trajectories_active": 0
+        },
+        "semantic_facts": [],
+        "success": true,
+        "duration_seconds": 0.007
+      },
+      "args": {
+        "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e"
+      }
+    },
+    "concierge_resume": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'project_uuid': '0f6669f2-4486-48bf-af44-9fa1e1b1e19e', 'folder_name': 'fixture_project', 'primary_wing': 'geral', 'resume': 'Projet",
+      "parsed": {
+        "success": true,
+        "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+        "folder_name": "fixture_project",
+        "primary_wing": "geral",
+        "resume": "Projeto Fixture L",
+        "stats": {
+          "nodes": 10,
+          "nodes_by_type": {
+            "CLASS": 1,
+            "FACT": 2,
+            "FUNCTION": 3,
+            "METHOD": 1,
+            "MODULE": 3
+          },
+          "edges": 12,
+          "commits": 0,
+          "last_commit_at": null,
+          "trajectories": 0,
+          "trajectories_active": 0
+        },
+        "duration_seconds": 0.004
+      },
+      "args": {
+        "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e"
+      }
+    },
+    "concierge_set_state": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'session_id': 'default', 'active_state': 'EXECUTION'}",
+      "parsed": {
+        "success": true,
+        "session_id": "default",
+        "active_state": "EXECUTION"
+      },
+      "args": {
+        "state_name": "EXECUTION",
+        "session_id": "default"
+      }
+    },
+    "concierge_store_fact": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'scope_type': 'session', 'scope_id': 'test_sess', 'decisions': [{'fact': 'Fato adicional no estado P', 'action': 'ADD', 'target_id':",
+      "parsed": {
+        "success": true,
+        "scope_type": "session",
+        "scope_id": "test_sess",
+        "decisions": [
+          {
+            "fact": "Fato adicional no estado P",
+            "action": "ADD",
+            "target_id": null,
+            "fact_id": 3,
+            "fallback": true
+          }
+        ],
+        "duration_seconds": 0.458
+      },
+      "args": {
+        "scope_type": "session",
+        "scope_id": "test_sess",
+        "fact_statement": "Fato adicional no estado P"
+      }
+    },
+    "concierge_list_facts": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'scope_type': 'session', 'scope_id': 'test_sess', 'facts_count': 3, 'facts': [{'id': 1, 'scope_type': 'session', 'scope_id': 'test_s",
+      "parsed": {
+        "success": true,
+        "scope_type": "session",
+        "scope_id": "test_sess",
+        "facts_count": 3,
+        "facts": [
+          {
+            "id": 1,
+            "scope_type": "session",
+            "scope_id": "test_sess",
+            "fact_statement": "Fato inicial em L",
+            "t_valid": "2026-10-17 01:33:05",
+            "t_invalid": null,
+            "utility_alpha": 2.0,
+            "utility_beta": 1.0,
+            "created_at": "2026-10-17 01:33:05"
+          },
+          {
+            "id": 2,
+            "scope_type": "session",
+            "scope_id": "test_sess",
+            "fact_statement": "CalculatorService integrates compute_total and math operations.",
+            "t_valid": "2026-10-17 01:33:21",
+            "t_invalid": null,
+            "utility_alpha": 1.0,
+            "utility_beta": 1.0,
+            "created_at": "2026-10-17 01:33:21"
+          },
+          {
+            "id": 3,
+            "scope_type": "session",
+            "scope_id": "test_sess",
+            "fact_statement": "Fato adicional no estado P",
+            "t_valid": "2026-10-17 01:33:27",
+            "t_invalid": null,
+            "utility_alpha": 1.0,
+            "utility_beta": 1.0,
+            "created_at": "2026-10-17 01:33:27"
+          }
+        ],
+        "duration_seconds": 0.006
+      },
+      "args": {
+        "scope_type": "session",
+        "scope_id": "test_sess"
+      }
+    },
+    "concierge_set_memory": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'memory_id': 2, 'scope_type': 'session', 'scope_id': 'test_sess', 'block_label': 'notes', 'duration_seconds': 0.004}",
+      "parsed": {
+        "success": true,
+        "memory_id": 2,
+        "scope_type": "session",
+        "scope_id": "test_sess",
+        "block_label": "notes",
+        "duration_seconds": 0.004
+      },
+      "args": {
+        "scope_type": "session",
+        "scope_id": "test_sess",
+        "block_label": "notes",
+        "content": "Nota persistida no estado P"
+      }
+    },
+    "concierge_get_memory": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'scope_type': 'session', 'scope_id': 'test_sess', 'block_label': None, 'blocks': [{'id': 2, 'scope_type': 'session', 'scope_id': 'te",
+      "parsed": {
+        "success": true,
+        "scope_type": "session",
+        "scope_id": "test_sess",
+        "block_label": null,
+        "blocks": [
+          {
+            "id": 2,
+            "scope_type": "session",
+            "scope_id": "test_sess",
+            "block_label": "notes",
+            "content": "Nota persistida no estado P",
+            "updated_at": "2026-10-17 01:33:27"
+          }
+        ],
+        "duration_seconds": 0.002
+      },
+      "args": {
+        "scope_type": "session",
+        "scope_id": "test_sess"
+      }
+    },
+    "concierge_feedback": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'fact_id': 2, 'was_useful': True, 'updated_field': 'utility_alpha', 'message': 'utility_alpha incremented for fact 2.', 'duration_se",
+      "parsed": {
+        "success": true,
+        "fact_id": 2,
+        "was_useful": true,
+        "updated_field": "utility_alpha",
+        "message": "utility_alpha incremented for fact 2.",
+        "duration_seconds": 0.007
+      },
+      "args": {
+        "fact_id": 2,
+        "was_useful": true
+      }
+    },
+    "find_similar": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'project_uuid': '0f6669f2-4486-48bf-af44-9fa1e1b1e19e', 'similar_projects': [], 'duration_seconds': 0.006}",
+      "parsed": {
+        "success": true,
+        "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+        "similar_projects": [],
+        "duration_seconds": 0.006
+      },
+      "args": {
+        "project_identifier": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e"
+      }
+    },
+    "get_trajectories": {
+      "class": "SUCESSO VAZIO",
+      "detail": "{'success': True, 'project_uuid': '0f6669f2-4486-48bf-af44-9fa1e1b1e19e', 'trajectories': [], 'duration_seconds': 0.002}",
+      "parsed": {
+        "success": true,
+        "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+        "trajectories": [],
+        "duration_seconds": 0.002
+      },
+      "args": {
+        "project_identifier": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e"
+      }
+    },
+    "add_reference_wing": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'project_uuid': '0f6669f2-4486-48bf-af44-9fa1e1b1e19e', 'wing_name': 'WING_TEST', 'duration_seconds': 0.005}",
+      "parsed": {
+        "success": true,
+        "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+        "wing_name": "WING_TEST",
+        "duration_seconds": 0.005
+      },
+      "args": {
+        "project_identifier": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+        "wing_name": "WING_TEST"
+      }
+    },
+    "remove_reference_wing": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'project_uuid': '0f6669f2-4486-48bf-af44-9fa1e1b1e19e', 'wing_name': 'WING_TEST', 'duration_seconds': 0.005}",
+      "parsed": {
+        "success": true,
+        "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+        "wing_name": "WING_TEST",
+        "duration_seconds": 0.005
+      },
+      "args": {
+        "project_identifier": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+        "wing_name": "WING_TEST"
+      }
+    },
+    "update_project": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'project_uuid': '0f6669f2-4486-48bf-af44-9fa1e1b1e19e', 'updated_fields': ['summary'], 'duration_seconds': 0.006}",
+      "parsed": {
+        "success": true,
+        "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+        "updated_fields": [
+          "summary"
+        ],
+        "duration_seconds": 0.006
+      },
+      "args": {
+        "project_identifier": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+        "summary": "Projeto Fixture Atualizado"
+      }
+    },
+    "agent_save_checkpoint": {
+      "class": "ERRO DE NEGÓCIO",
+      "detail": "Failed to save checkpoint 'chk_p2' for agent 'test_agent_1'",
+      "parsed": {
+        "success": false,
+        "message": "Failed to save checkpoint 'chk_p2' for agent 'test_agent_1'"
+      },
+      "args": {
+        "agent_id": "test_agent_1",
+        "session_id": "sess_p",
+        "checkpoint_id": "chk_p2",
+        "state_dict": {
+          "step": "p2"
+        }
+      }
+    },
+    "agent_get_checkpoint": {
+      "class": "EXCEÇÃO",
+      "detail": "ToolError: Error executing tool agent_get_checkpoint: no such table: agent_checkpoints",
+      "parsed": {
+        "exception": "Error executing tool agent_get_checkpoint: no such table: agent_checkpoints",
+        "type": "ToolError"
+      },
+      "args": {
+        "agent_id": "test_agent_1",
+        "session_id": "sess_p",
+        "checkpoint_id": "chk_p"
+      }
+    },
+    "agent_list_checkpoints": {
+      "class": "EXCEÇÃO",
+      "detail": "ToolError: Error executing tool agent_list_checkpoints: no such table: agent_checkpoints",
+      "parsed": {
+        "exception": "Error executing tool agent_list_checkpoints: no such table: agent_checkpoints",
+        "type": "ToolError"
+      },
+      "args": {
+        "agent_id": "test_agent_1",
+        "session_id": "sess_p"
+      }
+    },
+    "concierge_commit": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'commit_id': 1, 'project_uuid': '0f6669f2-4486-48bf-af44-9fa1e1b1e19e', 'phase': 'TEST', 'duration_seconds': 0.006}",
+      "parsed": {
+        "success": true,
+        "commit_id": 1,
+        "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+        "phase": "TEST",
+        "duration_seconds": 0.006
+      },
+      "args": {
+        "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+        "phase": "TEST",
+        "technical_changes": "Commit consolidado em P",
+        "updated_pointers": [
+          "math_ops.py",
+          "calc.py"
+        ]
+      }
+    },
+    "concierge_register": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'project_uuid': '0f6669f2-4486-48bf-af44-9fa1e1b1e19e', 'folder_name': 'fixture_project', 'wing': 'geral', 'privacy_level': 'PUBLIC'",
+      "parsed": {
+        "success": true,
+        "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+        "folder_name": "fixture_project",
+        "wing": "geral",
+        "privacy_level": "PUBLIC",
+        "duration_seconds": 0.005
+      },
+      "args": {
+        "project_path": "C:\\Users\\guial\\AppData\\Local\\Temp\\fase4_0c_matrix_p387kgtn\\fixture_project",
+        "summary": "Novo registro em P"
+      }
+    },
+    "concierge_mine": {
+      "class": "SUCESSO VAZIO",
+      "detail": "{'files_processed': 0, 'categories': {'code': 3, 'doc': 1}, 'nodes_created': 0, 'embeddings_stored': 0, 'tags_applied': [], 'files_skipped': 4, 'files",
+      "parsed": {
+        "files_processed": 0,
+        "categories": {
+          "code": 3,
+          "doc": 1
+        },
+        "nodes_created": 0,
+        "embeddings_stored": 0,
+        "tags_applied": [],
+        "files_skipped": 4,
+        "files_deleted": 0,
+        "summaries_generated": 0,
+        "errors": [],
+        "success": true,
+        "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+        "project_name": "fixture_project",
+        "path": "C:\\Users\\guial\\AppData\\Local\\Temp\\fase4_0c_matrix_p387kgtn\\fixture_project",
+        "duration_seconds": 0.021
+      },
+      "args": {
+        "path": "C:\\Users\\guial\\AppData\\Local\\Temp\\fase4_0c_matrix_p387kgtn\\fixture_project",
+        "project_identifier": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+        "auto_tag": true
+      }
+    },
+    "reset_collection": {
+      "class": "NEGADO PELO GOVERNOR",
+      "detail": "Access denied: tool 'reset_collection' (category 'DANGEROUS') is blocked during state 'EXECUTION' for session 'default'.",
+      "parsed": {
+        "exception": "Access denied: tool 'reset_collection' (category 'DANGEROUS') is blocked during state 'EXECUTION' for session 'default'.",
+        "type": "SecurityException"
+      },
+      "args": {}
+    },
+    "delete_project": {
+      "class": "NEGADO PELO GOVERNOR",
+      "detail": "Access denied: tool 'delete_project' (category 'DANGEROUS') is blocked during state 'EXECUTION' for session 'default'.",
+      "parsed": {
+        "exception": "Access denied: tool 'delete_project' (category 'DANGEROUS') is blocked during state 'EXECUTION' for session 'default'.",
+        "type": "SecurityException"
+      },
+      "args": {
+        "project_identifier": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e"
+      }
+    }
+  },
+  "mine_1_retorno": {
+    "success": false,
+    "error": "not all arguments converted during string formatting",
+    "traceback": "Traceback (most recent call last):\n  File \"C:\\Nexus-Memory\\GrafoConcierge\\interface\\mcp_server.py\", line 1076, in _handle_mine\n    result = self._gc.mine(project_uuid, path, auto_tag=auto_tag)\n  File \"C:\\Nexus-Memory\\GrafoConcierge\\core\\middleware.py\", line 235, in mine\n    result = self._ingestion.mine(project_uuid, source_path, auto_tag)\n  File \"C:\\Nexus-Memory\\GrafoConcierge\\ingestion\\orchestrator.py\", line 222, in mine\n    logger.info(\"[5/8] EMBED — Generating embeddings...\", len(chunks))\n    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Python314\\Lib\\logging\\__init__.py\", line 1520, in info\n    self._log(INFO, msg, args, **kwargs)\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Python314\\Lib\\logging\\__init__.py\", line 1665, in _log\n    self.handle(record)\n    ~~~~~~~~~~~^^^^^^^^\n  File \"C:\\Python314\\Lib\\logging\\__init__.py\", line 1681, in handle\n    self.callHandlers(record)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^\n  File \"C:\\Python314\\Lib\\logging\\__init__.py\", line 1737, in callHandlers\n    hdlr.handle(record)\n    ~~~~~~~~~~~^^^^^^^^\n  File \"C:\\Python314\\Lib\\logging\\__init__.py\", line 1027, in handle\n    self.emit(record)\n    ~~~~~~~~~^^^^^^^^\n  File \"C:\\Users\\guial\\AppData\\Roaming\\Python\\Python314\\site-packages\\rich\\logging.py\", line 140, in emit\n    message = self.format(record)\n  File \"C:\\Python314\\Lib\\logging\\__init__.py\", line 999, in format\n    return fmt.format(record)\n           ~~~~~~~~~~^^^^^^^^\n  File \"C:\\Python314\\Lib\\logging\\__init__.py\", line 712, in format\n    record.message = record.getMessage()\n                     ~~~~~~~~~~~~~~~~~^^\n  File \"C:\\Python314\\Lib\\logging\\__init__.py\", line 400, in getMessage\n    msg = msg % self.args\n          ~~~~^~~~~~~~~~~\nTypeError: not all arguments converted during string formatting\n",
+    "project_name": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+    "path": "C:\\Users\\guial\\AppData\\Local\\Temp\\fase4_0c_matrix_p387kgtn\\fixture_project",
+    "duration_seconds": 15.822
+  },
+  "mine_2_retorno": {
+    "files_processed": 0,
+    "categories": {
+      "code": 3,
+      "doc": 1
+    },
+    "nodes_created": 0,
+    "embeddings_stored": 0,
+    "tags_applied": [],
+    "files_skipped": 4,
+    "files_deleted": 0,
+    "summaries_generated": 0,
+    "errors": [],
+    "success": true,
+    "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+    "project_name": "fixture_project",
+    "path": "C:\\Users\\guial\\AppData\\Local\\Temp\\fase4_0c_matrix_p387kgtn\\fixture_project",
+    "duration_seconds": 0.023
+  },
+  "feedback_nonexistent": {
+    "class": "SUCESSO COM DADOS",
+    "detail": "{'success': True, 'fact_id': 99999, 'was_useful': True, 'updated_field': 'utility_alpha', 'message': 'utility_alpha incremented for fact 99999.', 'duration_seconds': 0.004}",
+    "parsed": {
+      "success": true,
+      "fact_id": 99999,
+      "was_useful": true,
+      "updated_field": "utility_alpha",
+      "message": "utility_alpha incremented for fact 99999.",
+      "duration_seconds": 0.004
+    }
+  },
+  "governor_maintenance_test": {
+    "reset_collection_execution": {
+      "class": "NEGADO PELO GOVERNOR",
+      "detail": "Access denied: tool 'reset_collection' (category 'DANGEROUS') is blocked during state 'EXECUTION' for session 'default'.",
+      "parsed": {
+        "exception": "Access denied: tool 'reset_collection' (category 'DANGEROUS') is blocked during state 'EXECUTION' for session 'default'.",
+        "type": "SecurityException"
+      },
+      "args": {}
+    },
+    "delete_project_execution": {
+      "class": "NEGADO PELO GOVERNOR",
+      "detail": "Access denied: tool 'delete_project' (category 'DANGEROUS') is blocked during state 'EXECUTION' for session 'default'.",
+      "parsed": {
+        "exception": "Access denied: tool 'delete_project' (category 'DANGEROUS') is blocked during state 'EXECUTION' for session 'default'.",
+        "type": "SecurityException"
+      },
+      "args": {
+        "project_identifier": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e"
+      }
+    },
+    "reset_collection_maintenance": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'duration_seconds': 0.019}",
+      "parsed": {
+        "success": true,
+        "duration_seconds": 0.019
+      }
+    },
+    "delete_project_maintenance": {
+      "class": "SUCESSO COM DADOS",
+      "detail": "{'success': True, 'project_uuid': '0f6669f2-4486-48bf-af44-9fa1e1b1e19e', 'duration_seconds': 0.017}",
+      "parsed": {
+        "success": true,
+        "project_uuid": "0f6669f2-4486-48bf-af44-9fa1e1b1e19e",
+        "duration_seconds": 0.017
+      }
+    }
+  }
+}

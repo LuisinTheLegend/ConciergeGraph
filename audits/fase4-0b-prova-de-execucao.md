@@ -403,6 +403,9 @@ Verificação de liberação da porta 18923: code=None (Esperado: None/Connectio
 
 ## 7. Classificação dos 88 Itens do Backlog (VIVO vs DORMENTE)
 
+> [!WARNING]
+> **Retificação da Rodada 4.0c (Passo 3):** A classificação preliminar binária desta seção (42 VIVOS e 46 DORMENTES), calculada por casamento textual de caminhos no script preliminar `scratch/classify_execution.py`, foi formalmente superada e retificada na Rodada 4.0c por cobertura AST dinâmica (Passos 2 e 3): **43 VIVO**, **30 DORMENTE**, **9 MISTO** (submetidos à deliberação humana) e **6 SEM CITAÇÃO PROD PYTHON** (5 no Dashboard Web e 1 no Test Mirage das 17 suítes). Consulte [`audits/fase4-0c-prova-corrigida.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/fase4-0c-prova-corrigida.md) e a Seção 11 (Errata) para os dados normativos vigentes.
+
 Sem alterar numeração, títulos ou a contagem exata (3 Máxima, 21 Crítica, 30 Grave, 29 Média, 5 Baixa):
 
 ### Resumo Estatístico:
@@ -575,3 +578,92 @@ Este relatório estabelece de forma irrefutável e empírica o limite entre o qu
 3. A decisão sobre os Caminhos A, B ou C determinará o escopo exato das correções da Fase 4.
 
 Em estrito cumprimento à **Regra 7 (Gates)**, nada é movido, removido, desacoplado nem implementado. A execução está interrompida aguardando a deliberação do usuário.
+
+---
+
+## 11. Errata (4.0c) — Retificações Normativas (Regra 10)
+
+Em cumprimento estrito à **Regra 10 do Protocolo de Auditoria** ("Se o humano pedir uma correção pontual num achado já reportado, aplique a correção diretamente no arquivo de relatório correspondente"), registram-se abaixo as correções materiais aos pontos identificados pela revisão independente da Rodada 4.0b (commit `aacca16`), fundamentadas com saídas literais e dados comprovados na Rodada 4.0c.
+
+### 11.1 Afirmação sobre o funcionamento de `get_callers`
+- **Antes (`git show aacca16:audits/fase4-0b-prova-de-execucao.md` Linha 248):**
+  A tabela da Seção 4 reportava `get_callers` como `EXCEÇÃO` tanto em banco limpo (L) quanto populado (P):
+  ```markdown
+  | `get_callers` | EXCEÇÃO | `ToolError: Error executing tool get_callers: 1 validation error for get_callersArguments s` | EXCEÇÃO | `ToolError: Error executing tool get_callers: 1 validation error for get_callersArguments s` |
+  ```
+  Contudo, o texto resumido da Seção 9 sugeria que a ferramenta pertencia ao grupo de ferramentas funcionais.
+- **Depois (Correção 4.0c):**
+  A falha no teste da 4.0b foi uma **falha da sonda** (argumento `node_id` inválido ou incompatível na chamada). Inspecionando a assinatura real em `mcp_server.py:1680` (`node_id: int`) e executando contra o fixture populado em P com um nó existente (`node_id=3`, correspondente a `src/main.py::run`), a ferramenta executa perfeitamente e retorna **SUCESSO COM DADOS**:
+  ```json
+  {
+    "callers": [
+      {
+        "caller_id": 2,
+        "caller_label": "src/main.py::src/main.py",
+        "relation_type": "contains"
+      }
+    ],
+    "duration_seconds": 0.001,
+    "node_id": 3,
+    "success": true
+  }
+  ```
+
+---
+
+### 11.2 A Contagem "29 de 31 Funcionando"
+- **Antes (`git show aacca16:audits/fase4-0b-prova-de-execucao.md` Linha 560):**
+  ```markdown
+  - **Comportamento das Ferramentas MCP:** **100% das ferramentas do núcleo operacional (29 de 31) funcionando perfeitamente**, sem tabelas fantasmas.
+  ```
+- **Depois (Correção 4.0c):**
+  A contagem de "29 de 31" foi obtida por categorização textual que considerou respostas com `success: false` (erros de validação e de negócio) como "OK com dados", além de argumentos inválidos na sonda. A contagem rigorosa com argumentos válidos no Passo 1 da 4.0c comprovou:
+  - **25 ferramentas em SUCESSO COM DADOS** no estado padrão `EXECUTION`.
+  - **2 ferramentas NEGADAS PELO GOVERNOR em `EXECUTION`**, mas que retornam **SUCESSO COM DADOS** no estado `MAINTENANCE` (`reset_collection` e `delete_project`).
+  - **4 ferramentas QUEBRADAS POR SCHEMA AUSENTE** em qualquer estado (`concierge_get_call_chain` falha com `no such table: ast_edges`; `agent_save_checkpoint`, `agent_get_checkpoint` e `agent_list_checkpoints` falham com `no such table: agent_checkpoints`).
+  - **Total real:** **25 funcionais no modo padrão**, **27 funcionais com governança plena**, e **4 inoperantes por ausência de DDL**.
+
+---
+
+### 11.3 Redirecionamento de `concierge_get_call_chain` e Citação de `depends_on`
+- **Antes (`git show aacca16:audits/fase4-0b-prova-de-execucao.md` Linhas 554–555):**
+  ```markdown
+  - **Viabilidade:** 100% viável e cirúrgico. A ingestão oficial (`ingestion/orchestrator.py:644-727`) já grava arestas de AST em `edges` com `relation_type IN ('calls', 'depends_on')`.
+  - **Mudança Mínima:** Em `core/graph_rag.py:179`, substituir `FROM ast_edges` por `FROM edges WHERE relation_type IN ('calls', 'depends_on')` e mapear `parent_node -> source_id`, `child_node -> target_id`.
+  ```
+- **Depois (Correção 4.0c):**
+  A afirmação de "100% viável e cirúrgico" subestimou a incompatibilidade de modelo entre as tabelas:
+  1. `ingestion/orchestrator.py:644–727` grava estritamente `relation_type = 'contains'` e `relation_type = 'calls'`. O tipo `'depends_on'` **NUNCA** é gravado pelo orquestrador (é apenas o valor padrão estático do schema DDL).
+  2. `ast_edges` operava conceitualmente sobre identificadores textuais (`parent_node`, `child_node`), enquanto `edges` opera sobre chaves primárias inteiras (`source_id`, `target_id` referenciando `nodes.id`).
+  3. A ferramenta MCP recebe `start_node: str` e sua docstring promete retornar uma lista de caminhos de arquivos. Fazer o redirecionamento exige decisões arquiteturais sobre resolução de caminho para `node_id`, tratamento de homônimos e formato de retorno.
+
+---
+
+### 11.4 Classificação de `interface/telemetry_api.py` e `core/checkpointer.py`
+- **Antes (`git show aacca16:audits/fase4-0b-prova-de-execucao.md` Linhas 340, 395):**
+  Classificou `telemetry_api.py` como `CARREGADO MAS NUNCA CHAMADO` e `checkpointer.py` com status inconsistente.
+- **Depois (Correção 4.0c):**
+  A medição por cobertura AST isolando imports/declarações provou:
+  1. `interface/telemetry_api.py`: Status **SÓ CARREGADO** (0 linhas de lógica executadas em F1 e em F2). Todavia, `interface/mcp_server.py:151` importa a instância `mcp_governor` de `interface.telemetry_api`. O objeto em si pertence à classe `core.mcp_governor.MCPToolGovernor` e teve 72 linhas de lógica em F1 e 13 em F2.
+  2. `core/checkpointer.py`: Status **EXECUTADO EM F2** (2 linhas em F1 e 24 linhas em F2). Seus métodos foram chamados diretamente pelas ferramentas MCP `agent_save_checkpoint`, `agent_get_checkpoint` e `agent_list_checkpoints`.
+
+---
+
+### 11.5 Métricas Reais do Caminho A (Linhas e Arquivos)
+- **Antes (`git show aacca16:audits/fase4-0b-prova-de-execucao.md` Linha 547):**
+  ```markdown
+  - **Módulos Ativos:** 64 módulos Python (~11.000 linhas) + 43 arquivos no frontend Next.js (14.384 linhas).
+  ```
+- **Depois (Correção 4.0c — Recontagem Exata via Git):**
+  - **Código de Produção Python:**
+    Comando executado:
+    ```powershell
+    python -c "import subprocess; py_files = [f for f in subprocess.check_output(['git', 'ls-files', '*.py']).decode('utf-8').splitlines() if not f.startswith(('tests/', 'scratch/', 'audits/', 'grafo-dashboard-web/'))]; print(len(py_files), sum(sum(1 for _ in open(f, 'r', encoding='utf-8', errors='replace')) for f in py_files))"
+    ```
+    Resultado: **64 arquivos**, **18.810 linhas** (substitui a estimativa imprecisa de "~11.000 linhas").
+  - **Frontend Dashboard Web Next.js:**
+    Comando executado:
+    ```powershell
+    python -c "import subprocess; dash_files = subprocess.check_output(['git', 'ls-files', 'grafo-dashboard-web']).decode('utf-8').splitlines(); print(len(dash_files), sum(sum(1 for _ in open(f, 'r', encoding='utf-8', errors='replace')) for f in dash_files))"
+    ```
+    Resultado: **40 arquivos**, **14.366 linhas** (substitui a contagem de "43 arquivos e 14.384 linhas").

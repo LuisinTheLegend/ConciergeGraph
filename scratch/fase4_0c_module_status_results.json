@@ -1,0 +1,976 @@
+{
+  "summary": {
+    "NÃO CARREGADO": 26,
+    "SÓ CARREGADO": 13,
+    "EXECUTADO EM F2": 18,
+    "EXECUTADO SÓ EM F1": 7
+  },
+  "governor_proof": {
+    "server_governor_is_telemetry_mcp_governor": true,
+    "server_governor_id": 2087998187776,
+    "telemetry_mcp_governor_id": 2087998187776,
+    "governor_class_module": "core.mcp_governor"
+  },
+  "target_analysis": {
+    "interface/telemetry_api.py": {
+      "module": "interface.telemetry_api",
+      "status": "SÓ CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "executed_funcs_f1": [],
+      "executed_funcs_f2": [],
+      "calls_recorded": {}
+    },
+    "core/mcp_governor.py": {
+      "module": "core.mcp_governor",
+      "status": "EXECUTADO EM F2",
+      "f1_logic_lines": 72,
+      "f2_logic_lines": 13,
+      "executed_funcs_f1": [
+        "__init__"
+      ],
+      "executed_funcs_f2": [
+        "get_session_state",
+        "set_session_state",
+        "validate_tool_execution"
+      ],
+      "calls_recorded": {
+        "validate_tool_execution": {
+          "count": 37,
+          "callers": [
+            "interface/mcp_server.py:256 (governed_call_tool)"
+          ]
+        },
+        "set_session_state": {
+          "count": 2,
+          "callers": [
+            "interface/mcp_server.py:434 (concierge_set_state)"
+          ]
+        }
+      }
+    },
+    "core/checkpointer.py": {
+      "module": "core.checkpointer",
+      "status": "EXECUTADO EM F2",
+      "f1_logic_lines": 2,
+      "f2_logic_lines": 24,
+      "executed_funcs_f1": [
+        "__init__"
+      ],
+      "executed_funcs_f2": [
+        "get_checkpoint",
+        "list_checkpoints",
+        "save_checkpoint"
+      ],
+      "calls_recorded": {
+        "save_checkpoint": {
+          "count": 1,
+          "callers": [
+            "interface/mcp_server.py:1741 (agent_save_checkpoint)"
+          ]
+        },
+        "list_checkpoints": {
+          "count": 1,
+          "callers": [
+            "interface/mcp_server.py:1774 (agent_list_checkpoints)"
+          ]
+        }
+      }
+    },
+    "core/security_guard.py": {
+      "module": "core.security_guard",
+      "status": "EXECUTADO SÓ EM F1",
+      "f1_logic_lines": 5,
+      "f2_logic_lines": 0,
+      "executed_funcs_f1": [
+        "__init__"
+      ],
+      "executed_funcs_f2": [],
+      "calls_recorded": {}
+    }
+  },
+  "divergences_vs_4_0b": [
+    {
+      "file": "agents/__init__.py",
+      "module": "agents",
+      "status_4_0b": "CARREGADO MAS NUNCA CHAMADO",
+      "status_4_0c": "SÓ CARREGADO",
+      "f1_logic": 0,
+      "f2_logic": 0
+    },
+    {
+      "file": "agents/revisor_critico.py",
+      "module": "agents.revisor_critico",
+      "status_4_0b": "CARREGADO MAS NUNCA CHAMADO",
+      "status_4_0c": "SÓ CARREGADO",
+      "f1_logic": 0,
+      "f2_logic": 0
+    },
+    {
+      "file": "core/__init__.py",
+      "module": "core",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "SÓ CARREGADO",
+      "f1_logic": 0,
+      "f2_logic": 0
+    },
+    {
+      "file": "core/checkpointer.py",
+      "module": "core.checkpointer",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO EM F2",
+      "f1_logic": 2,
+      "f2_logic": 24
+    },
+    {
+      "file": "core/config.py",
+      "module": "core.config",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO SÓ EM F1",
+      "f1_logic": 15,
+      "f2_logic": 0
+    },
+    {
+      "file": "core/database.py",
+      "module": "core.database",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO EM F2",
+      "f1_logic": 16,
+      "f2_logic": 16
+    },
+    {
+      "file": "core/gating_interceptor.py",
+      "module": "core.gating_interceptor",
+      "status_4_0b": "CARREGADO MAS NUNCA CHAMADO",
+      "status_4_0c": "EXECUTADO SÓ EM F1",
+      "f1_logic": 5,
+      "f2_logic": 0
+    },
+    {
+      "file": "core/graph_rag.py",
+      "module": "core.graph_rag",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO EM F2",
+      "f1_logic": 2,
+      "f2_logic": 3
+    },
+    {
+      "file": "core/hybrid_search.py",
+      "module": "core.hybrid_search",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO EM F2",
+      "f1_logic": 5,
+      "f2_logic": 49
+    },
+    {
+      "file": "core/mcp_governor.py",
+      "module": "core.mcp_governor",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO EM F2",
+      "f1_logic": 72,
+      "f2_logic": 13
+    },
+    {
+      "file": "core/memory_extractor.py",
+      "module": "core.memory_extractor",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO EM F2",
+      "f1_logic": 1,
+      "f2_logic": 27
+    },
+    {
+      "file": "core/middleware.py",
+      "module": "core.middleware",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO EM F2",
+      "f1_logic": 15,
+      "f2_logic": 133
+    },
+    {
+      "file": "core/project_index.py",
+      "module": "core.project_index",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO EM F2",
+      "f1_logic": 2,
+      "f2_logic": 26
+    },
+    {
+      "file": "core/rate_governor.py",
+      "module": "core.rate_governor",
+      "status_4_0b": "CARREGADO MAS NUNCA CHAMADO",
+      "status_4_0c": "EXECUTADO SÓ EM F1",
+      "f1_logic": 15,
+      "f2_logic": 0
+    },
+    {
+      "file": "core/security_guard.py",
+      "module": "core.security_guard",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO SÓ EM F1",
+      "f1_logic": 5,
+      "f2_logic": 0
+    },
+    {
+      "file": "core/telemetry_schemas.py",
+      "module": "core.telemetry_schemas",
+      "status_4_0b": "CARREGADO MAS NUNCA CHAMADO",
+      "status_4_0c": "SÓ CARREGADO",
+      "f1_logic": 0,
+      "f2_logic": 0
+    },
+    {
+      "file": "core/vector_backend.py",
+      "module": "core.vector_backend",
+      "status_4_0b": "NÃO CARREGADO",
+      "status_4_0c": "SÓ CARREGADO",
+      "f1_logic": 0,
+      "f2_logic": 0
+    },
+    {
+      "file": "ingestion/__init__.py",
+      "module": "ingestion",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "SÓ CARREGADO",
+      "f1_logic": 0,
+      "f2_logic": 0
+    },
+    {
+      "file": "ingestion/crawler.py",
+      "module": "ingestion.crawler",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO EM F2",
+      "f1_logic": 7,
+      "f2_logic": 108
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "module": "ingestion.orchestrator",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO EM F2",
+      "f1_logic": 10,
+      "f2_logic": 31
+    },
+    {
+      "file": "ingestion/parser.py",
+      "module": "ingestion.parser",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO SÓ EM F1",
+      "f1_logic": 2,
+      "f2_logic": 0
+    },
+    {
+      "file": "ingestion/summarizer.py",
+      "module": "ingestion.summarizer",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO EM F2",
+      "f1_logic": 7,
+      "f2_logic": 19
+    },
+    {
+      "file": "interface/__init__.py",
+      "module": "interface",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "SÓ CARREGADO",
+      "f1_logic": 0,
+      "f2_logic": 0
+    },
+    {
+      "file": "interface/action_hooks.py",
+      "module": "interface.action_hooks",
+      "status_4_0b": "CARREGADO MAS NUNCA CHAMADO",
+      "status_4_0c": "SÓ CARREGADO",
+      "f1_logic": 0,
+      "f2_logic": 0
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "module": "interface.mcp_server",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO EM F2",
+      "f1_logic": 167,
+      "f2_logic": 377
+    },
+    {
+      "file": "interface/queue_writer.py",
+      "module": "interface.queue_writer",
+      "status_4_0b": "CARREGADO MAS NUNCA CHAMADO",
+      "status_4_0c": "SÓ CARREGADO",
+      "f1_logic": 0,
+      "f2_logic": 0
+    },
+    {
+      "file": "interface/telemetry_api.py",
+      "module": "interface.telemetry_api",
+      "status_4_0b": "CARREGADO MAS NUNCA CHAMADO",
+      "status_4_0c": "SÓ CARREGADO",
+      "f1_logic": 0,
+      "f2_logic": 0
+    },
+    {
+      "file": "main.py",
+      "module": "main",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO SÓ EM F1",
+      "f1_logic": 58,
+      "f2_logic": 0
+    },
+    {
+      "file": "services/__init__.py",
+      "module": "services",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "SÓ CARREGADO",
+      "f1_logic": 0,
+      "f2_logic": 0
+    },
+    {
+      "file": "services/janitor.py",
+      "module": "services.janitor",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO EM F2",
+      "f1_logic": 16,
+      "f2_logic": 7
+    },
+    {
+      "file": "storage/__init__.py",
+      "module": "storage",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "SÓ CARREGADO",
+      "f1_logic": 0,
+      "f2_logic": 0
+    },
+    {
+      "file": "storage/base_backend.py",
+      "module": "storage.base_backend",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "SÓ CARREGADO",
+      "f1_logic": 0,
+      "f2_logic": 0
+    },
+    {
+      "file": "storage/connection.py",
+      "module": "storage.connection",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO EM F2",
+      "f1_logic": 30,
+      "f2_logic": 15
+    },
+    {
+      "file": "storage/logic.py",
+      "module": "storage.logic",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO EM F2",
+      "f1_logic": 2,
+      "f2_logic": 118
+    },
+    {
+      "file": "storage/schema.py",
+      "module": "storage.schema",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO SÓ EM F1",
+      "f1_logic": 45,
+      "f2_logic": 0
+    },
+    {
+      "file": "storage/semantic_logic.py",
+      "module": "storage.semantic_logic",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO EM F2",
+      "f1_logic": 0,
+      "f2_logic": 18
+    },
+    {
+      "file": "storage/store.py",
+      "module": "storage.store",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO EM F2",
+      "f1_logic": 23,
+      "f2_logic": 128
+    },
+    {
+      "file": "storage/vector_store.py",
+      "module": "storage.vector_store",
+      "status_4_0b": "EM USO",
+      "status_4_0c": "EXECUTADO EM F2",
+      "f1_logic": 27,
+      "f2_logic": 62
+    }
+  ],
+  "modules": {
+    "agent/__init__.py": {
+      "module": "agent",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "agent/agent_prompts.py": {
+      "module": "agent.agent_prompts",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "agent/run_agent.py": {
+      "module": "agent.run_agent",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "agents/__init__.py": {
+      "module": "agents",
+      "status": "SÓ CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 4,
+      "f2_total_lines": 0,
+      "in_sys_modules": true
+    },
+    "agents/revisor_critico.py": {
+      "module": "agents.revisor_critico",
+      "status": "SÓ CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 45,
+      "f2_total_lines": 0,
+      "in_sys_modules": true
+    },
+    "core/__init__.py": {
+      "module": "core",
+      "status": "SÓ CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 6,
+      "f2_total_lines": 0,
+      "in_sys_modules": true
+    },
+    "core/alias_tracker.py": {
+      "module": "core.alias_tracker",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "core/background_janitor.py": {
+      "module": "core.background_janitor",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "core/checkpointer.py": {
+      "module": "core.checkpointer",
+      "status": "EXECUTADO EM F2",
+      "f1_logic_lines": 2,
+      "f2_logic_lines": 24,
+      "f1_total_lines": 18,
+      "f2_total_lines": 24,
+      "in_sys_modules": true
+    },
+    "core/config.py": {
+      "module": "core.config",
+      "status": "EXECUTADO SÓ EM F1",
+      "f1_logic_lines": 15,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 62,
+      "f2_total_lines": 0,
+      "in_sys_modules": true
+    },
+    "core/database.py": {
+      "module": "core.database",
+      "status": "EXECUTADO EM F2",
+      "f1_logic_lines": 16,
+      "f2_logic_lines": 16,
+      "f1_total_lines": 27,
+      "f2_total_lines": 16,
+      "in_sys_modules": true
+    },
+    "core/delta_manager.py": {
+      "module": "core.delta_manager",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "core/delta_sync.py": {
+      "module": "core.delta_sync",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "core/dependencies.py": {
+      "module": "core.dependencies",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "core/federated_knowledge_router.py": {
+      "module": "core.federated_knowledge_router",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "core/gating_interceptor.py": {
+      "module": "core.gating_interceptor",
+      "status": "EXECUTADO SÓ EM F1",
+      "f1_logic_lines": 5,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 22,
+      "f2_total_lines": 0,
+      "in_sys_modules": true
+    },
+    "core/global_memory_adapter.py": {
+      "module": "core.global_memory_adapter",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "core/graph_rag.py": {
+      "module": "core.graph_rag",
+      "status": "EXECUTADO EM F2",
+      "f1_logic_lines": 2,
+      "f2_logic_lines": 3,
+      "f1_total_lines": 13,
+      "f2_total_lines": 3,
+      "in_sys_modules": true
+    },
+    "core/hsm_engine.py": {
+      "module": "core.hsm_engine",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "core/hybrid_search.py": {
+      "module": "core.hybrid_search",
+      "status": "EXECUTADO EM F2",
+      "f1_logic_lines": 5,
+      "f2_logic_lines": 49,
+      "f1_total_lines": 21,
+      "f2_total_lines": 49,
+      "in_sys_modules": true
+    },
+    "core/intent_classifier.py": {
+      "module": "core.intent_classifier",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "core/janitor.py": {
+      "module": "core.janitor",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "core/mcp_governor.py": {
+      "module": "core.mcp_governor",
+      "status": "EXECUTADO EM F2",
+      "f1_logic_lines": 72,
+      "f2_logic_lines": 13,
+      "f1_total_lines": 86,
+      "f2_total_lines": 13,
+      "in_sys_modules": true
+    },
+    "core/memory_extractor.py": {
+      "module": "core.memory_extractor",
+      "status": "EXECUTADO EM F2",
+      "f1_logic_lines": 1,
+      "f2_logic_lines": 27,
+      "f1_total_lines": 17,
+      "f2_total_lines": 27,
+      "in_sys_modules": true
+    },
+    "core/middleware.py": {
+      "module": "core.middleware",
+      "status": "EXECUTADO EM F2",
+      "f1_logic_lines": 15,
+      "f2_logic_lines": 133,
+      "f1_total_lines": 67,
+      "f2_total_lines": 133,
+      "in_sys_modules": true
+    },
+    "core/nozomio_router.py": {
+      "module": "core.nozomio_router",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "core/parser_factory.py": {
+      "module": "core.parser_factory",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "core/parsers/__init__.py": {
+      "module": "core.parsers",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "core/parsers/base.py": {
+      "module": "core.parsers.base",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "core/parsers/python_parser.py": {
+      "module": "core.parsers.python_parser",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "core/parsers/ts_js_parser.py": {
+      "module": "core.parsers.ts_js_parser",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "core/probabilistic_retriever.py": {
+      "module": "core.probabilistic_retriever",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "core/project_index.py": {
+      "module": "core.project_index",
+      "status": "EXECUTADO EM F2",
+      "f1_logic_lines": 2,
+      "f2_logic_lines": 26,
+      "f1_total_lines": 23,
+      "f2_total_lines": 26,
+      "in_sys_modules": true
+    },
+    "core/rate_governor.py": {
+      "module": "core.rate_governor",
+      "status": "EXECUTADO SÓ EM F1",
+      "f1_logic_lines": 15,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 35,
+      "f2_total_lines": 0,
+      "in_sys_modules": true
+    },
+    "core/search_engine.py": {
+      "module": "core.search_engine",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "core/security_guard.py": {
+      "module": "core.security_guard",
+      "status": "EXECUTADO SÓ EM F1",
+      "f1_logic_lines": 5,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 16,
+      "f2_total_lines": 0,
+      "in_sys_modules": true
+    },
+    "core/telemetry_schemas.py": {
+      "module": "core.telemetry_schemas",
+      "status": "SÓ CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 19,
+      "f2_total_lines": 0,
+      "in_sys_modules": true
+    },
+    "core/vector_backend.py": {
+      "module": "core.vector_backend",
+      "status": "SÓ CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": true
+    },
+    "core/vector_reconciler.py": {
+      "module": "core.vector_reconciler",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "ingestion/__init__.py": {
+      "module": "ingestion",
+      "status": "SÓ CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 6,
+      "f2_total_lines": 0,
+      "in_sys_modules": true
+    },
+    "ingestion/crawler.py": {
+      "module": "ingestion.crawler",
+      "status": "EXECUTADO EM F2",
+      "f1_logic_lines": 7,
+      "f2_logic_lines": 108,
+      "f1_total_lines": 122,
+      "f2_total_lines": 108,
+      "in_sys_modules": true
+    },
+    "ingestion/orchestrator.py": {
+      "module": "ingestion.orchestrator",
+      "status": "EXECUTADO EM F2",
+      "f1_logic_lines": 10,
+      "f2_logic_lines": 31,
+      "f1_total_lines": 52,
+      "f2_total_lines": 33,
+      "in_sys_modules": true
+    },
+    "ingestion/parser.py": {
+      "module": "ingestion.parser",
+      "status": "EXECUTADO SÓ EM F1",
+      "f1_logic_lines": 2,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 91,
+      "f2_total_lines": 0,
+      "in_sys_modules": true
+    },
+    "ingestion/summarizer.py": {
+      "module": "ingestion.summarizer",
+      "status": "EXECUTADO EM F2",
+      "f1_logic_lines": 7,
+      "f2_logic_lines": 19,
+      "f1_total_lines": 72,
+      "f2_total_lines": 19,
+      "in_sys_modules": true
+    },
+    "interface/__init__.py": {
+      "module": "interface",
+      "status": "SÓ CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 6,
+      "f2_total_lines": 0,
+      "in_sys_modules": true
+    },
+    "interface/action_hooks.py": {
+      "module": "interface.action_hooks",
+      "status": "SÓ CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 13,
+      "f2_total_lines": 0,
+      "in_sys_modules": true
+    },
+    "interface/cli.py": {
+      "module": "interface.cli",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "interface/mcp_server.py": {
+      "module": "interface.mcp_server",
+      "status": "EXECUTADO EM F2",
+      "f1_logic_lines": 167,
+      "f2_logic_lines": 377,
+      "f1_total_lines": 252,
+      "f2_total_lines": 377,
+      "in_sys_modules": true
+    },
+    "interface/queue_writer.py": {
+      "module": "interface.queue_writer",
+      "status": "SÓ CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 15,
+      "f2_total_lines": 0,
+      "in_sys_modules": true
+    },
+    "interface/telemetry_api.py": {
+      "module": "interface.telemetry_api",
+      "status": "SÓ CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 86,
+      "f2_total_lines": 0,
+      "in_sys_modules": true
+    },
+    "interface/watcher.py": {
+      "module": "interface.watcher",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "main.py": {
+      "module": "main",
+      "status": "EXECUTADO SÓ EM F1",
+      "f1_logic_lines": 58,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 85,
+      "f2_total_lines": 0,
+      "in_sys_modules": true
+    },
+    "scripts/bootstrap_core_memory.py": {
+      "module": "scripts.bootstrap_core_memory",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "services/__init__.py": {
+      "module": "services",
+      "status": "SÓ CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 5,
+      "f2_total_lines": 0,
+      "in_sys_modules": true
+    },
+    "services/janitor.py": {
+      "module": "services.janitor",
+      "status": "EXECUTADO EM F2",
+      "f1_logic_lines": 16,
+      "f2_logic_lines": 7,
+      "f1_total_lines": 79,
+      "f2_total_lines": 7,
+      "in_sys_modules": true
+    },
+    "storage/__init__.py": {
+      "module": "storage",
+      "status": "SÓ CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 8,
+      "f2_total_lines": 0,
+      "in_sys_modules": true
+    },
+    "storage/base_backend.py": {
+      "module": "storage.base_backend",
+      "status": "SÓ CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 36,
+      "f2_total_lines": 0,
+      "in_sys_modules": true
+    },
+    "storage/connection.py": {
+      "module": "storage.connection",
+      "status": "EXECUTADO EM F2",
+      "f1_logic_lines": 30,
+      "f2_logic_lines": 15,
+      "f1_total_lines": 71,
+      "f2_total_lines": 15,
+      "in_sys_modules": true
+    },
+    "storage/logic.py": {
+      "module": "storage.logic",
+      "status": "EXECUTADO EM F2",
+      "f1_logic_lines": 2,
+      "f2_logic_lines": 118,
+      "f1_total_lines": 44,
+      "f2_total_lines": 122,
+      "in_sys_modules": true
+    },
+    "storage/relational_db.py": {
+      "module": "storage.relational_db",
+      "status": "NÃO CARREGADO",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 0,
+      "f2_total_lines": 0,
+      "in_sys_modules": false
+    },
+    "storage/schema.py": {
+      "module": "storage.schema",
+      "status": "EXECUTADO SÓ EM F1",
+      "f1_logic_lines": 45,
+      "f2_logic_lines": 0,
+      "f1_total_lines": 69,
+      "f2_total_lines": 0,
+      "in_sys_modules": true
+    },
+    "storage/semantic_logic.py": {
+      "module": "storage.semantic_logic",
+      "status": "EXECUTADO EM F2",
+      "f1_logic_lines": 0,
+      "f2_logic_lines": 18,
+      "f1_total_lines": 8,
+      "f2_total_lines": 18,
+      "in_sys_modules": true
+    },
+    "storage/store.py": {
+      "module": "storage.store",
+      "status": "EXECUTADO EM F2",
+      "f1_logic_lines": 23,
+      "f2_logic_lines": 128,
+      "f1_total_lines": 96,
+      "f2_total_lines": 128,
+      "in_sys_modules": true
+    },
+    "storage/vector_store.py": {
+      "module": "storage.vector_store",
+      "status": "EXECUTADO EM F2",
+      "f1_logic_lines": 27,
+      "f2_logic_lines": 62,
+      "f1_total_lines": 88,
+      "f2_total_lines": 62,
+      "in_sys_modules": true
+    }
+  }
+}
