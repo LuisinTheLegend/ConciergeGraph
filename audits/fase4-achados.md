@@ -195,15 +195,17 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
 
 ---
 
-### [F4-011] Divergência Estrutural de Metadados nos Vetores entre Ingestão e Janitor Rompe Filtros de Busca Vetorial
-- **Severidade:** 🟠 GRAVE
-- **Arquivos & Linhas:** [`ingestion/orchestrator.py:755–765`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L755), [`services/janitor.py:375–385`](file:///c:/Nexus-Memory/GrafoConcierge/services/janitor.py#L375), [`core/hybrid_search.py:149–151`](file:///c:/Nexus-Memory/GrafoConcierge/core/hybrid_search.py#L149)
+### [F4-011] Dependência Indevida de Metadados do Chroma para Filtragem por `node_type` Rompe o Sinal Vetorial em Bases Legadas
+- **Severidade:** 🟠 GRAVE (Homologada na Rodada 4.1/D)
+- **Arquivos & Linhas:** [`core/hybrid_search.py:146–152, 186–200, 222–227`](file:///c:/Nexus-Memory/GrafoConcierge/core/hybrid_search.py#L146), [`storage/store.py:295–309`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py#L295), [`tests/test_ingestion_vector_repair.py:430–503`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_ingestion_vector_repair.py#L430)
 - **Mecanismo da Falha:**
-  A ingestão padrão gravava no Chroma metadados compostos por `node_id`, `project_uuid`, `source_file`, `chunk_type` e `symbol_name`, omitindo `node_type`.
-  A rotina original do Janitor (`_sync_vectors`) gravava apenas `label` e `node_type`, omitindo `project_uuid`.
-  Como `core/hybrid_search.py:149` aplica obrigatoriamente `where_clause = {"project_uuid": project_uuid}`, qualquer vetor gravado pelo Janitor tornava-se 100% invisível para a busca híbrida. Adicionalmente, quando o usuário filtrava por `node_type`, os vetores gerados pela ingestão padrão eram descartados pelo Chroma.
-- **Resolução:**
-  Criada a função utilitária compartilhada `build_vector_metadata(...)`, que unifica todos os metadados (`node_id`, `project_uuid`, `source_file`, `chunk_type`, `symbol_name`, `label`, `node_type`), utilizada de forma idêntica tanto no pipeline normal quanto na rotina de reparo.
-- **Status:** **CORRIGIDO NA RODADA 4.1/D** (Commit `de90005d377fc7dc5ba137b9854576c64669ed42`)
+  Originalmente, a busca híbrida (`core/hybrid_search.py:148`) repassava `filters={"node_type": node_type}` diretamente para a consulta vetorial no Chroma (`self._vector.search`). Coleções vetoriais criadas por versões pré-existentes da ingestão ou restauradas sem a chave de metadados não continham `node_type` no dicionário de metadados do Chroma. Como o banco vetorial descarta sumariamente qualquer registro que não possua a chave pesquisada, toda busca com filtro de tipo perdia 100% dos candidatos vetoriais (`score_breakdown.vetorial = 0.0`), degradando a precisão da busca híbrida para apenas FTS5.
+- **Resolução Arquitetural (Desacoplamento via SQLite e Compatibilidade Retroativa):**
+  1. A dependência do metadado no Chroma foi eliminada no Passo 3 do `HybridSearchEngine`. A busca vetorial recupera uma margem ampliada (`top_k * 5`) sem filtrar por tipo no banco vetorial.
+  2. A filtragem por `node_type` foi movida para o Passo 5 (Merge), consultando a fonte canônica da verdade na tabela relacional `nodes` via método em lote `SqliteStore.get_node_types_batch(all_node_ids)`.
+  3. No Passo 8 (Pós-processamento), o `node_type` canônico vindo do SQLite é anexado a cada item do resultado final.
+  4. Essa solução garante compatibilidade retroativa total com coleções existentes sem necessidade de migrações ou reindexação destrutiva.
+- **Status:** **CORRIGIDO E HOMOLOGADO NA RODADA 4.1/D**
+
 
 
