@@ -11,8 +11,10 @@
 
 1. **Caminho B Aprovado (Schema Reduzido & Quarentena Segura):**
    - No dilema arquitetural do schema relacional, o **Caminho B** foi oficialmente selecionado e aprovado.
-   - O schema oficial de produção receberá exclusivamente a DDL da tabela `agent_checkpoints` para desbloquear as ferramentas `agent_save_checkpoint`, `agent_get_checkpoint` e `agent_list_checkpoints`.
-   - O motor Delta/Survival (tabelas `ast_edges`, `structural_signatures`, `files`, `functions`, `delta_sync_log`, `node_survival_history`) é formalmente classificado como **dormente/experimental**.
+   - O schema oficial de produção receberá exclusivamente a DDL da tabela `agent_checkpoints` (única das 5 tabelas ausentes do inventário que o Caminho B cria) para desbloquear as ferramentas `agent_save_checkpoint`, `agent_get_checkpoint` e `agent_list_checkpoints`.
+   - Das 5 tabelas ausentes catalogadas no inventário ([`audits/fase4-1-inventario-ddl.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/fase4-1-inventario-ddl.md)):
+     - `agent_checkpoints` será criada em produção pelo Caminho B.
+     - As outras 4 tabelas (`files`, `communities`, `ast_edges` e `fsm_checkpoints`), associadas aos motores Delta/Survival e HSM legado, permanecem dormentes e **não serão criadas** no schema de produção.
    - O código dormente associado será transferido para quarentena em `archive/v4-experimental` **somente após o desacoplamento seguro** de suas dependências ativas.
 
 2. **Elevação de Severidade do F4-006 para CRÍTICA:**
