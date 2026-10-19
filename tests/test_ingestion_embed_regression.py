@@ -5,7 +5,7 @@ Valida:
 1. Regressão do F4-006: Mineração completa com RichHandler instalado no logger raiz
    deve processar chunks, gerar embeddings e persistir vetores sem estourar TypeError.
 2. Teste-guarda: Varredura AST sobre todo o código de produção garantindo que
-   nenhuma chamada de log possua mais argumentos que especificadores '%'.
+   nenhuma chamada de log possua argumentos incompatíveis com os especificadores '%'.
 """
 
 import ast
@@ -18,6 +18,65 @@ from rich.logging import RichHandler
 
 from storage import SqliteStore, ChromaVectorStore, EmbeddingTier
 from ingestion.orchestrator import IngestionManager
+
+
+SPECIFIER_RE = re.compile(
+    r"%(?:%|(?:\([a-zA-Z0-9_]+\))?[-+ #0]*(?:\*|\d+)?(?:\.(?:\*|\d+))?[hlL]?[diouxXeEfFgGcrsa%])"
+)
+MAPPING_SPECIFIER_RE = re.compile(r"%\([a-zA-Z0-9_]+\)")
+LOG_METHODS = {"debug", "info", "warning", "warn", "error", "critical", "exception"}
+
+
+def find_mismatched_log_calls(source: str, filename: str = "<string>") -> list[str]:
+    """Varre código-fonte em busca de chamadas de log com contagem de argumentos
+
+    incompatível com os especificadores '%' da string literal de formato.
+    """
+    mismatches: list[str] = []
+    try:
+        tree = ast.parse(source, filename=filename)
+    except Exception:
+        return mismatches
+
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        func_name = None
+        if isinstance(node.func, ast.Attribute):
+            func_name = node.func.attr
+        elif isinstance(node.func, ast.Name):
+            func_name = node.func.id
+
+        if func_name not in LOG_METHODS:
+            continue
+
+        if not node.args:
+            continue
+
+        # Chamadas com *args são ignoradas
+        if any(isinstance(arg, ast.Starred) for arg in node.args):
+            continue
+
+        first_arg = node.args[0]
+        if isinstance(first_arg, ast.Constant) and isinstance(first_arg.value, str):
+            fmt_str = first_arg.value
+
+            # Estilo de dicionário ("%(key)s") não valida contagem posicional
+            if MAPPING_SPECIFIER_RE.search(fmt_str):
+                continue
+
+            matches = SPECIFIER_RE.findall(fmt_str)
+            expected_args = sum(1 for m in matches if m != "%%")
+            actual_args = len(node.args) - 1
+
+            # Detecção bidirecional: argumentos a mais ou a menos
+            if actual_args != expected_args:
+                mismatches.append(
+                    f"{filename}:{node.lineno} -> {func_name}('{fmt_str}', ...) "
+                    f"[esperado: {expected_args}, fornecido: {actual_args}]"
+                )
+
+    return mismatches
 
 
 class StubEmbeddingManager:
@@ -96,10 +155,51 @@ def test_f4_006_mining_with_rich_handler_regression(tmp_path: Path):
         root_logger.removeHandler(rich_handler)
 
 
+def test_guard_synthetic_cases():
+    """Valida comportamento da função find_mismatched_log_calls sobre código sintético:
+
+    (a) argumentos a mais são detectados;
+    (b) argumentos a menos ("%d %d" com um valor) são detectados;
+    (c) %% literal não conta como especificador;
+    (d) estilo de dicionário ("%(a)s") não gera falso positivo;
+    (e) chamadas com *args são ignoradas;
+    (f) uma chamada correta não é sinalizada.
+    """
+    # (a) argumentos a mais são detectados
+    src_a = "logger.info('hello %d', 1, 2)"
+    res_a = find_mismatched_log_calls(src_a, "synthetic_a.py")
+    assert len(res_a) == 1, f"Caso (a) deveria detectar 1 incompatibilidade, obteve: {res_a}"
+
+    # (b) argumentos a menos ("%d %d" com um valor) são detectados
+    src_b = "logger.info('hello %d %d', 1)"
+    res_b = find_mismatched_log_calls(src_b, "synthetic_b.py")
+    assert len(res_b) == 1, f"Caso (b) deveria detectar 1 incompatibilidade, obteve: {res_b}"
+
+    # (c) %% literal não conta como especificador
+    src_c = "logger.info('100%% complete with %d items', 5)"
+    res_c = find_mismatched_log_calls(src_c, "synthetic_c.py")
+    assert len(res_c) == 0, f"Caso (c) não deveria detectar incompatibilidade, obteve: {res_c}"
+
+    # (d) estilo de dicionário ("%(a)s") não gera falso positivo
+    src_d = "logger.info('%(a)s %(b)d', {'a': 'alpha', 'b': 2})"
+    res_d = find_mismatched_log_calls(src_d, "synthetic_d.py")
+    assert len(res_d) == 0, f"Caso (d) não deveria detectar incompatibilidade, obteve: {res_d}"
+
+    # (e) chamadas com *args são ignoradas
+    src_e = "logger.info('prefix %s %d', *extra_args)"
+    res_e = find_mismatched_log_calls(src_e, "synthetic_e.py")
+    assert len(res_e) == 0, f"Caso (e) não deveria detectar incompatibilidade, obteve: {res_e}"
+
+    # (f) uma chamada correta não é sinalizada
+    src_f = "logger.info('hello %s %d', 'world', 42)"
+    res_f = find_mismatched_log_calls(src_f, "synthetic_f.py")
+    assert len(res_f) == 0, f"Caso (f) não deveria detectar incompatibilidade, obteve: {res_f}"
+
+
 def test_guard_no_mismatched_log_format_in_production():
     """Teste-guarda: Varredura AST sobre todo o código de produção garantindo que
 
-    nenhuma chamada de log contenha mais argumentos do que especificadores '%'.
+    nenhuma chamada de log contenha contagem de argumentos incompatível com '%'.
     """
     repo_root = Path(__file__).parent.parent.resolve()
     production_dirs = ["core", "ingestion", "interface", "services", "storage", "agent", "agents"]
@@ -118,44 +218,14 @@ def test_guard_no_mismatched_log_format_in_production():
     files_to_scan = sorted(set(files_to_scan))
     assert len(files_to_scan) > 0, "Nenhum arquivo de produção encontrado para varredura"
 
-    specifier_re = re.compile(r"%(?:%|(?:\([a-zA-Z0-9_]+\))?[-+ #0]*(?:\*|\d+)?(?:\.(?:\*|\d+))?[hlL]?[diouxXeEfFgGcrsa%])")
-    log_methods = {"debug", "info", "warning", "warn", "error", "critical", "exception"}
-
     mismatches = []
     for filepath in files_to_scan:
         rel_path = filepath.relative_to(repo_root).as_posix()
         content = filepath.read_text(encoding="utf-8")
-        tree = ast.parse(content, filename=str(filepath))
-
-        for node in ast.walk(tree):
-            if not isinstance(node, ast.Call):
-                continue
-            func_name = None
-            if isinstance(node.func, ast.Attribute):
-                func_name = node.func.attr
-            elif isinstance(node.func, ast.Name):
-                func_name = node.func.id
-
-            if func_name not in log_methods:
-                continue
-
-            if not node.args:
-                continue
-
-            first_arg = node.args[0]
-            if isinstance(first_arg, ast.Constant) and isinstance(first_arg.value, str):
-                fmt_str = first_arg.value
-                matches = specifier_re.findall(fmt_str)
-                expected_args = sum(1 for m in matches if m != "%%")
-                actual_args = len(node.args) - 1
-
-                if actual_args > expected_args:
-                    mismatches.append(
-                        f"{rel_path}:{node.lineno} -> {func_name}('{fmt_str}', ...) "
-                        f"[esperado: {expected_args}, fornecido: {actual_args}]"
-                    )
+        found = find_mismatched_log_calls(content, filename=rel_path)
+        mismatches.extend(found)
 
     assert mismatches == [], (
-        f"Encontradas {len(mismatches)} chamada(s) de log com argumentos a mais que '%':\n"
+        f"Encontradas {len(mismatches)} chamada(s) de log com formato incompatível:\n"
         + "\n".join(f"  - {m}" for m in mismatches)
     )
