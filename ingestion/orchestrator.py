@@ -66,6 +66,8 @@ class IngestionResult:
     })
     nodes_created: int = 0
     embeddings_stored: int = 0
+    embeddings_failed: int = 0
+    embeddings_repaired: int = 0
     tags_applied: list[str] = field(default_factory=list)
     files_skipped: int = 0
     files_deleted: int = 0
@@ -79,12 +81,34 @@ class IngestionResult:
             "categories": self.categories,
             "nodes_created": self.nodes_created,
             "embeddings_stored": self.embeddings_stored,
+            "embeddings_failed": self.embeddings_failed,
+            "embeddings_repaired": self.embeddings_repaired,
             "tags_applied": self.tags_applied,
             "files_skipped": self.files_skipped,
             "files_deleted": self.files_deleted,
             "summaries_generated": self.summaries_generated,
             "errors": self.errors,
         }
+
+
+def build_vector_metadata(
+    node_id: int,
+    project_uuid: str,
+    source_file: str,
+    chunk_type: str,
+    symbol_name: str,
+) -> dict:
+    """Builds standard vector metadata for Chroma storage.
+
+    Shared between standard ingestion and vector repair to guarantee identical metadata keys.
+    """
+    return {
+        "node_id": node_id,
+        "project_uuid": project_uuid,
+        "source_file": source_file,
+        "chunk_type": chunk_type,
+        "symbol_name": symbol_name,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -158,6 +182,9 @@ class IngestionManager:
             result.files_processed, result.files_skipped, len(crawl_report.deleted_node_ids),
         )
 
+        # --- REPAIR: repair any missing vectors before noop short-circuit ---
+        self.repair_missing_vectors(project_uuid, result)
+
         # --- Short-circuit: nothing new and nothing deleted ---
         if not crawl_report.new_files and not crawl_report.deleted_node_ids:
             logger.info("No change detected — ending pipeline.")
@@ -229,6 +256,9 @@ class IngestionManager:
             stored = self._step_store_vector(embed_items, result)
             result.embeddings_stored = stored
             logger.info("[6/8] STORE Vector completed: %d embeddings stored.", stored)
+
+        # --- REPAIR: repair any missing vectors after step 6 in normal flow ---
+        self.repair_missing_vectors(project_uuid, result)
 
         # --- STEP 7: GARBAGE COLLECTION ---
         if crawl_report.deleted_node_ids:
@@ -745,6 +775,13 @@ class IngestionManager:
             result.errors.append(error_msg)
             embeddings = [None] * len(new_chunks)
 
+        none_count = sum(1 for e in embeddings if e is None)
+        if none_count > 0:
+            result.embeddings_failed += none_count
+            error_msg = f"{none_count} chunks without vectors (probable cause: model unavailable or Semantic Fallback)."
+            if error_msg not in result.errors:
+                result.errors.append(error_msg)
+
         # Assemble items for vector store
         items: list[dict] = []
         for chunk, embedding in zip(new_chunks, embeddings):
@@ -752,16 +789,17 @@ class IngestionManager:
             if node_id is None:
                 continue
 
+            metadata = build_vector_metadata(
+                node_id=node_id,
+                project_uuid=project_uuid,
+                source_file=chunk.source_file,
+                chunk_type=chunk.chunk_type.value,
+                symbol_name=chunk.symbol_name,
+            )
             items.append({
                 "doc_id": f"node_{node_id}",
                 "embedding": embedding,  # can be None (Semantic Fallback)
-                "metadata": {
-                    "node_id": node_id,
-                    "project_uuid": project_uuid,
-                    "source_file": chunk.source_file,
-                    "chunk_type": chunk.chunk_type.value,
-                    "symbol_name": chunk.symbol_name,
-                },
+                "metadata": metadata,
             })
 
         return items
@@ -816,6 +854,114 @@ class IngestionManager:
             logger.warning("Reconciliation loop failed (non-fatal): %s", e)
 
         return removed
+
+    def repair_missing_vectors(
+        self,
+        project_uuid: str,
+        result: Optional[IngestionResult] = None,
+    ) -> tuple[int, int, int]:
+        """Detects and repairs missing vectors for active nodes with content in SQLite.
+
+        Reuses the vector reconciliation logic with batch embedding and
+        metadata identical to standard ingestion.
+
+        Args:
+            project_uuid: Target project identifier.
+            result: Optional IngestionResult to update with repair metrics and errors.
+
+        Returns:
+            Tuple of (found_missing, repaired, failed).
+        """
+        if not getattr(self._vector, "_available", True):
+            logger.warning("Vector store is unavailable; skipping vector repair.")
+            return (0, 0, 0)
+        if hasattr(self._vector, "health_check") and not self._vector.health_check():
+            logger.warning("Vector store health check failed; skipping vector repair.")
+            return (0, 0, 0)
+
+        if not hasattr(self._vector, "get_all_stored_node_ids") or not hasattr(self._embedder, "embed_batch"):
+            return (0, 0, 0)
+
+        try:
+            nodes = self._store.get_nodes_by_project(project_uuid, status="ACTIVE")
+        except Exception as e:
+            logger.warning("repair_missing_vectors: failed to query SQLite nodes: %s", e)
+            return (0, 0, 0)
+
+        nodes_with_content = [n for n in nodes if n.get("content") and n["content"].strip()]
+        if not nodes_with_content:
+            return (0, 0, 0)
+
+        stored_ids = self._vector.get_all_stored_node_ids()
+        sqlite_ids = {n["id"] for n in nodes_with_content}
+        missing_ids = sqlite_ids - stored_ids
+        found_missing = len(missing_ids)
+        if not missing_ids:
+            return (0, 0, 0)
+
+        logger.info(
+            "repair_missing_vectors: %d nodes without vectors detected for project %s. Repairing...",
+            found_missing, project_uuid,
+        )
+
+        missing_nodes = [n for n in nodes_with_content if n["id"] in missing_ids]
+        repaired = 0
+        failed = 0
+
+        BATCH_SIZE = getattr(self._vector, "BATCH_SIZE", 64)
+        for i in range(0, len(missing_nodes), BATCH_SIZE):
+            batch = missing_nodes[i:i + BATCH_SIZE]
+            texts = [n["content"] for n in batch]
+            try:
+                embeddings = self._embedder.embed_batch(texts)
+            except Exception as e:
+                logger.error("repair_missing_vectors: embed_batch failed: %s", e)
+                embeddings = [None] * len(batch)
+
+            items_to_store: list[dict] = []
+            for n, emb in zip(batch, embeddings):
+                if emb is None:
+                    failed += 1
+                    continue
+
+                label = n.get("label", "")
+                if "::" in label:
+                    source_file, symbol_name = label.split("::", 1)
+                else:
+                    source_file, symbol_name = label, ""
+
+                chunk_type = n.get("type", "raw")
+                metadata = build_vector_metadata(
+                    node_id=n["id"],
+                    project_uuid=project_uuid,
+                    source_file=source_file,
+                    chunk_type=chunk_type,
+                    symbol_name=symbol_name,
+                )
+                items_to_store.append({
+                    "doc_id": f"node_{n['id']}",
+                    "embedding": emb,
+                    "metadata": metadata,
+                })
+
+            if items_to_store:
+                try:
+                    stored = self._vector.store_embeddings_batch(items_to_store)
+                    repaired += stored
+                    failed += (len(items_to_store) - stored)
+                except Exception as e:
+                    logger.error("repair_missing_vectors: store_embeddings_batch failed: %s", e)
+                    failed += len(items_to_store)
+
+        if result is not None:
+            result.embeddings_repaired += repaired
+            result.embeddings_failed += failed
+            if failed > 0:
+                err_msg = f"{failed} missing vectors could not be repaired (probable cause: model unavailable)."
+                if err_msg not in result.errors:
+                    result.errors.append(err_msg)
+
+        return (found_missing, repaired, failed)
 
     # ===================================================================
     # ZOOM GEAR (L1/L2)

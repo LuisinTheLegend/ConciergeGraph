@@ -359,38 +359,11 @@ class JanitorService:
                 removed = self._vector.delete_batch(orphans)
                 logger.info("Sync: %d orphan vectors removed.", removed)
 
-            # 2. Auto-generates and syncs missing embeddings (e.g. Chroma ↔ Qdrant migration)
-            if hasattr(self._vector, "get_all_stored_node_ids") and self._ingestion and hasattr(self._ingestion, "_embedder"):
-                sqlite_ids = {n["id"] for n in nodes_with_content}
-                stored_ids = self._vector.get_all_stored_node_ids()
-                
-                missing_ids = sqlite_ids - stored_ids
-                if missing_ids:
-                    logger.info("Sync: %d SQLite nodes without match in active vector database. Auto-generating embeddings...", len(missing_ids))
-                    
-                    items_to_store = []
-                    embedder = self._ingestion._embedder
-                    
-                    for n in nodes_with_content:
-                        if n["id"] in missing_ids:
-                            try:
-                                emb = embedder.embed(n["content"])
-                                items_to_store.append({
-                                    "doc_id": f"node_{n['id']}",
-                                    "embedding": emb,
-                                    "metadata": {
-                                        "node_id": n["id"],
-                                        "project_uuid": project_uuid,
-                                        "label": n.get("label", ""),
-                                        "node_type": n.get("type", "FACT")
-                                    }
-                                })
-                            except Exception as embed_err:
-                                logger.error("Failed to generate embedding for node %d in auto-sync: %s", n["id"], embed_err)
-                    
-                    if items_to_store:
-                        stored_count = self._vector.store_embeddings_batch(items_to_store)
-                        logger.info("Sync: %d missing vectors auto-generated and synchronized successfully.", stored_count)
+            # 2. Delegates missing vector repair to IngestionManager
+            if self._ingestion and hasattr(self._ingestion, "repair_missing_vectors"):
+                found_missing, repaired, failed = self._ingestion.repair_missing_vectors(project_uuid)
+                if repaired > 0:
+                    logger.info("Sync: %d missing vectors auto-generated and synchronized successfully.", repaired)
 
             return removed
 
