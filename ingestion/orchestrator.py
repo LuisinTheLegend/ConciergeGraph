@@ -510,6 +510,14 @@ class IngestionManager:
                 # Fallback to ThreadPoolExecutor
                 self._step_summarize_threaded(regular_chunks, results, result)
 
+        # Assign generated summaries and tags to their corresponding chunks
+        for idx, chunk in enumerate(chunks):
+            res = results[idx]
+            if res is not None and getattr(res, "summary", None):
+                chunk.cached_summary = res.summary
+                if getattr(res, "detected_tags", None):
+                    chunk.detected_tags = list(set(chunk.detected_tags + res.detected_tags))
+
         return [r for r in results if r is not None]
 
     def _step_summarize_threaded(
