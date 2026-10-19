@@ -120,3 +120,45 @@ class TestSummaryPersistence:
             "Nó em cache deve manter seu sumário intacto"
 
         store.close()
+
+    def test_dumb_summary_not_persisted_in_nodes_table(self, tmp_path: Path):
+        """Verifica que sumários do tipo Dumb Fallback ([DUMB]) não são gravados em nodes.summary."""
+        db_path = str(tmp_path / "test.db")
+        chroma_dir = str(tmp_path / "chroma")
+        repo_dir = tmp_path / "repo"
+        _create_sample_repo(repo_dir)
+
+        store = SqliteStore(db_path)
+        store.create_project("test_proj", "Test Repo")
+        project_uuid = "test_proj"
+        vector_store = ChromaVectorStore(persist_dir=chroma_dir, collection_name="dumb_test")
+        embedder = StubDeterministicEmbedder()
+
+        class StubDumbSummarizer:
+            def summarize_l0(self, chunk: ParsedChunk) -> Optional[SummaryResult]:
+                return SummaryResult(
+                    level=ZoomLevel.L0,
+                    summary=f"[DUMB] {chunk.content[:20]}...",
+                    source_label=chunk.source_file,
+                    is_dumb_summary=True,
+                    detected_tags=["tag_ast"],
+                )
+
+        ingestion = IngestionManager(
+            sqlite_store=store,
+            vector_store=vector_store,
+            embedding_manager=embedder,
+            summarizer=StubDumbSummarizer(),
+        )
+
+        res = ingestion.mine(project_uuid, str(repo_dir))
+        assert isinstance(res, IngestionResult)
+
+        nodes = store.get_nodes_by_project(project_uuid)
+        code_nodes = [n for n in nodes if n.get("type") in ("function", "class")]
+        assert len(code_nodes) > 0
+        for n in code_nodes:
+            assert n["summary"] is None, f"Nó {n['label']} não deve ter [DUMB] gravado em summary"
+
+        store.close()
+

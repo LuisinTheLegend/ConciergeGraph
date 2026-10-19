@@ -147,8 +147,7 @@ class HybridSearchEngine:
         vector_results = self._vector.search(
             query_embedding=query_embedding,
             project_uuids=scoped_uuids,
-            top_k=top_k * 3,  # Searches 3x to have enough candidates
-            filters={"node_type": node_type} if node_type else None,
+            top_k=top_k * 5,  # Searches 5x to ensure sufficient candidate coverage across types
         )
 
         logger.debug("Vector search returned %d candidates.", len(vector_results))
@@ -184,6 +183,21 @@ class HybridSearchEngine:
             logger.info("No candidates found in both signals.")
             return []
 
+        # Resolves node_types from SQLite to decouple filtering from Chroma metadata
+        node_types_map: dict[int, str] = {}
+        if hasattr(self._store, "get_node_types_batch"):
+            node_types_map = self._store.get_node_types_batch(all_node_ids)
+
+        if node_type:
+            filtered_ids = {
+                nid for nid in all_node_ids
+                if node_types_map.get(nid) == node_type
+            }
+            if not filtered_ids:
+                logger.info("No candidates matched requested node_type: %s", node_type)
+                return []
+            all_node_ids = filtered_ids
+
         candidates: list[dict] = []
         for node_id in all_node_ids:
             candidates.append({
@@ -204,6 +218,12 @@ class HybridSearchEngine:
         # --- STEP 8: SORT and TRUNCATE ---
         scored_results.sort(key=lambda x: x.get("score_final", 0), reverse=True)
         final = scored_results[:top_k]
+
+        # Post-process: attach node_type from SQLite
+        for res in final:
+            nid = res.get("node_id")
+            if nid in node_types_map:
+                res["node_type"] = node_types_map[nid]
 
         logger.info(
             "Hybrid Search v4 complete: %d candidates → %d final results.",

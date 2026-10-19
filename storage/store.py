@@ -256,6 +256,58 @@ class SqliteStore:
             results.append(d)
         return results
 
+    def get_active_node_ids_with_content(self, project_uuid: str) -> set[int]:
+        """Returns only the set of IDs for active nodes that have non-empty content.
+
+        Highly optimized: avoids loading heavy 'content', 'summary' or 'tags' into memory.
+        """
+        sql = (
+            "SELECT id FROM nodes WHERE project_uuid = ? AND status = 'ACTIVE' "
+            "AND content IS NOT NULL "
+            "AND trim(content, char(32) || char(9) || char(10) || char(13)) != ''"
+        )
+        with self._conn_mgr.read() as conn:
+            rows = conn.execute(sql, (project_uuid,)).fetchall()
+        return {r["id"] for r in rows}
+
+    def get_nodes_by_ids(self, node_ids: list[int] | set[int]) -> list[dict]:
+        """Fetches detailed node records for a specific collection of node IDs."""
+        if not node_ids:
+            return []
+        id_list = list(node_ids)
+        results = []
+        for i in range(0, len(id_list), 500):
+            chunk = id_list[i:i + 500]
+            placeholders = ",".join("?" for _ in chunk)
+            sql = f"SELECT * FROM nodes WHERE id IN ({placeholders})"
+            with self._conn_mgr.read() as conn:
+                rows = conn.execute(sql, tuple(chunk)).fetchall()
+            for r in rows:
+                d = dict(r)
+                if d.get("tags"):
+                    try:
+                        d["tags"] = json.loads(d["tags"])
+                    except (json.JSONDecodeError, TypeError):
+                        pass
+                results.append(d)
+        return results
+
+    def get_node_types_batch(self, node_ids: list[int] | set[int]) -> dict[int, str]:
+        """Returns a mapping of node_id -> node_type for the given IDs."""
+        if not node_ids:
+            return {}
+        id_list = list(node_ids)
+        mapping = {}
+        for i in range(0, len(id_list), 500):
+            chunk = id_list[i:i + 500]
+            placeholders = ",".join("?" for _ in chunk)
+            sql = f"SELECT id, node_type FROM nodes WHERE id IN ({placeholders})"
+            with self._conn_mgr.read() as conn:
+                rows = conn.execute(sql, tuple(chunk)).fetchall()
+            for r in rows:
+                mapping[r["id"]] = r["node_type"]
+        return mapping
+
     def get_lightweight_topology(self, project_uuid: Optional[str] = None) -> dict[str, list[dict]]:
         """Returns the complete and lightweight topology (nodes and edges) from the database.
 

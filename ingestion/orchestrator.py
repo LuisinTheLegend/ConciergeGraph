@@ -245,9 +245,12 @@ class IngestionManager:
 
         # --- STEP 5: EMBED ---
         embed_items: list[dict] = []
+        step5_had_failures = False
         if chunks:
             logger.info("[5/8] EMBED — Generating embeddings for %d chunks...", len(chunks))
             embed_items = self._step_embed(chunks, project_uuid, result)
+            if result.embeddings_failed > 0:
+                step5_had_failures = True
             logger.info("[5/8] EMBED completed: %d embeddings generated.", len(embed_items))
 
         # --- STEP 6: STORE Vector ---
@@ -258,7 +261,12 @@ class IngestionManager:
             logger.info("[6/8] STORE Vector completed: %d embeddings stored.", stored)
 
         # --- REPAIR: repair any missing vectors after step 6 in normal flow ---
-        self.repair_missing_vectors(project_uuid, result)
+        # If Step 5 already experienced embedding failures due to unavailable model,
+        # skip immediate retry in the same cycle to prevent duplicate failure counts.
+        if not step5_had_failures:
+            self.repair_missing_vectors(project_uuid, result)
+        else:
+            logger.info("Skipping immediate vector repair in this cycle because Step 5 experienced embedding failures.")
 
         # --- STEP 7: GARBAGE COLLECTION ---
         if crawl_report.deleted_node_ids:
@@ -513,8 +521,10 @@ class IngestionManager:
         # Assign generated summaries and tags to their corresponding chunks
         for idx, chunk in enumerate(chunks):
             res = results[idx]
-            if res is not None and getattr(res, "summary", None):
-                chunk.cached_summary = res.summary
+            if res is not None:
+                # Only persist genuine LLM summaries, omitting [DUMB] truncation fallbacks
+                if getattr(res, "summary", None) and not getattr(res, "is_dumb_summary", False):
+                    chunk.cached_summary = res.summary
                 if getattr(res, "detected_tags", None):
                     chunk.detected_tags = list(set(chunk.detected_tags + res.detected_tags))
 
@@ -891,17 +901,19 @@ class IngestionManager:
             return (0, 0, 0)
 
         try:
-            nodes = self._store.get_nodes_by_project(project_uuid, status="ACTIVE")
+            if hasattr(self._store, "get_active_node_ids_with_content"):
+                sqlite_ids = self._store.get_active_node_ids_with_content(project_uuid)
+            else:
+                nodes = self._store.get_nodes_by_project(project_uuid, status="ACTIVE")
+                sqlite_ids = {n["id"] for n in nodes if n.get("content") and n["content"].strip()}
         except Exception as e:
             logger.warning("repair_missing_vectors: failed to query SQLite nodes: %s", e)
             return (0, 0, 0)
 
-        nodes_with_content = [n for n in nodes if n.get("content") and n["content"].strip()]
-        if not nodes_with_content:
+        if not sqlite_ids:
             return (0, 0, 0)
 
         stored_ids = self._vector.get_all_stored_node_ids()
-        sqlite_ids = {n["id"] for n in nodes_with_content}
         missing_ids = sqlite_ids - stored_ids
         found_missing = len(missing_ids)
         if not missing_ids:
@@ -912,7 +924,11 @@ class IngestionManager:
             found_missing, project_uuid,
         )
 
-        missing_nodes = [n for n in nodes_with_content if n["id"] in missing_ids]
+        if hasattr(self._store, "get_nodes_by_ids"):
+            missing_nodes = self._store.get_nodes_by_ids(missing_ids)
+        else:
+            nodes = self._store.get_nodes_by_project(project_uuid, status="ACTIVE")
+            missing_nodes = [n for n in nodes if n["id"] in missing_ids]
         repaired = 0
         failed = 0
 

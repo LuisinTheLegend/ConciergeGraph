@@ -117,7 +117,8 @@ class TestIngestionVectorRepair:
 
         stored_ids_1 = vector_store.get_all_stored_node_ids()
         assert len(stored_ids_1) == 0, "Chroma não deve ter nenhum vetor quando o embedder falha"
-        assert res1.embeddings_failed > 0, "embeddings_failed deve ser maior que 0"
+        assert res1.embeddings_failed == len(nodes_with_content), f"Falhas duplicadas: esperava {len(nodes_with_content)}, obteve {res1.embeddings_failed}"
+        assert res1.embeddings_repaired == 0, "Nenhum reparo imediato deve ocorrer no ciclo com falha de modelo"
         assert len(res1.errors) > 0, "errors deve conter aviso sobre chunks sem vetor"
 
         # 2ª mineração: troca para embedder são (arquivos inalterados)
@@ -307,8 +308,8 @@ class TestIngestionVectorRepair:
         store.close()
 
     def test_scenario_g_metadata_keys_identical_between_ingestion_and_repair(self, tmp_path: Path):
-        """Cenário g: Metadados: um vetor reparado tem exatamente as mesmas chaves de
-        metadados de um vetor criado pela ingestão normal.
+        """Cenário g: Metadados: todos os vetores reparados têm exatamente as mesmas chaves e
+        valores de metadados de vetores criados pela ingestão normal.
         """
         db_path = str(tmp_path / "test.db")
         chroma_dir = str(tmp_path / "chroma")
@@ -331,29 +332,46 @@ class TestIngestionVectorRepair:
         ingestion.mine(project_uuid, str(repo_dir))
         stored_ids = list(vector_store.get_all_stored_node_ids())
         assert len(stored_ids) > 0
-        sample_nid = stored_ids[0]
 
-        # Lê metadados originais da ingestão
-        orig_data = vector_store._collection.get(ids=[f"node_{sample_nid}"], include=["metadatas"])
-        orig_meta = orig_data["metadatas"][0]
+        # Lê metadados originais de TODOS os vetores gerados na ingestão
+        all_orig_data = vector_store._collection.get(
+            ids=[f"node_{nid}" for nid in stored_ids],
+            include=["metadatas"]
+        )
+        orig_meta_map = {
+            int(doc_id.replace("node_", "")): meta
+            for doc_id, meta in zip(all_orig_data["ids"], all_orig_data["metadatas"])
+        }
 
-        # Deleta apenas esse vetor do Chroma
-        vector_store.delete(f"node_{sample_nid}")
-        assert sample_nid not in vector_store.get_all_stored_node_ids()
+        # Deleta TODOS os vetores do Chroma
+        for nid in stored_ids:
+            vector_store.delete(f"node_{nid}")
+        assert len(vector_store.get_all_stored_node_ids()) == 0
 
-        # Executa reparo
+        # Executa reparo completo
         found, rep, fail = ingestion.repair_missing_vectors(project_uuid)
-        assert rep == 1
-        assert sample_nid in vector_store.get_all_stored_node_ids()
+        assert found == len(stored_ids)
+        assert rep == len(stored_ids)
+        assert fail == 0
+        assert vector_store.get_all_stored_node_ids() == set(stored_ids)
 
-        # Lê metadados do vetor reparado
-        rep_data = vector_store._collection.get(ids=[f"node_{sample_nid}"], include=["metadatas"])
-        rep_meta = rep_data["metadatas"][0]
+        # Lê metadados de TODOS os vetores reparados
+        all_rep_data = vector_store._collection.get(
+            ids=[f"node_{nid}" for nid in stored_ids],
+            include=["metadatas"]
+        )
+        rep_meta_map = {
+            int(doc_id.replace("node_", "")): meta
+            for doc_id, meta in zip(all_rep_data["ids"], all_rep_data["metadatas"])
+        }
 
-        # As chaves e valores devem ser exatamente iguais
-        assert set(rep_meta.keys()) == set(orig_meta.keys())
-        for k in orig_meta:
-            assert rep_meta[k] == orig_meta[k], f"Chave {k} divergiu: {rep_meta[k]} != {orig_meta[k]}"
+        # As chaves e valores de TODOS os nós devem ser exatamente iguais
+        for nid in stored_ids:
+            orig_meta = orig_meta_map[nid]
+            rep_meta = rep_meta_map[nid]
+            assert set(rep_meta.keys()) == set(orig_meta.keys()), f"Chaves divergiram no nó {nid}"
+            for k in orig_meta:
+                assert rep_meta[k] == orig_meta[k], f"Nó {nid} chave {k} divergiu: {rep_meta[k]} != {orig_meta[k]}"
         store.close()
 
     def test_scenario_h_janitor_delegates_to_repair_and_removes_orphans(self, tmp_path: Path):
@@ -408,3 +426,79 @@ class TestIngestionVectorRepair:
         assert rep_meta["symbol_name"] == "func"
         assert "chunk_type" in rep_meta
         store.close()
+
+    def test_scenario_i_backward_compatible_node_type_search_without_chroma_metadata(self, tmp_path: Path):
+        """Cenário i (F4-011): Compatibilidade retroativa da busca por node_type.
+        Coleções legadas ou reparadas sem 'node_type' nos metadados do Chroma
+        não devem perder o sinal vetorial ao filtrar por node_type no hybrid_search.
+        """
+        from core.config import ConciergeConfig
+        from core.project_index import ProjectIndex
+        from core.hybrid_search import HybridSearchEngine
+
+        db_path = str(tmp_path / "test.db")
+        chroma_dir = str(tmp_path / "chroma")
+
+        store = SqliteStore(db_path)
+        store.create_project("test_proj", "Test Repo")
+        project_uuid = "test_proj"
+        vector_store = ChromaVectorStore(persist_dir=chroma_dir, collection_name="repair_i")
+        embedder = StubDeterministicEmbedder(fail_all=False)
+
+        # Cria 2 nós no SQLite com tipos distintos: FACT e SKILL
+        nid_fact = store.create_node(
+            project_uuid, "fact_node",
+            content="Authentication requires bearer token",
+            node_type="FACT"
+        )
+        nid_skill = store.create_node(
+            project_uuid, "skill_node",
+            content="Authentication helper tool",
+            node_type="SKILL"
+        )
+
+        # Insere vetores no Chroma SEM 'node_type' nos metadados (simulando base legada)
+        vec_fact = embedder.embed("Authentication requires bearer token")
+        vec_skill = embedder.embed("Authentication helper tool")
+        vector_store._collection.upsert(
+            ids=[f"node_{nid_fact}", f"node_{nid_skill}"],
+            embeddings=[vec_fact, vec_skill],
+            metadatas=[
+                {"node_id": nid_fact, "project_uuid": project_uuid, "source_file": "fact.md"},
+                {"node_id": nid_skill, "project_uuid": project_uuid, "source_file": "skill.md"},
+            ],
+        )
+
+        # Valida que o metadado no Chroma realmente NÃO contém 'node_type'
+        sample_meta = vector_store._collection.get(ids=[f"node_{nid_fact}"], include=["metadatas"])["metadatas"][0]
+        assert "node_type" not in sample_meta, "Simulação legada não deve conter node_type no Chroma"
+
+        config = ConciergeConfig()
+        project_index = ProjectIndex(store, config)
+        search_engine = HybridSearchEngine(
+            sqlite_store=store,
+            vector_store=vector_store,
+            embedding_manager=embedder,
+            project_index=project_index,
+            config=config,
+        )
+
+        # Executa busca híbrida filtrando por node_type="FACT"
+        results = search_engine.search(
+            query="Authentication bearer",
+            project_uuid=project_uuid,
+            node_type="FACT",
+            top_k=5,
+        )
+
+        # Validações:
+        # 1. Retornou apenas o nó FACT
+        assert len(results) == 1
+        assert results[0]["node_id"] == nid_fact
+        # 2. O sinal vetorial NÃO foi perdido (score_breakdown.vetorial > 0)
+        assert results[0]["score_breakdown"]["vetorial"] > 0.0, "Sinal vetorial não deve ser descartado"
+        # 3. O resultado no pós-processamento foi enriquecido com node_type do SQLite
+        assert results[0].get("node_type") == "FACT"
+
+        store.close()
+
