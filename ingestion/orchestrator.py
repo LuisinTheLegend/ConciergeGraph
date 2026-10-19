@@ -219,7 +219,7 @@ class IngestionManager:
         # --- STEP 5: EMBED ---
         embed_items: list[dict] = []
         if chunks:
-            logger.info("[5/8] EMBED — Generating embeddings...", len(chunks))
+            logger.info("[5/8] EMBED — Generating embeddings for %d chunks...", len(chunks))
             embed_items = self._step_embed(chunks, project_uuid, result)
             logger.info("[5/8] EMBED completed: %d embeddings generated.", len(embed_items))
 
