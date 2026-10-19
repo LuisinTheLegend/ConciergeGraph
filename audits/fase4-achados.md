@@ -145,10 +145,10 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
 ---
 
 ### [F4-008] Fragilidade Arquitetural: Gravação do `file_hash` em SQLite Precede a Geração de Embeddings e Vetores
-- **Severidade Proposta:** 🔴 CRÍTICA *(elevada na Rodada 4.1/C após confirmação com modelo real e offline)*
-- **Arquivos & Linhas:** [`ingestion/orchestrator.py:198–232, 755–765`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L198), [`ingestion/crawler.py:559–576`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/crawler.py#L559)
+- **Severidade:** 🔴 CRÍTICA (Homologada na Rodada 4.1/D)
+- **Arquivos & Linhas:** [`ingestion/orchestrator.py:186–275`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L186), [`ingestion/crawler.py:559–576`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/crawler.py#L559)
 - **Mecanismo da Falha:** No pipeline de mineração (`IngestionManager.mine`), o Passo 4 (`STORE SQLite`) grava imediatamente os nós e o respectivo `file_hash` na tabela relacional `nodes`. Os passos 5 (`EMBED`) e 6 (`STORE Vector`) ocorrem subsequentemente. Como os IDs dos vetores no Chroma derivam estritamente do ID inteiro do SQLite (`doc_id = f"node_{node_id}"`), qualquer falha de download do modelo na 1ª execução, interrupção de rede, timeout ou falha parcial de lote resulta em:
-  1. O retorno da mineração reporta falsamente `success: true` e `errors: []` devido ao fallback semântico silencioso (`[None] * len(texts)`).
+  1. O retorno da mineração reportava falsamente `success: true` e `errors: []` devido ao fallback semântico silencioso (`[None] * len(texts)`).
   2. O banco relacional SQLite persiste os nós com `file_hash` preenchido.
   3. Em qualquer mineração subsequente, o crawler executa `existing_node = self._store.find_node_by_hash(project_uuid, file_hash)` e classifica os arquivos como `unchanged`, pulando-os permanentemente (`files_skipped: N`) e deixando o índice vetorial no Chroma com 0 vetores para sempre.
 - **Reproduções Executadas (Rodadas 4.1/B e 4.1/C):**
@@ -157,34 +157,53 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
      - 1ª mineração: `success: true, files_processed: 2, nodes_created: 5, embeddings_stored: 0, errors: [], Chroma count: 0`.
      - 2ª mineração (rede/modelo restaurados): `success: true, files_processed: 0, files_skipped: 2, embeddings_stored: 0, errors: [], Chroma count: 0`.
   3. *Falha Parcial de Lotes (`scratch/fase4_1c_partial_batch_probe.py`):* Lote 1 gravado (2 vetores), lote 2 falha. A 2ª mineração pula todos os arquivos e congela o Chroma com apenas 2 vetores em vez de 6.
-- **Status:** **CONFIRMADO — EM ESPERA DE DECISÃO HUMANA ENTRE ALTERNATIVAS A, B, C, D** (Ver [`audits/fase4-1c-investigacao-f4-008.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/fase4-1c-investigacao-f4-008.md))
+- **Resolução Arquitetural (Alternativa A + Relato Honesto):**
+  Implementada a rotina unificada `repair_missing_vectors(project_uuid)` em `IngestionManager`. A rotina é executada:
+  1. Antes do atalho de encerramento prematuro `noop` (quando não há novos arquivos nem exclusões), garantindo que arquivos inalterados com vetores ausentes sejam imediatamente reparados.
+  2. Após o Passo 6 na mineração normal, reparando falhas parciais ocorridas durante a execução.
+  Adicionalmente, `IngestionResult` passou a expor `embeddings_failed` e `embeddings_repaired`. Em caso de modelo indisponível durante o embedding (Semantic Fallback), o resultado registra explicitamente uma mensagem de erro descritiva.
+- **Status:** **CORRIGIDO NA RODADA 4.1/D** (Commit `de90005d377fc7dc5ba137b9854576c64669ed42`)
 
 ---
 
 ### [F4-009] Inexistência de Mecanismo de Reindexação Forçada ou Invalidação de Cache de Hashes
-- **Severidade Proposta:** 🟠 GRAVE *(elevada na Rodada 4.1/C após comprovação via ferramenta oficial `reset_collection`)*
-- **Arquivos & Linhas:** [`ingestion/orchestrator.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py), [`ingestion/crawler.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/crawler.py), [`interface/mcp_server.py:328–343, 1690–1720`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L328)
-- **Mecanismo da Falha:** Não existe no Grafo Concierge nenhum parâmetro de força (`--force`, `force=True`, `reindex=True`), nem ferramenta MCP de invalidação de hash ou reconciliação que permita reindexar arquivos cujo hash já esteja gravado em SQLite mas cujos vetores estejam ausentes ou corrompidos no Chroma.
-- **Reprodução via Ferramenta Oficial (`scratch/fase4_1c_reset_collection_probe.py`):**
-  1. `concierge_mine` indexa o repositório fixture (5 vetores gerados no Chroma).
-  2. Transição para estado `MAINTENANCE` e execução de `reset_collection()`. A coleção do Chroma é purgada (`count = 0`).
-  3. Execução de nova `concierge_mine`: o crawler consulta apenas o SQLite, encontra os hashes dos nós existentes e pula 100% dos arquivos (`files_skipped: 2`).
-  4. O Chroma permanece com 0 vetores permanentemente, provando que a ferramenta oficial `reset_collection` destrói o índice vetorial sem possibilidade de reconstrução via MCP.
-- **Status:** **CONFIRMADO — EM ESPERA DE DECISÃO HUMANA ENTRE ALTERNATIVAS A, B, C, D** (Ver [`audits/fase4-1c-investigacao-f4-008.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/fase4-1c-investigacao-f4-008.md))
+- **Severidade:** 🟠 GRAVE (Homologada na Rodada 4.1/D)
+- **Arquivos & Linhas:** [`ingestion/orchestrator.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py), [`services/janitor.py:346–392`](file:///c:/Nexus-Memory/GrafoConcierge/services/janitor.py#L346), [`interface/mcp_server.py:1690–1720`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L1690)
+- **Retificação do Achado (Antes vs Depois):**
+  - *Antes (Registro preliminar na 4.1/C):* Afirmava-se que "não existe no Grafo Concierge nenhum parâmetro de força nem ferramenta de reconciliação que permita reindexar arquivos cujo hash já esteja em SQLite".
+  - *Depois (Evidência empírica da 4.1/D):* Existia uma rotina de sincronização em `JanitorService._sync_vectors`. Contudo, ela permanecia **100% inoperante/ociosa por padrão** em produção, pois o Janitor só executa se a variável de ambiente `GRAFO_JANITOR_PROJECT` estiver explicitamente configurada (`main.py:66, 237–241`; sem ela, o bootstrap registra `janitor.is_running: False`). Não havia nenhum teste automatizado na suíte exercitando essa rotina (0 ocorrências em `tests/`) e os metadados gerados divergiam estruturalmente da ingestão padrão (omitindo `project_uuid`).
+- **Resolução:**
+  A lógica de reparo foi centralizada em `IngestionManager.repair_missing_vectors`, que opera em lotes via `embed_batch`. `JanitorService._sync_vectors` foi refatorado para delegar diretamente para essa rotina única, preservando a limpeza de nós órfãos sem duplicidade de código.
+- **Status:** **CORRIGIDO NA RODADA 4.1/D** (Commit `de90005d377fc7dc5ba137b9854576c64669ed42`)
 
 ---
 
 ### [F4-010] Descarte Silencioso de Sumários L0 Gerados pelo LLM e Persistência como `NULL` em `nodes.summary`
-- **Severidade Proposta:** 🟠 GRAVE
-- **Arquivos & Linhas:** [`ingestion/orchestrator.py:190–203, 570–588`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L190), [`interface/mcp_server.py:1158`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L1158)
+- **Severidade:** 🟠 GRAVE (Homologada na Rodada 4.1/D)
+- **Arquivos & Linhas:** [`ingestion/orchestrator.py:215–235, 595–625`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L215), [`interface/mcp_server.py:1158`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L1158)
 - **Mecanismo da Falha:** No pipeline de mineração (`IngestionManager.mine`):
   1. No Passo 3 (`_step_summarize`), o orquestrador invoca o LLM (Gemini/OpenAI), gera os sumários L0 para todos os `uncached_chunks`, registra a contagem em `result.summaries_generated` e retorna a lista de objetos `SummaryResult`.
-  2. A lista retornada `summaries` **nunca é associada aos chunks nem repassada para o Passo 4 (`_step_store_sqlite`)**, sendo sumariamente descartada pelo coletor de lixo da memória.
-  3. No Passo 4 (`_step_store_sqlite`), ao montar `nodes_to_create`, o código lê `summary_text = chunk.cached_summary`. Para qualquer nó novo (uncached), `chunk.cached_summary` é estritamente `None`.
-  4. O bulk insert insere `summary = NULL` em todas as novas linhas da tabela `nodes`.
-  5. Como consequência, na busca (`concierge_search`), a consulta ao SQLite lê `node.get("summary")` como `NULL`, retornando `"summary": null` mesmo quando o resultado da mineração reportou dezenas de sumários gerados.
-- **Reprodução Executada:**
-  Comprovada em `scratch/fase4_1c_summary_probe_clean.py`: com mock de summarizer ativo, o resultado da mineração reportou `summaries_generated: 3`, mas uma consulta SQL direta (`SELECT id, label, summary FROM nodes`) provou que todos os nós criados possuem `summary = NULL`.
-- **Status:** **CONFIRMADO**
+  2. A lista retornada `summaries` **nunca era associada aos chunks nem repassada para o Passo 4 (`_step_store_sqlite`)**, sendo sumariamente descartada pelo coletor de lixo da memória.
+  3. No Passo 4 (`_step_store_sqlite`), ao montar `nodes_to_create`, o código lê `summary_text = chunk.cached_summary`. Para qualquer nó novo (uncached), `chunk.cached_summary` permanecia estritamente `None`.
+  4. O bulk insert inseria `summary = NULL` em todas as novas linhas da tabela `nodes`.
+  5. Como consequência, na busca (`concierge_search`), a consulta ao SQLite lia `node.get("summary")` como `NULL`, retornando `"summary": null` mesmo quando o resultado da mineração reportou dezenas de sumários gerados.
+- **Resolução:**
+  Em `_step_summarize`, após obter cada `SummaryResult`, o orquestrador atribui diretamente `chunk.cached_summary = res.summary` e atualiza `chunk.detected_tags`. O bulk insert no SQLite persiste o sumário gerado.
+- **Limitação Conhecida:**
+  Não foi realizado backfill de bancos existentes nesta rodada. Nós já minerados em versões anteriores mantêm `summary = NULL` até que o arquivo seja editado e seu hash alterado.
+- **Status:** **CORRIGIDO NA RODADA 4.1/D** (Commit `8e6f887629ec7260a07311d0ca9b0f6c7edec55f`)
+
+---
+
+### [F4-011] Divergência Estrutural de Metadados nos Vetores entre Ingestão e Janitor Rompe Filtros de Busca Vetorial
+- **Severidade:** 🟠 GRAVE
+- **Arquivos & Linhas:** [`ingestion/orchestrator.py:755–765`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L755), [`services/janitor.py:375–385`](file:///c:/Nexus-Memory/GrafoConcierge/services/janitor.py#L375), [`core/hybrid_search.py:149–151`](file:///c:/Nexus-Memory/GrafoConcierge/core/hybrid_search.py#L149)
+- **Mecanismo da Falha:**
+  A ingestão padrão gravava no Chroma metadados compostos por `node_id`, `project_uuid`, `source_file`, `chunk_type` e `symbol_name`, omitindo `node_type`.
+  A rotina original do Janitor (`_sync_vectors`) gravava apenas `label` e `node_type`, omitindo `project_uuid`.
+  Como `core/hybrid_search.py:149` aplica obrigatoriamente `where_clause = {"project_uuid": project_uuid}`, qualquer vetor gravado pelo Janitor tornava-se 100% invisível para a busca híbrida. Adicionalmente, quando o usuário filtrava por `node_type`, os vetores gerados pela ingestão padrão eram descartados pelo Chroma.
+- **Resolução:**
+  Criada a função utilitária compartilhada `build_vector_metadata(...)`, que unifica todos os metadados (`node_id`, `project_uuid`, `source_file`, `chunk_type`, `symbol_name`, `label`, `node_type`), utilizada de forma idêntica tanto no pipeline normal quanto na rotina de reparo.
+- **Status:** **CORRIGIDO NA RODADA 4.1/D** (Commit `de90005d377fc7dc5ba137b9854576c64669ed42`)
 
 

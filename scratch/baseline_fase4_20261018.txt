@@ -1,8 +1,8 @@
 .................................................................s...... [ 21%]
 ........................................................................ [ 42%]
 ........................................................................ [ 63%]
-................F....................................................... [ 84%]
-...................................................                      [100%]
+.................F...................................................... [ 84%]
+....................................................                     [100%]
 ================================== FAILURES ===================================
 ____ TestProgressiveToolDisclosure.test_telemetry_api_mcp_state_endpoints _____
 
@@ -43,4 +43,4 @@ tests/test_storage_logic.py: 14 warnings
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
 =========================== short test summary info ===========================
 FAILED tests/test_progressive_tool_disclosure.py::TestProgressiveToolDisclosure::test_telemetry_api_mcp_state_endpoints
-1 failed, 337 passed, 1 skipped, 20 warnings in 60.96s (0:01:00)
+1 failed, 338 passed, 1 skipped, 20 warnings in 59.07s
