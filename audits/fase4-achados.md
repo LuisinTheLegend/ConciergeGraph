@@ -162,7 +162,9 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
   1. Antes do atalho de encerramento prematuro `noop` (quando não há novos arquivos nem exclusões), garantindo que arquivos inalterados com vetores ausentes sejam imediatamente reparados.
   2. Após o Passo 6 na mineração normal, reparando falhas parciais ocorridas durante a execução.
   Adicionalmente, `IngestionResult` passou a expor `embeddings_failed` e `embeddings_repaired`. Em caso de modelo indisponível durante o embedding (Semantic Fallback), o resultado registra explicitamente uma mensagem de erro descritiva.
-- **Status:** **CORRIGIDO NA RODADA 4.1/D** (Commit `de90005d377fc7dc5ba137b9854576c64669ed42`)
+- **Ajuste de Precisão (Rodada 4.1/E — Deduplicação de Telemetria):**
+  A rodada 4.1/D contabilizava as mesmas falhas em dobro no cenário offline (ex.: 14 falhas para 7 chunks): o Passo 5 registrava `embeddings_failed += none_count` e o reparo imediato subsequente tentava re-gerar os mesmos 7 embeddings, falhava novamente e somava mais 7 ao mesmo contador. Corrigido em `ingestion/orchestrator.py` (Passo 5/6 do `mine`): um flag `step5_had_failures` suprime a chamada imediata a `repair_missing_vectors` no mesmo ciclo quando o Passo 5 acabou de registrar falhas por indisponibilidade de modelo, registrando em log `Skipping immediate vector repair in this cycle...`. O reparo continua disponível para o próximo ciclo (via atalho `noop`) e pelo Janitor.
+- **Status:** **CORRIGIDO NA RODADA 4.1/D** (Commit `de90005d377fc7dc5ba137b9854576c64669ed42`) + **DEDUPLICADO NA RODADA 4.1/E** (Commit `8d963ae61c2e6b8fccbb2ed86d621c302fbac334`)
 
 ---
 
@@ -191,7 +193,9 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
   Em `_step_summarize`, após obter cada `SummaryResult`, o orquestrador atribui diretamente `chunk.cached_summary = res.summary` e atualiza `chunk.detected_tags`. O bulk insert no SQLite persiste o sumário gerado.
 - **Limitação Conhecida:**
   Não foi realizado backfill de bancos existentes nesta rodada. Nós já minerados em versões anteriores mantêm `summary = NULL` até que o arquivo seja editado e seu hash alterado.
-- **Status:** **CORRIGIDO NA RODADA 4.1/D** (Commit `8e6f887629ec7260a07311d0ca9b0f6c7edec55f`)
+- **Política do Placeholder `[DUMB]` (Definida na Rodada 4.1/E):**
+  O `ZoomSummarizer` insere o prefixo `[DUMB]` nos sumários de truncamento gerados quando não há LLM configurado (marcados com `is_dumb_summary=True`). Decisão homologada: **esses placeholders NÃO devem ser persistidos**. A partir do Commit `8d963ae61c2e6b8fccbb2ed86d621c302fbac334`, `_step_summarize` só atribui `chunk.cached_summary` quando o resultado é um sumário genuíno de LLM (`is_dumb_summary=False`); em ambientes sem LLM, `nodes.summary` permanece `NULL` até que a integração com LLM esteja disponível. Teste-guarda: `test_dumb_summary_not_persisted_in_nodes_table` (`tests/test_summary_persistence.py:124`).
+- **Status:** **CORRIGIDO NA RODADA 4.1/D** (Commit `8e6f887629ec7260a07311d0ca9b0f6c7edec55f`) + **POLÍTICA [DUMB] NA RODADA 4.1/E** (Commit `8d963ae61c2e6b8fccbb2ed86d621c302fbac334`)
 
 ---
 
@@ -205,7 +209,8 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
   2. A filtragem por `node_type` foi movida para o Passo 5 (Merge), consultando a fonte canônica da verdade na tabela relacional `nodes` via método em lote `SqliteStore.get_node_types_batch(all_node_ids)`.
   3. No Passo 8 (Pós-processamento), o `node_type` canônico vindo do SQLite é anexado a cada item do resultado final.
   4. Essa solução garante compatibilidade retroativa total com coleções existentes sem necessidade de migrações ou reindexação destrutiva.
-- **Status:** **CORRIGIDO E HOMOLOGADO NA RODADA 4.1/D**
+- **Homologação (Rodada 4.1/E):** Compatibilidade retroativa comprovada pelo teste `test_scenario_i_backward_compatible_node_type_search_without_chroma_metadata` (`tests/test_ingestion_vector_repair.py:430`), que insere vetores no Chroma **sem** a chave `node_type` nos metadados (simulando base legada) e valida que a busca filtrada por `node_type="FACT"` retorna apenas o nó FACT com `score_breakdown.vetorial > 0.0` e com o `node_type` canônico anexado no pós-processamento.
+- **Status:** **CORRIGIDO E HOMOLOGADO NA RODADA 4.1/D** (Implementação consolidada no Commit `8d963ae61c2e6b8fccbb2ed86d621c302fbac334`, Rodada 4.1/E)
 
 
 

@@ -58,22 +58,29 @@
    - Investigação empírica com 4 sondas (offline, falha parcial de lotes, reset_collection e sumários).
    - Elaboração e análise de 4 alternativas arquiteturais (A, B, C, D) para F4-008/F4-009.
 
-3. **Rodada 4.1/D (Esta Rodada — Concluída):**
+3. **Rodada 4.1/D (Concluída):**
    - Implementação do reparo de vetores ausentes (Alternativa A) e relato honesto (F4-008, F4-009).
    - Implementação da persistência de sumários L0 nos nós SQLite (F4-010).
    - Prova ponta a ponta com modelo real `all-MiniLM-L6-v2` confrontada com baseline `76e6a7e`.
 
-4. **Rodada 4.2 (Planejado, Não Autorizado):**
+4. **Rodada 4.1/E (Retificação — Concluída):**
+   - Retificação das evidências da 4.1/D em [`audits/fase4-1d-relatorio-retificado.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/fase4-1d-relatorio-retificado.md), com Passo 1 composto exclusivamente por saídas brutas de `git show` e `pytest`.
+   - Tratamento definitivo do F4-011: filtro por `node_type` desacoplado do metadado do Chroma, movido para o SQLite com compatibilidade retroativa (Commit `8d963ae`).
+   - Deduplicação da telemetria `embeddings_failed` no ciclo offline (Commit `8d963ae`).
+   - Otimização de `repair_missing_vectors` (IDs leves antes do conteúdo completo) e medição de escala em 1.000/10.000 nós (Commit `8d963ae`).
+   - **Política `[DUMB]` homologada:** sumários de truncamento gerados sem LLM (`is_dumb_summary=True`) **não são persistidos** — `nodes.summary` permanece `NULL` até a integração com LLM (Commit `8d963ae`).
+
+5. **Rodada 4.2 (Planejado, Não Autorizado):**
    - Desacoplamento do `mcp_governor` em relação a `interface.telemetry_api`.
    - Corte definitivo da cadeia `interface/__init__` → `ActionHooks` → `RevisorCritico` / `telemetry_api`.
 
-5. **Rodada 4.3 (Planejado, Não Autorizado):**
+6. **Rodada 4.3 (Planejado, Não Autorizado):**
    - Implementação do Schema Reduzido (DDL de `agent_checkpoints`).
    - Implementação e refatoração de `concierge_get_call_chain` navegando arestas `calls` em `edges`.
 
-6. **Rodada 4.4 (Planejado, Não Autorizado):**
+7. **Rodada 4.4 (Planejado, Não Autorizado):**
    - Remoção definitiva de `wing_keywords` em `core/config.py` e adaptação do `ProjectIndex`.
    - Teste-guarda de neutralidade de domínio.
 
-7. **Rodada 4.5 (Planejado, Não Autorizado):**
+8. **Rodada 4.5 (Planejado, Não Autorizado):**
    - Movimentação do motor Delta/Survival dormente e de seus módulos associados para quarentena isolada em `archive/v4-experimental`.
