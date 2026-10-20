@@ -2,7 +2,7 @@
 
 > **Documento vivo, somente-adição.** É um índice: o detalhe de cada achado fica em `audits/fase4-achados.md`, e as decisões do dono em `audits/fase4-decisoes.md`. Não duplicar o conteúdo deles aqui.
 > **Regras de manutenção:** (1) toda linha aponta para uma evidência (commit, arquivo ou saída de comando); (2) novas entradas vão no fim de cada tabela; mudança de status é feita na própria linha, com a rodada e o commit que a justificam; (3) "CORRIGIDO" só com prova executável (teste vermelho→verde reproduzido por auditor independente); (4) quem audita redige o texto da atualização, o executor só o commita (Regra 11), e o auditor confere na rodada seguinte.
-> Última atualização: 2026-10-20, HEAD `bd821e7`. Criado pelo auditor independente; mantido pelo executor.
+> Última atualização: 2026-10-20, HEAD 4a55d6e (4.1/G). Criado pelo auditor independente; mantido pelo executor.
 
 ## 1. Papéis
 
@@ -32,7 +32,7 @@ Preferências do dono: honestidade acima de tudo, caminho mais eficiente e profi
 | 4.1/D | `de90005`, `8e6f887`, `af9001a` | Reparo de vetores (F4-008/009); sumários persistidos (F4-010) | Código OK; relatório tinha trechos inventados | Sim (veredito 2026-10-19) |
 | 4.1/E | `8d963ae`, `d7a88ff`, `641d327` | F4-011 via SQLite; dedup de falhas; consulta leve do reparo; `[DUMB]` omitido; teste (g) em todos os vetores; relatório retificado | Código OK; teste do [DUMB] corrigido na 4.1/F | Sim (2026-10-20) |
 | 4.1/F | `9b70eef`, `bd821e7` | Corrigir o teste vazio do `[DUMB]`; commitar este roadmap; ajustar relatório | Concluída | Sim (2026-10-19) |
-| 4.1/G | — | Resíduo F4-009 + investigação de nodes.summary (somente leitura) | Concluída | — |
+| 4.1/G | `4c505d1`, `4a55d6e` | Resíduo F4-009 + investigação de nodes.summary (somente leitura) | Concluída | — |
 | 4.2 | — | Desacoplar `mcp_governor` de `telemetry_api`; cortar `interface/__init__`→`ActionHooks`→`RevisorCritico` (inclui BL-015) | PLANEJADO, NÃO AUTORIZADO | — |
 | 4.3 | — | DDL só de `agent_checkpoints`; reimplementar `concierge_get_call_chain` sobre `edges`/`nodes` (caminhos de arquivo, só `calls`) | PLANEJADO, NÃO AUTORIZADO | — |
 | 4.4 | — | Remover `wing_keywords` de vez, com teste-guarda e regra de neutralidade no protocolo/CONTRIBUTING | PLANEJADO, NÃO AUTORIZADO | — |
