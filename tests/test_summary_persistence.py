@@ -135,7 +135,11 @@ class TestSummaryPersistence:
         embedder = StubDeterministicEmbedder()
 
         class StubDumbSummarizer:
+            def __init__(self):
+                self.calls = 0
+
             def summarize_l0(self, chunk: ParsedChunk) -> Optional[SummaryResult]:
+                self.calls += 1
                 return SummaryResult(
                     level=ZoomLevel.L0,
                     summary=f"[DUMB] {chunk.content[:20]}...",
@@ -144,15 +148,28 @@ class TestSummaryPersistence:
                     detected_tags=["tag_ast"],
                 )
 
+            async def summarize_l0_async(self, chunk: ParsedChunk) -> Optional[SummaryResult]:
+                return self.summarize_l0(chunk)
+
+            def summarize_l0_grouped(self, chunks: list[ParsedChunk], indices: list[int]) -> list[tuple[int, SummaryResult]]:
+                res = []
+                for idx, chunk in zip(indices, chunks):
+                    s = self.summarize_l0(chunk)
+                    if s is not None:
+                        res.append((idx, s))
+                return res
+
+        summarizer = StubDumbSummarizer()
         ingestion = IngestionManager(
             sqlite_store=store,
             vector_store=vector_store,
             embedding_manager=embedder,
-            summarizer=StubDumbSummarizer(),
+            summarizer=summarizer,
         )
 
         res = ingestion.mine(project_uuid, str(repo_dir))
         assert isinstance(res, IngestionResult)
+        assert summarizer.calls > 0, "StubDumbSummarizer deve ter sido efetivamente exercitado durante a ingestão"
 
         nodes = store.get_nodes_by_project(project_uuid)
         code_nodes = [n for n in nodes if n.get("type") in ("function", "class")]
