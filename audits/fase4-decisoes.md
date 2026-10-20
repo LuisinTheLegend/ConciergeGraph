@@ -40,6 +40,11 @@
 7. **Escopo do F4-010 (Sumários L0):**
    - O F4-010 foi incluído na Rodada 4.1/D como commit separado, persistindo `chunk.cached_summary` no nó SQLite. Não há backfill de bancos existentes nesta rodada.
 
+8. **Política para Sumários de Truncamento `[DUMB]` (Decisão do Dono — 2026-10-19):**
+   - "[DUMB]: sem LLM, nodes.summary permanece NULL (não persistir o placeholder de truncamento)".
+   - *Fonte:* Confirmação do dono nesta conversa (homologada nas rodadas 4.1/F e 4.1/G).
+   - Sumários de truncamento gerados na ausência de LLM (`is_dumb_summary=True`) não devem ser persistidos no SQLite; em ambientes sem LLM, `nodes.summary` permanece `NULL` até que a integração com LLM esteja configurada.
+
 ---
 
 ## 2. Ordem de Execução Planejada
