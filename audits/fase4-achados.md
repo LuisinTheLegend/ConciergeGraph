@@ -25,7 +25,7 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
 │  🔴   F4-006: Crash de Formatação de Log em `orchestrator.py:222` (Corrigido)│
 │  🔴   F4-007: Ausência de DDL para `agent_checkpoints` Rompe Ferramentas     │
 │  🔴   F4-008: Fragilidade: Hash Gravado Antes de Embeddings (Decisão Humana) │
-│  🟠   F4-009: Inexistência de Mecanismo de Reindexação (Decisão Humana)      │
+│  🟠   F4-009: Reparo Parcial Inativo no Janitor e Sem Reindexação na Ingestão│
 │  🟠   F4-010: Descarte Silencioso de Sumários L0 e Gravação de NULL em Nós  │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -168,12 +168,12 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
 
 ---
 
-### [F4-009] Inexistência de Mecanismo de Reindexação Forçada ou Invalidação de Cache de Hashes
+### [F4-009] Mecanismo de Reparo Parcial Inativo no Janitor e Omissão de Reindexação Forçada na Ingestão
 - **Severidade:** 🟠 GRAVE (Homologada na Rodada 4.1/D)
 - **Arquivos & Linhas:** [`ingestion/orchestrator.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py), [`services/janitor.py:346–392`](file:///c:/Nexus-Memory/GrafoConcierge/services/janitor.py#L346), [`interface/mcp_server.py:1690–1720`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L1690)
-- **Retificação do Achado (Antes vs Depois):**
-  - *Antes (Registro preliminar na 4.1/C):* Afirmava-se que "não existe no Grafo Concierge nenhum parâmetro de força nem ferramenta de reconciliação que permita reindexar arquivos cujo hash já esteja em SQLite".
-  - *Depois (Evidência empírica da 4.1/D):* Existia uma rotina de sincronização em `JanitorService._sync_vectors`. Contudo, ela permanecia **100% inoperante/ociosa por padrão** em produção, pois o Janitor só executa se a variável de ambiente `GRAFO_JANITOR_PROJECT` estiver explicitamente configurada (`main.py:66, 237–241`; sem ela, o bootstrap registra `janitor.is_running: False`). Não havia nenhum teste automatizado na suíte exercitando essa rotina (0 ocorrências em `tests/`) e os metadados gerados divergiam estruturalmente da ingestão padrão (omitindo `project_uuid`).
+- **Retificação do Achado (Caminho Parcial Pré-existente vs Inexistência na Ingestão):**
+  - O Janitor (`services/janitor.py:346–392`, método `_sync_vectors`) **já era um caminho de reparo parcial** antes da Rodada 4.1/D, permitindo sincronizar nós do SQLite com o Chroma. Contudo, esse caminho permanecia **inativo por padrão** em produção, pois o Janitor só executa se a variável de ambiente `GRAFO_JANITOR_PROJECT` estiver explicitamente configurada (`main.py:66, 237–241`; sem ela, o bootstrap registra `janitor.is_running: False`). Além disso, operava de forma isolada, sem testes automatizados na suíte (0 ocorrências em `tests/`) e gerava metadados divergentes da ingestão padrão (omitindo `project_uuid`).
+  - No fluxo principal de ingestão (`ingestion/orchestrator.py`), não existia qualquer parâmetro de reindexação forçada, reconciliação ativa nem invalidação de cache de hashes para reprocessar arquivos já registrados em `nodes`. A afirmação inicial de inexistência absoluta de qualquer mecanismo de sincronização referia-se ao pipeline de mineração da ingestão, devendo ser contextualizada pela existência desse reparo parcial dormente no Janitor.
 - **Resolução:**
   A lógica de reparo foi centralizada em `IngestionManager.repair_missing_vectors`, que opera em lotes via `embed_batch`. `JanitorService._sync_vectors` foi refatorado para delegar diretamente para essa rotina única, preservando a limpeza de nós órfãos sem duplicidade de código.
 - **Status:** **CORRIGIDO NA RODADA 4.1/D** (Commit `de90005d377fc7dc5ba137b9854576c64669ed42`)
