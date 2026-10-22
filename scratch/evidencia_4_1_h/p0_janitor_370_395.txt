@@ -1,0 +1,26 @@
+﻿                    
+                    items_to_store = []
+                    embedder = self._ingestion._embedder
+                    
+                    for n in nodes_with_content:
+                        if n["id"] in missing_ids:
+                            try:
+                                emb = embedder.embed(n["content"])
+                                items_to_store.append({
+                                    "doc_id": f"node_{n['id']}",
+                                    "embedding": emb,
+                                    "metadata": {
+                                        "node_id": n["id"],
+                                        "project_uuid": project_uuid,
+                                        "label": n.get("label", ""),
+                                        "node_type": n.get("type", "FACT")
+                                    }
+                                })
+                            except Exception as embed_err:
+                                logger.error("Failed to generate embedding for node %d in auto-sync: %s", n["id"], embed_err)
+                    
+                    if items_to_store:
+                        stored_count = self._vector.store_embeddings_batch(items_to_store)
+                        logger.info("Sync: %d missing vectors auto-generated and synchronized successfully.", stored_count)
+
+            return removed

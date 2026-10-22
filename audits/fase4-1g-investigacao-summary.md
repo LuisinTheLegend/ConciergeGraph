@@ -12,41 +12,108 @@
 
 ## 1. PARTE A — Retificação Documental Concluída (Commit `4c505d1`)
 
+> **ERRATA (2026-10-21, Rodada 4.1/H — Regra 10):**  
+> Os trechos da Seção 1.1 e 1.3 foram retificados para refletir as saídas textuais exatas capturadas por redirecionamento mecânico para arquivos em `scratch/evidencia_4_1_h/`. A conclusão original permanece intacta: o Janitor já gravava `project_uuid`; a divergência real era apenas `node_type: n.get("type", "FACT")` em vez do tipo do nó.
+
 ### 1.1 Retificação de F4-009 (`audits/fase4-achados.md`)
 Foi removida a afirmação incorreta de que o Background Janitor gerava metadados divergentes da ingestão padrão "omitindo `project_uuid`".
 
-**Prova Obrigatória por Comando (`git show 76e6a7e:services/janitor.py` linhas 388–393):**
+**Prova Obrigatória por Comando (`git show 76e6a7e:services/janitor.py` linhas 371–395, cópia mecânica de `scratch/evidencia_4_1_h/p0_janitor_370_395.txt`):**
 ```python
-                    metadata = {
-                        "project_uuid": project_uuid,
-                        "node_type": n.get("type", "UNKNOWN"),  # Divergência real: tipo do chunk em vez do node_type do nó
-                        "label": n.get("label", ""),
-                    }
-                    self._vector.add(
-```
-*Constatação:* O Janitor já gravava `project_uuid`. A única divergência real era o campo `node_type` (que recebia `n.get("type")` do chunk em vez de `n.get("node_type")` do nó). A menção falsa foi removida de `audits/fase4-achados.md` e de `audits/fase4-1d-relatorio-retificado.md`.
+                    items_to_store = []
+                    embedder = self._ingestion._embedder
+                    
+                    for n in nodes_with_content:
+                        if n["id"] in missing_ids:
+                            try:
+                                emb = embedder.embed(n["content"])
+                                items_to_store.append({
+                                    "doc_id": f"node_{n['id']}",
+                                    "embedding": emb,
+                                    "metadata": {
+                                        "node_id": n["id"],
+                                        "project_uuid": project_uuid,
+                                        "label": n.get("label", ""),
+                                        "node_type": n.get("type", "FACT")
+                                    }
+                                })
+                            except Exception as embed_err:
+                                logger.error("Failed to generate embedding for node %d in auto-sync: %s", n["id"], embed_err)
+                    
+                    if items_to_store:
+                        stored_count = self._vector.store_embeddings_batch(items_to_store)
+                        logger.info("Sync: %d missing vectors auto-generated and synchronized successfully.", stored_count)
 
-**Auditoria por Grep (`git grep -n "omitindo" -- audits/`):**
-- *Antes:*
-```text
-audits/fase4-1d-relatorio-retificado.md:83: Janitor ao reparar vetores órfãos gerava metadados divergentes da ingestão padrão (omitindo `project_uuid` e usando `n.get("type")` no lugar de `n.get("node_type")`),
-audits/fase4-achados.md:143: Janitor ao reparar vetores órfãos gerava metadados divergentes da ingestão padrão (omitindo `project_uuid` e usando `n.get("type")` no lugar de `n.get("node_type")`),
+            return removed
 ```
-- *Depois:*
+*Constatação:* O Janitor já gravava `project_uuid`. A única divergência real era o campo `node_type` (que recebia `n.get("type", "FACT")` do chunk em vez de `n.get("node_type")` do nó). A menção incorreta foi removida de `audits/fase4-achados.md`.
+
+**Auditoria por Grep (`git grep -n omitindo bd821e7 -- audits/`, cópia mecânica de `scratch/evidencia_4_1_h/p0_grep_bd821e7.txt`):**
+- *No estado de partida `bd821e7`:*
 ```text
-(zero ocorrências de menção indevida)
+bd821e7:audits/backlog-final.md:187:- **Mecanismo da Falha:** `storage/store.py:95–100` já possui a lógica de validação que lança `RuntimeError(f"Incomplete schema: {missing}")`, mas delega para `SchemaManager.verify_tables_exist()`, que valida apenas 9 nomes legados (`storage/schema.py:293–297`), omitindo as 5 tabelas críticas de `core/*`. Como consequência, o boot registra a mensagem enganosa `"Schema v3.8.0 verified - all tables and triggers OK."` enquanto 5 tabelas essenciais inexistem. Adicionalmente, `core/database.py::execute_write` engole exceções retornando `(False, error)`.
+bd821e7:audits/backlog-final.md:970:- **Antes:** Backlog encerrava em BL-084, omitindo os três defeitos de contrato e assinatura.
+bd821e7:audits/fase4-1-inventario-ddl.md:344:> - **Situação:** `delta_manager.py:214` faz `INSERT INTO files` omitindo `last_modified`. Se inserido como `NULL`, `telemetry_api.py:160` gera exceção de tipo (`datetime.fromtimestamp(None)`).
+bd821e7:audits/fase4-achados.md:175:  - O Janitor (`services/janitor.py:346–392`, método `_sync_vectors`) **já era um caminho de reparo parcial** antes da Rodada 4.1/D, permitindo sincronizar nós do SQLite com o Chroma. Contudo, esse caminho permanecia **inativo por padrão** em produção, pois o Janitor só executa se a variável de ambiente `GRAFO_JANITOR_PROJECT` estiver explicitamente configurada (`main.py:66, 237–241`; sem ela, o bootstrap registra `janitor.is_running: False`). Além disso, operava de forma isolada, sem testes automatizados na suíte (0 ocorrências em `tests/`) e gerava metadados divergentes da ingestão padrão (omitindo `project_uuid`).
+bd821e7:audits/ingestion.md:39:| **#8** | [`ingestion/parser.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/parser.py#L701) <br> [`ingestion/parser.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/parser.py#L715) | `701-715` | 🟡 **MÉDIA** | O parser de JS/TS usa contagem ingênua de caracteres `{` e `}` (`_find_block_end_braces`) sem máquina de estados léxica. Strings contendo chaves (ex.: templates HTML `<div>}</div>`), expressões regulares ou comentários de código fecham prematuramente o bloco da função, truncando o chunk antes do `return` e corrompendo a integridade do grafo. | Função JS com string contendo `}` é cortada na linha 2, omitindo o corpo restante | **CONFIRMADO** |
+bd821e7:audits/ingestion.md:329:  Se uma função contém uma string como `const html = "<div>}</div>";`, a chave fechando decrementa o contador `brace_count` para zero no meio da função. O parser encerra o chunk naquela linha, omitindo instruções cruciais e `return`s subsequentes.
 ```
+- *Após o commit `4c505d1` / `HEAD`:* A linha `audits/fase4-achados.md:175` foi corrigida, eliminando a frase indevida do catálogo de achados da Fase 4.
 
 ### 1.2 Registro de Decisão Homologada (`audits/fase4-decisoes.md`)
 Registrada a decisão oficial do dono do projeto (2026-10-19):
 > *"[DUMB]: sem LLM, nodes.summary permanece NULL (não persistir o placeholder de truncamento)".*
 
 ### 1.3 Atualização do Roadmap (`audits/fase4-roadmap.md`)
-- Rodada 4.1/E ajustada para "Código OK; teste do [DUMB] corrigido na 4.1/F".
-- Rodada 4.1/F marcada como Concluída e verificada pelo auditor independente em 2026-10-19.
-- Rodada 4.1/G registrada.
-- Achados F4-009 e F4-012 atualizados na tabela resumo.
-- Seção 6 item 7 atualizado como "confirmado pelo dono".
+Diff real da alteração aplicada em `audits/fase4-roadmap.md` no commit `4c505d1` em relação a `bd821e7` (cópia mecânica de `scratch/evidencia_4_1_h/p0_diff_roadmap_bd821e7_4c505d1.txt`):
+```diff
+diff --git a/audits/fase4-roadmap.md b/audits/fase4-roadmap.md
+index c44ad61..468ee0f 100644
+--- a/audits/fase4-roadmap.md
++++ b/audits/fase4-roadmap.md
+@@ -2,7 +2,7 @@
+ 
+ > **Documento vivo, somente-adição.** É um índice: o detalhe de cada achado fica em `audits/fase4-achados.md`, e as decisões do dono em `audits/fase4-decisoes.md`. Não duplicar o conteúdo deles aqui.
+ > **Regras de manutenção:** (1) toda linha aponta para uma evidência (commit, arquivo ou saída de comando); (2) novas entradas vão no fim de cada tabela; mudança de status é feita na própria linha, com a rodada e o commit que a justificam; (3) "CORRIGIDO" só com prova executável (teste vermelho→verde reproduzido por auditor independente); (4) quem audita redige o texto da atualização, o executor só o commita (Regra 11), e o auditor confere na rodada seguinte.
+-> Última atualização: 2026-10-20, HEAD `9b70eef`. Criado pelo auditor independente; ainda não commitado no repo.
++> Última atualização: 2026-10-20, HEAD `bd821e7`. Criado pelo auditor independente; mantido pelo executor.
+ 
+ ## 1. Papéis
+ 
+@@ -30,8 +30,9 @@ Preferências do dono: honestidade acima de tudo, caminho mais eficiente e profi
+ | 4.1/B | `f98aaea`, `f67fdf6` | F4-006 corrigido (log abortava mineração) | Concluída | Sim, com modelo real |
+ | 4.1/C | `f07cb65`, `76e6a7e` | Guarda de log bidirecional; investigação F4-008/F4-009 | Concluída | Sim |
+ | 4.1/D | `de90005`, `8e6f887`, `af9001a` | Reparo de vetores (F4-008/009); sumários persistidos (F4-010) | Código OK; relatório tinha trechos inventados | Sim (veredito 2026-10-19) |
+-| 4.1/E | `8d963ae`, `d7a88ff`, `641d327` | F4-011 via SQLite; dedup de falhas; consulta leve do reparo; `[DUMB]` omitido; teste (g) em todos os vetores; relatório retificado | Código OK; **1 teste vazio** (ver §5) | Sim (2026-10-20) |
+-| 4.1/F | `9b70eef` | Corrigir o teste vazio do `[DUMB]`; commitar este roadmap; ajustar relatório | **PROPOSTA** | — |
++| 4.1/E | `8d963ae`, `d7a88ff`, `641d327` | F4-011 via SQLite; dedup de falhas; consulta leve do reparo; `[DUMB]` omitido; teste (g) em todos os vetores; relatório retificado | Código OK; teste do [DUMB] corrigido na 4.1/F | Sim (2026-10-20) |
++| 4.1/F | `9b70eef`, `bd821e7` | Corrigir o teste vazio do `[DUMB]`; commitar este roadmap; ajustar relatório | Concluída | Sim (2026-10-19) |
++| 4.1/G | — | Resíduo F4-009 + investigação de nodes.summary (somente leitura) | Concluída | — |
+ | 4.2 | — | Desacoplar `mcp_governor` de `telemetry_api`; cortar `interface/__init__`→`ActionHooks`→`RevisorCritico` (inclui BL-015) | PLANEJADO, NÃO AUTORIZADO | — |
+ | 4.3 | — | DDL só de `agent_checkpoints`; reimplementar `concierge_get_call_chain` sobre `edges`/`nodes` (caminhos de arquivo, só `calls`) | PLANEJADO, NÃO AUTORIZADO | — |
+ | 4.4 | — | Remover `wing_keywords` de vez, com teste-guarda e regra de neutralidade no protocolo/CONTRIBUTING | PLANEJADO, NÃO AUTORIZADO | — |
+@@ -44,10 +45,10 @@ Preferências do dono: honestidade acima de tudo, caminho mais eficiente e profi
+ | F4-001…F4-005, F4-007 | Achados de alcance/estrutura da 4.0b/4.0c | ver arquivo | Abertos (F4-003: avaliar rebaixar, é dormente) | `fase4-achados.md` |
+ | F4-006 | Formato de log abortava a mineração antes dos embeddings (RichHandler) | CRÍTICA | CORRIGIDO | `f98aaea`, `f07cb65`; E2E com modelo real |
+ | F4-008 | Hash gravado antes de embeddings/vetores; vetores ausentes nunca refeitos | CRÍTICA | CORRIGIDO | `de90005`, reparo reproduzido; red→green reproduzido na 4.1/E |
+-| F4-009 | Sem caminho de reindexação (texto precisa mencionar o `_sync_vectors` do Janitor, inativo por padrão) | GRAVE | CORRIGIDO (texto a ajustar) | `de90005` |
++| F4-009 | Sem caminho de reindexação (texto precisa mencionar o `_sync_vectors` do Janitor, inativo por padrão) | GRAVE | CORRIGIDO (texto ajustado na 4.1/G) | `de90005` |
+ | F4-010 | Sumários L0 gerados e descartados | GRAVE | CORRIGIDO | `8e6f887` |
+ | F4-011 | Filtro `node_type` no Chroma excluía vetores sem a chave | GRAVE | CORRIGIDO | `8d963ae`; teste (i) vermelho em `af9001a`, verde em HEAD (reproduzido) |
+-| F4-012 | `[DUMB]` persistido quando não há LLM | A confirmar (observação) | Tratado: omitido (`8d963ae`), mas **teste sem valor** | ver §5 |
++| F4-012 | `[DUMB]` persistido quando não há LLM | A confirmar (observação) | CORRIGIDO: [DUMB] omitido (`8d963ae`), teste efetivo (`9b70eef`) | ver §5 |
+ 
+ ## 5. Verificação independente da 4.1/E (2026-10-20)
+ 
+@@ -68,7 +69,7 @@ Conferi diretamente o código e rodei testes em worktree.
+ 4. Desenho "reparo de vetores + relato honesto": F4-008 CRÍTICA, F4-009 GRAVE, F4-010 GRAVE; F4-010 na mesma rodada.
+ 5. Laya: estacionado.
+ 6. Este roadmap: aprovado como documento vivo (2026-10-19).
+-7. Escopo da 4.1/E: aprovado. Política `[DUMB]`: o executor adotou "omitir (nulo)"; **confirmar com o dono**.
++7. Escopo da 4.1/E: aprovado. Política `[DUMB]`: confirmada pelo dono ("sem LLM, nodes.summary permanece NULL").
+ 
+ ## 7. Pendências abertas
+
 
 ---
 

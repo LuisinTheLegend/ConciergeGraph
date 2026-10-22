@@ -1,0 +1,47 @@
+diff --git a/audits/fase4-roadmap.md b/audits/fase4-roadmap.md
+index c44ad61..468ee0f 100644
+--- a/audits/fase4-roadmap.md
++++ b/audits/fase4-roadmap.md
+@@ -2,7 +2,7 @@
+ 
+ > **Documento vivo, somente-adição.** É um índice: o detalhe de cada achado fica em `audits/fase4-achados.md`, e as decisões do dono em `audits/fase4-decisoes.md`. Não duplicar o conteúdo deles aqui.
+ > **Regras de manutenção:** (1) toda linha aponta para uma evidência (commit, arquivo ou saída de comando); (2) novas entradas vão no fim de cada tabela; mudança de status é feita na própria linha, com a rodada e o commit que a justificam; (3) "CORRIGIDO" só com prova executável (teste vermelho→verde reproduzido por auditor independente); (4) quem audita redige o texto da atualização, o executor só o commita (Regra 11), e o auditor confere na rodada seguinte.
+-> Última atualização: 2026-10-20, HEAD `9b70eef`. Criado pelo auditor independente; ainda não commitado no repo.
++> Última atualização: 2026-10-20, HEAD `bd821e7`. Criado pelo auditor independente; mantido pelo executor.
+ 
+ ## 1. Papéis
+ 
+@@ -30,8 +30,9 @@ Preferências do dono: honestidade acima de tudo, caminho mais eficiente e profi
+ | 4.1/B | `f98aaea`, `f67fdf6` | F4-006 corrigido (log abortava mineração) | Concluída | Sim, com modelo real |
+ | 4.1/C | `f07cb65`, `76e6a7e` | Guarda de log bidirecional; investigação F4-008/F4-009 | Concluída | Sim |
+ | 4.1/D | `de90005`, `8e6f887`, `af9001a` | Reparo de vetores (F4-008/009); sumários persistidos (F4-010) | Código OK; relatório tinha trechos inventados | Sim (veredito 2026-10-19) |
+-| 4.1/E | `8d963ae`, `d7a88ff`, `641d327` | F4-011 via SQLite; dedup de falhas; consulta leve do reparo; `[DUMB]` omitido; teste (g) em todos os vetores; relatório retificado | Código OK; **1 teste vazio** (ver §5) | Sim (2026-10-20) |
+-| 4.1/F | `9b70eef` | Corrigir o teste vazio do `[DUMB]`; commitar este roadmap; ajustar relatório | **PROPOSTA** | — |
++| 4.1/E | `8d963ae`, `d7a88ff`, `641d327` | F4-011 via SQLite; dedup de falhas; consulta leve do reparo; `[DUMB]` omitido; teste (g) em todos os vetores; relatório retificado | Código OK; teste do [DUMB] corrigido na 4.1/F | Sim (2026-10-20) |
++| 4.1/F | `9b70eef`, `bd821e7` | Corrigir o teste vazio do `[DUMB]`; commitar este roadmap; ajustar relatório | Concluída | Sim (2026-10-19) |
++| 4.1/G | — | Resíduo F4-009 + investigação de nodes.summary (somente leitura) | Concluída | — |
+ | 4.2 | — | Desacoplar `mcp_governor` de `telemetry_api`; cortar `interface/__init__`→`ActionHooks`→`RevisorCritico` (inclui BL-015) | PLANEJADO, NÃO AUTORIZADO | — |
+ | 4.3 | — | DDL só de `agent_checkpoints`; reimplementar `concierge_get_call_chain` sobre `edges`/`nodes` (caminhos de arquivo, só `calls`) | PLANEJADO, NÃO AUTORIZADO | — |
+ | 4.4 | — | Remover `wing_keywords` de vez, com teste-guarda e regra de neutralidade no protocolo/CONTRIBUTING | PLANEJADO, NÃO AUTORIZADO | — |
+@@ -44,10 +45,10 @@ Preferências do dono: honestidade acima de tudo, caminho mais eficiente e profi
+ | F4-001…F4-005, F4-007 | Achados de alcance/estrutura da 4.0b/4.0c | ver arquivo | Abertos (F4-003: avaliar rebaixar, é dormente) | `fase4-achados.md` |
+ | F4-006 | Formato de log abortava a mineração antes dos embeddings (RichHandler) | CRÍTICA | CORRIGIDO | `f98aaea`, `f07cb65`; E2E com modelo real |
+ | F4-008 | Hash gravado antes de embeddings/vetores; vetores ausentes nunca refeitos | CRÍTICA | CORRIGIDO | `de90005`, reparo reproduzido; red→green reproduzido na 4.1/E |
+-| F4-009 | Sem caminho de reindexação (texto precisa mencionar o `_sync_vectors` do Janitor, inativo por padrão) | GRAVE | CORRIGIDO (texto a ajustar) | `de90005` |
++| F4-009 | Sem caminho de reindexação (texto precisa mencionar o `_sync_vectors` do Janitor, inativo por padrão) | GRAVE | CORRIGIDO (texto ajustado na 4.1/G) | `de90005` |
+ | F4-010 | Sumários L0 gerados e descartados | GRAVE | CORRIGIDO | `8e6f887` |
+ | F4-011 | Filtro `node_type` no Chroma excluía vetores sem a chave | GRAVE | CORRIGIDO | `8d963ae`; teste (i) vermelho em `af9001a`, verde em HEAD (reproduzido) |
+-| F4-012 | `[DUMB]` persistido quando não há LLM | A confirmar (observação) | Tratado: omitido (`8d963ae`), mas **teste sem valor** | ver §5 |
++| F4-012 | `[DUMB]` persistido quando não há LLM | A confirmar (observação) | CORRIGIDO: [DUMB] omitido (`8d963ae`), teste efetivo (`9b70eef`) | ver §5 |
+ 
+ ## 5. Verificação independente da 4.1/E (2026-10-20)
+ 
+@@ -68,7 +69,7 @@ Conferi diretamente o código e rodei testes em worktree.
+ 4. Desenho "reparo de vetores + relato honesto": F4-008 CRÍTICA, F4-009 GRAVE, F4-010 GRAVE; F4-010 na mesma rodada.
+ 5. Laya: estacionado.
+ 6. Este roadmap: aprovado como documento vivo (2026-10-19).
+-7. Escopo da 4.1/E: aprovado. Política `[DUMB]`: o executor adotou "omitir (nulo)"; **confirmar com o dono**.
++7. Escopo da 4.1/E: aprovado. Política `[DUMB]`: confirmada pelo dono ("sem LLM, nodes.summary permanece NULL").
+ 
+ ## 7. Pendências abertas
+ 
