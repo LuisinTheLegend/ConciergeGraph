@@ -1,0 +1,2 @@
+Total de nos processados no checksum: 4895
+SHA-256 do conteudo preservado:      89fc5d78b4052896d39af7d2a9f8320f1ab323c663ebfaf8e347059fe1936787

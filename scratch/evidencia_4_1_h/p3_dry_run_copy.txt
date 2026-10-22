@@ -1,0 +1,32 @@
+======================================================================
+MIGRACAO DOS SUMARIOS [DUMB] PARA NULL (RODADA 4.1/H)
+Modo: DRY-RUN (Simulacao segura)
+Banco alvo: scratch\concierge_p3_copy.db
+======================================================================
+
+[ESTADO INICIAL]
+  Total de nos:          4895
+  Nos com [DUMB]%:       3492
+  Nos com summary NULL:  1403
+  Nos com outro resumo:  0
+  Checksum preservado:   89fc5d78b4052896d39af7d2a9f8320f1ab323c663ebfaf8e347059fe1936787
+
+Iniciando transacao: UPDATE nodes SET summary = NULL WHERE summary LIKE '[DUMB]%' ...
+Linhas afetadas reportadas: 3492 (esperado: 3492)
+DRY-RUN: Transacao REVERTIDA (ROLLBACK) com sucesso. Nenhuma mudanca gravada.
+
+[ESTADO POS-OPERACAO]
+  Total de nos:          4895
+  Nos com [DUMB]%:       3492
+  Nos com summary NULL:  1403
+  Nos com outro resumo:  0
+  Checksum preservado:   89fc5d78b4052896d39af7d2a9f8320f1ab323c663ebfaf8e347059fe1936787
+  Validacao de Checksum: IDENTICO (Sucesso - colunas preservadas intocadas)
+
+[VERIFICACAO FTS5]
+  FTS5 integrity-check: OK (sem erros)
+  DRY-RUN: FTS5 mantem estado original devido ao ROLLBACK (3493 matches globais).
+
+======================================================================
+OPERACAO CONCLUIDA COM SUCESSO.
+======================================================================

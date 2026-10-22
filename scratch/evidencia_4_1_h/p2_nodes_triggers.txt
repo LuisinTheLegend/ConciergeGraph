@@ -1,0 +1,20 @@
+Trigger: nodes_ai
+CREATE TRIGGER nodes_ai AFTER INSERT ON nodes BEGIN
+  INSERT INTO nodes_fts(rowid, label, tags, summary)
+  VALUES (new.id, new.label, new.tags, new.summary);
+END
+
+Trigger: nodes_ad
+CREATE TRIGGER nodes_ad AFTER DELETE ON nodes BEGIN
+  INSERT INTO nodes_fts(nodes_fts, rowid, label, tags, summary)
+  VALUES('delete', old.id, old.label, old.tags, old.summary);
+END
+
+Trigger: nodes_au
+CREATE TRIGGER nodes_au AFTER UPDATE ON nodes BEGIN
+  INSERT INTO nodes_fts(nodes_fts, rowid, label, tags, summary)
+  VALUES('delete', old.id, old.label, old.tags, old.summary);
+  INSERT INTO nodes_fts(rowid, label, tags, summary)
+  VALUES (new.id, new.label, new.tags, new.summary);
+END
+

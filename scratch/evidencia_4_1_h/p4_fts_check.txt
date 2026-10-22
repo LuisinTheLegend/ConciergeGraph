@@ -1,0 +1,3 @@
+fts_integrity_check=ok
+fts_summary_dumb_matches=0
+fts_global_dumb_matches=1

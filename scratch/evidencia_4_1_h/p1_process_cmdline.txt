@@ -1,0 +1,4 @@
+4204 ['python', '-c', "import psutil; [print(p.pid, p.cmdline()) for p in psutil.process_iter(['pid', 'name']) if 'python' in p.info['name'].lower()]"]
+4440 ['C:\\Python314\\python.exe', 'c:\\Nexus-Memory\\GrafoConcierge\\main.py']
+7532 ['C:/Python314/python.exe', 'c:/Nexus-Memory/GrafoConcierge/main.py']
+20176 ['C:/Python314/python.exe', 'c:/Nexus-Memory/GrafoConcierge/main.py']

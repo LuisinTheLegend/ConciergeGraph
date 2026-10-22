@@ -1,0 +1,37 @@
+======================================================================
+MIGRACAO DOS SUMARIOS [DUMB] PARA NULL (RODADA 4.1/H)
+Modo: APPLY (Gravacao no banco)
+Banco alvo: scratch\concierge_p3_copy.db
+======================================================================
+
+[ESTADO INICIAL]
+  Total de nos:          4895
+  Nos com [DUMB]%:       3492
+  Nos com summary NULL:  1403
+  Nos com outro resumo:  0
+  Checksum preservado:   89fc5d78b4052896d39af7d2a9f8320f1ab323c663ebfaf8e347059fe1936787
+Criando backup via sqlite3 backup API: scratch\backups_test\concierge_20261021_230315.db ...
+Backup validado com sucesso (integrity_check: ok, contagens: {'total': 4895, 'dumb': 3492, 'nulls': 1403, 'others': 0}).
+
+Iniciando transacao: UPDATE nodes SET summary = NULL WHERE summary LIKE '[DUMB]%' ...
+Linhas afetadas reportadas: 3492 (esperado: 3492)
+Transacao EFETIVADA (COMMIT) com sucesso.
+
+[ESTADO POS-OPERACAO]
+  Total de nos:          4895
+  Nos com [DUMB]%:       0
+  Nos com summary NULL:  4895
+  Nos com outro resumo:  0
+  Checksum preservado:   89fc5d78b4052896d39af7d2a9f8320f1ab323c663ebfaf8e347059fe1936787
+  Validacao de Checksum: IDENTICO (Sucesso - colunas preservadas intocadas)
+
+[VERIFICACAO FTS5]
+  FTS5 integrity-check: OK (sem erros)
+  FTS5 MATCH 'summary: DUMB': 0 resultados encontrados
+  FTS5 MATCH global 'DUMB':   1 resultados encontrados
+    - Match legitimo no campo label: id=8553, label='ingestion/summarizer.py::ZoomSummarizer._generate_dumb_summary'
+
+======================================================================
+OPERACAO CONCLUIDA COM SUCESSO.
+Backup de seguranca disponivel em: scratch\backups_test\concierge_20261021_230315.db
+======================================================================

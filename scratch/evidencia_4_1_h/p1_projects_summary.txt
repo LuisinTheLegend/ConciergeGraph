@@ -1,0 +1,8 @@
+UUID                                   | Length(summary)  | summary LIKE %[DUMB]%
+----------------------------------------------------------------------
+6151e6dc-cdbc-4007-a014-6724bdf7dfbb   | 36               | False
+a4de0872-2e47-46b6-b35c-c3fa46089839   | 43               | False
+test-uuid-001                          | 0                | False
+87bab19d-f443-435c-979a-abda0d694f93   | 0                | False
+046150db-0035-4846-8535-f7049f76c4e6   | 466              | False
+05b3dea2-67d8-4840-9c7a-4b4c8c668c8f   | 5                | False

@@ -1,0 +1,21 @@
+======================================================================
+INSPECAO SOMENTE-LEITURA: GAP DE VETORES (SQLITE vs. CHROMA)
+======================================================================
+Total de nos no SQLite (nodes):                  4895
+Total de nos com conteudo preenchido no SQLite:  4590
+Total de vetores na colecao Chroma 'grafo_concierge': 16
+Diferenca global de nos com conteudo sem vetor: 4574
+
+Detalhamento por projeto (nos com conteudo / total nos):
+  - Projeto 'GrafoConcierge' (6151e6dc-cdbc-4007-a014-6724bdf7dfbb): 993 nos com conteudo (de 1006 totais)
+  - Projeto 'NexusAgent' (a4de0872-2e47-46b6-b35c-c3fa46089839): 3491 nos com conteudo (de 3775 totais)
+  - Projeto 'brain-check-temp' (test-uuid-001): 0 nos com conteudo (de 1 totais)
+  - Projeto 'grafo-dashboard-web' (87bab19d-f443-435c-979a-abda0d694f93): 99 nos com conteudo (de 105 totais)
+  - Projeto 'arquitetura-mimic' (046150db-0035-4846-8535-f7049f76c4e6): 0 nos com conteudo (de 0 totais)
+  - Projeto 'fixture_repo' (05b3dea2-67d8-4840-9c7a-4b4c8c668c8f): 7 nos com conteudo (de 8 totais)
+
+Nota sobre o reparo da Rodada 4.1/D:
+O reparo da 4.1/D corrigiu o Bug F4-009 no Janitor (metadata['node_type']).
+Na proxima mineracao/reconciliacao, o pipeline tentara gerar embeddings para
+todos os nos pendentes que ainda nao possuem vetor na colecao.
+======================================================================

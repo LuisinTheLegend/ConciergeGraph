@@ -1,0 +1,4 @@
+Total de nos:           4895
+Nos com [DUMB]%:        3492
+Nos com summary NULL:   1403
+Nos com outros resumos: 0

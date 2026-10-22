@@ -1,0 +1,26 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+======================================================================
+REPETICAO DAS 3 CONSULTAS NA COPIA MIGRADA (scratch/concierge_p3_copy.db)
+======================================================================
+
+--- CONSULTA: 'hybrid' ---
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|##########| 103/103 [00:00<00:00, 3395.72it/s]
+  #1 id=8404 score=0.3000 (vet=0.000, fts=0.000) | core/hybrid_search.py::HybridSearchEngine
+  #2 id=8400 score=0.2750 (vet=0.000, fts=0.000) | core/hybrid_search.py::HybridSearchEngine.__init__
+  #3 id=8401 score=0.2750 (vet=0.000, fts=0.000) | core/hybrid_search.py::HybridSearchEngine.search
+  #4 id=8415 score=0.2750 (vet=0.000, fts=0.000) | core/middleware.py::GrafoConcierge.hybrid_search
+  #5 id=8718 score=0.2648 (vet=0.000, fts=0.000) | storage/logic.py::GraphLogic.hybrid_search_score
+
+--- CONSULTA: 'vector' ---
+  #1 id=8837 score=0.3144 (vet=0.000, fts=0.000) | storage/vector_store.py::ChromaVectorStore
+  #2 id=9678 score=0.3000 (vet=0.000, fts=0.000) | core/vector_reconciler.py::VectorReconciler
+  #3 id=8813 score=0.3000 (vet=0.000, fts=0.000) | storage/vector_store.py::EmbeddingError
+  #4 id=8814 score=0.2750 (vet=0.000, fts=0.000) | storage/vector_store.py::VectorStoreNotAvailableError
+  #5 id=9435 score=0.2646 (vet=0.000, fts=0.000) | docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md::1.1 Vector Reconciliation (`core/vector_reconciler.py`)
+
+--- CONSULTA: 'orchestrator' ---
+  #1 id=8497 score=0.3000 (vet=0.000, fts=0.000) | ingestion/orchestrator.py::IngestionResult
+  #2 id=8498 score=0.2639 (vet=0.000, fts=0.000) | ingestion/orchestrator.py::IngestionManager.__init__
+  #3 id=8499 score=0.2639 (vet=0.000, fts=0.000) | ingestion/orchestrator.py::IngestionManager.mine
+  #4 id=8515 score=0.2537 (vet=0.000, fts=0.000) | ingestion/orchestrator.py::IngestionManager._consolidate_tags
+  #5 id=8516 score=0.2537 (vet=0.000, fts=0.000) | ingestion/orchestrator.py::IngestionManager._consolidate_categories

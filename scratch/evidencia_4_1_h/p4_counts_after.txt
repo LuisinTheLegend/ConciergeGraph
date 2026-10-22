@@ -1,0 +1,4 @@
+total=4895
+dumb=0
+nulls=4895
+others=0
