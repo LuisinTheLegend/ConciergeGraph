@@ -42,6 +42,7 @@
     considerar o item fechado — reconhecer no chat não é suficiente, o
     arquivo é a fonte de verdade.
 11. Commit obrigatório a cada gate. Imediatamente após marcar um item [x] e antes de reportar o Walkthrough como concluído, rode: git add -A && git commit -m "docs(audit): <slug-do-item> concluído". O trabalho de auditoria é feito em múltiplas máquinas (PC e notebook) — nunca deixe um item aprovado sem commit. Antes de encerrar qualquer sessão (fim de dia, troca de máquina), rode git push e confirme a saída ao humano. Ao iniciar uma sessão numa máquina diferente, rode git pull e git status ANTES de ler o item ▶ EM ANDAMENTO, e reporte o resultado — nunca assuma que o estado local está atualizado.
+12. Toda evidência (código, saída de comando, diff) deve ser gerada por redirecionamento para arquivo e incluída por cópia mecânica desse arquivo. É proibido digitar, resumir ou reconstruir trechos. Trecho sem arquivo de origem é inválido.
 ---
 
 ## Fase 0 — Baseline objetiva (sem interpretação)
