@@ -1,0 +1,94 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 5 items
+
+tests/test_governor_wiring.py::test_t1_mcp_server_import_does_not_drag_agents_or_action_hooks FAILED [ 20%]
+tests/test_governor_wiring.py::test_t2_mcp_server_construction_does_not_drag_telemetry_or_fastapi FAILED [ 40%]
+tests/test_governor_wiring.py::test_t3_governor_identity_matches_telemetry_mcp_governor PASSED [ 60%]
+tests/test_governor_wiring.py::test_t4_governor_uses_shared_singleton_when_telemetry_import_fails FAILED [ 80%]
+tests/test_governor_wiring.py::test_t5_action_hooks_lazy_export_preserves_contract PASSED [100%]
+
+================================== FAILURES ===================================
+_______ test_t1_mcp_server_import_does_not_drag_agents_or_action_hooks ________
+
+    def test_t1_mcp_server_import_does_not_drag_agents_or_action_hooks():
+        """T1: Subprocesso limpo afirmando que 'agents.revisor_critico', 'agents' e 'interface.action_hooks' NÃO estão em sys.modules."""
+        code = (
+            "import sys\n"
+            "import interface.mcp_server\n"
+            "dragged = [m for m in ('agents.revisor_critico', 'agents', 'interface.action_hooks') if m in sys.modules]\n"
+            "if dragged:\n"
+            "    print('DRAGGED:', dragged)\n"
+            "    sys.exit(1)\n"
+        )
+        res = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
+>       assert res.returncode == 0, f"Módulos arrastados indevidamente no import de interface.mcp_server: {res.stdout.strip()} {res.stderr.strip()}"
+E       AssertionError: Módulos arrastados indevidamente no import de interface.mcp_server: DRAGGED: ['agents.revisor_critico', 'agents', 'interface.action_hooks'] 
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['C:\\Python314\\python.exe', '-c', "import sys\nimport interface.mcp_server\ndragged = [m for m in ('agents.revisor_critico', 'agents', 'interface.action_hooks') if m in sys.modules]\nif dragged:\n    print('DRAGGED:', dragged)\n    sys.exit(1)\n"], returncode=1, stdout="DRAGGED: ['agents.revisor_critico', 'agents', 'interface.action_hooks']\n", stderr='').returncode
+
+tests\test_governor_wiring.py:32: AssertionError
+_____ test_t2_mcp_server_construction_does_not_drag_telemetry_or_fastapi ______
+
+tmp_path = WindowsPath('C:/Users/guial/AppData/Local/Temp/pytest-of-guial/pytest-52/test_t2_mcp_server_constructio0')
+
+    def test_t2_mcp_server_construction_does_not_drag_telemetry_or_fastapi(tmp_path):
+        """T2: Subprocesso limpo construindo GrafoConciergeServer afirmando que 'interface.telemetry_api' e 'fastapi' NÃO estão em sys.modules."""
+        db_file = str(tmp_path / "test_wire.db")
+        code = (
+            "import sys\n"
+            "from unittest.mock import MagicMock\n"
+            "from storage.store import SqliteStore\n"
+            "from interface.mcp_server import GrafoConciergeServer\n"
+            f"store = SqliteStore(r'{db_file}')\n"
+            "gc = MagicMock()\n"
+            "gc._store = store\n"
+            "server = GrafoConciergeServer(concierge=gc)\n"
+            "store.close()\n"
+            "dragged = [m for m in ('interface.telemetry_api', 'fastapi') if m in sys.modules]\n"
+            "if dragged:\n"
+            "    print('DRAGGED:', dragged)\n"
+            "    sys.exit(1)\n"
+        )
+        res = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
+>       assert res.returncode == 0, f"Módulos arrastados na construção de GrafoConciergeServer: {res.stdout.strip()} {res.stderr.strip()}"
+E       AssertionError: Módulos arrastados na construção de GrafoConciergeServer: DRAGGED: ['interface.telemetry_api', 'fastapi'] [10/21/26 23:39:23] INFO     GrafoConciergeServer initialized mcp_server.py:233
+E                                      — 31 tools registered.                            
+E                             INFO     Requesting stop of               connection.py:105
+E                                      SerializedWriteQueue...                           
+E                             INFO     SerializedWriteQueue finished.   connection.py:109
+E                             INFO     SqliteStore closed.                   store.py:114
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['C:\\Python314\\python.exe', '-c', "import sys\nfrom unittest.mock import MagicMock\nfrom storage.store import SqliteStore\nfrom interface.mcp_server import GrafoConciergeServer\nstore = SqliteStore(r'C:\\Users\\guial\\AppData\\Local\\Temp\\pytest-of-guial\\pytest-52\\test_t2_mcp_server_constructio0\\test_wire.db')\ngc = MagicMock()\ngc._store = store\nserver = GrafoConciergeServer(concierge=gc)\nstore.close()\ndragged = [m for m in ('interface.telemetry_api', 'fastapi') if m in sys.modules]\nif dragged:\n    print('DRAGGED:', dragged)\n    sys.exit(1)\n"], returncode=1, stdout="DRAGGED: ['interface.telemetry_api', 'fastapi']\n", stderr='[10/21/26 23:39:23] INFO     GrafoConciergeServer initialized mcp_server.py:233\n                             — 31 tools registered.                            \n                    INFO     Requesting stop of               connection.py:105\n                             SerializedWriteQueue...                           \n                    INFO     SerializedWriteQueue finished.   connection.py:109\n                    INFO     SqliteStore closed.                   store.py:114\n').returncode
+
+tests\test_governor_wiring.py:54: AssertionError
+_____ test_t4_governor_uses_shared_singleton_when_telemetry_import_fails ______
+
+tmp_path = WindowsPath('C:/Users/guial/AppData/Local/Temp/pytest-of-guial/pytest-52/test_t4_governor_uses_shared_s0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002C04BC97BB0>
+
+    def test_t4_governor_uses_shared_singleton_when_telemetry_import_fails(tmp_path, monkeypatch):
+        """T4: Com sys.modules['interface.telemetry_api'] = None (import quebrado), o servidor usa o MESMO singleton compartilhado."""
+        import core.mcp_governor
+>       assert hasattr(core.mcp_governor, "get_shared_governor"), "core.mcp_governor deve expor get_shared_governor()"
+E       AssertionError: core.mcp_governor deve expor get_shared_governor()
+E       assert False
+E        +  where False = hasattr(<module 'core.mcp_governor' from 'C:\\Nexus-Memory\\GrafoConcierge\\core\\mcp_governor.py'>, 'get_shared_governor')
+E        +    where <module 'core.mcp_governor' from 'C:\\Nexus-Memory\\GrafoConcierge\\core\\mcp_governor.py'> = <module 'core' from 'C:\\Nexus-Memory\\GrafoConcierge\\core\\__init__.py'>.mcp_governor
+
+tests\test_governor_wiring.py:73: AssertionError
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_governor_wiring.py::test_t1_mcp_server_import_does_not_drag_agents_or_action_hooks
+FAILED tests/test_governor_wiring.py::test_t2_mcp_server_construction_does_not_drag_telemetry_or_fastapi
+FAILED tests/test_governor_wiring.py::test_t4_governor_uses_shared_singleton_when_telemetry_import_fails
+=================== 3 failed, 2 passed, 1 warning in 43.00s ===================

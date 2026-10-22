@@ -1,0 +1,41 @@
+======================================================================
+COMPARACAO DA MATRIZ DE FERRAMENTAS MCP (31 FERRAMENTAS)
+======================================================================
+Total de ferramentas testadas original: 31
+Total de ferramentas testadas atual:    31
+  [IDENTICO] add_reference_wing         -> Original: SUCESSO COM DADOS      | Atual: SUCESSO COM DADOS
+  [IDENTICO] agent_get_checkpoint       -> Original: EXCEÇÃO                | Atual: EXCEÇÃO
+  [IDENTICO] agent_list_checkpoints     -> Original: EXCEÇÃO                | Atual: EXCEÇÃO
+  [IDENTICO] agent_save_checkpoint      -> Original: ERRO DE NEGÓCIO        | Atual: ERRO DE NEGÓCIO
+  [IDENTICO] concierge_commit           -> Original: SUCESSO COM DADOS      | Atual: SUCESSO COM DADOS
+  [IDENTICO] concierge_feedback         -> Original: SUCESSO COM DADOS      | Atual: SUCESSO COM DADOS
+  [IDENTICO] concierge_get_call_chain   -> Original: EXCEÇÃO                | Atual: EXCEÇÃO
+  [IDENTICO] concierge_get_memory       -> Original: SUCESSO COM DADOS      | Atual: SUCESSO COM DADOS
+  [IDENTICO] concierge_list_facts       -> Original: SUCESSO COM DADOS      | Atual: SUCESSO COM DADOS
+  [IDENTICO] concierge_list_projects    -> Original: SUCESSO COM DADOS      | Atual: SUCESSO COM DADOS
+  [IDENTICO] concierge_load             -> Original: SUCESSO COM DADOS      | Atual: SUCESSO COM DADOS
+  [IDENTICO] concierge_mine             -> Original: SUCESSO VAZIO          | Atual: SUCESSO VAZIO
+  [IDENTICO] concierge_register         -> Original: SUCESSO COM DADOS      | Atual: SUCESSO COM DADOS
+  [IDENTICO] concierge_resume           -> Original: SUCESSO COM DADOS      | Atual: SUCESSO COM DADOS
+  [IDENTICO] concierge_search           -> Original: SUCESSO COM DADOS      | Atual: SUCESSO COM DADOS
+  [IDENTICO] concierge_set_memory       -> Original: SUCESSO COM DADOS      | Atual: SUCESSO COM DADOS
+  [IDENTICO] concierge_set_state        -> Original: SUCESSO COM DADOS      | Atual: SUCESSO COM DADOS
+  [IDENTICO] concierge_status           -> Original: SUCESSO COM DADOS      | Atual: SUCESSO COM DADOS
+  [IDENTICO] concierge_store_fact       -> Original: SUCESSO COM DADOS      | Atual: SUCESSO COM DADOS
+  [IDENTICO] concierge_wakeup           -> Original: SUCESSO COM DADOS      | Atual: SUCESSO COM DADOS
+  [DIVERGENTE] count_embeddings           -> Original: SUCESSO VAZIO          | Atual: SUCESSO COM DADOS
+  [IDENTICO] delete_project             -> Original: NEGADO PELO GOVERNOR   | Atual: NEGADO PELO GOVERNOR
+  [IDENTICO] find_similar               -> Original: SUCESSO COM DADOS      | Atual: SUCESSO COM DADOS
+  [IDENTICO] get_callers                -> Original: SUCESSO COM DADOS      | Atual: SUCESSO COM DADOS
+  [IDENTICO] get_full_topology          -> Original: SUCESSO COM DADOS      | Atual: SUCESSO COM DADOS
+  [IDENTICO] get_implementations        -> Original: SUCESSO COM DADOS      | Atual: SUCESSO COM DADOS
+  [IDENTICO] get_trajectories           -> Original: SUCESSO VAZIO          | Atual: SUCESSO VAZIO
+  [IDENTICO] remove_reference_wing      -> Original: SUCESSO COM DADOS      | Atual: SUCESSO COM DADOS
+  [IDENTICO] reset_collection           -> Original: NEGADO PELO GOVERNOR   | Atual: NEGADO PELO GOVERNOR
+  [IDENTICO] search_symbols             -> Original: SUCESSO COM DADOS      | Atual: SUCESSO COM DADOS
+  [IDENTICO] update_project             -> Original: SUCESSO COM DADOS      | Atual: SUCESSO COM DADOS
+
+--- RESUMO DA COMPARACAO ---
+ATENCAO: 1 divergencias encontradas:
+  - count_embeddings: SUCESSO VAZIO -> SUCESSO COM DADOS
+======================================================================

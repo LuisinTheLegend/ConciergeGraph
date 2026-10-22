@@ -1,0 +1,28 @@
+audits/fase4-0-mapa-poda.md:118:  - [`interface/__init__.py:11`](file:///c:/Nexus-Memory/GrafoConcierge/interface/__init__.py#L11): `from interface.action_hooks import ActionHooks` (efeito cascata: importar qualquer coisa de `interface` dispara a carga de `RevisorCritico`)
+audits/fase4-0-mapa-poda.md:127:          from interface.action_hooks import ActionHooks
+audits/fase4-1g-investigacao-summary.md:92: | 4.2 | — | Desacoplar `mcp_governor` de `telemetry_api`; cortar `interface/__init__`→`ActionHooks`→`RevisorCritico` (inclui BL-015) | PLANEJADO, NÃO AUTORIZADO | — |
+audits/fase4-decisoes.md:85:   - Corte definitivo da cadeia `interface/__init__` → `ActionHooks` → `RevisorCritico` / `telemetry_api`.
+audits/fase4-roadmap.md:37:| 4.2 | — | Desacoplar `mcp_governor` de `telemetry_api`; cortar `interface/__init__`→`ActionHooks`→`RevisorCritico` (inclui BL-015) | PLANEJADO, NÃO AUTORIZADO | — |
+interface/__init__.py:11:from interface.action_hooks import ActionHooks
+interface/__init__.py:15:    "ActionHooks",
+interface/action_hooks.py:37:class ActionHooks:
+interface/action_hooks.py:59:            "ActionHooks initialized: reviewer=%s",
+scratch/build_fase4_0_doc.py:126:  - [`interface/__init__.py:11`](file:///c:/Nexus-Memory/GrafoConcierge/interface/__init__.py#L11): `from interface.action_hooks import ActionHooks` (efeito cascata: importar qualquer coisa de `interface` dispara a carga de `RevisorCritico`)
+scratch/build_fase4_0_doc.py:135:          from interface.action_hooks import ActionHooks
+scratch/evidencia_4_1_h/p0_diff_roadmap_bd821e7_4c505d1.txt:23: | 4.2 | — | Desacoplar `mcp_governor` de `telemetry_api`; cortar `interface/__init__`→`ActionHooks`→`RevisorCritico` (inclui BL-015) | PLANEJADO, NÃO AUTORIZADO | — |
+scratch/simulation_results.json:22:    "mcp_server_out": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\n    import interface.mcp_server; print('OK')\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\guial\\AppData\\Local\\Temp\\grafo_sim_revisor_critico\\interface\\__init__.py\", line 11, in <module>\n    from interface.action_hooks import ActionHooks\n  File \"C:\\Users\\guial\\AppData\\Local\\Temp\\grafo_sim_revisor_critico\\interface\\action_hooks.py\", line 32, in <module>\n    from agents.revisor_critico import RevisorCritico\n  File \"C:\\Users\\guial\\AppData\\Local\\Temp\\grafo_sim_revisor_critico\\agents\\__init__.py\", line 10, in <module>\n    from agents.revisor_critico import RevisorCritico\nModuleNotFoundError: No module named 'agents.revisor_critico'",
+tests/stress_test_v2_parte2.py:5:Dimensao 6: Interface ActionHooks -- Ciclo de vida reativo
+tests/stress_test_v2_parte2.py:327:    header("DIMENSAO 6: Interface ActionHooks")
+tests/stress_test_v2_setup.py:190:    from interface.action_hooks import ActionHooks
+tests/stress_test_v2_setup.py:208:    hooks = ActionHooks(concierge=gc, revisor=revisor)
+tests/test_interface_contracts.py:6:    GrafoConciergeServer and ActionHooks signature checks.
+tests/test_interface_contracts.py:20:from interface.action_hooks import ActionHooks
+tests/test_interface_contracts.py:105:        from interface.action_hooks import ActionHooks as _AH  # noqa
+tests/test_interface_contracts.py:109:        from interface import GrafoConciergeServer as _GCS, ActionHooks as _AH  # noqa
+tests/test_interface_contracts.py:141:# 3. ActionHooks signature and lifecycle methods
+tests/test_interface_contracts.py:144:class TestActionHooksSignature:
+tests/test_interface_contracts.py:146:        params = list(inspect.signature(ActionHooks.__init__).parameters.keys())
+tests/test_interface_contracts.py:150:        params = list(inspect.signature(ActionHooks.__init__).parameters.keys())
+tests/test_interface_contracts.py:154:        assert hasattr(ActionHooks, "on_planning")
+tests/test_interface_contracts.py:157:        assert hasattr(ActionHooks, "on_execution")
+tests/test_interface_contracts.py:160:        assert hasattr(ActionHooks, "on_done")

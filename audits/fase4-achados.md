@@ -211,6 +211,17 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
   4. Essa solução garante compatibilidade retroativa total com coleções existentes sem necessidade de migrações ou reindexação destrutiva.
 - **Homologação (Rodada 4.1/E):** Compatibilidade retroativa comprovada pelo teste `test_scenario_i_backward_compatible_node_type_search_without_chroma_metadata` (`tests/test_ingestion_vector_repair.py:430`), que insere vetores no Chroma **sem** a chave `node_type` nos metadados (simulando base legada) e valida que a busca filtrada por `node_type="FACT"` retorna apenas o nó FACT com `score_breakdown.vetorial > 0.0` e com o `node_type` canônico anexado no pós-processamento.
 - **Status:** **CORRIGIDO E HOMOLOGADO NA RODADA 4.1/D** (Implementação consolidada no Commit `8d963ae61c2e6b8fccbb2ed86d621c302fbac334`, Rodada 4.1/E)
+---
 
-
-
+### [F4-013] Incompatibilidade com `mcp>=2.0` por Ausência de Teto de Versão em `pyproject.toml` e `requirements.txt`
+- **Severidade:** 🔴 CRÍTICA (Severidade Proposta: quebra imediata de novas instalações limpas)
+- **Arquivos & Linhas:** [`pyproject.toml:39`](file:///c:/Nexus-Memory/GrafoConcierge/pyproject.toml#L39), [`requirements.txt:5`](file:///c:/Nexus-Memory/GrafoConcierge/requirements.txt#L5), [`interface/mcp_server.py:47`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L47)
+- **Mecanismo da Falha:**
+  `pyproject.toml:39` e `requirements.txt:5` declaram dependência `mcp>=1.0` (e `mcp>=1.0.0`) sem limite superior (`<2.0`). O ecossistema MCP lançou a versão `2.x` (versão 2.3.0 no PyPI em 2026-10-21). No `mcp 2.x`, o módulo `mcp.server.fastmcp` foi descontinuado e renomeado para `mcp.server.mcpserver` com alterações de API, e o arquivo `fastmcp.py` legado lança `ModuleNotFoundError` orientando a migração ou o pin `mcp<2`. Em qualquer clone limpo ou ambiente novo (`pip install -e .` ou `pip install -r requirements.txt`), o `pip` resolve a versão mais recente (`mcp 2.x`), colapsando o servidor no boot com `ModuleNotFoundError: No module named 'mcp.server.fastmcp'`.
+- **Reprodução Experimental:**
+  Executado em venv temporário isolado fora do repositório (`scratch/evidencia_4_2/p0_mcp2_import_fail.txt`):
+  `from mcp.server.fastmcp import FastMCP` lança:
+  ```text
+  ModuleNotFoundError: No module named 'mcp.server.fastmcp'. This is mcp 2.x, where FastMCP was renamed to MCPServer (from mcp.server.mcpserver import MCPServer) and other APIs changed; see the migration guide at https://py.sdk.modelcontextprotocol.io/v2/migration/#fastmcp-renamed-to-mcpserver or pin 'mcp<2' to keep running v1 code.
+  ```
+- **Status:** **ABERTO** (Correção em rodada própria, aguardando decisão do dono).

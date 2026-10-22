@@ -33,8 +33,8 @@ Preferências do dono: honestidade acima de tudo, caminho mais eficiente e profi
 | 4.1/E | `8d963ae`, `d7a88ff`, `641d327` | F4-011 via SQLite; dedup de falhas; consulta leve do reparo; `[DUMB]` omitido; teste (g) em todos os vetores; relatório retificado | Código OK; teste do [DUMB] corrigido na 4.1/F | Sim (2026-10-20) |
 | 4.1/F | `9b70eef`, `bd821e7` | Corrigir o teste vazio do `[DUMB]`; commitar este roadmap; ajustar relatório | Concluída | Sim (2026-10-19) |
 | 4.1/G | `4c505d1`, `4a55d6e`, `933f62a` | Resíduo F4-009 + investigação de nodes.summary (somente leitura) | Concluída | Sim (2026-10-21; trechos não literais corrigidos na 4.1/H) |
-| 4.1/H | `933f62a`, `17abc47` | Migração dos sumários [DUMB] para NULL (Opção B); backup SQLite; FTS íntegro | Concluída | — |
-| 4.2 | — | Desacoplar `mcp_governor` de `telemetry_api`; cortar `interface/__init__`→`ActionHooks`→`RevisorCritico` (inclui BL-015) | PLANEJADO, NÃO AUTORIZADO | — |
+| 4.1/H | `933f62a`, `17abc47`, `4a9893a`, `cbdcb9d` | Migração dos sumários [DUMB] para NULL (Opção B); backup SQLite; FTS íntegro | Concluída | Sim (2026-10-21; erros menores de relato: mensagem de commit, número 977 sem prova, PID 15544 sem arquivo, atribuição errada a F4-009) |
+| 4.2 | `8640165`, `0244183` | Desacoplar `mcp_governor` de `telemetry_api`; cortar `interface/__init__`→`ActionHooks`→`RevisorCritico` | Concluída | — |
 | 4.3 | — | DDL só de `agent_checkpoints`; reimplementar `concierge_get_call_chain` sobre `edges`/`nodes` (caminhos de arquivo, só `calls`) | PLANEJADO, NÃO AUTORIZADO | — |
 | 4.4 | — | Remover `wing_keywords` de vez, com teste-guarda e regra de neutralidade no protocolo/CONTRIBUTING | PLANEJADO, NÃO AUTORIZADO | — |
 | 4.5 | — | Quarentena do código dormente em `archive/v4-experimental` (após 4.2) | PLANEJADO, NÃO AUTORIZADO | — |
@@ -52,6 +52,7 @@ Preferências do dono: honestidade acima de tudo, caminho mais eficiente e profi
 | F4-010 | Sumários L0 gerados e descartados | GRAVE | CORRIGIDO | `8e6f887` |
 | F4-011 | Filtro `node_type` no Chroma excluía vetores sem a chave | GRAVE | CORRIGIDO | `8d963ae`; teste (i) vermelho em `af9001a`, verde em HEAD (reproduzido) |
 | F4-012 | `[DUMB]` persistido quando não há LLM | A confirmar (observação) | CORRIGIDO: [DUMB] omitido (`8d963ae`), teste efetivo (`9b70eef`) | ver §5 |
+| F4-013 | Incompatibilidade com `mcp>=2.0` por ausência de teto de versão | CRÍTICA | ABERTO | `pyproject.toml:39`, `requirements.txt:5`; prova em `scratch/evidencia_4_2/p0_mcp2_import_fail.txt` |
 
 ## 5. Verificação independente da 4.1/E (2026-10-20)
 

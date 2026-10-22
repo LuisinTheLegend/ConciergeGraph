@@ -380,8 +380,9 @@ Detalhamento por projeto (nos com conteudo / total nos):
   - Projeto 'arquitetura-mimic' (046150db-0035-4846-8535-f7049f76c4e6): 0 nos com conteudo (de 0 totais)
   - Projeto 'fixture_repo' (05b3dea2-67d8-4840-9c7a-4b4c8c668c8f): 7 nos com conteudo (de 8 totais)
 
-Nota sobre o reparo da Rodada 4.1/D:
-O reparo da 4.1/D corrigiu o Bug F4-009 no Janitor (metadata['node_type']).
+Nota sobre a correcao de node_type (F4-011) e reindexacao (F4-009):
+O Bug de node_type nos metadados e o F4-011 (desacoplado na Rodada 4.1/E via SQLite); o F4-009 refere-se a ausencia de caminho de reindexacao (reparado na 4.1/D com repair_missing_vectors).
+Contagens verificadas: o projeto 'GrafoConcierge' possui 993 nos com conteudo (de 1006 totais), e a colecao Chroma 'grafo_concierge' possui 16 vetores no total.
 Na proxima mineracao/reconciliacao, o pipeline tentara gerar embeddings para
 todos os nos pendentes que ainda nao possuem vetor na colecao.
 ======================================================================

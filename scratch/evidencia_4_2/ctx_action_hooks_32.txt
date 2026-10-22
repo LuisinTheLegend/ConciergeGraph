@@ -1,0 +1,12 @@
+from __future__ import annotations
+
+import logging
+from typing import Any, Optional
+
+from core.middleware import GrafoConcierge
+from agents.revisor_critico import RevisorCritico
+
+logger = logging.getLogger("grafo-concierge.hooks")
+
+
+

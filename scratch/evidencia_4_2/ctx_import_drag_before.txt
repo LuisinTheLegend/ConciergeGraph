@@ -1,0 +1,1 @@
+['agents', 'agents.revisor_critico', 'interface.action_hooks']

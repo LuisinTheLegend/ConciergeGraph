@@ -1,0 +1,5 @@
+pyproject.toml:19:    "mcp", "memory", "graph", "ai-agents", "rag",
+pyproject.toml:39:    "mcp>=1.0",
+pyproject.toml:80:#   concierge-mcp                 (instead of python main.py)
+pyproject.toml:84:concierge-mcp = "main:main"
+requirements.txt:5:mcp>=1.0.0

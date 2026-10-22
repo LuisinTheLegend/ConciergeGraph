@@ -243,6 +243,11 @@ Script executado: [`scratch/fase4_0c_module_status.py`](file:///c:/Nexus-Memory/
 - Módulo da classe: `core.mcp_governor.MCPToolGovernor`
 - **Conclusão:** O governor utilizado pelas ferramentas em tempo de execução provém diretamente da instância singleton criada em `interface/telemetry_api.py:57`, provando que o módulo `telemetry_api` é importado e seu singleton é o ponto de controle do servidor.
 
+> [!NOTE]
+> **Resolução Arquitetural na Rodada 4.2 (Commits `8640165` e `0244183`):**  
+> 1. **Desacoplamento do Governor:** A dependência estrutural que forçava `interface/mcp_server.py` a importar `interface/telemetry_api.py` para obter o `mcp_governor` foi eliminada no Commit `8640165`. O singleton foi movido para `core/mcp_governor.py::get_shared_governor()`, desbloqueando o futuro arquivamento de `telemetry_api.py`.  
+> 2. **Corte da Cadeia de Imports Eager:** No Commit `0244183`, a exportação de `ActionHooks` em `interface/__init__.py` passou a ser lazy via PEP 562 (`__getattr__`), impedindo que a importação de `interface.mcp_server` arraste `interface.action_hooks` e `agents.revisor_critico`.
+
 ---
 
 ## 4. Passo 3 — VIVO / DORMENTE dos 88 Itens do Backlog (Substitui Seção 7 da 4.0b)

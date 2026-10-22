@@ -1,0 +1,16 @@
+    TelemetryPayloadSchema,
+)
+
+logger = logging.getLogger(__name__)
+
+# Global singleton instance for MCP tool governance
+mcp_governor = MCPToolGovernor()
+
+# RateGovernor daemon singleton (SDD-SURVIVAL-23)
+# Default quotas: 60 RPM, 40000 TPM, 60s window
+rate_governor_service = RateGovernor(rpm_limit=60, tpm_limit=40000)
+rate_governor_service.start()
+
+# Security and Adaptive Gating Singletons (SDD-SURVIVAL-24)
+# project_root = "." will be resolved via os.path.realpath() in SecurityGuard
+

@@ -1,0 +1,2384 @@
+[10/21/26 23:51:03] INFO     GrafoConciergeServer initialized mcp_server.py:229
+                             — 31 tools registered.                            
+                    INFO     Bootstrap complete — all components    main.py:202
+                             initialized.                                      
+                    INFO     concierge_status OK             mcp_server.py:1320
+                    INFO     get_full_topology OK:           mcp_server.py:1558
+                             project=ALL, nodes=0, edges=0                     
+                    INFO     count_embeddings OK:            mcp_server.py:1697
+                             project=ALL, count=0                              
+                    INFO     [concierge_search]              mcp_server.py:1121
+                             query='compute_total'                             
+                             project_identifier='' top_k=10                    
+                             all_wings=True                                    
+                    INFO     Hybrid Search v4:             hybrid_search.py:120
+                             query='compute_total...',                         
+                             project=, top_k=10,                               
+                             refs=False, all_wings=True,                       
+                             node_type=None                                    
+                    WARNING  Strict Scoping returned 0     hybrid_search.py:135
+                             projects — empty search.                          
+                    INFO     concierge_search OK:            mcp_server.py:1169
+                             query='compute_total' \u2192 0                         
+                             results, 0.006s                                   
+                    ERROR    get_implementations FAILED: Node mcp_server.py:104
+                             not found: 1                                      
+                    ERROR    concierge_load FAILED: Node not  mcp_server.py:104
+                             found: 1                                          
+                    ERROR    concierge_wakeup FAILED: Project mcp_server.py:104
+                             not found:                                        
+                             00000000-0000-0000-0000-00000000                  
+                             0000                                              
+                    ERROR    concierge_resume FAILED: Project mcp_server.py:104
+                             not found:                                        
+                             00000000-0000-0000-0000-00000000                  
+                             0000                                              
+                    INFO     store_fact:                      middleware.py:572
+                             scope=session/test_sess,                          
+                             results=1                                         
+                    ERROR    [CRITICAL] qdrant-client not  vector_backend.py:26
+                             found. QdrantVectorStore                          
+                             operating in NO-OP mode.                          
+                             Semantic searches will return                     
+                             empty!                                            
+                    INFO     concierge_store_fact OK:        mcp_server.py:1400
+                             scope=session/test_sess,                          
+                             decisions=1                                       
+                    INFO     list_facts:                      middleware.py:635
+                             scope=session/test_sess,                          
+                             active_count=1                                    
+                    INFO     concierge_list_facts OK:        mcp_server.py:1422
+                             scope=session/test_sess,                          
+                             count=1                                           
+                    INFO     concierge_set_memory OK:        mcp_server.py:1483
+                             scope=session/test_sess,                          
+                             label=notes, id=1                                 
+                    INFO     concierge_get_memory OK:        mcp_server.py:1513
+                             scope=session/test_sess,                          
+                             label=*, blocks=1                                 
+                    INFO     update_fact_utility: fact_id=1,  middleware.py:707
+                             was_useful=True \u2192 utility_alpha                   
+                             atualizado.                                       
+                    INFO     concierge_feedback OK:          mcp_server.py:1534
+                             fact_id=1, was_useful=True,                       
+                             utility_alpha+1                                   
+                    ERROR    find_similar FAILED: Project not mcp_server.py:104
+                             found:                                            
+                             00000000-0000-0000-0000-00000000                  
+                             0000                                              
+                    INFO     get_trajectories OK:            mcp_server.py:1678
+                             00000000-0000-0000-0000-0000000                   
+                             00000                                             
+                    ERROR    Error in write thread            connection.py:182
+                             (transaction rolled back):                        
+                             FOREIGN KEY constraint failed                     
+                    ERROR    Job execution failed: FOREIGN    connection.py:136
+                             KEY constraint failed                             
+                    ERROR    add_reference_wing FAILED:       mcp_server.py:104
+                             FOREIGN KEY constraint failed                     
+[10/21/26 23:51:04] INFO     remove_reference_wing:           middleware.py:745
+                             00000000-0000-0000-0000-00000000                  
+                             0000 \u2192 wing=WING_TEST                             
+                    INFO     remove_reference_wing OK:       mcp_server.py:1639
+                             00000000-0000-0000-0000-0000000                   
+                             00000 -> WING_TEST                                
+                    INFO     update_project:                  middleware.py:725
+                             00000000-0000-0000-0000-00000000                  
+                             0000 \u2192 fields=['summary']                         
+                    INFO     update_project OK:              mcp_server.py:1608
+                             00000000-0000-0000-0000-0000000                   
+                             00000 with fields=['summary']                     
+                    ERROR    Error in write thread            connection.py:182
+                             (transaction rolled back):                        
+                             FOREIGN KEY constraint failed                     
+                    ERROR    Job execution failed: FOREIGN    connection.py:136
+                             KEY constraint failed                             
+                    ERROR    concierge_commit FAILED: FOREIGN mcp_server.py:104
+                             KEY constraint failed                             
+                    INFO     Projeto registrado:              middleware.py:146
+                             'fixture_project' \u2192                               
+                             aaeeeb8d-e4fa-4b45-a04f-b4767628                  
+                             1cf2 (wing='geral',                               
+                             privacy='PUBLIC')                                 
+                    INFO     concierge_register OK:          mcp_server.py:1030
+                             fixture_project \u2192                                 
+                             aaeeeb8d-e4fa-4b45-a04f-b476762                   
+                             81cf2 (wing=geral,                                
+                             privacy=PUBLIC)                                   
+                    ERROR    concierge_mine FAILED:          mcp_server.py:1095
+                             00000000-0000-0000-0000-0000000                   
+                             00000 — Project not found:                        
+                             00000000-0000-0000-0000-0000000                   
+                             00000                                             
+                    INFO     Project already exists:          middleware.py:130
+                             'fixture_project' \u2192                               
+                             aaeeeb8d-e4fa-4b45-a04f-b4767628                  
+                             1cf2                                              
+                    INFO     concierge_register OK:          mcp_server.py:1030
+                             fixture_project \u2192                                 
+                             aaeeeb8d-e4fa-4b45-a04f-b476762                   
+                             81cf2 (wing=geral,                                
+                             privacy=PUBLIC)                                   
+                    INFO     ============================== orchestrator.py:164
+                             ==============================                    
+                    INFO     MINE STARTED:                  orchestrator.py:165
+                             project=aaeeeb8d-e4fa-4b45-a04                    
+                             f-b47676281cf2,                                   
+                             source=C:\Users\guial\AppData\                    
+                             Local\Temp\fase4_0c_matrix__pn                    
+                             pxmcu\fixture_project                             
+                    INFO     ============================== orchestrator.py:166
+                             ==============================                    
+                    INFO     [1/7] CRAWL — Filesystem       orchestrator.py:175
+                             scanning...                                       
+                    INFO     Crawl started:                      crawler.py:475
+                             C:\Users\guial\AppData\Local\Temp\f               
+                             ase4_0c_matrix__pnpxmcu\fixture_pro               
+                             ject (project:                                    
+                             aaeeeb8d-e4fa-4b45-a04f-b47676281cf               
+                             2)                                                
+                    INFO     Default safety patterns loaded: 60  crawler.py:482
+                             rules.                                            
+                    INFO     Crawl completed: 4 scanned, 4 new,  crawler.py:586
+                             0 unchanged, 0 deleted (GC).                      
+                    INFO     [1/7] CRAWL completed: 4 new,  orchestrator.py:180
+                             0 unchanged, 0 deleted.                           
+                    INFO     [2/8] PARSE — Semantic         orchestrator.py:198
+                             chunking of 4 files...                            
+                    INFO     [2/8] PARSE completed: 9       orchestrator.py:200
+                             chunks extracted.                                 
+                    INFO     [2.5/8] DELTA CACHE — Checking orchestrator.py:205
+                             unchanged chunks...                               
+                    INFO     [2.5/8] DELTA CACHE completed: orchestrator.py:207
+                             0 cached, 9 new for LLM.                          
+                    INFO     [3/8] SUMMARIZE — Generating 9 orchestrator.py:216
+                             L0 summaries (skipping 0                          
+                             cached)...                                        
+                    INFO     Grouping: 9 small chunks into  orchestrator.py:461
+                             groups of 5.                                      
+[10/21/26 23:51:05] ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    WARNING  L0 grouped attempt 1/3 failed:   summarizer.py:586
+                             LLM call failed: 404 This model                   
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    WARNING  L0 grouped attempt 2/3 failed:   summarizer.py:586
+                             LLM call failed: 404 This model                   
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+[10/21/26 23:51:06] ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    WARNING  L0 grouped attempt 3/3 failed:   summarizer.py:586
+                             LLM call failed: 404 This model                   
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    L0 grouped: all attempts failed  summarizer.py:592
+                             for 5 chunks.                                     
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    WARNING  L0 grouped attempt 1/3 failed:   summarizer.py:586
+                             LLM call failed: 404 This model                   
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+[10/21/26 23:51:07] ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    WARNING  L0 grouped attempt 2/3 failed:   summarizer.py:586
+                             LLM call failed: 404 This model                   
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    WARNING  L0 grouped attempt 3/3 failed:   summarizer.py:586
+                             LLM call failed: 404 This model                   
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    L0 grouped: all attempts failed  summarizer.py:592
+                             for 4 chunks.                                     
+[10/21/26 23:51:08] ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+[10/21/26 23:51:10] WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+                    WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+[10/21/26 23:51:11] WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+                    WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+                    WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+[10/21/26 23:51:12] WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+                    WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+                    WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+[10/21/26 23:51:13] INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 1/3 failed for  summarizer.py:464
+                             math_ops.py: Async LLM call                       
+                             failed: Error code: 401 -                         
+                             {'error': {'message': 'Incorrect                  
+                             API key provided:                                 
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 1/3 failed for  summarizer.py:464
+                             service.py: Async LLM call                        
+                             failed: Error code: 401 -                         
+                             {'error': {'message': 'Incorrect                  
+                             API key provided:                                 
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 1/3 failed for  summarizer.py:464
+                             README.md: Async LLM call                         
+                             failed: Error code: 401 -                         
+                             {'error': {'message': 'Incorrect                  
+                             API key provided:                                 
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 1/3 failed for  summarizer.py:464
+                             calc.py: Async LLM call failed:                   
+                             Error code: 401 - {'error':                       
+                             {'message': 'Incorrect API key                    
+                             provided:                                         
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 1/3 failed for  summarizer.py:464
+                             math_ops.py: Async LLM call                       
+                             failed: Error code: 401 -                         
+                             {'error': {'message': 'Incorrect                  
+                             API key provided:                                 
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 1/3 failed for  summarizer.py:464
+                             calc.py: Async LLM call failed:                   
+                             Error code: 401 - {'error':                       
+                             {'message': 'Incorrect API key                    
+                             provided:                                         
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 1/3 failed for  summarizer.py:464
+                             service.py: Async LLM call                        
+                             failed: Error code: 401 -                         
+                             {'error': {'message': 'Incorrect                  
+                             API key provided:                                 
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 1/3 failed for  summarizer.py:464
+                             service.py: Async LLM call                        
+                             failed: Error code: 401 -                         
+                             {'error': {'message': 'Incorrect                  
+                             API key provided:                                 
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 1/3 failed for  summarizer.py:464
+                             math_ops.py: Async LLM call                       
+                             failed: Error code: 401 -                         
+                             {'error': {'message': 'Incorrect                  
+                             API key provided:                                 
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+[10/21/26 23:51:14] ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+                    WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+[10/21/26 23:51:15] WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+                    WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+                    WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+[10/21/26 23:51:16] WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+                    WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+                    WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+[10/21/26 23:51:17] INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 2/3 failed for  summarizer.py:464
+                             math_ops.py: Async LLM call                       
+                             failed: Error code: 401 -                         
+                             {'error': {'message': 'Incorrect                  
+                             API key provided:                                 
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 2/3 failed for  summarizer.py:464
+                             service.py: Async LLM call                        
+                             failed: Error code: 401 -                         
+                             {'error': {'message': 'Incorrect                  
+                             API key provided:                                 
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 2/3 failed for  summarizer.py:464
+                             README.md: Async LLM call                         
+                             failed: Error code: 401 -                         
+                             {'error': {'message': 'Incorrect                  
+                             API key provided:                                 
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 2/3 failed for  summarizer.py:464
+                             math_ops.py: Async LLM call                       
+                             failed: Error code: 401 -                         
+                             {'error': {'message': 'Incorrect                  
+                             API key provided:                                 
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 2/3 failed for  summarizer.py:464
+                             service.py: Async LLM call                        
+                             failed: Error code: 401 -                         
+                             {'error': {'message': 'Incorrect                  
+                             API key provided:                                 
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 2/3 failed for  summarizer.py:464
+                             calc.py: Async LLM call failed:                   
+                             Error code: 401 - {'error':                       
+                             {'message': 'Incorrect API key                    
+                             provided:                                         
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 2/3 failed for  summarizer.py:464
+                             service.py: Async LLM call                        
+                             failed: Error code: 401 -                         
+                             {'error': {'message': 'Incorrect                  
+                             API key provided:                                 
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 2/3 failed for  summarizer.py:464
+                             calc.py: Async LLM call failed:                   
+                             Error code: 401 - {'error':                       
+                             {'message': 'Incorrect API key                    
+                             provided:                                         
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 2/3 failed for  summarizer.py:464
+                             math_ops.py: Async LLM call                       
+                             failed: Error code: 401 -                         
+                             {'error': {'message': 'Incorrect                  
+                             API key provided:                                 
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+[10/21/26 23:51:18] WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+                    WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+                    WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+[10/21/26 23:51:19] WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+                    WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+                    WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+[10/21/26 23:51:20] WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+                    WARNING  Failed initial asynchronous      summarizer.py:272
+                             attempt with Gemini SDK: LLM                      
+                             call failed: 404 This model                       
+                             models/gemini-2.0-flash is no                     
+                             longer available. Please update                   
+                             your code to use                                  
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).. Trying                      
+                             OpenAI...                                         
+[10/21/26 23:51:21] INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 3/3 failed for  summarizer.py:464
+                             calc.py: Async LLM call failed:                   
+                             Error code: 401 - {'error':                       
+                             {'message': 'Incorrect API key                    
+                             provided:                                         
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    ERROR    L0 async: all attempts failed    summarizer.py:470
+                             for calc.py — generating Dumb                     
+                             Summary.                                          
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 3/3 failed for  summarizer.py:464
+                             math_ops.py: Async LLM call                       
+                             failed: Error code: 401 -                         
+                             {'error': {'message': 'Incorrect                  
+                             API key provided:                                 
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    ERROR    L0 async: all attempts failed    summarizer.py:470
+                             for math_ops.py — generating                      
+                             Dumb Summary.                                     
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 3/3 failed for  summarizer.py:464
+                             service.py: Async LLM call                        
+                             failed: Error code: 401 -                         
+                             {'error': {'message': 'Incorrect                  
+                             API key provided:                                 
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    ERROR    L0 async: all attempts failed    summarizer.py:470
+                             for service.py — generating Dumb                  
+                             Summary.                                          
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 3/3 failed for  summarizer.py:464
+                             calc.py: Async LLM call failed:                   
+                             Error code: 401 - {'error':                       
+                             {'message': 'Incorrect API key                    
+                             provided:                                         
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    ERROR    L0 async: all attempts failed    summarizer.py:470
+                             for calc.py — generating Dumb                     
+                             Summary.                                          
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 3/3 failed for  summarizer.py:464
+                             math_ops.py: Async LLM call                       
+                             failed: Error code: 401 -                         
+                             {'error': {'message': 'Incorrect                  
+                             API key provided:                                 
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    ERROR    L0 async: all attempts failed    summarizer.py:470
+                             for math_ops.py — generating                      
+                             Dumb Summary.                                     
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    INFO     HTTP Request: POST                 _client.py:1740
+                             https://api.openai.com/v1/chat/com                
+                             pletions "HTTP/1.1 401                            
+                             Unauthorized"                                     
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 3/3 failed for  summarizer.py:464
+                             math_ops.py: Async LLM call                       
+                             failed: Error code: 401 -                         
+                             {'error': {'message': 'Incorrect                  
+                             API key provided:                                 
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    ERROR    L0 async: all attempts failed    summarizer.py:470
+                             for math_ops.py — generating                      
+                             Dumb Summary.                                     
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 3/3 failed for  summarizer.py:464
+                             README.md: Async LLM call                         
+                             failed: Error code: 401 -                         
+                             {'error': {'message': 'Incorrect                  
+                             API key provided:                                 
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    ERROR    L0 async: all attempts failed    summarizer.py:470
+                             for README.md — generating Dumb                   
+                             Summary.                                          
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 3/3 failed for  summarizer.py:464
+                             service.py: Async LLM call                        
+                             failed: Error code: 401 -                         
+                             {'error': {'message': 'Incorrect                  
+                             API key provided:                                 
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    ERROR    L0 async: all attempts failed    summarizer.py:470
+                             for service.py — generating Dumb                  
+                             Summary.                                          
+                    ERROR    Async: Failed to call            summarizer.py:299
+                             OpenAI/Provider                                   
+                             (gemini-2.0-flash): Error code:                   
+                             401 - {'error': {'message':                       
+                             'Incorrect API key provided:                      
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    WARNING  L0 async attempt 3/3 failed for  summarizer.py:464
+                             service.py: Async LLM call                        
+                             failed: Error code: 401 -                         
+                             {'error': {'message': 'Incorrect                  
+                             API key provided:                                 
+                             AQ.Ab8RN************************                  
+                             *****************IjEw. You can                    
+                             find your API key at                              
+                             https://platform.openai.com/acco                  
+                             unt/api-keys.', 'type':                           
+                             'invalid_request_error',                          
+                             'param': None, 'code':                            
+                             'invalid_api_key'}}                               
+                    ERROR    L0 async: all attempts failed    summarizer.py:470
+                             for service.py — generating Dumb                  
+                             Summary.                                          
+                    INFO     [3/8] SUMMARIZE completed: 9   orchestrator.py:220
+                             L0 summaries generated.                           
+                    INFO     [4/8] STORE SQLite —           orchestrator.py:227
+                             Persisting 9 chunks...                            
+                    INFO     [4/8] STORE SQLite completed:  orchestrator.py:230
+                             9 nodes created.                                  
+                    INFO     [5/8] EMBED — Generating       orchestrator.py:250
+                             embeddings for 9 chunks...                        
+                    INFO     No device provided, using cpu         model.py:177
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/modules.json "HTTP/1.1 307                 
+                             Temporary Redirect"                               
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+                    WARNING  Warning: You are sending              _http.py:904
+                             unauthenticated requests to the HF                
+                             Hub. Please set a HF_TOKEN to enable              
+                             higher rate limits and faster                     
+                             downloads.                                        
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/modules.                
+                             json "HTTP/1.1 200 OK"                            
+[10/21/26 23:51:22] INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/config_sentence_transformer                
+                             s.json "HTTP/1.1 307 Temporary                    
+                             Redirect"                                         
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/config_s                
+                             entence_transformers.json                         
+                             "HTTP/1.1 200 OK"                                 
+                    INFO     Loading SentenceTransformer model     model.py:973
+                             from                                              
+                             sentence-transformers/all-MiniLM-L6-v             
+                             2.                                                
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/config_sentence_transformer                
+                             s.json "HTTP/1.1 307 Temporary                    
+                             Redirect"                                         
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/config_s                
+                             entence_transformers.json                         
+                             "HTTP/1.1 200 OK"                                 
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/README.md "HTTP/1.1 307                    
+                             Temporary Redirect"                               
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/README.m                
+                             d "HTTP/1.1 200 OK"                               
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/modules.json "HTTP/1.1 307                 
+                             Temporary Redirect"                               
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/modules.                
+                             json "HTTP/1.1 200 OK"                            
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/sentence_bert_config.json                  
+                             "HTTP/1.1 307 Temporary Redirect"                 
+[10/21/26 23:51:23] INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/sentence                
+                             _bert_config.json "HTTP/1.1 200                   
+                             OK"                                               
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/adapter_config.json                        
+                             "HTTP/1.1 404 Not Found"                          
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/config.json "HTTP/1.1 307                  
+                             Temporary Redirect"                               
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/config.j                
+                             son "HTTP/1.1 200 OK"                             
+=== FASE 4.0c: MATRIZ DE FERRAMENTAS 31x2 REFEITA ===
+Workspace temporario: C:\Users\guial\AppData\Local\Temp\fase4_0c_matrix__pnpxmcu
+Ferramentas registradas (31): ['concierge_register', 'concierge_list_projects', 'concierge_mine', 'concierge_search', 'concierge_commit', 'concierge_set_state', 'concierge_wakeup', 'concierge_resume', 'concierge_load', 'concierge_status', 'search_symbols', 'get_implementations', 'get_callers', 'concierge_store_fact', 'concierge_list_facts', 'concierge_set_memory', 'concierge_get_memory', 'concierge_feedback', 'get_full_topology', 'delete_project', 'update_project', 'add_reference_wing', 'remove_reference_wing', 'find_similar', 'get_trajectories', 'count_embeddings', 'reset_collection', 'concierge_get_call_chain', 'agent_save_checkpoint', 'agent_get_checkpoint', 'agent_list_checkpoints']
+Governor origin check: server._governor is telemetry_api.mcp_governor -> True
+server._governor id: 1403573596720, telemetry_api.mcp_governor id: 1403573596720
+
+--- EXECUTANDO ESTADO L (BANCO LIMPO) ---
+Tabelas no Estado L: ['commit_log', 'edges', 'nodes', 'projects', 'reference_wings', 'semantic_facts', 'test_log', 'trajectories', 'user_core_memory']
+  [L] concierge_list_projects      -> SUCESSO VAZIO          | {'projects': {}, 'success': True, 'duration_seconds': 0.001}
+  [L] concierge_status             -> SUCESSO COM DADOS      | {'success': True, 'system': 'Grafo Concierge v3.8.0', 'components': {'sqlite': {
+  [L] get_full_topology            -> SUCESSO VAZIO          | {'success': True, 'nodes': [], 'edges': [], 'duration_seconds': 0.002}
+  [L] count_embeddings             -> SUCESSO VAZIO          | {'success': True, 'project_uuid': None, 'count': 0, 'duration_seconds': 0.006}
+  [L] concierge_search             -> SUCESSO VAZIO          | {'success': True, 'query': 'compute_total', 'project_uuid': '', 'results_count':
+  [L] search_symbols               -> SUCESSO VAZIO          | {'success': True, 'symbols': [], 'duration_seconds': 0.0}
+  [L] get_implementations          -> ERRO DE NEGÓCIO        | Node not found: 1
+  [L] get_callers                  -> SUCESSO VAZIO          | {'success': True, 'symbol_id': 1, 'callers': [], 'duration_seconds': 0.0}
+  [L] concierge_get_call_chain     -> EXCEÇÃO                | ToolError: Error executing tool concierge_get_call_chain: no such table: ast_edg
+  [L] concierge_load               -> ERRO DE NEGÓCIO        | Node not found: 1
+  [L] concierge_wakeup             -> ERRO DE NEGÓCIO        | Project not found: 00000000-0000-0000-0000-000000000000
+  [L] concierge_resume             -> ERRO DE NEGÓCIO        | Project not found: 00000000-0000-0000-0000-000000000000
+  [L] concierge_set_state          -> SUCESSO COM DADOS      | {'success': True, 'session_id': 'default', 'active_state': 'EXECUTION'}
+  [L] concierge_store_fact         -> SUCESSO COM DADOS      | {'success': True, 'scope_type': 'session', 'scope_id': 'test_sess', 'decisions':
+  [L] concierge_list_facts         -> SUCESSO COM DADOS      | {'success': True, 'scope_type': 'session', 'scope_id': 'test_sess', 'facts_count
+  [L] concierge_set_memory         -> SUCESSO COM DADOS      | {'success': True, 'memory_id': 1, 'scope_type': 'session', 'scope_id': 'test_ses
+  [L] concierge_get_memory         -> SUCESSO COM DADOS      | {'success': True, 'scope_type': 'session', 'scope_id': 'test_sess', 'block_label
+  [L] concierge_feedback           -> SUCESSO COM DADOS      | {'success': True, 'fact_id': 1, 'was_useful': True, 'updated_field': 'utility_al
+  [L] find_similar                 -> ERRO DE NEGÓCIO        | Project not found: 00000000-0000-0000-0000-000000000000
+  [L] get_trajectories             -> SUCESSO VAZIO          | {'success': True, 'project_uuid': '00000000-0000-0000-0000-000000000000', 'traje
+  [L] add_reference_wing           -> ERRO DE NEGÓCIO        | FOREIGN KEY constraint failed
+  [L] remove_reference_wing        -> SUCESSO COM DADOS      | {'success': True, 'project_uuid': '00000000-0000-0000-0000-000000000000', 'wing_
+  [L] update_project               -> SUCESSO COM DADOS      | {'success': True, 'project_uuid': '00000000-0000-0000-0000-000000000000', 'updat
+  [L] agent_save_checkpoint        -> ERRO DE NEGÓCIO        | Failed to save checkpoint 'chk_l' for agent 'test_agent_1'
+  [L] agent_get_checkpoint         -> EXCEÇÃO                | ToolError: Error executing tool agent_get_checkpoint: no such table: agent_check
+  [L] agent_list_checkpoints       -> EXCEÇÃO                | ToolError: Error executing tool agent_list_checkpoints: no such table: agent_che
+  [L] concierge_commit             -> ERRO DE NEGÓCIO        | FOREIGN KEY constraint failed
+  [L] concierge_register           -> SUCESSO COM DADOS      | {'success': True, 'project_uuid': 'aaeeeb8d-e4fa-4b45-a04f-b47676281cf2', 'folde
+  [L] concierge_mine               -> ERRO DE NEGÓCIO        | Project not found: 00000000-0000-0000-0000-000000000000
+  [L] reset_collection             -> NEGADO PELO GOVERNOR   | Access denied: tool 'reset_collection' (category 'DANGEROUS') is blocked during 
+  [L] delete_project               -> NEGADO PELO GOVERNOR   | Access denied: tool 'delete_project' (category 'DANGEROUS') is blocked during st
+
+--- POPULANDO BANCO PARA ESTADO P ---
+Projeto registrado: UUID=aaeeeb8d-e4fa-4b45-a04f-b47676281cf2
+Executando concierge_mine pela 1ª vez...
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|##########| 103/103 [00:00<00:00, 6285.38it/s]
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/processor_config.json                      
+                             "HTTP/1.1 404 Not Found"                          
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/preprocessor_config.json                   
+                             "HTTP/1.1 404 Not Found"                          
+[10/21/26 23:51:24] INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/video_preprocessor_config.j                
+                             son "HTTP/1.1 404 Not Found"                      
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/preprocessor_config.json                   
+                             "HTTP/1.1 404 Not Found"                          
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/tokenizer_config.json                      
+                             "HTTP/1.1 307 Temporary Redirect"                 
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/tokenize                
+                             r_config.json "HTTP/1.1 200 OK"                   
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/config.json "HTTP/1.1 307                  
+                             Temporary Redirect"                               
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/config.j                
+                             son "HTTP/1.1 200 OK"                             
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/config.json "HTTP/1.1 307                  
+                             Temporary Redirect"                               
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/config.j                
+                             son "HTTP/1.1 200 OK"                             
+[10/21/26 23:51:25] INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/tokenizer_config.json                      
+                             "HTTP/1.1 307 Temporary Redirect"                 
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/tokenize                
+                             r_config.json "HTTP/1.1 200 OK"                   
+                    INFO     HTTP Request: GET                  _client.py:1025
+                             https://huggingface.co/api/models/                
+                             sentence-transformers/all-MiniLM-L                
+                             6-v2/tree/main/additional_chat_tem                
+                             plates?recursive=false&expand=fals                
+                             e "HTTP/1.1 404 Not Found"                        
+                    INFO     HTTP Request: GET                  _client.py:1025
+                             https://huggingface.co/api/models/                
+                             sentence-transformers/all-MiniLM-L                
+                             6-v2/tree/main?recursive=true&expa                
+                             nd=false "HTTP/1.1 200 OK"                        
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/1_Pooling/config.json                      
+                             "HTTP/1.1 307 Temporary Redirect"                 
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/1_Poolin                
+                             g%2Fconfig.json "HTTP/1.1 200 OK"                 
+                    INFO     HTTP Request: GET                  _client.py:1025
+                             https://huggingface.co/api/models/                
+                             sentence-transformers/all-MiniLM-L                
+                             6-v2 "HTTP/1.1 200 OK"                            
+                    INFO     FLASH model loaded:            vector_store.py:152
+                             all-MiniLM-L6-v2                                  
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|##########| 1/1 [00:00<00:00, 10.67it/s]
+[10/21/26 23:51:26] INFO     [5/8] EMBED completed: 9       orchestrator.py:254
+                             embeddings generated.                             
+                    INFO     [6/8] STORE Vector — Batch     orchestrator.py:258
+                             insert of 9 embeddings...                         
+                    INFO     Batch store finished: 9/9      vector_store.py:417
+                             embeddings stored.                                
+                    INFO     [6/8] STORE Vector completed:  orchestrator.py:261
+                             9 embeddings stored.                              
+                    INFO     [7/8] GC — No orphan nodes     orchestrator.py:278
+                             detected.                                         
+                    INFO     ============================== orchestrator.py:284
+                             ==============================                    
+                    INFO     MINE COMPLETED in 22.12s: 4    orchestrator.py:285
+                             processed, 9 nodes, 9                             
+                             embeddings, 0 errors.                             
+                    INFO     ============================== orchestrator.py:290
+                             ==============================                    
+                    INFO     Primary Wing definida:        project_index.py:140
+                             projeto=aaeeeb8d-e4fa-4b45-a0                     
+                             4f-b47676281cf2, wing='geral'                     
+                    INFO     concierge_mine OK:              mcp_server.py:1086
+                             fixture_project \u2192 4 files, 9                      
+                             nodes, 22.13s                                     
+                    INFO     ============================== orchestrator.py:164
+                             ==============================                    
+                    INFO     MINE STARTED:                  orchestrator.py:165
+                             project=aaeeeb8d-e4fa-4b45-a04                    
+                             f-b47676281cf2,                                   
+                             source=C:\Users\guial\AppData\                    
+                             Local\Temp\fase4_0c_matrix__pn                    
+                             pxmcu\fixture_project                             
+                    INFO     ============================== orchestrator.py:166
+                             ==============================                    
+                    INFO     [1/7] CRAWL — Filesystem       orchestrator.py:175
+                             scanning...                                       
+                    INFO     Crawl started:                      crawler.py:475
+                             C:\Users\guial\AppData\Local\Temp\f               
+                             ase4_0c_matrix__pnpxmcu\fixture_pro               
+                             ject (project:                                    
+                             aaeeeb8d-e4fa-4b45-a04f-b47676281cf               
+                             2)                                                
+                    INFO     Default safety patterns loaded: 60  crawler.py:482
+                             rules.                                            
+                    INFO     Crawl completed: 4 scanned, 0 new,  crawler.py:586
+                             4 unchanged, 0 deleted (GC).                      
+                    INFO     [1/7] CRAWL completed: 0 new,  orchestrator.py:180
+                             4 unchanged, 0 deleted.                           
+                    INFO     No change detected — ending    orchestrator.py:190
+                             pipeline.                                         
+                    INFO     MINE COMPLETED in 0.02s        orchestrator.py:192
+                             (noop).                                           
+                    INFO     concierge_mine OK:              mcp_server.py:1086
+                             fixture_project \u2192 0 files, 0                      
+                             nodes, 0.03s                                      
+                    ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to invoke LLM to    memory_extractor.py:111
+                             evaluate fact                                     
+                             'CalculatorService                                
+                             integrates compute_total                          
+                             and math operations.': LLM                        
+                             call failed: 404 This                             
+                             model                                             
+                             models/gemini-2.0-flash is                        
+                             no longer available.                              
+                             Please update your code to                        
+                             use                                               
+                             models/gemini-3.8-flash                           
+                             for the latest features                           
+                             and improvements. We                              
+                             recommend you to use the                          
+                             Interactions API                                  
+                             (https://ai.google.dev/gem                        
+                             ini-api/docs/get-started).                        
+                    WARNING  Failed to parse structured memory_extractor.py:115
+                             decision for fact                                 
+                             'CalculatorService                                
+                             integrates compute_total                          
+                             and math operations.'.                            
+                             Executing ADD.                                    
+                    INFO     store_fact:                      middleware.py:572
+                             scope=session/test_sess,                          
+                             results=1                                         
+                    INFO     concierge_store_fact OK:        mcp_server.py:1400
+                             scope=session/test_sess,                          
+                             decisions=1                                       
+                    INFO     concierge_status OK             mcp_server.py:1320
+                    INFO     get_full_topology OK:           mcp_server.py:1558
+                             project=aaeeeb8d-e4fa-4b45-a04f                   
+                             -b47676281cf2, nodes=10,                          
+                             edges=12                                          
+                    INFO     count_embeddings OK:            mcp_server.py:1697
+                             project=aaeeeb8d-e4fa-4b45-a04f                   
+                             -b47676281cf2, count=9                            
+                    INFO     [concierge_search]              mcp_server.py:1121
+                             query='compute_total'                             
+                             project_identifier='aaeeeb8d-e4                   
+                             fa-4b45-a04f-b47676281cf2'                        
+                             top_k=10 all_wings=False                          
+                    INFO     Hybrid Search v4:             hybrid_search.py:120
+                             query='compute_total...',                         
+                             project=aaeeeb8d-e4fa-4b45-a0                     
+                             4f-b47676281cf2, top_k=10,                        
+                             refs=False, all_wings=False,                      
+                             node_type=None                                    
+Retorno mine (1ª vez): files_processed=4, nodes_created=9, files_skipped=0
+Executando concierge_mine pela 2ª vez (teste de idempotencia)...
+Retorno mine (2ª vez): files_processed=0, nodes_created=0, files_skipped=4
+Fato gravado: success=True
+Checkpoint gravado: success=False, msg=Failed to save checkpoint 'chk_p' for agent 'test_agent_1'
+IDs obtidos do banco temporario: file_node_id=1 (None), symbol_node_id=9 ((9, 'CLASS', 'service.py::CalculatorService')), real_fact_id=2
+
+--- ESTADO P: TABELAS E CONTAGENS ---
+Tabelas existentes: ['commit_log', 'edges', 'nodes', 'projects', 'reference_wings', 'semantic_facts', 'test_log', 'trajectories', 'user_core_memory']
+  - nodes: 10
+  - edges: 12
+  - semantic_facts: 2
+  - files: tabela ausente
+  - communities: tabela ausente
+  - ast_edges: tabela ausente
+  - agent_checkpoints: tabela ausente
+  - fsm_checkpoints: tabela ausente
+  - projects: 1
+  - commit_log: 0
+  - user_core_memory: 1
+
+--- EXECUTANDO ESTADO P (COM ARGUMENTOS VÁLIDOS) ---
+  [P] concierge_list_projects      -> SUCESSO COM DADOS      | {'projects': {'fixture_project': {'uuid': 'aaeeeb8d-e4fa-4b45-a04f-b47676281cf2'
+  [P] concierge_status             -> SUCESSO COM DADOS      | {'success': True, 'system': 'Grafo Concierge v3.8.0', 'components': {'sqlite': {
+  [P] get_full_topology            -> SUCESSO COM DADOS      | {'success': True, 'nodes': [{'node_id': 1, 'name': '<root>', 'node_type': 'FACT'
+  [P] count_embeddings             -> SUCESSO COM DADOS      | {'success': True, 'project_uuid': 'aaeeeb8d-e4fa-4b45-a04f-b47676281cf2', 'count
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|##########| 1/1 [00:00<00:00, 116.05it/s]
+                    INFO     Hybrid Search v4 complete: 9  hybrid_search.py:228
+                             candidates \u2192 9 final results.                     
+                    INFO     concierge_search OK:            mcp_server.py:1169
+                             query='compute_total' \u2192 9                         
+                             results, 0.025s                                   
+                    INFO     concierge_load OK: node_id=1    mcp_server.py:1267
+                    INFO     list_facts:                      middleware.py:635
+                             scope=user/fixture_project,                       
+                             active_count=0                                    
+                    INFO     Wake-up:                         middleware.py:204
+                             project=aaeeeb8d-e4fa-4b45-a04f-                  
+                             b47676281cf2, commits=0,                          
+                             ref_wings=0, semantic_facts=0                     
+                    INFO     concierge_wakeup OK:            mcp_server.py:1236
+                             project=aaeeeb8d-e4fa-4b45-a04f                   
+                             -b47676281cf2                                     
+                    INFO     concierge_resume OK:            mcp_server.py:1249
+                             project=aaeeeb8d-e4fa-4b45-a04f                   
+                             -b47676281cf2                                     
+[10/21/26 23:51:27] ERROR    Failed to call legacy Gemini     summarizer.py:212
+                             (gemini-2.0-flash): 404 This                      
+                             model models/gemini-2.0-flash is                  
+                             no longer available. Please                       
+                             update your code to use                           
+                             models/gemini-3.8-flash for the                   
+                             latest features and                               
+                             improvements. We recommend you                    
+                             to use the Interactions API                       
+                             (https://ai.google.dev/gemini-ap                  
+                             i/docs/get-started).                              
+                    ERROR    Failed to invoke LLM to    memory_extractor.py:111
+                             evaluate fact 'Fato                               
+                             adicional no estado P':                           
+                             LLM call failed: 404 This                         
+                             model                                             
+                             models/gemini-2.0-flash is                        
+                             no longer available.                              
+                             Please update your code to                        
+                             use                                               
+                             models/gemini-3.8-flash                           
+                             for the latest features                           
+                             and improvements. We                              
+                             recommend you to use the                          
+                             Interactions API                                  
+                             (https://ai.google.dev/gem                        
+                             ini-api/docs/get-started).                        
+                    WARNING  Failed to parse structured memory_extractor.py:115
+                             decision for fact 'Fato                           
+                             adicional no estado P'.                           
+                             Executing ADD.                                    
+                    INFO     store_fact:                      middleware.py:572
+                             scope=session/test_sess,                          
+                             results=1                                         
+                    INFO     concierge_store_fact OK:        mcp_server.py:1400
+                             scope=session/test_sess,                          
+                             decisions=1                                       
+                    INFO     list_facts:                      middleware.py:635
+                             scope=session/test_sess,                          
+                             active_count=3                                    
+                    INFO     concierge_list_facts OK:        mcp_server.py:1422
+                             scope=session/test_sess,                          
+                             count=3                                           
+                    INFO     concierge_set_memory OK:        mcp_server.py:1483
+                             scope=session/test_sess,                          
+                             label=notes, id=2                                 
+                    INFO     concierge_get_memory OK:        mcp_server.py:1513
+                             scope=session/test_sess,                          
+                             label=*, blocks=1                                 
+                    INFO     update_fact_utility: fact_id=2,  middleware.py:707
+                             was_useful=True \u2192 utility_alpha                   
+                             atualizado.                                       
+                    INFO     concierge_feedback OK:          mcp_server.py:1534
+                             fact_id=2, was_useful=True,                       
+                             utility_alpha+1                                   
+                    INFO     find_similar_projects:        project_index.py:312
+                             projeto=aaeeeb8d-e4fa-4b45-a0                     
+                             4f-b47676281cf2,                                  
+                             encontrados=0 (limit=5)                           
+                    INFO     find_similar OK:                mcp_server.py:1662
+                             aaeeeb8d-e4fa-4b45-a04f-b476762                   
+                             81cf2 (limit=5)                                   
+                    INFO     get_trajectories OK:            mcp_server.py:1678
+                             aaeeeb8d-e4fa-4b45-a04f-b476762                   
+                             81cf2                                             
+                    INFO     add_reference_wing:              middleware.py:735
+                             aaeeeb8d-e4fa-4b45-a04f-b4767628                  
+                             1cf2 \u2192 wing=WING_TEST                             
+                    INFO     add_reference_wing OK:          mcp_server.py:1627
+                             aaeeeb8d-e4fa-4b45-a04f-b476762                   
+                             81cf2 -> WING_TEST                                
+                    INFO     remove_reference_wing:           middleware.py:745
+                             aaeeeb8d-e4fa-4b45-a04f-b4767628                  
+                             1cf2 \u2192 wing=WING_TEST                             
+                    INFO     remove_reference_wing OK:       mcp_server.py:1639
+                             aaeeeb8d-e4fa-4b45-a04f-b476762                   
+                             81cf2 -> WING_TEST                                
+                    INFO     update_project:                  middleware.py:725
+                             aaeeeb8d-e4fa-4b45-a04f-b4767628                  
+                             1cf2 \u2192 fields=['summary']                         
+                    INFO     update_project OK:              mcp_server.py:1608
+                             aaeeeb8d-e4fa-4b45-a04f-b476762                   
+                             81cf2 with fields=['summary']                     
+                    INFO     Commit registered: id=1,         middleware.py:330
+                             project=aaeeeb8d-e4fa-4b45-a04f-                  
+                             b47676281cf2, phase='TEST',                       
+                             affected_nodes=0                                  
+                    INFO     concierge_commit OK: id=1,      mcp_server.py:1216
+                             project=aaeeeb8d-e4fa-4b45-a04f                   
+                             -b47676281cf2, phase='TEST'                       
+                    INFO     Project already exists:          middleware.py:130
+                             'fixture_project' \u2192                               
+                             aaeeeb8d-e4fa-4b45-a04f-b4767628                  
+                             1cf2                                              
+                    INFO     concierge_register OK:          mcp_server.py:1030
+                             fixture_project \u2192                                 
+                             aaeeeb8d-e4fa-4b45-a04f-b476762                   
+                             81cf2 (wing=geral,                                
+                             privacy=PUBLIC)                                   
+                    INFO     ============================== orchestrator.py:164
+                             ==============================                    
+                    INFO     MINE STARTED:                  orchestrator.py:165
+                             project=aaeeeb8d-e4fa-4b45-a04                    
+                             f-b47676281cf2,                                   
+                             source=C:\Users\guial\AppData\                    
+                             Local\Temp\fase4_0c_matrix__pn                    
+                             pxmcu\fixture_project                             
+                    INFO     ============================== orchestrator.py:166
+                             ==============================                    
+                    INFO     [1/7] CRAWL — Filesystem       orchestrator.py:175
+                             scanning...                                       
+                    INFO     Crawl started:                      crawler.py:475
+                             C:\Users\guial\AppData\Local\Temp\f               
+                             ase4_0c_matrix__pnpxmcu\fixture_pro               
+                             ject (project:                                    
+                             aaeeeb8d-e4fa-4b45-a04f-b47676281cf               
+                             2)                                                
+                    INFO     Default safety patterns loaded: 60  crawler.py:482
+                             rules.                                            
+                    INFO     Crawl completed: 4 scanned, 0 new,  crawler.py:586
+                             4 unchanged, 0 deleted (GC).                      
+                    INFO     [1/7] CRAWL completed: 0 new,  orchestrator.py:180
+                             4 unchanged, 0 deleted.                           
+                    INFO     No change detected — ending    orchestrator.py:190
+                             pipeline.                                         
+                    INFO     MINE COMPLETED in 0.02s        orchestrator.py:192
+                             (noop).                                           
+                    INFO     concierge_mine OK:              mcp_server.py:1086
+                             fixture_project \u2192 0 files, 0                      
+                             nodes, 0.02s                                      
+                    INFO     update_fact_utility:             middleware.py:707
+                             fact_id=99999, was_useful=True \u2192                  
+                             utility_alpha atualizado.                         
+                    INFO     concierge_feedback OK:          mcp_server.py:1534
+                             fact_id=99999, was_useful=True,                   
+                             utility_alpha+1                                   
+                    INFO     reset_collection OK:           vector_store.py:650
+                             collection                                        
+                             'fase4_0c_collection'                             
+                             destroyed and recreated (9                        
+                             embeddings eliminated).                           
+                    WARNING  reset_collection: vector         middleware.py:779
+                             collection destroyed and                          
+                             recreated.                                        
+                    INFO     reset_collection OK: True       mcp_server.py:1711
+                    INFO     Batch delete finished: 10/10   vector_store.py:525
+                             removed.                                          
+                    INFO     Vectors removed: 10 embeddings   middleware.py:417
+                             from project                                      
+                             aaeeeb8d-e4fa-4b45-a04f-b4767628                  
+                             1cf2                                              
+                    INFO     Project removed:                 middleware.py:423
+                             aaeeeb8d-e4fa-4b45-a04f-b4767628                  
+                             1cf2                                              
+                    INFO     delete_project OK:              mcp_server.py:1579
+                             aaeeeb8d-e4fa-4b45-a04f-b476762                   
+                             81cf2                                             
+                    INFO     Requesting stop of               connection.py:105
+                             SerializedWriteQueue...                           
+                    INFO     SerializedWriteQueue finished.   connection.py:109
+                    INFO     SqliteStore closed.                   store.py:114
+  [P] concierge_search             -> SUCESSO COM DADOS      | {'success': True, 'query': 'compute_total', 'project_uuid': 'aaeeeb8d-e4fa-4b45-
+  [P] search_symbols               -> SUCESSO COM DADOS      | {'success': True, 'symbols': [{'id': 4, 'label': 'math_ops.py::add', 'node_type'
+  [P] get_implementations          -> SUCESSO COM DADOS      | {'success': True, 'symbol_id': 9, 'label': 'service.py::CalculatorService', 'typ
+  [P] get_callers                  -> SUCESSO COM DADOS      | {'success': True, 'symbol_id': 9, 'callers': [{'id': 10, 'label': 'service.py::<
+  [P] concierge_get_call_chain     -> EXCEÇÃO                | ToolError: Error executing tool concierge_get_call_chain: no such table: ast_edg
+  [P] concierge_load               -> SUCESSO COM DADOS      | {'success': True, 'node': {'id': 1, 'project_uuid': 'aaeeeb8d-e4fa-4b45-a04f-b47
+  [P] concierge_wakeup             -> SUCESSO COM DADOS      | {'project': {'uuid': 'aaeeeb8d-e4fa-4b45-a04f-b47676281cf2', 'folder_name': 'fix
+  [P] concierge_resume             -> SUCESSO COM DADOS      | {'success': True, 'project_uuid': 'aaeeeb8d-e4fa-4b45-a04f-b47676281cf2', 'folde
+  [P] concierge_set_state          -> SUCESSO COM DADOS      | {'success': True, 'session_id': 'default', 'active_state': 'EXECUTION'}
+  [P] concierge_store_fact         -> SUCESSO COM DADOS      | {'success': True, 'scope_type': 'session', 'scope_id': 'test_sess', 'decisions':
+  [P] concierge_list_facts         -> SUCESSO COM DADOS      | {'success': True, 'scope_type': 'session', 'scope_id': 'test_sess', 'facts_count
+  [P] concierge_set_memory         -> SUCESSO COM DADOS      | {'success': True, 'memory_id': 2, 'scope_type': 'session', 'scope_id': 'test_ses
+  [P] concierge_get_memory         -> SUCESSO COM DADOS      | {'success': True, 'scope_type': 'session', 'scope_id': 'test_sess', 'block_label
+  [P] concierge_feedback           -> SUCESSO COM DADOS      | {'success': True, 'fact_id': 2, 'was_useful': True, 'updated_field': 'utility_al
+  [P] find_similar                 -> SUCESSO COM DADOS      | {'success': True, 'project_uuid': 'aaeeeb8d-e4fa-4b45-a04f-b47676281cf2', 'simil
+  [P] get_trajectories             -> SUCESSO VAZIO          | {'success': True, 'project_uuid': 'aaeeeb8d-e4fa-4b45-a04f-b47676281cf2', 'traje
+  [P] add_reference_wing           -> SUCESSO COM DADOS      | {'success': True, 'project_uuid': 'aaeeeb8d-e4fa-4b45-a04f-b47676281cf2', 'wing_
+  [P] remove_reference_wing        -> SUCESSO COM DADOS      | {'success': True, 'project_uuid': 'aaeeeb8d-e4fa-4b45-a04f-b47676281cf2', 'wing_
+  [P] update_project               -> SUCESSO COM DADOS      | {'success': True, 'project_uuid': 'aaeeeb8d-e4fa-4b45-a04f-b47676281cf2', 'updat
+  [P] agent_save_checkpoint        -> ERRO DE NEGÓCIO        | Failed to save checkpoint 'chk_p2' for agent 'test_agent_1'
+  [P] agent_get_checkpoint         -> EXCEÇÃO                | ToolError: Error executing tool agent_get_checkpoint: no such table: agent_check
+  [P] agent_list_checkpoints       -> EXCEÇÃO                | ToolError: Error executing tool agent_list_checkpoints: no such table: agent_che
+  [P] concierge_commit             -> SUCESSO COM DADOS      | {'success': True, 'commit_id': 1, 'project_uuid': 'aaeeeb8d-e4fa-4b45-a04f-b4767
+  [P] concierge_register           -> SUCESSO COM DADOS      | {'success': True, 'project_uuid': 'aaeeeb8d-e4fa-4b45-a04f-b47676281cf2', 'folde
+  [P] concierge_mine               -> SUCESSO VAZIO          | {'files_processed': 0, 'categories': {'code': 3, 'doc': 1}, 'nodes_created': 0, 
+  [P] reset_collection             -> NEGADO PELO GOVERNOR   | Access denied: tool 'reset_collection' (category 'DANGEROUS') is blocked during 
+  [P] delete_project               -> NEGADO PELO GOVERNOR   | Access denied: tool 'delete_project' (category 'DANGEROUS') is blocked during st
+
+--- TESTES ESPECIAIS ---
+Testando concierge_feedback com fact_id inexistente (99999)...
+  Resultado fact_id=99999: class=SUCESSO COM DADOS, parsed={'success': True, 'fact_id': 99999, 'was_useful': True, 'updated_field': 'utility_alpha', 'message': 'utility_alpha incremented for fact 99999.', 'duration_seconds': 0.004}
+
+Testando reset_collection e delete_project em MAINTENANCE...
+  Bloqueio reset_collection em EXECUTION: Access denied: tool 'reset_collection' (category 'DANGEROUS') is blocked during state 'EXECUTION' for session 'default'.
+  Bloqueio delete_project em EXECUTION: Access denied: tool 'delete_project' (category 'DANGEROUS') is blocked during state 'EXECUTION' for session 'default'.
+  Transicao de estado: {'success': True, 'session_id': 'default', 'active_state': 'MAINTENANCE'}
+  reset_collection em MAINTENANCE -> SUCESSO COM DADOS | {'success': True, 'duration_seconds': 0.027}
+  delete_project em MAINTENANCE -> SUCESSO COM DADOS | {'success': True, 'project_uuid': 'aaeeeb8d-e4fa-4b45-a04f-b47676281cf2', 'duration_seconds': 0.022}
+
+Resultados salvos em scratch/fase4_0c_matrix_results.json
+Workspace temporario removido com sucesso.

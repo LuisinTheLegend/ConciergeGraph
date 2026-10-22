@@ -647,6 +647,11 @@ Em cumprimento estrito à **Regra 10 do Protocolo de Auditoria** ("Se o humano p
   1. `interface/telemetry_api.py`: Status **SÓ CARREGADO** (0 linhas de lógica executadas em F1 e em F2). Todavia, `interface/mcp_server.py:151` importa a instância `mcp_governor` de `interface.telemetry_api`. O objeto em si pertence à classe `core.mcp_governor.MCPToolGovernor` e teve 72 linhas de lógica em F1 e 13 em F2.
   2. `core/checkpointer.py`: Status **EXECUTADO EM F2** (2 linhas em F1 e 24 linhas em F2). Seus métodos foram chamados diretamente pelas ferramentas MCP `agent_save_checkpoint`, `agent_get_checkpoint` e `agent_list_checkpoints`.
 
+> [!NOTE]
+> **Resolução Arquitetural na Rodada 4.2 (Commits `8640165` e `0244183`):**  
+> 1. **Desacoplamento do Governor:** A dependência estrutural que impedia o arquivamento/quarentena de `interface/telemetry_api.py` foi resolvida no Commit `8640165`. O singleton de governança foi movido para seu módulo de origem (`core/mcp_governor.py::get_shared_governor()`). `interface/mcp_server.py` e `interface/telemetry_api.py` agora obtêm a mesma instância compartilhada sem que o servidor MCP importe a API FastAPI.  
+> 2. **Corte da Cadeia de Imports Eager:** No Commit `0244183`, a exportação de `ActionHooks` em `interface/__init__.py` foi convertida para preguiçosa via PEP 562 (`__getattr__`), eliminando a carga cascata de `interface.action_hooks` e `agents.revisor_critico` ao importar `interface.mcp_server`.
+
 ---
 
 ### 11.5 Métricas Reais do Caminho A (Linhas e Arquivos)
