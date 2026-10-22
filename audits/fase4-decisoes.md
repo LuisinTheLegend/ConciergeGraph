@@ -45,6 +45,11 @@
    - *Fonte:* Confirmação do dono nesta conversa (homologada nas rodadas 4.1/F e 4.1/G).
    - Sumários de truncamento gerados na ausência de LLM (`is_dumb_summary=True`) não devem ser persistidos no SQLite; em ambientes sem LLM, `nodes.summary` permanece `NULL` até que a integração com LLM esteja configurada.
 
+9. **Migração dos Sumários `[DUMB]` Existentes e Backfill Futuro (Decisão do Dono — 2026-10-21):**
+   - **Opção B Aprovada:** Execução de backup consistente via API do SQLite (`conn.backup()`) e `UPDATE nodes SET summary = NULL WHERE summary LIKE '[DUMB]%'` em transação única atômica, preservando todas as demais colunas e tabelas e mantendo o FTS5 íntegro.
+   - **Opção C (Backfill com LLM):** Registrada como funcionalidade futura, expressamente **NÃO AUTORIZADA** para execução na Fase 4.1.
+   - **Efeito Conhecido Documentado:** Na ausência de sumários L0 preenchidos (permanecendo como `NULL`), o pipeline de contexto `generate_project_context` aborta com contagem nula (`l1_count: 0`, `L2: None`), até que seja implementado e autorizado um backfill oficial com LLM para gerar resumos de nós.
+
 ---
 
 ## 2. Ordem de Execução Planejada

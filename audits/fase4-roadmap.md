@@ -32,11 +32,14 @@ Preferências do dono: honestidade acima de tudo, caminho mais eficiente e profi
 | 4.1/D | `de90005`, `8e6f887`, `af9001a` | Reparo de vetores (F4-008/009); sumários persistidos (F4-010) | Código OK; relatório tinha trechos inventados | Sim (veredito 2026-10-19) |
 | 4.1/E | `8d963ae`, `d7a88ff`, `641d327` | F4-011 via SQLite; dedup de falhas; consulta leve do reparo; `[DUMB]` omitido; teste (g) em todos os vetores; relatório retificado | Código OK; teste do [DUMB] corrigido na 4.1/F | Sim (2026-10-20) |
 | 4.1/F | `9b70eef`, `bd821e7` | Corrigir o teste vazio do `[DUMB]`; commitar este roadmap; ajustar relatório | Concluída | Sim (2026-10-19) |
-| 4.1/G | `4c505d1`, `4a55d6e` | Resíduo F4-009 + investigação de nodes.summary (somente leitura) | Concluída | — |
+| 4.1/G | `4c505d1`, `4a55d6e`, `933f62a` | Resíduo F4-009 + investigação de nodes.summary (somente leitura) | Concluída | Sim (2026-10-21; trechos não literais corrigidos na 4.1/H) |
+| 4.1/H | `933f62a`, `17abc47` | Migração dos sumários [DUMB] para NULL (Opção B); backup SQLite; FTS íntegro | Concluída | — |
 | 4.2 | — | Desacoplar `mcp_governor` de `telemetry_api`; cortar `interface/__init__`→`ActionHooks`→`RevisorCritico` (inclui BL-015) | PLANEJADO, NÃO AUTORIZADO | — |
 | 4.3 | — | DDL só de `agent_checkpoints`; reimplementar `concierge_get_call_chain` sobre `edges`/`nodes` (caminhos de arquivo, só `calls`) | PLANEJADO, NÃO AUTORIZADO | — |
 | 4.4 | — | Remover `wing_keywords` de vez, com teste-guarda e regra de neutralidade no protocolo/CONTRIBUTING | PLANEJADO, NÃO AUTORIZADO | — |
 | 4.5 | — | Quarentena do código dormente em `archive/v4-experimental` (após 4.2) | PLANEJADO, NÃO AUTORIZADO | — |
+
+> **Nota de Encerramento:** A Fase 4.1 encerra na Rodada 4.1/H. A criação das tabelas faltantes (`agent_checkpoints` via Caminho B) está planejada para a Rodada 4.3.
 
 ## 4. Achados da Fase 4 (índice; detalhe em `fase4-achados.md`)
 
@@ -79,7 +82,7 @@ Conferi diretamente o código e rodei testes em worktree.
 
 ## 8. Padrões de erro já vistos (verificar sempre)
 
-- Trechos "literais" reconstruídos de memória em vez de colados (4.1/D).
+- Trechos de evidência não literais (4.1/D e 4.1/G).
 - Saída de teste vermelho que não corresponde aos testes commitados.
 - Achado novo com causa errada e status "CORRIGIDO" sem prova (F4-011 original).
 - **Teste que passa antes e depois da correção** (4.1/E, `[DUMB]`). Todo teste novo precisa falhar no código anterior.
