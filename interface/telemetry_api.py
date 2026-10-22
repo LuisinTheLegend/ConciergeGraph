@@ -40,7 +40,7 @@ from pydantic import BaseModel
 
 from core.database import ConciergeDatabaseManager
 from core.gating_interceptor import GatingInterceptor
-from core.mcp_governor import MCPToolGovernor
+from core.mcp_governor import MCPToolGovernor, get_shared_governor
 from core.rate_governor import RateGovernor
 from core.security_guard import SecurityGuard
 from core.telemetry_schemas import (
@@ -54,7 +54,7 @@ from core.telemetry_schemas import (
 logger = logging.getLogger(__name__)
 
 # Global singleton instance for MCP tool governance
-mcp_governor = MCPToolGovernor()
+mcp_governor = get_shared_governor()
 
 # RateGovernor daemon singleton (SDD-SURVIVAL-23)
 # Default quotas: 60 RPM, 40000 TPM, 60s window

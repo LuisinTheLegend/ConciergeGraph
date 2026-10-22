@@ -147,12 +147,8 @@ class GrafoConciergeServer:
         # Initialize sentinels for checkpoint, graph tools, and governor if not injected
         global db_manager, checkpointer, graph_rag, governor
         if governor is None:
-            try:
-                from interface.telemetry_api import mcp_governor
-                governor = mcp_governor
-            except Exception:
-                from core.mcp_governor import MCPToolGovernor
-                governor = MCPToolGovernor()
+            from core.mcp_governor import get_shared_governor
+            governor = get_shared_governor()
 
         self._governor = governor
 

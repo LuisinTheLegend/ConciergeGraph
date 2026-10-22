@@ -190,3 +190,17 @@ class MCPToolGovernor:
             f"Access denied: tool '{tool_name}' (category '{category}') "
             f"is blocked during state '{current_state}' for session '{session_id}'."
         )
+
+
+_shared_governor: Optional[MCPToolGovernor] = None
+
+
+def get_shared_governor() -> MCPToolGovernor:
+    """
+    Retorna o singleton compartilhado de MCPToolGovernor por processo.
+    Instanciação preguiçosa sem dependências externas.
+    """
+    global _shared_governor
+    if _shared_governor is None:
+        _shared_governor = MCPToolGovernor()
+    return _shared_governor
