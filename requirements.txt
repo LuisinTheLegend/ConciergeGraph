@@ -2,7 +2,7 @@
 
 # Core System & Framework
 chromadb>=1.0.0
-mcp>=1.0.0
+mcp>=1.27,<2
 sentence-transformers>=3.0.0
 python-dotenv>=1.0.0
 starlette>=0.36.0
