@@ -69,6 +69,12 @@ def test_t3_governor_identity_matches_telemetry_mcp_governor(tmp_path):
 
 def test_t4_governor_uses_shared_singleton_when_telemetry_import_fails(tmp_path, monkeypatch):
     """T4: Com sys.modules['interface.telemetry_api'] = None (import quebrado), o servidor usa o MESMO singleton compartilhado."""
+    # Zera sentinelas globais para garantir isolamento estrito e independencia de ordem
+    monkeypatch.setattr("interface.mcp_server.governor", None)
+    monkeypatch.setattr("interface.mcp_server.db_manager", None, raising=False)
+    monkeypatch.setattr("interface.mcp_server.checkpointer", None, raising=False)
+    monkeypatch.setattr("interface.mcp_server.graph_rag", None, raising=False)
+
     import core.mcp_governor
     assert hasattr(core.mcp_governor, "get_shared_governor"), "core.mcp_governor deve expor get_shared_governor()"
     shared_gov = core.mcp_governor.get_shared_governor()
