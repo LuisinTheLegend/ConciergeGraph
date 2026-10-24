@@ -255,17 +255,31 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
 
 ---
 
-### [F4-015] Latência Excessiva de Inicialização a Frio (>30s a 100s) por Imports Antecipados de ML (`torch`/`sentence_transformers`/`chromadb`)
-- **Severidade:** 🟡 MÉDIA (Severidade Proposta: risco de timeout de clientes MCP durante handshake de inicialização)
-- **Arquivos & Linhas:** [`storage/__init__.py:18`](file:///c:/Nexus-Memory/GrafoConcierge/storage/__init__.py#L18), [`storage/vector_store.py:32,46`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py#L32), [`main.py:122`](file:///c:/Nexus-Memory/GrafoConcierge/main.py#L122)
+### [F4-015] Latência Excessiva de Inicialização por Imports Antecipados de ML (`torch`/`sentence_transformers`) no Bootstrap
+- **Severidade:** 🟡 MÉDIA (Severidade Operacional: risco de timeout de clientes MCP durante handshake de inicialização)
+- **Arquivos & Linhas:** [`storage/vector_store.py:45-56, 151-177`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py#L45-L56), [`storage/__init__.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/__init__.py), [`main.py:122`](file:///c:/Nexus-Memory/GrafoConcierge/main.py#L122)
 - **Mecanismo da Falha:**
-  No arranque do servidor (`main.py:bootstrap`), a linha 122 executa `from storage import SqliteStore`. Como `storage/__init__.py:18` exporta eagerly `from .vector_store import ChromaVectorStore`, o Python carrega `storage/vector_store.py`, cujas linhas 32 e 46 contêm imports globais pesados: `import chromadb` e `from sentence_transformers import SentenceTransformer`. Isso força o carregamento imediato de toda a pilha de machine learning (`torch`, `transformers`, `huggingface_hub`, `onnxruntime`, etc.) antes mesmo do servidor MCP poder responder a qualquer mensagem `initialize` ou `list_tools`.
-  Em ambientes limpos (sem cache pré-compilado de bytecode `.pyc` ou em máquinas onde o antivírus/Windows Defender analisa DLLs do PyTorch), a inicialização do módulo consome entre 22 s (NVMe ultrarrápido) e mais de 100 s (medido pelo auditor na 4.2b: ~100 s no venv red, ~29 s no venv green).
-  Clientes MCP (como o Claude Desktop) possuem tempo-limite cliente de aproximadamente 60 segundos (`McpError -32001: Request timed out`). Ao ultrapassar esse limite, o cliente aborta a conexão e marca o servidor como inoperante, sem que o usuário consiga estabelecer a sessão.
-- **Reprodução e Evidências Experimentais (Rodada 4.2c):**
-  1. `scratch/evidencia_4_2c/p1_top20_bootstrap_imports.txt`: prova que dos ~13.5 s gastos em `import storage`, 84.8% (11.46 s) pertencem a `sentence_transformers` (e `transformers`), 2.58 s a `torch` e 2.03 s a `chromadb`.
-  2. `scratch/evidencia_4_2c/c1_startup_profile_fresh.txt`: prova que em venv recém-instalado, 93.3% do tempo de bootstrap (20.97 s de 22.47 s) é consumido por esses 3 pacotes.
-  3. `scratch/evidencia_4_2c/c4_hf_offline_test.txt`: prova que o modelo `all-MiniLM-L6-v2` sequer é necessário no bootstrap; o bootstrap roda offline sem ele em 0.43 s. O modelo só é exigido na primeira operação de embedding (`_load_model`), evidenciando que a carga no boot é totalmente desnecessária.
-- **Status:** **ABERTO** (Somente medição executada na Rodada 4.2c; proibido alterar código de produção nesta rodada). Opções de remediação arquitetural documentadas em [`audits/fase4-2c-medicao-inicializacao.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/fase4-2c-medicao-inicializacao.md).
+  No arranque do servidor (`main.py:bootstrap`), a linha 122 executa `from storage import SqliteStore`. Como `storage/__init__.py:18` exporta `from .vector_store import ChromaVectorStore`, o Python avaliava `storage/vector_store.py`, que continha imports no nível do módulo de `from sentence_transformers import SentenceTransformer`. Isso forçava o carregamento antecipado de toda a pilha de machine learning (`sentence_transformers`, `torch`, `transformers`) durante o bootstrap, antes mesmo do servidor MCP poder responder a qualquer mensagem `initialize` ou `list_tools`.
+- **Histórico da 4.2b vs. Medições Reais:**
+  - *Histórico de Logs da 4.2b (Não medido de forma decomposta):* O intervalo entre `"Initializing SqliteStore"` e `"Schema v3.8.0 verified"` foi registrado em logs como ~100 s (no venv red) e ~29 s (no venv green).
+  - *Hipótese de Antivírus / Windows Defender:* **HIPÓTESE NÃO CONFIRMADA** (Regra 3: nenhuma evidência experimental conclusiva confirmou ação ativa de escaneamento de DLLs pelo Windows Defender durante as medições).
+  - *Timeout de ~60 s do Claude Desktop:* **NÃO VERIFICADO** (Mencionado em tópicos de fóruns/busca na internet; valor oficial e parâmetros exatos do watchdog do cliente permanecem desconhecidos e não documentados pela especificação MCP).
+- **Medições Fidedignas (Rodada 4.2c — Antes da Correção):**
+  - Bootstrap completo: **13,22 s** (ambiente do desenvolvedor) a **22,47 s** (venv novo frio).
+  - Decomposição de imports (`p1_top20_bootstrap_imports.txt`): dos 13,52 s gastos em `storage`, **11,46 s** (84,8%) eram devidos a `sentence_transformers`, **2,58 s** a `torch` e **2,03 s** a `chromadb`.
+  - Tempo até `initialize` E2E: **13,90 s** (`scratch/evidencia_4_2c/c3_e2e_profile.txt`).
+- **Resolução Implementada (Rodada 4.2d, Commits `34ad6d5` e `8366860`):**
+  1. `SENTENCE_TRANSFORMERS_AVAILABLE` em `storage/vector_store.py` passa a ser verificado sem carregar o pacote via `importlib.util.find_spec("sentence_transformers") is not None`.
+  2. O import `from sentence_transformers import SentenceTransformer` foi movido para dentro do método `EmbeddingManager._load_model()`, protegido por `threading.Lock()` thread-safe com double-checked locking.
+  3. Falhas no import tardio são capturadas e convertidas em `EmbeddingError` (preservando o contrato de erro).
+  4. Testes automatizados criados em [`tests/test_lazy_ml_imports.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_lazy_ml_imports.py) (T1 a T5) garantem isolamento estrito contra regressões.
+- **Medições Fidedignas (Rodada 4.2d — Depois da Correção):**
+  - Tempo de bootstrap: reduzido de **13,22 s** para **2,77 s** (**-79,1%**, economia de 10,45 s).
+  - Tempo até resposta `initialize` E2E: reduzido de **13,90 s** para **3,03 s** (**-78,2%**, economia de 10,87 s).
+  - Presença no startup: `sentence_transformers` e `torch` foram **100% eliminados** do bootstrap (`depois_top20_imports.txt`).
+  - Tempo residual de startup: consumido principalmente por `chromadb` (1,83 s de import + 0,20 s de instanciação).
+  - Trade-off documentado: a carga de pesos e imports de ML passou para a 1ª chamada de embedding, variando de 4,59 s para **15,70 s** (+11,11 s); chamadas subsequentes realizam inferência quente em **~0,016 s**.
+- **Status:** **corrigido pelo executor, aguardando verificação independente** (Commits `34ad6d5`, `8366860`).
+
 
 
