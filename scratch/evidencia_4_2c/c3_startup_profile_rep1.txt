@@ -1,0 +1,232 @@
+[10/24/26 19:42:53] INFO     GrafoConciergeServer initialized mcp_server.py:229
+                             — 31 tools registered.                            
+                    INFO     No device provided, using cpu         model.py:177
+[10/24/26 19:42:54] INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/modules.json "HTTP/1.1 307                 
+                             Temporary Redirect"                               
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+                    WARNING  Warning: You are sending              _http.py:904
+                             unauthenticated requests to the HF                
+                             Hub. Please set a HF_TOKEN to enable              
+                             higher rate limits and faster                     
+                             downloads.                                        
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/modules.                
+                             json "HTTP/1.1 200 OK"                            
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/config_sentence_transformer                
+                             s.json "HTTP/1.1 307 Temporary                    
+                             Redirect"                                         
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/config_s                
+                             entence_transformers.json                         
+                             "HTTP/1.1 200 OK"                                 
+                    INFO     Loading SentenceTransformer model     model.py:973
+                             from                                              
+                             sentence-transformers/all-MiniLM-L6-v             
+                             2.                                                
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/config_sentence_transformer                
+                             s.json "HTTP/1.1 307 Temporary                    
+                             Redirect"                                         
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/config_s                
+                             entence_transformers.json                         
+                             "HTTP/1.1 200 OK"                                 
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/README.md "HTTP/1.1 307                    
+                             Temporary Redirect"                               
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/README.m                
+                             d "HTTP/1.1 200 OK"                               
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/modules.json "HTTP/1.1 307                 
+                             Temporary Redirect"                               
+[10/24/26 19:42:55] INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/modules.                
+                             json "HTTP/1.1 200 OK"                            
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/sentence_bert_config.json                  
+                             "HTTP/1.1 307 Temporary Redirect"                 
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/sentence                
+                             _bert_config.json "HTTP/1.1 200                   
+                             OK"                                               
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/adapter_config.json                        
+                             "HTTP/1.1 404 Not Found"                          
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/config.json "HTTP/1.1 307                  
+                             Temporary Redirect"                               
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/config.j                
+                             son "HTTP/1.1 200 OK"                             
+===========================================================================
+GRAFO CONCIERGE — STARTUP PROFILE (main.bootstrap)
+===========================================================================
+Python:       3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]
+Temp DB:      C:\Users\guial\AppData\Local\Temp\grafo_profile_i6kg0e2m\profile_concierge.db
+Temp Chroma:  C:\Users\guial\AppData\Local\Temp\grafo_profile_i6kg0e2m\profile_chroma
+===========================================================================
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|##########| 103/103 [00:00<00:00, 4737.56it/s]
+[10/24/26 19:42:56] INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/processor_config.json                      
+                             "HTTP/1.1 404 Not Found"                          
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/preprocessor_config.json                   
+                             "HTTP/1.1 404 Not Found"                          
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/video_preprocessor_config.j                
+                             son "HTTP/1.1 404 Not Found"                      
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/preprocessor_config.json                   
+                             "HTTP/1.1 404 Not Found"                          
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/tokenizer_config.json                      
+                             "HTTP/1.1 307 Temporary Redirect"                 
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/tokenize                
+                             r_config.json "HTTP/1.1 200 OK"                   
+[10/24/26 19:42:57] INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/config.json "HTTP/1.1 307                  
+                             Temporary Redirect"                               
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/config.j                
+                             son "HTTP/1.1 200 OK"                             
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/config.json "HTTP/1.1 307                  
+                             Temporary Redirect"                               
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/config.j                
+                             son "HTTP/1.1 200 OK"                             
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/tokenizer_config.json                      
+                             "HTTP/1.1 307 Temporary Redirect"                 
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/tokenize                
+                             r_config.json "HTTP/1.1 200 OK"                   
+                    INFO     HTTP Request: GET                  _client.py:1025
+                             https://huggingface.co/api/models/                
+                             sentence-transformers/all-MiniLM-L                
+                             6-v2/tree/main/additional_chat_tem                
+                             plates?recursive=false&expand=fals                
+                             e "HTTP/1.1 404 Not Found"                        
+                    INFO     HTTP Request: GET                  _client.py:1025
+                             https://huggingface.co/api/models/                
+                             sentence-transformers/all-MiniLM-L                
+                             6-v2/tree/main?recursive=true&expa                
+                             nd=false "HTTP/1.1 200 OK"                        
+[10/24/26 19:42:58] INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/main/1_Pooling/config.json                      
+                             "HTTP/1.1 307 Temporary Redirect"                 
+                    INFO     HTTP Request: HEAD                 _client.py:1025
+                             https://huggingface.co/api/resolve                
+                             -cache/models/sentence-transformer                
+                             s/all-MiniLM-L6-v2/1110a243fdf4706                
+                             b3f48f1d95db1a4f5529b4d41/1_Poolin                
+                             g%2Fconfig.json "HTTP/1.1 200 OK"                 
+                    INFO     HTTP Request: GET                  _client.py:1025
+                             https://huggingface.co/api/models/                
+                             sentence-transformers/all-MiniLM-L                
+                             6-v2 "HTTP/1.1 200 OK"                            
+                    INFO     FLASH model loaded:            vector_store.py:152
+                             all-MiniLM-L6-v2                                  
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|##########| 1/1 [00:00<00:00, 20.86it/s]
+                    INFO     Requesting stop of               connection.py:105
+                             SerializedWriteQueue...                           
+                    INFO     SerializedWriteQueue finished.   connection.py:109
+                    INFO     SqliteStore closed.                   store.py:114
+Etapa / Operacao                                 |  Tempo (s) |  % Total
+---------------------------------------------------------------------------
+import: chromadb (top-level)                     |     1.8134s |    13.7%
+import: torch (top-level)                        |     2.2818s |    17.3%
+import: sentence_transformers                    |     8.3975s |    63.6%
+import: storage.store                            |     0.0057s |     0.0%
+import: storage.vector_store                     |     0.0000s |     0.0%
+import: storage (package)                        |     0.0000s |     0.0%
+import: ingestion.summarizer                     |     0.0090s |     0.1%
+import: ingestion.orchestrator                   |     0.0000s |     0.0%
+import: services.janitor                         |     0.0030s |     0.0%
+import: core.middleware                          |     0.0074s |     0.1%
+import: interface.mcp_server                     |     0.3533s |     2.7%
+instantiate: SqliteStore                         |     0.0625s |     0.5%
+instantiate: EmbeddingManager(FLASH)             |     0.0000s |     0.0%
+instantiate: ChromaVectorStore                   |     0.1975s |     1.5%
+instantiate: ZoomSummarizer                      |     0.0000s |     0.0%
+instantiate: IngestionManager                    |     0.0000s |     0.0%
+instantiate: JanitorService                      |     0.0000s |     0.0%
+instantiate: GrafoConcierge (Facade)             |     0.0000s |     0.0%
+instantiate: GrafoConciergeServer (31 tools)     |     0.0654s |     0.5%
+---------------------------------------------------------------------------
+TOTAL: bootstrap() completo                      |    13.1966s |   100.0%
+---------------------------------------------------------------------------
+embedding: _load_model() (carga de pesos)        |     4.8300s |    (pos)
+embedding: 1a inferencia (embed_query)           |     0.0565s |    (pos)
+===========================================================================

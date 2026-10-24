@@ -1,0 +1,11 @@
+=== SYSTEM INFO ===
+Python Version: 3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]
+Platform: Windows-11-10.0.26300-SP0
+Machine: AMD64
+Processor: Intel64 Family 6 Model 142 Stepping 12, GenuineIntel
+
+=== DISK MEDIA TYPE (SSD / HDD) ===
+FriendlyName            MediaType BusType Size_GB
+------------            --------- ------- -------
+Hitachi HTS547550A9E384 HDD       RAID     465,76
+KINGSTON SNV2S1000G     SSD       RAID     931,51

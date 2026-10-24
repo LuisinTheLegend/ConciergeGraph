@@ -1,0 +1,26 @@
+================================================================================
+TOP 20 IMPORTS COM MAIOR TEMPO CUMULATIVO (-X importtime)
+================================================================================
+Ranking  | Modulo                                        |  Cumulativo (ms) |  Self (ms)
+--------------------------------------------------------------------------------
+#1       | storage                                       |      13525.95 ms |    0.73 ms
+#2       | storage.vector_store                          |      13505.22 ms |    2.09 ms
+#3       | sentence_transformers                         |      11464.45 ms |    2.77 ms
+#4       | sentence_transformers.backend                 |       8388.64 ms |    1.31 ms
+#5       | sentence_transformers.backend.load            |       6696.83 ms |    1.01 ms
+#6       | transformers.configuration_utils              |       6694.78 ms |    2.19 ms
+#7       | transformers                                  |       4070.57 ms |  816.04 ms
+#8       | transformers.dependency_versions_check        |       3252.75 ms |   16.31 ms
+#9       | transformers.utils.versions                   |       3235.89 ms |    0.54 ms
+#10      | transformers.utils                            |       3235.35 ms |    0.99 ms
+#11      | transformers.utils.auto_docstring             |       3007.82 ms |    6.88 ms
+#12      | transformers.utils.generic                    |       2987.86 ms |    5.74 ms
+#13      | sentence_transformers.base.sampler            |       2952.66 ms |    0.04 ms
+#14      | sentence_transformers.base                    |       2952.62 ms |    0.77 ms
+#15      | sentence_transformers.base.model              |       2922.67 ms |    9.88 ms
+#16      | transformers.utils.import_utils               |       2856.07 ms | 2855.00 ms
+#17      | transformers.generation.configuration_utils   |       2593.57 ms |    3.96 ms
+#18      | transformers.generation.logits_process        |       2588.91 ms |    1.73 ms
+#19      | torch                                         |       2587.18 ms |  452.39 ms
+#20      | chromadb                                      |       2038.68 ms |   48.12 ms
+================================================================================

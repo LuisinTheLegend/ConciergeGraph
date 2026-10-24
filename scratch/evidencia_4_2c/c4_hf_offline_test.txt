@@ -1,0 +1,76 @@
+[10/24/26 19:53:46] INFO     GrafoConciergeServer initialized mcp_server.py:229
+                             — 31 tools registered.                            
+                    INFO     No device provided, using cpu         model.py:177
+                    INFO     Loading SentenceTransformer model     model.py:973
+                             from                                              
+                             sentence-transformers/all-MiniLM-L6-v             
+                             2.                                                
+===========================================================================
+INVESTIGACAO DE CACHE E COMPORTAMENTO COM HF_HUB_OFFLINE=1 (C4)
+===========================================================================
+HF_HOME:          C:\Users\guial\.cache\huggingface
+Hub Cache Dir:    C:\Users\guial\.cache\huggingface\hub
+Model Cache Dir:  C:\Users\guial\.cache\huggingface\hub\models--sentence-transformers--all-MiniLM-L6-v2
+Status do Modelo: PRESENTE NO CACHE LOCAL
+Total de Arquivos:36
+Tamanho em Disco: 174.67 MB (183,156,822 bytes)
+
+Arquivos principais no cache:
+  - main                           (0.0 KB)
+  - config.json                    (0.6 KB)
+  - config_sentence_transformers.json (0.1 KB)
+  - model.safetensors              (88738.6 KB)
+  - modules.json                   (0.3 KB)
+  - README.md                      (10.3 KB)
+  - sentence_bert_config.json      (0.1 KB)
+  - special_tokens_map.json        (0.1 KB)
+  - tokenizer.json                 (455.3 KB)
+  - tokenizer_config.json          (0.3 KB)
+  - vocab.txt                      (226.1 KB)
+  - config.json                    (0.6 KB)
+  - config_sentence_transformers.json (0.1 KB)
+  - model.safetensors              (88738.6 KB)
+  - modules.json                   (0.3 KB)
+  - README.md                      (10.2 KB)
+  - sentence_bert_config.json      (0.1 KB)
+  - special_tokens_map.json        (0.1 KB)
+  - tokenizer.json                 (455.3 KB)
+  - tokenizer_config.json          (0.3 KB)
+  - vocab.txt                      (226.1 KB)
+  - config.json                    (0.2 KB)
+  - config.json                    (0.2 KB)
+  - adapter_config.json            (0.0 KB)
+  - added_tokens.json              (0.0 KB)
+  - chat_template.jinja            (0.0 KB)
+  - preprocessor_config.json       (0.0 KB)
+  - processor_config.json          (0.0 KB)
+  - video_preprocessor_config.json (0.0 KB)
+  - adapter_config.json            (0.0 KB)
+  - added_tokens.json              (0.0 KB)
+  - chat_template.jinja            (0.0 KB)
+  - preprocessor_config.json       (0.0 KB)
+  - processor_config.json          (0.0 KB)
+  - video_preprocessor_config.json (0.0 KB)
+  - config.json                    (0.0 KB)
+
+---------------------------------------------------------------------------
+TESTE 1: main.bootstrap() com HF_HUB_OFFLINE=1
+---------------------------------------------------------------------------
+[OK] bootstrap() completou em 0.4340s com HF_HUB_OFFLINE=1.
+     CONCLUSAO: O modelo all-MiniLM-L6-v2 NAO E NECESSARIO na inicializacao (bootstrap).
+     O modelo so e carregado sob demanda (lazy loading) no primeiro embedding.
+
+---------------------------------------------------------------------------
+TESTE 2: Carga de pesos e primeiro embedding com HF_HUB_OFFLINE=1
+---------------------------------------------------------------------------
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|##########| 103/103 [00:00<00:00, 6860.73it/s]
+[10/24/26 19:53:47] INFO     FLASH model loaded:            vector_store.py:152
+                             all-MiniLM-L6-v2                                  
+[OK] embedder._load_model() completou em 0.8025s offline usando o cache local.
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|##########| 1/1 [00:00<00:00,  9.01it/s]Batches: 100%|##########| 1/1 [00:00<00:00,  8.99it/s]
+                    INFO     Requesting stop of               connection.py:105
+                             SerializedWriteQueue...                           
+                    INFO     SerializedWriteQueue finished.   connection.py:109
+                    INFO     SqliteStore closed.                   store.py:114
+[OK] embed() retornou vetor com 384 dimensoes em 0.1171s.
+===========================================================================

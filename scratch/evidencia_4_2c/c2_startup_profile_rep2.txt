@@ -1,0 +1,70 @@
+[10/24/26 19:51:22] INFO     GrafoConciergeServer initialized mcp_server.py:229
+                             — 31 tools registered.                            
+                    INFO     No device provided, using cpu         model.py:214
+[10/24/26 19:51:23] INFO     HTTP Request: GET                  _client.py:1084
+                             https://huggingface.co/api/models/                
+                             sentence-transformers/all-MiniLM-L                
+                             6-v2 "HTTP/1.1 200 OK"                            
+                    INFO     Loading SentenceTransformer model    model.py:1210
+                             from                                              
+                             sentence-transformers/all-MiniLM-L6-              
+                             v2.                                               
+===========================================================================
+GRAFO CONCIERGE — STARTUP PROFILE (main.bootstrap)
+===========================================================================
+Python:       3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]
+Temp DB:      C:\Users\guial\AppData\Local\Temp\grafo_profile_a6w_kjjs\profile_concierge.db
+Temp Chroma:  C:\Users\guial\AppData\Local\Temp\grafo_profile_a6w_kjjs\profile_chroma
+===========================================================================
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|##########| 103/103 [00:00<00:00, 2049.45it/s]
+                    INFO     HTTP Request: GET                  _client.py:1084
+                             https://huggingface.co/api/models/                
+                             sentence-transformers/all-MiniLM-L                
+                             6-v2/tree/main/additional_chat_tem                
+                             plates?recursive=false&expand=fals                
+                             e "HTTP/1.1 404 Not Found"                        
+                    INFO     HTTP Request: GET                  _client.py:1084
+                             https://huggingface.co/api/models/                
+                             sentence-transformers/all-MiniLM-L                
+                             6-v2/tree/main?recursive=true&expa                
+                             nd=false "HTTP/1.1 200 OK"                        
+[10/24/26 19:51:24] INFO     HTTP Request: HEAD                 _client.py:1084
+                             https://huggingface.co/sentence-tr                
+                             ansformers/all-MiniLM-L6-v2/resolv                
+                             e/1110a243fdf4706b3f48f1d95db1a4f5                
+                             529b4d41/2_Normalize/config.json                  
+                             "HTTP/1.1 404 Not Found"                          
+                    INFO     FLASH model loaded:            vector_store.py:152
+                             all-MiniLM-L6-v2                                  
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|##########| 1/1 [00:00<00:00, 47.57it/s]
+                    INFO     Requesting stop of               connection.py:105
+                             SerializedWriteQueue...                           
+                    INFO     SerializedWriteQueue finished.   connection.py:109
+                    INFO     SqliteStore closed.                   store.py:114
+Etapa / Operacao                                 |  Tempo (s) |  % Total
+---------------------------------------------------------------------------
+import: chromadb (top-level)                     |     1.9068s |    13.3%
+import: torch (top-level)                        |     2.6027s |    18.2%
+import: sentence_transformers                    |     9.1425s |    63.8%
+import: storage.store                            |     0.0054s |     0.0%
+import: storage.vector_store                     |     0.0000s |     0.0%
+import: storage (package)                        |     0.0000s |     0.0%
+import: ingestion.summarizer                     |     0.0107s |     0.1%
+import: ingestion.orchestrator                   |     0.0000s |     0.0%
+import: services.janitor                         |     0.0024s |     0.0%
+import: core.middleware                          |     0.0073s |     0.1%
+import: interface.mcp_server                     |     0.3257s |     2.3%
+instantiate: SqliteStore                         |     0.0483s |     0.3%
+instantiate: EmbeddingManager(FLASH)             |     0.0000s |     0.0%
+instantiate: ChromaVectorStore                   |     0.1888s |     1.3%
+instantiate: ZoomSummarizer                      |     0.0000s |     0.0%
+instantiate: IngestionManager                    |     0.0000s |     0.0%
+instantiate: JanitorService                      |     0.0000s |     0.0%
+instantiate: GrafoConcierge (Facade)             |     0.0000s |     0.0%
+instantiate: GrafoConciergeServer (31 tools)     |     0.0837s |     0.6%
+---------------------------------------------------------------------------
+TOTAL: bootstrap() completo                      |    14.3243s |   100.0%
+---------------------------------------------------------------------------
+embedding: _load_model() (carga de pesos)        |     1.3780s |    (pos)
+embedding: 1a inferencia (embed_query)           |     0.0248s |    (pos)
+===========================================================================
