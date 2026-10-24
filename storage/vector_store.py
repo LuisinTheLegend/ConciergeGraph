@@ -39,14 +39,16 @@ except ImportError:
     )
 
 # ---------------------------------------------------------------------------
-# Defensive import of SentenceTransformers (local Flash model)
+# Defensive check of SentenceTransformers availability (without eager import)
 # ---------------------------------------------------------------------------
 
-try:
-    from sentence_transformers import SentenceTransformer
-    SENTENCE_TRANSFORMERS_AVAILABLE = True
-except ImportError:
-    SENTENCE_TRANSFORMERS_AVAILABLE = False
+import importlib.util
+import threading
+
+SENTENCE_TRANSFORMERS_AVAILABLE: bool = (
+    importlib.util.find_spec("sentence_transformers") is not None
+)
+if not SENTENCE_TRANSFORMERS_AVAILABLE:
     logger.warning(
         "sentence-transformers not installed. Tier FLASH unavailable. "
         "Install with: pip install sentence-transformers"
@@ -112,6 +114,7 @@ class EmbeddingManager:
         self._dimensions = self._config["dimensions"]
         self._model: Any = None
         self._openai_key = openai_api_key
+        self._lock = threading.Lock()
 
         logger.info(
             "EmbeddingManager initialized: tier=%s, model=%s, dims=%d",
@@ -137,35 +140,45 @@ class EmbeddingManager:
         if self._model is not None:
             return
 
-        import os
-        if os.environ.get("GRAFO_LIGHTWEIGHT_MODE", "false").lower() == "true":
-            raise EmbeddingError("Lightweight mode active - local model disabled.")
+        with self._lock:
+            if self._model is not None:
+                return
 
-        if self._tier == EmbeddingTier.FLASH:
-            if not SENTENCE_TRANSFORMERS_AVAILABLE:
-                raise EmbeddingError(
-                    "sentence-transformers not installed. "
-                    "Install with: pip install sentence-transformers"
-                )
-            try:
-                self._model = SentenceTransformer(self._config["model_name"])
-                logger.info("FLASH model loaded: %s", self._config["model_name"])
-            except Exception as e:
-                raise EmbeddingError(f"Failed to load FLASH model: {e}") from e
+            import os
+            if os.environ.get("GRAFO_LIGHTWEIGHT_MODE", "false").lower() == "true":
+                raise EmbeddingError("Lightweight mode active - local model disabled.")
 
-        elif self._tier == EmbeddingTier.ELITE:
-            if not self._openai_key:
-                raise EmbeddingError(
-                    "openai_api_key is required for the ELITE tier."
-                )
-            try:
-                import openai
-                self._model = openai.OpenAI(api_key=self._openai_key)
-                logger.info("OpenAI client initialized for ELITE tier.")
-            except ImportError:
-                raise EmbeddingError(
-                    "openai not installed. Install with: pip install openai>=1.0"
-                )
+            if self._tier == EmbeddingTier.FLASH:
+                if not SENTENCE_TRANSFORMERS_AVAILABLE:
+                    raise EmbeddingError(
+                        "sentence-transformers not installed. "
+                        "Install with: pip install sentence-transformers"
+                    )
+                try:
+                    from sentence_transformers import SentenceTransformer
+                    self._model = SentenceTransformer(self._config["model_name"])
+                    logger.info("FLASH model loaded: %s", self._config["model_name"])
+                except (ImportError, ModuleNotFoundError) as e:
+                    raise EmbeddingError(
+                        "sentence-transformers not installed. "
+                        "Install with: pip install sentence-transformers"
+                    ) from e
+                except Exception as e:
+                    raise EmbeddingError(f"Failed to load FLASH model: {e}") from e
+
+            elif self._tier == EmbeddingTier.ELITE:
+                if not self._openai_key:
+                    raise EmbeddingError(
+                        "openai_api_key is required for the ELITE tier."
+                    )
+                try:
+                    import openai
+                    self._model = openai.OpenAI(api_key=self._openai_key)
+                    logger.info("OpenAI client initialized for ELITE tier.")
+                except ImportError:
+                    raise EmbeddingError(
+                        "openai not installed. Install with: pip install openai>=1.0"
+                    )
 
     def embed(self, text: str) -> Optional[list[float]]:
         """Generates embedding for a text.
