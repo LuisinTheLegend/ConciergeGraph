@@ -1,0 +1,39 @@
+================================================================================
+TABELA COMPARATIVA ANTES vs DEPOIS — RODADA 4.2d (F4-015)
+Evidências mecânicas de scratch/evidencia_4_2d e scratch/evidencia_4_2c (Regra 12)
+================================================================================
+Métrica                                | ANTES (Média)  | DEPOIS (Média) | Variação  
+--------------------------------------------------------------------------------
+Tempo de bootstrap (s)                 |     13.2193 s |      2.7669 s |    -79.1%
+Tempo até initialize E2E (s)           |     13.8986 s |      3.0297 s |    -78.2%
+1ª chamada de embed (carga/import) (s) |      4.5915 s |     15.7020 s |   +242.0%
+2ª chamada de embed (inferência) (s)   |      0.0176 s |      0.0163 s |     -7.4%
+================================================================================
+
+DETALHAMENTO POR REPETIÇÃO:
+--------------------------------------------------------------------------------
+Repetição 1 ANTES : Bootstrap=13.2395s | 1st Embed=4.6358s | 2nd Embed=0.0242s
+Repetição 2 ANTES : Bootstrap=13.3545s | 1st Embed=4.5792s | 2nd Embed=0.0143s
+Repetição 3 ANTES : Bootstrap=13.0638s | 1st Embed=4.5596s | 2nd Embed=0.0144s
+--------------------------------------------------------------------------------
+Repetição 1 DEPOIS: Bootstrap=3.1062s | 1st Embed=15.7901s | 2nd Embed=0.0141s
+Repetição 2 DEPOIS: Bootstrap=2.5971s | 1st Embed=15.8409s | 2nd Embed=0.0204s
+Repetição 3 DEPOIS: Bootstrap=2.5973s | 1st Embed=15.4749s | 2nd Embed=0.0145s
+================================================================================
+
+TEMPO RESIDUAL DO STARTUP GASTO EM CHROMADB (-X importtime):
+--------------------------------------------------------------------------------
+Cumulativo storage               : 1851.21 ms
+Cumulativo storage.vector_store  : 1827.70 ms
+Cumulativo chromadb              : 1825.39 ms
+Fração do bootstrap gasta em ChromaDB: 66.0%
+================================================================================
+
+TRADE-OFF ARQUITETURAL REGISTRADO (Regra 3 e 4):
+--------------------------------------------------------------------------------
+1. Ganho no Bootstrap / Handshake MCP: -10.45s no bootstrap (-79.1%) e -10.87s no initialize E2E (-78.2%).
+   O cliente MCP agora recebe resposta de inicialização em ~3.03s em vez de ~13.90s.
+2. Custo transferido para a 1ª chamada de embedding: +11.11s (+242.0%).
+   A 1ª chamada passa de ~4.59s para ~15.70s porque absorve o import do sentence_transformers e torch.
+3. Chamadas subsequentes permanecem sem impacto: ~0.0163s por inferência.
+================================================================================

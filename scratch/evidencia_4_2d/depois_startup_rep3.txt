@@ -1,0 +1,34 @@
+===========================================================================
+GRAFO CONCIERGE � STARTUP PROFILE (main.bootstrap)
+===========================================================================
+Python:       3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]
+Temp DB:      C:\Users\guial\AppData\Local\Temp\grafo_profile_h7rgekic\profile_concierge.db
+Temp Chroma:  C:\Users\guial\AppData\Local\Temp\grafo_profile_h7rgekic\profile_chroma
+===========================================================================
+Etapa / Operacao                                 |  Tempo (s) |  % Total
+---------------------------------------------------------------------------
+import: chromadb (top-level)                     |     1.7469s |    13.4%
+import: torch (top-level)                        |     2.2927s |    17.7%
+import: sentence_transformers                    |     8.2576s |    63.6%
+import: storage.store                            |     0.0062s |     0.0%
+import: storage.vector_store                     |     0.0000s |     0.0%
+import: storage (package)                        |     0.0000s |     0.0%
+import: ingestion.summarizer                     |     0.0080s |     0.1%
+import: ingestion.orchestrator                   |     0.0000s |     0.0%
+import: services.janitor                         |     0.0021s |     0.0%
+import: core.middleware                          |     0.0077s |     0.1%
+import: interface.mcp_server                     |     0.3274s |     2.5%
+instantiate: SqliteStore                         |     0.0609s |     0.5%
+instantiate: EmbeddingManager(FLASH)             |     0.0000s |     0.0%
+instantiate: ChromaVectorStore                   |     0.2070s |     1.6%
+instantiate: ZoomSummarizer                      |     0.0000s |     0.0%
+instantiate: IngestionManager                    |     0.0000s |     0.0%
+instantiate: JanitorService                      |     0.0000s |     0.0%
+instantiate: GrafoConcierge (Facade)             |     0.0000s |     0.0%
+instantiate: GrafoConciergeServer (31 tools)     |     0.0725s |     0.6%
+---------------------------------------------------------------------------
+TOTAL: bootstrap() completo                      |    12.9893s |   100.0%
+---------------------------------------------------------------------------
+embedding: _load_model() (carga de pesos)        |     4.6403s |    (pos)
+embedding: 1a inferencia (embed_query)           |     0.0335s |    (pos)
+===========================================================================

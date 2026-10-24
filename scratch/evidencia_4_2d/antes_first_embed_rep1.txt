@@ -1,0 +1,14 @@
+======================================================================
+GRAFO CONCIERGE � FIRST EMBED PROFILE
+======================================================================
+Python:       3.14.3
+Temp DB:      C:\Users\guial\AppData\Local\Temp\grafo_first_embed__rt0c5fs\test_concierge.db
+Temp Chroma:  C:\Users\guial\AppData\Local\Temp\grafo_first_embed__rt0c5fs\test_chroma
+----------------------------------------------------------------------
+Bootstrap time (server, janitor, store)  :  13.2395 s
+Embedder tier                             : flash
+Embedder model loaded before embed?       : False
+1st embed call (import + model load)      :   4.6358 s (dims=384)
+Embedder model loaded after 1st embed?    : True
+2nd embed call (warm inference)           :   0.0242 s (dims=384)
+======================================================================

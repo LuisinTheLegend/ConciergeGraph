@@ -1,0 +1,26 @@
+================================================================================
+TOP 20 IMPORTS COM MAIOR TEMPO CUMULATIVO (-X importtime)
+================================================================================
+Ranking  | Modulo                                        |  Cumulativo (ms) |  Self (ms)
+--------------------------------------------------------------------------------
+#1       | storage                                       |       1851.21 ms |    0.77 ms
+#2       | storage.vector_store                          |       1827.70 ms |    2.30 ms
+#3       | chromadb                                      |       1825.39 ms |   51.51 ms
+#4       | chromadb.api.client                           |       1294.71 ms |  115.57 ms
+#5       | chromadb.api                                  |       1150.72 ms |   40.16 ms
+#6       | interface.mcp_server                          |        488.09 ms |    0.03 ms
+#7       | interface                                     |        488.06 ms |    0.72 ms
+#8       | mcp.server.fastmcp                            |        485.79 ms |    0.03 ms
+#9       | mcp.server                                    |        485.76 ms |    0.02 ms
+#10      | mcp                                           |        485.74 ms |    1.11 ms
+#11      | chromadb.api.types                            |        416.59 ms |   56.29 ms
+#12      | chromadb.execution.expression                 |        395.61 ms |    1.82 ms
+#13      | chromadb.execution.expression.operator        |        390.56 ms |   22.73 ms
+#14      | chromadb.types                                |        367.83 ms |    9.29 ms
+#15      | chromadb.auth.token_authn                     |        366.70 ms |    6.58 ms
+#16      | chromadb.telemetry.opentelemetry              |        336.92 ms |    1.05 ms
+#17      | chromadb.api.collection_configuration         |        323.23 ms |    1.61 ms
+#18      | chromadb.utils.embedding_functions            |        321.62 ms |    1.58 ms
+#19      | chromadb.config                               |        254.41 ms |   11.95 ms
+#20      | pydantic_settings                             |        238.82 ms |    1.21 ms
+================================================================================

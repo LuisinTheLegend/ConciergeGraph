@@ -1,0 +1,37 @@
+======================================================================
+BOOT CHECK � Grafo Concierge MCP Server
+======================================================================
+Target Python:      C:\Python314\python.exe
+Target Python Ver:  3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]
+Target MCP Version: 1.27.0
+Entrypoint Mode:    python-main
+Timeout:            180.0s
+Repo Root:          C:\Nexus-Memory\GrafoConcierge
+Temp DB Path:       C:\Users\guial\AppData\Local\Temp\grafo_boot_check_58k6ruo8\test_concierge.db
+Temp Chroma Path:   C:\Users\guial\AppData\Local\Temp\grafo_boot_check_58k6ruo8\test_chroma
+======================================================================
+Executando comando: C:\Python314\python.exe main.py
+Iniciando sessao MCP e enviando initialize...
+[OK] MCP Initialized: name='Grafo Concierge' title=None version='1.27.0' websiteUrl=None icons=None
+Listando ferramentas com list_tools...
+[OK] Total de ferramentas registradas: 31
+Executando chamada a 'concierge_status'...
+[OK] concierge_status resultado: isError=False
+     Status Content: {
+  "success": true,
+  "system": "Grafo Concierge v3.8.0",
+  "components": {
+    "sqlite": {
+      "status": "healthy",
+      "total_projects": 0
+    },
+    "janitor": {
+      "status": "idle",
+      "total_runs": 0
+    }
+  },
+  "duration_seconds": 0.002
+}
+======================================================================
+BOOT CHECK SUCCESS: 31 ferramentas ativas e concierge_status OK.
+======================================================================

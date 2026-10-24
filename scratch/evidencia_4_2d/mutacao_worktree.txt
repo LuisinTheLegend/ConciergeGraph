@@ -1,0 +1,147 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge\scratch\mut_worktree
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 5 items
+
+tests/test_lazy_ml_imports.py::test_t1_storage_imports_do_not_import_sentence_transformers_or_torch FAILED [ 20%]
+tests/test_lazy_ml_imports.py::test_t2_bootstrap_does_not_import_sentence_transformers_or_torch FAILED [ 40%]
+tests/test_lazy_ml_imports.py::test_t3_missing_sentence_transformers_raises_embedding_error PASSED [ 60%]
+tests/test_lazy_ml_imports.py::test_t4_stub_sentence_transformer_used_by_lazy_load PASSED [ 80%]
+tests/test_lazy_ml_imports.py::test_t5_availability_flags_exist_and_are_bool PASSED [100%]
+
+================================== FAILURES ===================================
+____ test_t1_storage_imports_do_not_import_sentence_transformers_or_torch _____
+
+    def test_t1_storage_imports_do_not_import_sentence_transformers_or_torch():
+        """T1: Importar storage, SqliteStore, EmbeddingManager e ChromaVectorStore nao deve
+        carregar sentence_transformers nem torch em sys.modules."""
+        code = f"""
+    import sys
+    import site
+    user_site = site.getusersitepackages()
+    if user_site:
+        site.addsitedir(user_site)
+    
+    sys.path.insert(0, {repr(str(REPO_ROOT))})
+    
+    import importlib.util
+    if importlib.util.find_spec("sentence_transformers") is None:
+        print("SKIP: sentence_transformers nao instalado")
+        sys.exit(0)
+    
+    import storage
+    from storage import SqliteStore, EmbeddingManager, ChromaVectorStore
+    
+    st_imported = "sentence_transformers" in sys.modules
+    torch_imported = "torch" in sys.modules
+    
+    if st_imported or torch_imported:
+        print(f"FAIL: sentence_transformers={{st_imported}}, torch={{torch_imported}}")
+        sys.exit(1)
+    print("OK")
+    """
+        result = subprocess.run(
+            [sys.executable, "-I", "-c", code],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        if "SKIP:" in result.stdout:
+            pytest.skip("sentence_transformers nao instalado no ambiente de teste")
+>       assert result.returncode == 0, (
+            f"T1 falhou: sentence_transformers ou torch foram importados antecipadamente.\n"
+            f"Stdout: {result.stdout}\nStderr: {result.stderr}"
+        )
+E       AssertionError: T1 falhou: sentence_transformers ou torch foram importados antecipadamente.
+E         Stdout: FAIL: sentence_transformers=True, torch=True
+E         
+E         Stderr: 
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['C:\\Python314\\python.exe', '-I', '-c', '\nimport sys\nimport site\nuser_site = site.getusersitepackages()\nif user_site:\n    site.addsitedir(user_site)\n\nsys.path.insert(0, \'C:\\\\Nexus-Memory\\\\GrafoConcierge\\\\scratch\\\\mut_worktree\')\n\nimport importlib.util\nif importlib.util.find_spec("sentence_transformers") is None:\n    print("SKIP: sentence_transformers nao instalado")\n    sys.exit(0)\n\nimport storage\nfrom storage import SqliteStore, EmbeddingManager, ChromaVectorStore\n\nst_imported = "sentence_transformers" in sys.modules\ntorch_imported = "torch" in sys.modules\n\nif st_imported or torch_imported:\n    print(f"FAIL: sentence_transformers={st_imported}, torch={torch_imported}")\n    sys.exit(1)\nprint("OK")\n'], returncode=1, stdout='FAIL: sentence_transformers=True, torch=True\n', stderr='').returncode
+
+tests\test_lazy_ml_imports.py:59: AssertionError
+______ test_t2_bootstrap_does_not_import_sentence_transformers_or_torch _______
+
+    def test_t2_bootstrap_does_not_import_sentence_transformers_or_torch():
+        """T2: Executar o bootstrap do servidor MCP completo (sem operacao de embedding)
+        nao deve carregar sentence_transformers nem torch em sys.modules."""
+        code = f"""
+    import os
+    import sys
+    import site
+    import tempfile
+    
+    user_site = site.getusersitepackages()
+    if user_site:
+        site.addsitedir(user_site)
+    
+    sys.path.insert(0, {repr(str(REPO_ROOT))})
+    
+    import importlib.util
+    if importlib.util.find_spec("sentence_transformers") is None:
+        print("SKIP: sentence_transformers nao instalado")
+        sys.exit(0)
+    
+    tmp_dir = tempfile.mkdtemp(prefix="grafo_t2_")
+    os.environ["GRAFO_DB_PATH"] = os.path.join(tmp_dir, "t2_test.db")
+    os.environ["GRAFO_CHROMA_PATH"] = os.path.join(tmp_dir, "t2_chroma")
+    os.environ["GRAFO_CHROMA_COLLECTION"] = "t2_collection"
+    os.environ["GRAFO_TRANSPORT"] = "stdio"
+    os.environ["GRAFO_LOG_LEVEL"] = "WARNING"
+    
+    from main import bootstrap
+    server, janitor, store = bootstrap()
+    store.close()
+    
+    st_imported = "sentence_transformers" in sys.modules
+    torch_imported = "torch" in sys.modules
+    
+    if st_imported or torch_imported:
+        print(f"FAIL: sentence_transformers={{st_imported}}, torch={{torch_imported}}")
+        sys.exit(1)
+    print("OK")
+    """
+        result = subprocess.run(
+            [sys.executable, "-I", "-c", code],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        if "SKIP:" in result.stdout:
+            pytest.skip("sentence_transformers nao instalado no ambiente de teste")
+>       assert result.returncode == 0, (
+            f"T2 falhou: bootstrap carregou sentence_transformers ou torch.\n"
+            f"Stdout: {result.stdout}\nStderr: {result.stderr}"
+        )
+E       AssertionError: T2 falhou: bootstrap carregou sentence_transformers ou torch.
+E         Stdout: FAIL: sentence_transformers=True, torch=True
+E         
+E         Stderr: [10/24/26 20:39:02] INFO     GrafoConciergeServer initialized mcp_server.py:229
+E                                      \ufffd 31 tools registered.                            
+E                             INFO     Bootstrap complete \ufffd all components    main.py:202
+E                                      initialized.                                      
+E                             INFO     Requesting stop of               connection.py:105
+E                                      SerializedWriteQueue...                           
+E                             INFO     SerializedWriteQueue finished.   connection.py:109
+E                             INFO     SqliteStore closed.                   store.py:114
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['C:\\\\Python314\\\\python.exe', '-I', '-c', '\\nimport os\\nimport sys\\nimport site\\nimport tempfile\\n\\nuser_site = site.getusersitepackages()\\nif user_site:\\n    site.addsitedir(user_site)\\n\\nsys.path.insert(0, \\'C:\\\\\\\\Nexus-Memory\\\\\\\\GrafoConcierge\\\\\\\\scratch\\\\\\\\mut_worktree\\')\\n\\nimport importlib.util\\nif importlib.util.find_spec("sentence_transformers") is None:\\n    print("SKIP: sentence_transformers nao instalado")\\n    sys.exit(0)\\n\\ntmp_dir = tempfile.mkdtemp(prefix="grafo_t2_")\\nos.environ["GRAFO_DB_PATH"] = os.path.join(tmp_dir, "t2_test.db")\\nos.environ["GRAFO_CHROMA_PATH"] = os.path.join(tmp_dir, "t2_chroma")\\nos.environ["GRAFO_CHROMA_COLLECTION"] = "t2_collection"\\nos.environ["GRAFO_TRANSPORT"] = "stdio"\\nos.environ["GRAFO_LOG_LEVEL"] = "WARNING"\\n\\nfrom main import bootstrap\\nserver, janitor, store = bootstrap()\\nstore.close()\\n\\nst_imported = "sentence_transformers" in sys.modules\\ntorch_imported = "torch" in sys.modules\\n\\nif st_imported or torch_imported:\\n    print(f"FAIL: sentence_transformers={st_imported}, torch={torch_imported}")\\n    sys.exit(1)\\nprint("OK")\\n'], returncode=1, stdout='FAIL: sentence_transformers=True, torch=True\\n', stderr='[10/24/26 20:39:02] INFO     GrafoConciergeServer initialized mcp_server.py:229\\n                             \ufffd 31 tools registered.                            \\n                    INFO     Bootstrap complete \ufffd all components    main.py:202\\n                             initialized.                                      \\n                    INFO     Requesting stop of               connection.py:105\\n                             SerializedWriteQueue...                           \\n                    INFO     SerializedWriteQueue finished.   connection.py:109\\n                    INFO     SqliteStore closed.                   store.py:114\\n').returncode
+
+tests\test_lazy_ml_imports.py:114: AssertionError
+============================== warnings summary ===============================
+tests/test_lazy_ml_imports.py::test_t3_missing_sentence_transformers_raises_embedding_error
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_lazy_ml_imports.py::test_t1_storage_imports_do_not_import_sentence_transformers_or_torch
+FAILED tests/test_lazy_ml_imports.py::test_t2_bootstrap_does_not_import_sentence_transformers_or_torch
+=================== 2 failed, 3 passed, 1 warning in 40.56s ===================
+

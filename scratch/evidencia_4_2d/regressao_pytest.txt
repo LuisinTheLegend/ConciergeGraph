@@ -1,0 +1,50 @@
+.................................................................s...... [ 19%]
+........................................................................ [ 39%]
+........................................................................ [ 59%]
+......................................F................................. [ 79%]
+........................................................................ [ 99%]
+...                                                                      [100%]
+================================== FAILURES ===================================
+____ TestProgressiveToolDisclosure.test_telemetry_api_mcp_state_endpoints _____
+
+self = <test_progressive_tool_disclosure.TestProgressiveToolDisclosure testMethod=test_telemetry_api_mcp_state_endpoints>
+
+    def test_telemetry_api_mcp_state_endpoints(self):
+        """Valida os endpoints REST /api/mcp/state (POST) e /api/mcp/state/{session_id} (GET)"""
+        session_id = "sess_fsm_control"
+    
+        # 1. Consulta estado default inicial (PLANNING)
+        resp_get_default = self.client.get(f"/api/mcp/state/{session_id}")
+        self.assertEqual(resp_get_default.status_code, 200)
+>       self.assertEqual(resp_get_default.json()["active_state"], "PLANNING")
+E       AssertionError: 'EXECUTION' != 'PLANNING'
+E       - EXECUTION
+E       + PLANNING
+
+tests\test_progressive_tool_disclosure.py:90: AssertionError
+------------------------------ Captured log call ------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/mcp/state/sess_fsm_control "HTTP/1.1 200 OK"
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+tests/memory_stress_test.py::test_dimension_2
+tests/memory_stress_test.py::test_dimension_3
+tests/test_mcp_server_handlers.py::TestHandleMine::test_mine_success
+tests/test_mcp_server_handlers.py::TestHandleMine::test_mine_returns_files_processed
+tests/test_mcp_server_handlers.py::TestHandleMine::test_mine_signals_janitor
+tests/test_mcp_server_handlers.py::TestHandleMine::test_mine_alias_resolution
+tests/test_mcp_server_handlers.py::TestHandleUpdateProject::test_update_project_fields
+  C:\Nexus-Memory\GrafoConcierge\storage\store.py:162: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    updates["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+tests/test_storage_logic.py: 14 warnings
+  C:\Nexus-Memory\GrafoConcierge\storage\logic.py:341: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_progressive_tool_disclosure.py::TestProgressiveToolDisclosure::test_telemetry_api_mcp_state_endpoints
+1 failed, 361 passed, 1 skipped, 22 warnings in 71.45s (0:01:11)
+

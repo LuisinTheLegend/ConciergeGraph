@@ -1,0 +1,81 @@
+===========================================================================
+GRAFO CONCIERGE � MCP E2E PROFILE (CLIENTE STDIO REAL)
+===========================================================================
+Target Python:      C:\Python314\python.exe
+Temp DB:            C:\Users\guial\AppData\Local\Temp\grafo_e2e_profile_cu89rb5i\e2e_concierge.db
+Temp Chroma:        C:\Users\guial\AppData\Local\Temp\grafo_e2e_profile_cu89rb5i\e2e_chroma
+Sample Project Dir: C:\Users\guial\AppData\Local\Temp\grafo_e2e_profile_cu89rb5i\min_project
+===========================================================================
+[1/5] Enviando initialize...
+      -> Concluido em 3.0297s apos o spawn
+[2/5] Solicitando list_tools...
+      -> 31 ferramentas listadas em 3.0337s desde spawn (0.0041s roundtrip)
+[3/5] Registrando projeto temporario (concierge_register)...
+      -> Registrado em 0.0027s
+[4/5] Minerando projeto (concierge_mine) � dispara primeira carga de embedding...
+      -> Minera��o concluida em 0.0024s
+[5/5] Realizando busca semantica (concierge_search)...
+      -> Busca concluida em 0.0036s
+
+===========================================================================
+RESUMO DE MEDICOES PONTA A PONTA (E2E)
+===========================================================================
+(a) Tempo ate resposta initialize                  |     3.0297s
+(b) Tempo ate list_tools (desde spawn)             |     3.0337s
+(b.1) Tempo da operacao list_tools                 |     0.0041s
+(c.1) concierge_register                           |     0.0027s
+(c.2) concierge_mine (1o embedding / carga)        |     0.0024s
+(c.3) concierge_search (busca vetorial)            |     0.0036s
+TOTAL E2E (spawn ate fim da busca)                 |     3.0425s
+===========================================================================
+
+2026-10-24 20:51:36 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================
+2026-10-24 20:51:36 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Grafo Concierge v3.8.0 � Absolute Solidity
+2026-10-24 20:51:36 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================
+2026-10-24 20:51:36 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   DB:       C:\Users\guial\AppData\Local\Temp\grafo_e2e_profile_cu89rb5i\e2e_concierge.db
+2026-10-24 20:51:36 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   ChromaDB: C:\Users\guial\AppData\Local\Temp\grafo_e2e_profile_cu89rb5i\e2e_chroma (e2e_profile_collection)
+2026-10-24 20:51:36 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Embedding: all-MiniLM-L6-v2
+2026-10-24 20:51:36 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   LLM:      gemini-2.0-flash
+2026-10-24 20:51:36 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Janitor:  300s
+2026-10-24 20:51:36 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Transport: stdio
+2026-10-24 20:51:36 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Log Level: INFO
+2026-10-24 20:51:36 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================
+2026-10-24 20:51:36 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Initializing SqliteStore: C:\Users\guial\AppData\Local\Temp\grafo_e2e_profile_cu89rb5i\e2e_concierge.db
+2026-10-24 20:51:38 \u2502 INFO    \u2502 grafo-concierge.schema       \u2502 Migration: UNIQUE index 'uq_core_memory_scope_label' created in user_core_memory.
+2026-10-24 20:51:38 \u2502 INFO    \u2502 grafo-concierge.store        \u2502 Schema v3.8.0 verified - all tables and triggers OK.
+2026-10-24 20:51:38 \u2502 INFO    \u2502 grafo-concierge.connection   \u2502 SerializedWriteQueue started successfully (db: C:\Users\guial\AppData\Local\Temp\grafo_e2e_profile_cu89rb5i\e2e_concierge.db)
+2026-10-24 20:51:38 \u2502 INFO    \u2502 grafo-concierge.store        \u2502 SqliteStore initialized: C:\Users\guial\AppData\Local\Temp\grafo_e2e_profile_cu89rb5i\e2e_concierge.db
+2026-10-24 20:51:38 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Initializing EmbeddingManager: tier=FLASH
+2026-10-24 20:51:38 \u2502 INFO    \u2502 grafo-concierge.vector-store \u2502 EmbeddingManager initialized: tier=flash, model=all-MiniLM-L6-v2, dims=384
+2026-10-24 20:51:38 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Initializing ChromaVectorStore: path=C:\Users\guial\AppData\Local\Temp\grafo_e2e_profile_cu89rb5i\e2e_chroma, collection=e2e_profile_collection
+2026-10-24 20:51:38 \u2502 INFO    \u2502 grafo-concierge.vector-store \u2502 ChromaVectorStore initialized: dir=C:\Users\guial\AppData\Local\Temp\grafo_e2e_profile_cu89rb5i\e2e_chroma, collection=e2e_profile_collection, tier=flash
+2026-10-24 20:51:38 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Initializing ZoomSummarizer: model=gemini-2.0-flash
+2026-10-24 20:51:38 \u2502 INFO    \u2502 grafo-concierge.summarizer   \u2502 LLMAdapter inicializado: model=gemini-2.0-flash, custom_fn=False
+2026-10-24 20:51:38 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Initializing IngestionManager
+2026-10-24 20:51:38 \u2502 INFO    \u2502 grafo-concierge.crawler      \u2502 ProjectCrawler initialized: 22 active ignore patterns.
+2026-10-24 20:51:38 \u2502 INFO    \u2502 grafo-concierge.orchestrator \u2502 IngestionManager inicializado: summarizer=ON, embedder_tier=flash
+2026-10-24 20:51:38 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Initializing JanitorService: interval=300s
+2026-10-24 20:51:38 \u2502 INFO    \u2502 grafo-concierge.janitor      \u2502 JanitorService initialized: stale=30d, zoom_threshold=10, inactive=60d, super_node_threshold=10
+2026-10-24 20:51:38 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Initializing GrafoConcierge Central Facade
+2026-10-24 20:51:38 \u2502 INFO    \u2502 grafo-concierge.middleware   \u2502 GrafoConcierge (Facade) initialized successfully.
+2026-10-24 20:51:38 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Initializing GrafoConciergeServer
+2026-10-24 20:51:39 \u2502 INFO    \u2502 grafo-concierge.mcp          \u2502 GrafoConciergeServer initialized � 31 tools registered.
+2026-10-24 20:51:39 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Bootstrap complete � all components initialized.
+2026-10-24 20:51:39 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Janitor in idle mode (no GRAFO_JANITOR_PROJECT defined).
+2026-10-24 20:51:39 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Starting MCP server (transport=stdio)...
+2026-10-24 20:51:39 \u2502 INFO    \u2502 grafo-concierge.mcp          \u2502 Starting Grafo Concierge MCP Server (transport=stdio)...
+2026-10-24 20:51:39 \u2502 INFO    \u2502 mcp.server.lowlevel.server   \u2502 Processing request of type ListToolsRequest
+2026-10-24 20:51:39 \u2502 INFO    \u2502 mcp.server.lowlevel.server   \u2502 Processing request of type CallToolRequest
+2026-10-24 20:51:39 \u2502 INFO    \u2502 mcp.server.lowlevel.server   \u2502 Processing request of type CallToolRequest
+2026-10-24 20:51:39 \u2502 INFO    \u2502 mcp.server.lowlevel.server   \u2502 Processing request of type CallToolRequest
+2026-10-24 20:51:39 \u2502 INFO    \u2502 grafo-concierge.mcp          \u2502 [concierge_search] query='rectangle area calculation' project_identifier='' top_k=10 all_wings=False
+2026-10-24 20:51:39 \u2502 ERROR   \u2502 grafo-concierge.mcp          \u2502 concierge_search FAILED: Project '' not found. Please list available projects using concierge_list_projects.
+2026-10-24 20:51:39 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Graceful shutdown initiated...
+2026-10-24 20:51:39 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Janitor encerrado.
+2026-10-24 20:51:39 \u2502 INFO    \u2502 grafo-concierge.connection   \u2502 Requesting stop of SerializedWriteQueue...
+2026-10-24 20:51:39 \u2502 INFO    \u2502 grafo-concierge.connection   \u2502 SerializedWriteQueue finished.
+2026-10-24 20:51:39 \u2502 INFO    \u2502 grafo-concierge.store        \u2502 SqliteStore closed.
+2026-10-24 20:51:39 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 SqliteStore encerrado.
+2026-10-24 20:51:39 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================
+2026-10-24 20:51:39 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Grafo Concierge encerrado com sucesso.
+2026-10-24 20:51:39 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================
