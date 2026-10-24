@@ -1,0 +1,72 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 2 items
+
+tests/test_dependency_pins.py::test_pyproject_mcp_version_pin_excludes_2_0_0_and_includes_1_27_0 FAILED [ 50%]
+tests/test_dependency_pins.py::test_requirements_mcp_version_pin_excludes_2_0_0_and_includes_1_27_0 FAILED [100%]
+
+================================== FAILURES ===================================
+______ test_pyproject_mcp_version_pin_excludes_2_0_0_and_includes_1_27_0 ______
+
+    def test_pyproject_mcp_version_pin_excludes_2_0_0_and_includes_1_27_0():
+        """Garante que pyproject.toml rejeite mcp 2.0.0 e aceite mcp 1.27.0."""
+        pyproject_path = REPO_ROOT / "pyproject.toml"
+        assert pyproject_path.is_file(), f"Arquivo nao encontrado: {pyproject_path}"
+    
+        with open(pyproject_path, "rb") as f:
+            data = tomllib.load(f)
+    
+        dependencies = data.get("project", {}).get("dependencies", [])
+        mcp_req = None
+        for dep_str in dependencies:
+            req = Requirement(dep_str)
+            if req.name == "mcp":
+                mcp_req = req
+                break
+    
+        assert mcp_req is not None, "Dependencia 'mcp' nao encontrada em pyproject.toml"
+>       assert Version("2.0.0") not in mcp_req.specifier, (
+            f"pyproject.toml permite indevidamente mcp 2.0.0: specifier={mcp_req.specifier}"
+        )
+E       AssertionError: pyproject.toml permite indevidamente mcp 2.0.0: specifier=>=1.0
+E       assert <Version('2.0.0')> not in <SpecifierSet('>=1.0')>
+E        +  where <Version('2.0.0')> = Version('2.0.0')
+E        +  and   <SpecifierSet('>=1.0')> = <Requirement('mcp>=1.0')>.specifier
+
+tests\test_dependency_pins.py:43: AssertionError
+____ test_requirements_mcp_version_pin_excludes_2_0_0_and_includes_1_27_0 _____
+
+    def test_requirements_mcp_version_pin_excludes_2_0_0_and_includes_1_27_0():
+        """Garante que requirements.txt rejeite mcp 2.0.0 e aceite mcp 1.27.0."""
+        requirements_path = REPO_ROOT / "requirements.txt"
+        assert requirements_path.is_file(), f"Arquivo nao encontrado: {requirements_path}"
+    
+        mcp_req = None
+        with open(requirements_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                req = Requirement(line)
+                if req.name == "mcp":
+                    mcp_req = req
+                    break
+    
+        assert mcp_req is not None, "Dependencia 'mcp' nao encontrada em requirements.txt"
+>       assert Version("2.0.0") not in mcp_req.specifier, (
+            f"requirements.txt permite indevidamente mcp 2.0.0: specifier={mcp_req.specifier}"
+        )
+E       AssertionError: requirements.txt permite indevidamente mcp 2.0.0: specifier=>=1.0.0
+E       assert <Version('2.0.0')> not in <SpecifierSet('>=1.0.0')>
+E        +  where <Version('2.0.0')> = Version('2.0.0')
+E        +  and   <SpecifierSet('>=1.0.0')> = <Requirement('mcp>=1.0.0')>.specifier
+
+tests\test_dependency_pins.py:68: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_dependency_pins.py::test_pyproject_mcp_version_pin_excludes_2_0_0_and_includes_1_27_0
+FAILED tests/test_dependency_pins.py::test_requirements_mcp_version_pin_excludes_2_0_0_and_includes_1_27_0
+============================== 2 failed in 0.33s ==============================

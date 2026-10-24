@@ -1,0 +1,8 @@
+Python version: 3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]
+============================================================
+tree_sitter              : NOT INSTALLED (No module named 'tree_sitter')
+tree_sitter_python       : NOT INSTALLED (No module named 'tree_sitter_python')
+tree_sitter_javascript   : NOT INSTALLED (No module named 'tree_sitter_javascript')
+tree_sitter_typescript   : NOT INSTALLED (No module named 'tree_sitter_typescript')
+tree_sitter_go           : NOT INSTALLED (No module named 'tree_sitter_go')
+tree_sitter_rust         : NOT INSTALLED (No module named 'tree_sitter_rust')

@@ -1,0 +1,86 @@
+2026-10-24 18:57:51 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================
+2026-10-24 18:57:51 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Grafo Concierge v3.8.0 — Absolute Solidity
+2026-10-24 18:57:51 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================
+2026-10-24 18:57:51 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   DB:       C:\Users\guial\AppData\Local\Temp\grafo_boot_check_0hno14pt\test_concierge.db
+2026-10-24 18:57:51 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   ChromaDB: C:\Users\guial\AppData\Local\Temp\grafo_boot_check_0hno14pt\test_chroma (test_boot_collection)
+2026-10-24 18:57:51 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Embedding: all-MiniLM-L6-v2
+2026-10-24 18:57:51 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   LLM:      gemini-2.0-flash
+2026-10-24 18:57:51 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Janitor:  300s
+2026-10-24 18:57:51 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Transport: stdio
+2026-10-24 18:57:51 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Log Level: INFO
+2026-10-24 18:57:51 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================
+2026-10-24 18:57:51 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Initializing SqliteStore: C:\Users\guial\AppData\Local\Temp\grafo_boot_check_0hno14pt\test_concierge.db
+2026-10-24 18:58:11 \u2502 INFO    \u2502 grafo-concierge.schema       \u2502 Migration: UNIQUE index 'uq_core_memory_scope_label' created in user_core_memory.
+2026-10-24 18:58:11 \u2502 INFO    \u2502 grafo-concierge.store        \u2502 Schema v3.8.0 verified - all tables and triggers OK.
+2026-10-24 18:58:11 \u2502 INFO    \u2502 grafo-concierge.connection   \u2502 SerializedWriteQueue started successfully (db: C:\Users\guial\AppData\Local\Temp\grafo_boot_check_0hno14pt\test_concierge.db)
+2026-10-24 18:58:11 \u2502 INFO    \u2502 grafo-concierge.store        \u2502 SqliteStore initialized: C:\Users\guial\AppData\Local\Temp\grafo_boot_check_0hno14pt\test_concierge.db
+2026-10-24 18:58:11 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Initializing EmbeddingManager: tier=FLASH
+2026-10-24 18:58:11 \u2502 INFO    \u2502 grafo-concierge.vector-store \u2502 EmbeddingManager initialized: tier=flash, model=all-MiniLM-L6-v2, dims=384
+2026-10-24 18:58:11 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Initializing ChromaVectorStore: path=C:\Users\guial\AppData\Local\Temp\grafo_boot_check_0hno14pt\test_chroma, collection=test_boot_collection
+2026-10-24 18:58:12 \u2502 INFO    \u2502 grafo-concierge.vector-store \u2502 ChromaVectorStore initialized: dir=C:\Users\guial\AppData\Local\Temp\grafo_boot_check_0hno14pt\test_chroma, collection=test_boot_collection, tier=flash
+2026-10-24 18:58:12 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Initializing ZoomSummarizer: model=gemini-2.0-flash
+2026-10-24 18:58:12 \u2502 INFO    \u2502 grafo-concierge.summarizer   \u2502 LLMAdapter inicializado: model=gemini-2.0-flash, custom_fn=False
+2026-10-24 18:58:12 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Initializing IngestionManager
+2026-10-24 18:58:12 \u2502 INFO    \u2502 grafo-concierge.crawler      \u2502 ProjectCrawler initialized: 22 active ignore patterns.
+2026-10-24 18:58:12 \u2502 INFO    \u2502 grafo-concierge.orchestrator \u2502 IngestionManager inicializado: summarizer=ON, embedder_tier=flash
+2026-10-24 18:58:12 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Initializing JanitorService: interval=300s
+2026-10-24 18:58:12 \u2502 INFO    \u2502 grafo-concierge.janitor      \u2502 JanitorService initialized: stale=30d, zoom_threshold=10, inactive=60d, super_node_threshold=10
+2026-10-24 18:58:12 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Initializing GrafoConcierge Central Facade
+2026-10-24 18:58:12 \u2502 INFO    \u2502 grafo-concierge.middleware   \u2502 GrafoConcierge (Facade) initialized successfully.
+2026-10-24 18:58:12 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Initializing GrafoConciergeServer
+C:\Users\guial\AppData\Local\Temp\inst_mcp_1_27\Lib\site-packages\pydantic_settings\sources\utils.py:51: IncompleteFieldDefinitionWarning: Field 'lifespan' has an incomplete definition: its annotation contains an unresolved forward reference, so settings sources may fail to correctly resolve its value. Call `model_rebuild()` on the model where the field is defined, once all the referenced types are defined.
+  warnings.warn(  # noqa: B028  (called from many sources at differing depths, so no stacklevel is correct)
+2026-10-24 18:58:13 \u2502 INFO    \u2502 grafo-concierge.mcp          \u2502 GrafoConciergeServer initialized — 31 tools registered.
+2026-10-24 18:58:13 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Bootstrap complete — all components initialized.
+2026-10-24 18:58:13 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Janitor in idle mode (no GRAFO_JANITOR_PROJECT defined).
+2026-10-24 18:58:13 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Starting MCP server (transport=stdio)...
+2026-10-24 18:58:13 \u2502 INFO    \u2502 grafo-concierge.mcp          \u2502 Starting Grafo Concierge MCP Server (transport=stdio)...
+2026-10-24 18:58:13 \u2502 INFO    \u2502 mcp.server.lowlevel.server   \u2502 Processing request of type ListToolsRequest
+2026-10-24 18:58:13 \u2502 INFO    \u2502 mcp.server.lowlevel.server   \u2502 Processing request of type CallToolRequest
+2026-10-24 18:58:13 \u2502 INFO    \u2502 grafo-concierge.mcp          \u2502 concierge_status OK
+2026-10-24 18:58:13 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Graceful shutdown initiated...
+2026-10-24 18:58:13 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Janitor encerrado.
+2026-10-24 18:58:13 \u2502 INFO    \u2502 grafo-concierge.connection   \u2502 Requesting stop of SerializedWriteQueue...
+2026-10-24 18:58:13 \u2502 INFO    \u2502 grafo-concierge.connection   \u2502 SerializedWriteQueue finished.
+2026-10-24 18:58:13 \u2502 INFO    \u2502 grafo-concierge.store        \u2502 SqliteStore closed.
+2026-10-24 18:58:13 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 SqliteStore encerrado.
+2026-10-24 18:58:13 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================
+2026-10-24 18:58:13 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Grafo Concierge encerrado com sucesso.
+2026-10-24 18:58:13 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================
+======================================================================
+BOOT CHECK — Grafo Concierge MCP Server
+======================================================================
+Target Python:      C:\Users\guial\AppData\Local\Temp\inst_mcp_1_27\Scripts\python.exe
+Target Python Ver:  3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]
+Target MCP Version: 1.27.0
+Entrypoint Mode:    python-main
+Timeout:            180.0s
+Repo Root:          C:\Nexus-Memory\GrafoConcierge
+Temp DB Path:       C:\Users\guial\AppData\Local\Temp\grafo_boot_check_0hno14pt\test_concierge.db
+Temp Chroma Path:   C:\Users\guial\AppData\Local\Temp\grafo_boot_check_0hno14pt\test_chroma
+======================================================================
+Executando comando: C:\Users\guial\AppData\Local\Temp\inst_mcp_1_27\Scripts\python.exe main.py
+Iniciando sessao MCP e enviando initialize...
+[OK] MCP Initialized: name='Grafo Concierge' title=None version='1.27.0' websiteUrl=None icons=None
+Listando ferramentas com list_tools...
+[OK] Total de ferramentas registradas: 31
+Executando chamada a 'concierge_status'...
+[OK] concierge_status resultado: isError=False
+     Status Content: {
+  "success": true,
+  "system": "Grafo Concierge v3.8.0",
+  "components": {
+    "sqlite": {
+      "status": "healthy",
+      "total_projects": 0
+    },
+    "janitor": {
+      "status": "idle",
+      "total_runs": 0
+    }
+  },
+  "duration_seconds": 0.002
+}
+======================================================================
+BOOT CHECK SUCCESS: 31 ferramentas ativas e concierge_status OK.
+======================================================================

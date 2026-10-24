@@ -224,4 +224,32 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
   ```text
   ModuleNotFoundError: No module named 'mcp.server.fastmcp'. This is mcp 2.x, where FastMCP was renamed to MCPServer (from mcp.server.mcpserver import MCPServer) and other APIs changed; see the migration guide at https://py.sdk.modelcontextprotocol.io/v2/migration/#fastmcp-renamed-to-mcpserver or pin 'mcp<2' to keep running v1 code.
   ```
-- **Status:** **ABERTO** (Correção em rodada própria, aguardando decisão do dono).
+- **Status:** **CORREÇÃO ENTREGUE (aguardando verificação do auditor)**
+- **Resolução (Rodada 4.2b, Commit `b38a510`):**
+  1. `pyproject.toml:39` e `requirements.txt:5` foram atualizados para fixar o limite `mcp>=1.27,<2`.
+  2. Implementado teste-guarda em [`tests/test_dependency_pins.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_dependency_pins.py) (Commit `28dd2a7`) que assegura que `Version("2.0.0")` é rejeitado e `Version("1.27.0")` é aceito (vermelho provado em `scratch/evidencia_4_2b/p3_test_pins_red.txt`, verde em `scratch/evidencia_4_2b/p3_test_pins_green.txt`).
+  3. Criado script de validação real [`scratch/boot_check.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/boot_check.py) exercitando cliente MCP real via stdio (initialize, list_tools 31 ferramentas, call_tool `concierge_status`).
+  4. Provas de boot bem-sucedidas com código 0 e 31 ferramentas realizadas em venvs limpos isolados:
+     - Com `mcp==1.27.0`: `scratch/evidencia_4_2b/p4_boot_check_1_27.txt`
+     - Com `mcp==1.30.0`: `scratch/evidencia_4_2b/p4_boot_check_1_30.txt`
+     - Instalação limpa via `pip install <repo>` em `%TEMP%\inst_green` resolvendo `mcp 1.30.0` com código 0 tanto via `python main.py` (`scratch/evidencia_4_2b/p4_boot_check_green_main.txt`) quanto via console script `concierge-mcp` (`scratch/evidencia_4_2b/p4_boot_check_green_console.txt`).
+
+---
+
+### [F4-014] Ausência de Dependências do Tree-Sitter e Parsers de Linguagem Gerando Degradação Silenciosa de AST
+- **Severidade:** 🟡 MÉDIA (Severidade Proposta: perda silenciosa de funcionalidade de parsing estruturado)
+- **Arquivos & Linhas:** [`ingestion/parser.py:180-245`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/parser.py#L180-L245), [`ingestion/parser.py:376-384`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/parser.py#L376-L384), [`pyproject.toml:37-46`](file:///c:/Nexus-Memory/GrafoConcierge/pyproject.toml#L37-L46)
+- **Mecanismo da Falha:**
+  O módulo `ingestion/parser.py` tenta carregar `tree_sitter` e parsers específicos de linguagem (`tree_sitter_python`, `tree_sitter_javascript`, `tree_sitter_typescript`, `tree_sitter_go`, `tree_sitter_rust`). No entanto, nenhum desses pacotes está declarado em `dependencies` no `pyproject.toml` nem no `requirements.txt`. Em uma instalação limpa padrão (`pip install -e .`), nenhum módulo de tree-sitter está presente. Ao tentar processar arquivos dessas linguagens durante a mineração, o parser emite warnings silenciosos nos logs (`Error loading tree-sitter parser for <ext>: No module named 'tree_sitter'`) e degrada o parsing para expressões regulares básicas ou diretamente para `_parse_raw` (chunking de texto puro sem AST, sem extração semântica de chamadas nem relações de símbolos).
+- **Reprodução Experimental:**
+  Executado no ambiente de instalação limpa (`scratch/evidencia_4_2b/p6_tree_sitter_probe.txt`):
+  ```text
+  tree_sitter              : NOT INSTALLED (No module named 'tree_sitter')
+  tree_sitter_python       : NOT INSTALLED (No module named 'tree_sitter_python')
+  tree_sitter_javascript   : NOT INSTALLED (No module named 'tree_sitter_javascript')
+  tree_sitter_typescript   : NOT INSTALLED (No module named 'tree_sitter_typescript')
+  tree_sitter_go           : NOT INSTALLED (No module named 'tree_sitter_go')
+  tree_sitter_rust         : NOT INSTALLED (No module named 'tree_sitter_rust')
+  ```
+- **Status:** **ABERTO** (Somente documentado, aguardando decisão do dono sobre inclusão de dependências opcionais ou extras).
+

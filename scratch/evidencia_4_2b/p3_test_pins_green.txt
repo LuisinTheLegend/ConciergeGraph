@@ -1,0 +1,12 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 2 items
+
+tests/test_dependency_pins.py::test_pyproject_mcp_version_pin_excludes_2_0_0_and_includes_1_27_0 PASSED [ 50%]
+tests/test_dependency_pins.py::test_requirements_mcp_version_pin_excludes_2_0_0_and_includes_1_27_0 PASSED [100%]
+
+============================== 2 passed in 0.12s ==============================
