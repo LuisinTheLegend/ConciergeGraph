@@ -224,7 +224,7 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
   ```text
   ModuleNotFoundError: No module named 'mcp.server.fastmcp'. This is mcp 2.x, where FastMCP was renamed to MCPServer (from mcp.server.mcpserver import MCPServer) and other APIs changed; see the migration guide at https://py.sdk.modelcontextprotocol.io/v2/migration/#fastmcp-renamed-to-mcpserver or pin 'mcp<2' to keep running v1 code.
   ```
-- **Status:** **CORREÇÃO ENTREGUE (aguardando verificação do auditor)**
+- **Status:** **CORRIGIDO** (verificado pelo auditor; commits `28dd2a7`, `b38a510`, `5f6a9c6`)
 - **Resolução (Rodada 4.2b, Commit `b38a510`):**
   1. `pyproject.toml:39` e `requirements.txt:5` foram atualizados para fixar o limite `mcp>=1.27,<2`.
   2. Implementado teste-guarda em [`tests/test_dependency_pins.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_dependency_pins.py) (Commit `28dd2a7`) que assegura que `Version("2.0.0")` é rejeitado e `Version("1.27.0")` é aceito (vermelho provado em `scratch/evidencia_4_2b/p3_test_pins_red.txt`, verde em `scratch/evidencia_4_2b/p3_test_pins_green.txt`).
@@ -252,4 +252,20 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
   tree_sitter_rust         : NOT INSTALLED (No module named 'tree_sitter_rust')
   ```
 - **Status:** **ABERTO** (Somente documentado, aguardando decisão do dono sobre inclusão de dependências opcionais ou extras).
+
+---
+
+### [F4-015] Latência Excessiva de Inicialização a Frio (>30s a 100s) por Imports Antecipados de ML (`torch`/`sentence_transformers`/`chromadb`)
+- **Severidade:** 🟡 MÉDIA (Severidade Proposta: risco de timeout de clientes MCP durante handshake de inicialização)
+- **Arquivos & Linhas:** [`storage/__init__.py:18`](file:///c:/Nexus-Memory/GrafoConcierge/storage/__init__.py#L18), [`storage/vector_store.py:32,46`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py#L32), [`main.py:122`](file:///c:/Nexus-Memory/GrafoConcierge/main.py#L122)
+- **Mecanismo da Falha:**
+  No arranque do servidor (`main.py:bootstrap`), a linha 122 executa `from storage import SqliteStore`. Como `storage/__init__.py:18` exporta eagerly `from .vector_store import ChromaVectorStore`, o Python carrega `storage/vector_store.py`, cujas linhas 32 e 46 contêm imports globais pesados: `import chromadb` e `from sentence_transformers import SentenceTransformer`. Isso força o carregamento imediato de toda a pilha de machine learning (`torch`, `transformers`, `huggingface_hub`, `onnxruntime`, etc.) antes mesmo do servidor MCP poder responder a qualquer mensagem `initialize` ou `list_tools`.
+  Em ambientes limpos (sem cache pré-compilado de bytecode `.pyc` ou em máquinas onde o antivírus/Windows Defender analisa DLLs do PyTorch), a inicialização do módulo consome entre 22 s (NVMe ultrarrápido) e mais de 100 s (medido pelo auditor na 4.2b: ~100 s no venv red, ~29 s no venv green).
+  Clientes MCP (como o Claude Desktop) possuem tempo-limite cliente de aproximadamente 60 segundos (`McpError -32001: Request timed out`). Ao ultrapassar esse limite, o cliente aborta a conexão e marca o servidor como inoperante, sem que o usuário consiga estabelecer a sessão.
+- **Reprodução e Evidências Experimentais (Rodada 4.2c):**
+  1. `scratch/evidencia_4_2c/p1_top20_bootstrap_imports.txt`: prova que dos ~13.5 s gastos em `import storage`, 84.8% (11.46 s) pertencem a `sentence_transformers` (e `transformers`), 2.58 s a `torch` e 2.03 s a `chromadb`.
+  2. `scratch/evidencia_4_2c/c1_startup_profile_fresh.txt`: prova que em venv recém-instalado, 93.3% do tempo de bootstrap (20.97 s de 22.47 s) é consumido por esses 3 pacotes.
+  3. `scratch/evidencia_4_2c/c4_hf_offline_test.txt`: prova que o modelo `all-MiniLM-L6-v2` sequer é necessário no bootstrap; o bootstrap roda offline sem ele em 0.43 s. O modelo só é exigido na primeira operação de embedding (`_load_model`), evidenciando que a carga no boot é totalmente desnecessária.
+- **Status:** **ABERTO** (Somente medição executada na Rodada 4.2c; proibido alterar código de produção nesta rodada). Opções de remediação arquitetural documentadas em [`audits/fase4-2c-medicao-inicializacao.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/fase4-2c-medicao-inicializacao.md).
+
 

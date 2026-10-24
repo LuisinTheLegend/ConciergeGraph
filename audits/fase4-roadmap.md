@@ -35,7 +35,8 @@ Preferências do dono: honestidade acima de tudo, caminho mais eficiente e profi
 | 4.1/G | `4c505d1`, `4a55d6e`, `933f62a` | Resíduo F4-009 + investigação de nodes.summary (somente leitura) | Concluída | Sim (2026-10-21; trechos não literais corrigidos na 4.1/H) |
 | 4.1/H | `933f62a`, `17abc47`, `4a9893a`, `cbdcb9d` | Migração dos sumários [DUMB] para NULL (Opção B); backup SQLite; FTS íntegro | Concluída | Sim (2026-10-21; erros menores de relato: mensagem de commit, número 977 sem prova, PID 15544 sem arquivo, atribuição errada a F4-009) |
 | 4.2 | `8640165`, `0244183` | Desacoplar `mcp_governor` de `telemetry_api`; cortar `interface/__init__`→`ActionHooks`→`RevisorCritico` | Concluída | Sim (2026-10-22; T4 frágil e fim de linha de interface/__init__.py, corrigidos/tratados na 4.2b) |
-| 4.2b | `28dd2a7`, `b38a510`, `5f6a9c6` | Limite de versão do `mcp` (F4-013), prova de instalação limpa e correção do T4 | Concluída | — |
+| 4.2b | `28dd2a7`, `b38a510`, `5f6a9c6` | Limite de versão do `mcp` (F4-013), prova de instalação limpa e correção do T4 | Concluída | Sim (2026-10-24) |
+| 4.2c | `64e0d65` | Medição do tempo de inicialização (profile de bootstrap, imports e cliente MCP real) | Concluída | — |
 | 4.3 | — | DDL só de `agent_checkpoints`; reimplementar `concierge_get_call_chain` sobre `edges`/`nodes` (caminhos de arquivo, só `calls`) | PLANEJADO, NÃO AUTORIZADO | — |
 | 4.4 | — | Remover `wing_keywords` de vez, com teste-guarda e regra de neutralidade no protocolo/CONTRIBUTING | PLANEJADO, NÃO AUTORIZADO | — |
 | 4.5 | — | Quarentena do código dormente em `archive/v4-experimental` (após 4.2) | PLANEJADO, NÃO AUTORIZADO | — |
@@ -53,8 +54,9 @@ Preferências do dono: honestidade acima de tudo, caminho mais eficiente e profi
 | F4-010 | Sumários L0 gerados e descartados | GRAVE | CORRIGIDO | `8e6f887` |
 | F4-011 | Filtro `node_type` no Chroma excluía vetores sem a chave | GRAVE | CORRIGIDO | `8d963ae`; teste (i) vermelho em `af9001a`, verde em HEAD (reproduzido) |
 | F4-012 | `[DUMB]` persistido quando não há LLM | A confirmar (observação) | CORRIGIDO: [DUMB] omitido (`8d963ae`), teste efetivo (`9b70eef`) | ver §5 |
-| F4-013 | Incompatibilidade com `mcp>=2.0` por ausência de teto de versão | CRÍTICA | CORREÇÃO ENTREGUE (aguardando verificação do auditor) | `pyproject.toml:39`, `requirements.txt:5`; `tests/test_dependency_pins.py`, provas em `scratch/evidencia_4_2b/` |
+| F4-013 | Incompatibilidade com `mcp>=2.0` por ausência de teto de versão | CRÍTICA | CORRIGIDO (verificado pelo auditor; commits 28dd2a7, b38a510, 5f6a9c6) | `pyproject.toml:39`, `requirements.txt:5`; `tests/test_dependency_pins.py`, provas em `scratch/evidencia_4_2b/` |
 | F4-014 | Tree-sitter e parsers de linguagem ausentes em dependências (degradação silenciosa de AST) | MÉDIA | ABERTO | `ingestion/parser.py:180-245`; prova em `scratch/evidencia_4_2b/p6_tree_sitter_probe.txt` |
+| F4-015 | Latência excessiva de inicialização a frio (>30s a 100s) por imports antecipados de ML (`torch`/`sentence_transformers`/`chromadb`) | MÉDIA (proposta) | ABERTO | `storage/__init__.py:18`, `main.py:122`; provas em `scratch/evidencia_4_2c/` |
 
 ## 5. Verificação independente da 4.1/E (2026-10-20)
 
