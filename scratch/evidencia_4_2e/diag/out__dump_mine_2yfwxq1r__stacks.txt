@@ -1,0 +1,1215 @@
+
+=== SERVER STACK AT +5s ===
+--- Thread 30128 (AnyIO worker thread) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 991, in run
+    item = self.queue.get()
+  File "C:\Python314\Lib\queue.py", line 199, in get
+    self.not_empty.wait()
+  File "C:\Python314\Lib\threading.py", line 369, in wait
+    waiter.acquire()
+--- Thread 11612 (AnyIO worker thread) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 1002, in run
+    result = context.run(func, *args)
+--- Thread 27424 (sqlite-writer) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "c:\Nexus-Memory\GrafoConcierge\storage\connection.py", line 163, in _worker
+    job = self._queue.get(timeout=0.5)
+  File "C:\Python314\Lib\queue.py", line 210, in get
+    self.not_empty.wait(remaining)
+  File "C:\Python314\Lib\threading.py", line 373, in wait
+    gotit = waiter.acquire(True, timeout)
+--- Thread 20720 (stack-dumper) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "<string>", line 14, in dumper
+    f.write("".join(traceback.format_stack(frame)))
+--- Thread 8388 (MainThread) ---
+  File "<string>", line 19, in <module>
+    main.main()
+  File "c:\Nexus-Memory\GrafoConcierge\main.py", line 245, in main
+    server.run(transport=TRANSPORT)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 1454, in run
+    asyncio.run(_run_server())
+  File "C:\Python314\Lib\asyncio\runners.py", line 204, in run
+    return runner.run(main)
+  File "C:\Python314\Lib\asyncio\runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+  File "C:\Python314\Lib\asyncio\base_events.py", line 706, in run_until_complete
+    self.run_forever()
+  File "C:\Python314\Lib\asyncio\base_events.py", line 677, in run_forever
+    self._run_once()
+  File "C:\Python314\Lib\asyncio\base_events.py", line 2046, in _run_once
+    handle._run()
+  File "C:\Python314\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 703, in _handle_message
+    await self._handle_request(message, req, session, lifespan_context, raise_exceptions)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 770, in _handle_request
+    response = await handler(req)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 535, in handler
+    results = await func(tool_name, arguments)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\server.py", line 346, in call_tool
+    return await self._tool_manager.call_tool(name, arguments, context=context, convert_result=True)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 253, in governed_call_tool
+    return await original_tm_call_tool(name, arguments, *args, **kwargs)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\tools\tool_manager.py", line 93, in call_tool
+    return await tool.run(arguments, context=context, convert_result=convert_result)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\tools\base.py", line 101, in run
+    result = await self.fn_metadata.call_fn_with_arg_validation(
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\utilities\func_metadata.py", line 95, in call_fn_with_arg_validation
+    return fn(**arguments_parsed_dict)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 339, in concierge_mine
+    return server._handle_mine(path, project_identifier, auto_tag)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 1072, in _handle_mine
+    result = self._gc.mine(project_uuid, path, auto_tag=auto_tag)
+  File "c:\Nexus-Memory\GrafoConcierge\core\middleware.py", line 235, in mine
+    result = self._ingestion.mine(project_uuid, source_path, auto_tag)
+  File "c:\Nexus-Memory\GrafoConcierge\ingestion\orchestrator.py", line 218, in mine
+    summaries = self._step_summarize(uncached_chunks, result)
+  File "c:\Nexus-Memory\GrafoConcierge\ingestion\orchestrator.py", line 468, in _step_summarize
+    grouped_results = self._summarizer.summarize_l0_grouped(batch_chunks, batch_indices)
+  File "c:\Nexus-Memory\GrafoConcierge\ingestion\summarizer.py", line 531, in summarize_l0_grouped
+    raw_response = self._llm.generate(prompt, max_tokens=estimated_response_tokens)
+  File "c:\Nexus-Memory\GrafoConcierge\ingestion\summarizer.py", line 203, in generate
+    response = model.generate_content(
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\google\generativeai\generative_models.py", line 331, in generate_content
+    response = self._client.generate_content(
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\google\ai\generativelanguage_v1beta\services\generative_service\client.py", line 835, in generate_content
+    response = rpc(
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\google\api_core\gapic_v1\method.py", line 131, in __call__
+    return wrapped_func(*args, **kwargs)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\google\api_core\retry\retry_unary.py", line 294, in retry_wrapped_func
+    return retry_target(
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\google\api_core\retry\retry_unary.py", line 147, in retry_target
+    result = target()
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\google\api_core\timeout.py", line 130, in func_with_timeout
+    return func(*args, **kwargs)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\google\api_core\grpc_helpers.py", line 75, in error_remapped_callable
+    return callable_(*args, **kwargs)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\grpc\_interceptor.py", line 276, in __call__
+    response, ignored_call = self._with_call(
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\grpc\_interceptor.py", line 328, in _with_call
+    call = self._interceptor.intercept_unary_unary(
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\google\ai\generativelanguage_v1beta\services\generative_service\transports\grpc.py", line 79, in intercept_unary_unary
+    response = continuation(client_call_details, request)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\grpc\_interceptor.py", line 314, in continuation
+    response, call = self._thunk(new_method).with_call(
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\grpc\_channel.py", line 1170, in with_call
+    state, call = self._blocking(
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\grpc\_channel.py", line 1143, in _blocking
+    event = call.next_event()
+
+=== SERVER STACK AT +10s ===
+--- Thread 6304 (asyncio_1) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Python314\Lib\concurrent\futures\thread.py", line 116, in _worker
+    work_item = work_queue.get(block=True)
+--- Thread 5772 (asyncio_0) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Python314\Lib\concurrent\futures\thread.py", line 116, in _worker
+    work_item = work_queue.get(block=True)
+--- Thread 9240 (ThreadPoolExecutor-1_0) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Python314\Lib\concurrent\futures\thread.py", line 119, in _worker
+    work_item.run(ctx)
+  File "C:\Python314\Lib\concurrent\futures\thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "C:\Python314\Lib\concurrent\futures\thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "c:\Nexus-Memory\GrafoConcierge\ingestion\orchestrator.py", line 503, in <lambda>
+    lambda: asyncio.run(_run_async_summaries())
+  File "C:\Python314\Lib\asyncio\runners.py", line 204, in run
+    return runner.run(main)
+  File "C:\Python314\Lib\asyncio\runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+  File "C:\Python314\Lib\asyncio\base_events.py", line 706, in run_until_complete
+    self.run_forever()
+  File "C:\Python314\Lib\asyncio\base_events.py", line 677, in run_forever
+    self._run_once()
+  File "C:\Python314\Lib\asyncio\base_events.py", line 2046, in _run_once
+    handle._run()
+  File "C:\Python314\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+  File "c:\Nexus-Memory\GrafoConcierge\ingestion\orchestrator.py", line 487, in _bounded_summarize
+    s = await self._summarizer.summarize_l0_async(chunk)
+  File "c:\Nexus-Memory\GrafoConcierge\ingestion\summarizer.py", line 435, in summarize_l0_async
+    raw_response = await self._llm.generate_async(prompt, max_tokens=MAX_L0_TOKENS)
+  File "c:\Nexus-Memory\GrafoConcierge\ingestion\summarizer.py", line 288, in generate_async
+    client = openai.AsyncOpenAI(api_key=self._api_key)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\openai\_client.py", line 860, in __init__
+    super().__init__(
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\openai\_base_client.py", line 1519, in __init__
+    self._client = http_client or AsyncHttpxClientWrapper(
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\openai\_base_client.py", line 1426, in __init__
+    super().__init__(**kwargs)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py", line 1402, in __init__
+    self._transport = self._init_transport(
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py", line 1445, in _init_transport
+    return AsyncHTTPTransport(
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_transports\default.py", line 297, in __init__
+    ssl_context = create_ssl_context(verify=verify, cert=cert, trust_env=trust_env)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_config.py", line 40, in create_ssl_context
+    ctx = ssl.create_default_context(cafile=certifi.where())
+  File "C:\Python314\Lib\ssl.py", line 717, in create_default_context
+    context.load_verify_locations(cafile, capath, cadata)
+--- Thread 30128 (AnyIO worker thread) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 991, in run
+    item = self.queue.get()
+  File "C:\Python314\Lib\queue.py", line 199, in get
+    self.not_empty.wait()
+  File "C:\Python314\Lib\threading.py", line 369, in wait
+    waiter.acquire()
+--- Thread 11612 (AnyIO worker thread) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 1002, in run
+    result = context.run(func, *args)
+--- Thread 27424 (sqlite-writer) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "c:\Nexus-Memory\GrafoConcierge\storage\connection.py", line 163, in _worker
+    job = self._queue.get(timeout=0.5)
+  File "C:\Python314\Lib\queue.py", line 210, in get
+    self.not_empty.wait(remaining)
+  File "C:\Python314\Lib\threading.py", line 373, in wait
+    gotit = waiter.acquire(True, timeout)
+--- Thread 20720 (stack-dumper) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "<string>", line 14, in dumper
+    f.write("".join(traceback.format_stack(frame)))
+--- Thread 8388 (MainThread) ---
+  File "<string>", line 19, in <module>
+    main.main()
+  File "c:\Nexus-Memory\GrafoConcierge\main.py", line 245, in main
+    server.run(transport=TRANSPORT)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 1454, in run
+    asyncio.run(_run_server())
+  File "C:\Python314\Lib\asyncio\runners.py", line 204, in run
+    return runner.run(main)
+  File "C:\Python314\Lib\asyncio\runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+  File "C:\Python314\Lib\asyncio\base_events.py", line 706, in run_until_complete
+    self.run_forever()
+  File "C:\Python314\Lib\asyncio\base_events.py", line 677, in run_forever
+    self._run_once()
+  File "C:\Python314\Lib\asyncio\base_events.py", line 2046, in _run_once
+    handle._run()
+  File "C:\Python314\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 703, in _handle_message
+    await self._handle_request(message, req, session, lifespan_context, raise_exceptions)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 770, in _handle_request
+    response = await handler(req)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 535, in handler
+    results = await func(tool_name, arguments)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\server.py", line 346, in call_tool
+    return await self._tool_manager.call_tool(name, arguments, context=context, convert_result=True)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 253, in governed_call_tool
+    return await original_tm_call_tool(name, arguments, *args, **kwargs)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\tools\tool_manager.py", line 93, in call_tool
+    return await tool.run(arguments, context=context, convert_result=convert_result)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\tools\base.py", line 101, in run
+    result = await self.fn_metadata.call_fn_with_arg_validation(
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\utilities\func_metadata.py", line 95, in call_fn_with_arg_validation
+    return fn(**arguments_parsed_dict)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 339, in concierge_mine
+    return server._handle_mine(path, project_identifier, auto_tag)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 1072, in _handle_mine
+    result = self._gc.mine(project_uuid, path, auto_tag=auto_tag)
+  File "c:\Nexus-Memory\GrafoConcierge\core\middleware.py", line 235, in mine
+    result = self._ingestion.mine(project_uuid, source_path, auto_tag)
+  File "c:\Nexus-Memory\GrafoConcierge\ingestion\orchestrator.py", line 218, in mine
+    summaries = self._step_summarize(uncached_chunks, result)
+  File "c:\Nexus-Memory\GrafoConcierge\ingestion\orchestrator.py", line 504, in _step_summarize
+    ).result()
+  File "C:\Python314\Lib\concurrent\futures\_base.py", line 445, in result
+    self._condition.wait(timeout)
+  File "C:\Python314\Lib\threading.py", line 369, in wait
+    waiter.acquire()
+
+=== SERVER STACK AT +15s ===
+--- Thread 30128 (AnyIO worker thread) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 991, in run
+    item = self.queue.get()
+  File "C:\Python314\Lib\queue.py", line 199, in get
+    self.not_empty.wait()
+  File "C:\Python314\Lib\threading.py", line 369, in wait
+    waiter.acquire()
+--- Thread 11612 (AnyIO worker thread) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 1002, in run
+    result = context.run(func, *args)
+--- Thread 27424 (sqlite-writer) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "c:\Nexus-Memory\GrafoConcierge\storage\connection.py", line 163, in _worker
+    job = self._queue.get(timeout=0.5)
+  File "C:\Python314\Lib\queue.py", line 210, in get
+    self.not_empty.wait(remaining)
+  File "C:\Python314\Lib\threading.py", line 373, in wait
+    gotit = waiter.acquire(True, timeout)
+--- Thread 20720 (stack-dumper) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "<string>", line 14, in dumper
+    f.write("".join(traceback.format_stack(frame)))
+--- Thread 8388 (MainThread) ---
+  File "<string>", line 19, in <module>
+    main.main()
+  File "c:\Nexus-Memory\GrafoConcierge\main.py", line 245, in main
+    server.run(transport=TRANSPORT)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 1454, in run
+    asyncio.run(_run_server())
+  File "C:\Python314\Lib\asyncio\runners.py", line 204, in run
+    return runner.run(main)
+  File "C:\Python314\Lib\asyncio\runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+  File "C:\Python314\Lib\asyncio\base_events.py", line 706, in run_until_complete
+    self.run_forever()
+  File "C:\Python314\Lib\asyncio\base_events.py", line 677, in run_forever
+    self._run_once()
+  File "C:\Python314\Lib\asyncio\base_events.py", line 2046, in _run_once
+    handle._run()
+  File "C:\Python314\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 703, in _handle_message
+    await self._handle_request(message, req, session, lifespan_context, raise_exceptions)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 770, in _handle_request
+    response = await handler(req)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 535, in handler
+    results = await func(tool_name, arguments)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\server.py", line 346, in call_tool
+    return await self._tool_manager.call_tool(name, arguments, context=context, convert_result=True)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 253, in governed_call_tool
+    return await original_tm_call_tool(name, arguments, *args, **kwargs)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\tools\tool_manager.py", line 93, in call_tool
+    return await tool.run(arguments, context=context, convert_result=convert_result)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\tools\base.py", line 101, in run
+    result = await self.fn_metadata.call_fn_with_arg_validation(
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\utilities\func_metadata.py", line 95, in call_fn_with_arg_validation
+    return fn(**arguments_parsed_dict)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 339, in concierge_mine
+    return server._handle_mine(path, project_identifier, auto_tag)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 1072, in _handle_mine
+    result = self._gc.mine(project_uuid, path, auto_tag=auto_tag)
+  File "c:\Nexus-Memory\GrafoConcierge\core\middleware.py", line 235, in mine
+    result = self._ingestion.mine(project_uuid, source_path, auto_tag)
+  File "c:\Nexus-Memory\GrafoConcierge\ingestion\orchestrator.py", line 251, in mine
+    embed_items = self._step_embed(chunks, project_uuid, result)
+  File "c:\Nexus-Memory\GrafoConcierge\ingestion\orchestrator.py", line 789, in _step_embed
+    embeddings = self._embedder.embed_batch(texts)
+  File "c:\Nexus-Memory\GrafoConcierge\storage\vector_store.py", line 233, in embed_batch
+    self._load_model()
+  File "c:\Nexus-Memory\GrafoConcierge\storage\vector_store.py", line 158, in _load_model
+    from sentence_transformers import SentenceTransformer
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\__init__.py", line 10, in <module>
+    from sentence_transformers.backend import (
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\backend\__init__.py", line 3, in <module>
+    from .load import load_onnx_model, load_openvino_model
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\backend\load.py", line 7, in <module>
+    from transformers.configuration_utils import PretrainedConfig
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1314, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\transformers\__init__.py", line 792, in <module>
+    import_structure = define_import_structure(Path(__file__).parent / "models", prefix="models")
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\transformers\utils\import_utils.py", line 2985, in define_import_structure
+    import_structure = create_import_structure_from_path(module_path)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\transformers\utils\import_utils.py", line 2702, in create_import_structure_from_path
+    import_structure[entry.name] = create_import_structure_from_path(entry.path)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\transformers\utils\import_utils.py", line 2832, in create_import_structure_from_path
+    return import_structure
+
+=== SERVER STACK AT +20s ===
+--- Thread 30128 (AnyIO worker thread) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 991, in run
+    item = self.queue.get()
+  File "C:\Python314\Lib\queue.py", line 199, in get
+    self.not_empty.wait()
+  File "C:\Python314\Lib\threading.py", line 369, in wait
+    waiter.acquire()
+--- Thread 11612 (AnyIO worker thread) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 1002, in run
+    result = context.run(func, *args)
+--- Thread 27424 (sqlite-writer) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "c:\Nexus-Memory\GrafoConcierge\storage\connection.py", line 163, in _worker
+    job = self._queue.get(timeout=0.5)
+  File "C:\Python314\Lib\queue.py", line 210, in get
+    self.not_empty.wait(remaining)
+  File "C:\Python314\Lib\threading.py", line 373, in wait
+    gotit = waiter.acquire(True, timeout)
+--- Thread 20720 (stack-dumper) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "<string>", line 14, in dumper
+    f.write("".join(traceback.format_stack(frame)))
+--- Thread 8388 (MainThread) ---
+  File "<string>", line 19, in <module>
+    main.main()
+  File "c:\Nexus-Memory\GrafoConcierge\main.py", line 245, in main
+    server.run(transport=TRANSPORT)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 1454, in run
+    asyncio.run(_run_server())
+  File "C:\Python314\Lib\asyncio\runners.py", line 204, in run
+    return runner.run(main)
+  File "C:\Python314\Lib\asyncio\runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+  File "C:\Python314\Lib\asyncio\base_events.py", line 706, in run_until_complete
+    self.run_forever()
+  File "C:\Python314\Lib\asyncio\base_events.py", line 677, in run_forever
+    self._run_once()
+  File "C:\Python314\Lib\asyncio\base_events.py", line 2046, in _run_once
+    handle._run()
+  File "C:\Python314\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 703, in _handle_message
+    await self._handle_request(message, req, session, lifespan_context, raise_exceptions)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 770, in _handle_request
+    response = await handler(req)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 535, in handler
+    results = await func(tool_name, arguments)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\server.py", line 346, in call_tool
+    return await self._tool_manager.call_tool(name, arguments, context=context, convert_result=True)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 253, in governed_call_tool
+    return await original_tm_call_tool(name, arguments, *args, **kwargs)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\tools\tool_manager.py", line 93, in call_tool
+    return await tool.run(arguments, context=context, convert_result=convert_result)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\tools\base.py", line 101, in run
+    result = await self.fn_metadata.call_fn_with_arg_validation(
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\utilities\func_metadata.py", line 95, in call_fn_with_arg_validation
+    return fn(**arguments_parsed_dict)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 339, in concierge_mine
+    return server._handle_mine(path, project_identifier, auto_tag)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 1072, in _handle_mine
+    result = self._gc.mine(project_uuid, path, auto_tag=auto_tag)
+  File "c:\Nexus-Memory\GrafoConcierge\core\middleware.py", line 235, in mine
+    result = self._ingestion.mine(project_uuid, source_path, auto_tag)
+  File "c:\Nexus-Memory\GrafoConcierge\ingestion\orchestrator.py", line 251, in mine
+    embed_items = self._step_embed(chunks, project_uuid, result)
+  File "c:\Nexus-Memory\GrafoConcierge\ingestion\orchestrator.py", line 789, in _step_embed
+    embeddings = self._embedder.embed_batch(texts)
+  File "c:\Nexus-Memory\GrafoConcierge\storage\vector_store.py", line 233, in embed_batch
+    self._load_model()
+  File "c:\Nexus-Memory\GrafoConcierge\storage\vector_store.py", line 158, in _load_model
+    from sentence_transformers import SentenceTransformer
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\__init__.py", line 10, in <module>
+    from sentence_transformers.backend import (
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\backend\__init__.py", line 5, in <module>
+    from .quantize import export_dynamic_quantized_onnx_model, export_static_quantized_openvino_model
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\backend\quantize.py", line 7, in <module>
+    from sentence_transformers.util import disable_datasets_caching, is_datasets_available
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\util\__init__.py", line 24, in <module>
+    from .retrieval import (
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\util\retrieval.py", line 14, in <module>
+    from .similarity import cos_sim
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\util\similarity.py", line 9, in <module>
+    from sklearn.metrics import pairwise_distances
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1314, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\__init__.py", line 70, in <module>
+    from sklearn.base import clone  # noqa: E402
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\base.py", line 19, in <module>
+    from sklearn.utils._metadata_requests import _MetadataRequester, _routing_enabled
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1314, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\__init__.py", line 9, in <module>
+    from sklearn.utils._chunking import gen_batches, gen_even_slices
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\_chunking.py", line 11, in <module>
+    from sklearn.utils._param_validation import Interval, validate_params
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\_param_validation.py", line 17, in <module>
+    from sklearn.utils.validation import _is_arraylike_not_scalar
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\validation.py", line 24, in <module>
+    from sklearn.utils._array_api import (
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\_array_api.py", line 13, in <module>
+    import scipy.special as special
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\scipy\special\__init__.py", line 785, in <module>
+    from . import _ufuncs
+  File "<frozen importlib._bootstrap>", line 1426, in _handle_fromlist
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 924, in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 816, in module_from_spec
+  File "<frozen importlib._bootstrap_external>", line 1053, in create_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+
+=== SERVER STACK AT +25s ===
+--- Thread 30128 (AnyIO worker thread) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 991, in run
+    item = self.queue.get()
+  File "C:\Python314\Lib\queue.py", line 199, in get
+    self.not_empty.wait()
+  File "C:\Python314\Lib\threading.py", line 369, in wait
+    waiter.acquire()
+--- Thread 11612 (AnyIO worker thread) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 1002, in run
+    result = context.run(func, *args)
+--- Thread 27424 (sqlite-writer) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "c:\Nexus-Memory\GrafoConcierge\storage\connection.py", line 163, in _worker
+    job = self._queue.get(timeout=0.5)
+  File "C:\Python314\Lib\queue.py", line 210, in get
+    self.not_empty.wait(remaining)
+  File "C:\Python314\Lib\threading.py", line 373, in wait
+    gotit = waiter.acquire(True, timeout)
+--- Thread 20720 (stack-dumper) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "<string>", line 14, in dumper
+    f.write("".join(traceback.format_stack(frame)))
+--- Thread 8388 (MainThread) ---
+  File "<string>", line 19, in <module>
+    main.main()
+  File "c:\Nexus-Memory\GrafoConcierge\main.py", line 245, in main
+    server.run(transport=TRANSPORT)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 1454, in run
+    asyncio.run(_run_server())
+  File "C:\Python314\Lib\asyncio\runners.py", line 204, in run
+    return runner.run(main)
+  File "C:\Python314\Lib\asyncio\runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+  File "C:\Python314\Lib\asyncio\base_events.py", line 706, in run_until_complete
+    self.run_forever()
+  File "C:\Python314\Lib\asyncio\base_events.py", line 677, in run_forever
+    self._run_once()
+  File "C:\Python314\Lib\asyncio\base_events.py", line 2046, in _run_once
+    handle._run()
+  File "C:\Python314\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 703, in _handle_message
+    await self._handle_request(message, req, session, lifespan_context, raise_exceptions)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 770, in _handle_request
+    response = await handler(req)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 535, in handler
+    results = await func(tool_name, arguments)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\server.py", line 346, in call_tool
+    return await self._tool_manager.call_tool(name, arguments, context=context, convert_result=True)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 253, in governed_call_tool
+    return await original_tm_call_tool(name, arguments, *args, **kwargs)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\tools\tool_manager.py", line 93, in call_tool
+    return await tool.run(arguments, context=context, convert_result=convert_result)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\tools\base.py", line 101, in run
+    result = await self.fn_metadata.call_fn_with_arg_validation(
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\utilities\func_metadata.py", line 95, in call_fn_with_arg_validation
+    return fn(**arguments_parsed_dict)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 339, in concierge_mine
+    return server._handle_mine(path, project_identifier, auto_tag)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 1072, in _handle_mine
+    result = self._gc.mine(project_uuid, path, auto_tag=auto_tag)
+  File "c:\Nexus-Memory\GrafoConcierge\core\middleware.py", line 235, in mine
+    result = self._ingestion.mine(project_uuid, source_path, auto_tag)
+  File "c:\Nexus-Memory\GrafoConcierge\ingestion\orchestrator.py", line 251, in mine
+    embed_items = self._step_embed(chunks, project_uuid, result)
+  File "c:\Nexus-Memory\GrafoConcierge\ingestion\orchestrator.py", line 789, in _step_embed
+    embeddings = self._embedder.embed_batch(texts)
+  File "c:\Nexus-Memory\GrafoConcierge\storage\vector_store.py", line 233, in embed_batch
+    self._load_model()
+  File "c:\Nexus-Memory\GrafoConcierge\storage\vector_store.py", line 158, in _load_model
+    from sentence_transformers import SentenceTransformer
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\__init__.py", line 10, in <module>
+    from sentence_transformers.backend import (
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\backend\__init__.py", line 5, in <module>
+    from .quantize import export_dynamic_quantized_onnx_model, export_static_quantized_openvino_model
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\backend\quantize.py", line 7, in <module>
+    from sentence_transformers.util import disable_datasets_caching, is_datasets_available
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\util\__init__.py", line 24, in <module>
+    from .retrieval import (
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\util\retrieval.py", line 14, in <module>
+    from .similarity import cos_sim
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\util\similarity.py", line 9, in <module>
+    from sklearn.metrics import pairwise_distances
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1314, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\__init__.py", line 70, in <module>
+    from sklearn.base import clone  # noqa: E402
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\base.py", line 19, in <module>
+    from sklearn.utils._metadata_requests import _MetadataRequester, _routing_enabled
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1314, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\__init__.py", line 9, in <module>
+    from sklearn.utils._chunking import gen_batches, gen_even_slices
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\_chunking.py", line 11, in <module>
+    from sklearn.utils._param_validation import Interval, validate_params
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\_param_validation.py", line 17, in <module>
+    from sklearn.utils.validation import _is_arraylike_not_scalar
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\validation.py", line 24, in <module>
+    from sklearn.utils._array_api import (
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\_array_api.py", line 13, in <module>
+    import scipy.special as special
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\scipy\special\__init__.py", line 785, in <module>
+    from . import _ufuncs
+  File "<frozen importlib._bootstrap>", line 1426, in _handle_fromlist
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 924, in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 816, in module_from_spec
+  File "<frozen importlib._bootstrap_external>", line 1053, in create_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+
+=== SERVER STACK AT +30s ===
+--- Thread 30128 (AnyIO worker thread) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 991, in run
+    item = self.queue.get()
+  File "C:\Python314\Lib\queue.py", line 199, in get
+    self.not_empty.wait()
+  File "C:\Python314\Lib\threading.py", line 369, in wait
+    waiter.acquire()
+--- Thread 11612 (AnyIO worker thread) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 1002, in run
+    result = context.run(func, *args)
+--- Thread 27424 (sqlite-writer) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "c:\Nexus-Memory\GrafoConcierge\storage\connection.py", line 163, in _worker
+    job = self._queue.get(timeout=0.5)
+  File "C:\Python314\Lib\queue.py", line 210, in get
+    self.not_empty.wait(remaining)
+  File "C:\Python314\Lib\threading.py", line 373, in wait
+    gotit = waiter.acquire(True, timeout)
+--- Thread 20720 (stack-dumper) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "<string>", line 14, in dumper
+    f.write("".join(traceback.format_stack(frame)))
+--- Thread 8388 (MainThread) ---
+  File "<string>", line 19, in <module>
+    main.main()
+  File "c:\Nexus-Memory\GrafoConcierge\main.py", line 245, in main
+    server.run(transport=TRANSPORT)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 1454, in run
+    asyncio.run(_run_server())
+  File "C:\Python314\Lib\asyncio\runners.py", line 204, in run
+    return runner.run(main)
+  File "C:\Python314\Lib\asyncio\runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+  File "C:\Python314\Lib\asyncio\base_events.py", line 706, in run_until_complete
+    self.run_forever()
+  File "C:\Python314\Lib\asyncio\base_events.py", line 677, in run_forever
+    self._run_once()
+  File "C:\Python314\Lib\asyncio\base_events.py", line 2046, in _run_once
+    handle._run()
+  File "C:\Python314\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 703, in _handle_message
+    await self._handle_request(message, req, session, lifespan_context, raise_exceptions)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 770, in _handle_request
+    response = await handler(req)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 535, in handler
+    results = await func(tool_name, arguments)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\server.py", line 346, in call_tool
+    return await self._tool_manager.call_tool(name, arguments, context=context, convert_result=True)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 253, in governed_call_tool
+    return await original_tm_call_tool(name, arguments, *args, **kwargs)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\tools\tool_manager.py", line 93, in call_tool
+    return await tool.run(arguments, context=context, convert_result=convert_result)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\tools\base.py", line 101, in run
+    result = await self.fn_metadata.call_fn_with_arg_validation(
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\utilities\func_metadata.py", line 95, in call_fn_with_arg_validation
+    return fn(**arguments_parsed_dict)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 339, in concierge_mine
+    return server._handle_mine(path, project_identifier, auto_tag)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 1072, in _handle_mine
+    result = self._gc.mine(project_uuid, path, auto_tag=auto_tag)
+  File "c:\Nexus-Memory\GrafoConcierge\core\middleware.py", line 235, in mine
+    result = self._ingestion.mine(project_uuid, source_path, auto_tag)
+  File "c:\Nexus-Memory\GrafoConcierge\ingestion\orchestrator.py", line 251, in mine
+    embed_items = self._step_embed(chunks, project_uuid, result)
+  File "c:\Nexus-Memory\GrafoConcierge\ingestion\orchestrator.py", line 789, in _step_embed
+    embeddings = self._embedder.embed_batch(texts)
+  File "c:\Nexus-Memory\GrafoConcierge\storage\vector_store.py", line 233, in embed_batch
+    self._load_model()
+  File "c:\Nexus-Memory\GrafoConcierge\storage\vector_store.py", line 158, in _load_model
+    from sentence_transformers import SentenceTransformer
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\__init__.py", line 10, in <module>
+    from sentence_transformers.backend import (
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\backend\__init__.py", line 5, in <module>
+    from .quantize import export_dynamic_quantized_onnx_model, export_static_quantized_openvino_model
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\backend\quantize.py", line 7, in <module>
+    from sentence_transformers.util import disable_datasets_caching, is_datasets_available
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\util\__init__.py", line 24, in <module>
+    from .retrieval import (
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\util\retrieval.py", line 14, in <module>
+    from .similarity import cos_sim
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\util\similarity.py", line 9, in <module>
+    from sklearn.metrics import pairwise_distances
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1314, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\__init__.py", line 70, in <module>
+    from sklearn.base import clone  # noqa: E402
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\base.py", line 19, in <module>
+    from sklearn.utils._metadata_requests import _MetadataRequester, _routing_enabled
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1314, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\__init__.py", line 9, in <module>
+    from sklearn.utils._chunking import gen_batches, gen_even_slices
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\_chunking.py", line 11, in <module>
+    from sklearn.utils._param_validation import Interval, validate_params
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\_param_validation.py", line 17, in <module>
+    from sklearn.utils.validation import _is_arraylike_not_scalar
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\validation.py", line 24, in <module>
+    from sklearn.utils._array_api import (
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\_array_api.py", line 13, in <module>
+    import scipy.special as special
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\scipy\special\__init__.py", line 785, in <module>
+    from . import _ufuncs
+  File "<frozen importlib._bootstrap>", line 1426, in _handle_fromlist
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 924, in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 816, in module_from_spec
+  File "<frozen importlib._bootstrap_external>", line 1053, in create_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+
+=== SERVER STACK AT +35s ===
+--- Thread 30128 (AnyIO worker thread) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 991, in run
+    item = self.queue.get()
+  File "C:\Python314\Lib\queue.py", line 199, in get
+    self.not_empty.wait()
+  File "C:\Python314\Lib\threading.py", line 369, in wait
+    waiter.acquire()
+--- Thread 11612 (AnyIO worker thread) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 1002, in run
+    result = context.run(func, *args)
+--- Thread 27424 (sqlite-writer) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "c:\Nexus-Memory\GrafoConcierge\storage\connection.py", line 163, in _worker
+    job = self._queue.get(timeout=0.5)
+  File "C:\Python314\Lib\queue.py", line 210, in get
+    self.not_empty.wait(remaining)
+  File "C:\Python314\Lib\threading.py", line 373, in wait
+    gotit = waiter.acquire(True, timeout)
+--- Thread 20720 (stack-dumper) ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "<string>", line 14, in dumper
+    f.write("".join(traceback.format_stack(frame)))
+--- Thread 8388 (MainThread) ---
+  File "<string>", line 19, in <module>
+    main.main()
+  File "c:\Nexus-Memory\GrafoConcierge\main.py", line 245, in main
+    server.run(transport=TRANSPORT)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 1454, in run
+    asyncio.run(_run_server())
+  File "C:\Python314\Lib\asyncio\runners.py", line 204, in run
+    return runner.run(main)
+  File "C:\Python314\Lib\asyncio\runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+  File "C:\Python314\Lib\asyncio\base_events.py", line 706, in run_until_complete
+    self.run_forever()
+  File "C:\Python314\Lib\asyncio\base_events.py", line 677, in run_forever
+    self._run_once()
+  File "C:\Python314\Lib\asyncio\base_events.py", line 2046, in _run_once
+    handle._run()
+  File "C:\Python314\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 703, in _handle_message
+    await self._handle_request(message, req, session, lifespan_context, raise_exceptions)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 770, in _handle_request
+    response = await handler(req)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 535, in handler
+    results = await func(tool_name, arguments)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\server.py", line 346, in call_tool
+    return await self._tool_manager.call_tool(name, arguments, context=context, convert_result=True)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 253, in governed_call_tool
+    return await original_tm_call_tool(name, arguments, *args, **kwargs)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\tools\tool_manager.py", line 93, in call_tool
+    return await tool.run(arguments, context=context, convert_result=convert_result)
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\tools\base.py", line 101, in run
+    result = await self.fn_metadata.call_fn_with_arg_validation(
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\utilities\func_metadata.py", line 95, in call_fn_with_arg_validation
+    return fn(**arguments_parsed_dict)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 339, in concierge_mine
+    return server._handle_mine(path, project_identifier, auto_tag)
+  File "c:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 1072, in _handle_mine
+    result = self._gc.mine(project_uuid, path, auto_tag=auto_tag)
+  File "c:\Nexus-Memory\GrafoConcierge\core\middleware.py", line 235, in mine
+    result = self._ingestion.mine(project_uuid, source_path, auto_tag)
+  File "c:\Nexus-Memory\GrafoConcierge\ingestion\orchestrator.py", line 251, in mine
+    embed_items = self._step_embed(chunks, project_uuid, result)
+  File "c:\Nexus-Memory\GrafoConcierge\ingestion\orchestrator.py", line 789, in _step_embed
+    embeddings = self._embedder.embed_batch(texts)
+  File "c:\Nexus-Memory\GrafoConcierge\storage\vector_store.py", line 233, in embed_batch
+    self._load_model()
+  File "c:\Nexus-Memory\GrafoConcierge\storage\vector_store.py", line 158, in _load_model
+    from sentence_transformers import SentenceTransformer
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\__init__.py", line 10, in <module>
+    from sentence_transformers.backend import (
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\backend\__init__.py", line 5, in <module>
+    from .quantize import export_dynamic_quantized_onnx_model, export_static_quantized_openvino_model
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\backend\quantize.py", line 7, in <module>
+    from sentence_transformers.util import disable_datasets_caching, is_datasets_available
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\util\__init__.py", line 24, in <module>
+    from .retrieval import (
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\util\retrieval.py", line 14, in <module>
+    from .similarity import cos_sim
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\util\similarity.py", line 9, in <module>
+    from sklearn.metrics import pairwise_distances
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1314, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\__init__.py", line 70, in <module>
+    from sklearn.base import clone  # noqa: E402
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\base.py", line 19, in <module>
+    from sklearn.utils._metadata_requests import _MetadataRequester, _routing_enabled
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1314, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\__init__.py", line 9, in <module>
+    from sklearn.utils._chunking import gen_batches, gen_even_slices
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\_chunking.py", line 11, in <module>
+    from sklearn.utils._param_validation import Interval, validate_params
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\_param_validation.py", line 17, in <module>
+    from sklearn.utils.validation import _is_arraylike_not_scalar
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\validation.py", line 24, in <module>
+    from sklearn.utils._array_api import (
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\_array_api.py", line 13, in <module>
+    import scipy.special as special
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\scipy\special\__init__.py", line 785, in <module>
+    from . import _ufuncs
+  File "<frozen importlib._bootstrap>", line 1426, in _handle_fromlist
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 924, in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 816, in module_from_spec
+  File "<frozen importlib._bootstrap_external>", line 1053, in create_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed

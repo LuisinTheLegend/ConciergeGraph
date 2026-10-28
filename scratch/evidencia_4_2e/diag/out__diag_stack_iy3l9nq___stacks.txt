@@ -1,0 +1,169 @@
+
+=== STACK DUMP AT +2s ===
+--- Thread 26260 ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "<string>", line 11, in dump_stacks
+    f.write("".join(traceback.format_stack(frame)))
+--- Thread 32536 ---
+  File "<string>", line 18, in <module>
+    main.main()
+  File "C:\Nexus-Memory\GrafoConcierge\main.py", line 234, in main
+    server, janitor, store = bootstrap()
+  File "C:\Nexus-Memory\GrafoConcierge\main.py", line 122, in bootstrap
+    from storage import SqliteStore
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Nexus-Memory\GrafoConcierge\storage\__init__.py", line 18, in <module>
+    from storage.vector_store import ChromaVectorStore, EmbeddingManager
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Nexus-Memory\GrafoConcierge\storage\vector_store.py", line 32, in <module>
+    import chromadb
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\__init__.py", line 11, in <module>
+    from chromadb.auth.token_authn import TokenTransportHeader
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\auth\token_authn\__init__.py", line 24, in <module>
+    from chromadb.telemetry.opentelemetry import (
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py", line 13, in <module>
+    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\opentelemetry\exporter\otlp\proto\grpc\trace_exporter\__init__.py", line 21, in <module>
+    from grpc import ChannelCredentials, Compression
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1285, in _find_spec
+  File "<frozen importlib._bootstrap_external>", line 1306, in find_spec
+  File "<frozen importlib._bootstrap_external>", line 1270, in _get_spec
+  File "<frozen importlib._bootstrap_external>", line 1385, in find_spec
+  File "<frozen importlib._bootstrap_external>", line 152, in _path_stat
+
+=== STACK DUMP AT +4s ===
+--- Thread 30684 ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Nexus-Memory\GrafoConcierge\storage\connection.py", line 163, in _worker
+    job = self._queue.get(timeout=0.5)
+  File "C:\Python314\Lib\queue.py", line 210, in get
+    self.not_empty.wait(remaining)
+  File "C:\Python314\Lib\threading.py", line 373, in wait
+    gotit = waiter.acquire(True, timeout)
+--- Thread 26260 ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "<string>", line 11, in dump_stacks
+    f.write("".join(traceback.format_stack(frame)))
+--- Thread 32536 ---
+  File "<string>", line 18, in <module>
+    main.main()
+  File "C:\Nexus-Memory\GrafoConcierge\main.py", line 245, in main
+    server.run(transport=TRANSPORT)
+  File "C:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 1454, in run
+    asyncio.run(_run_server())
+  File "C:\Python314\Lib\asyncio\runners.py", line 203, in run
+    with Runner(debug=debug, loop_factory=loop_factory) as runner:
+  File "C:\Python314\Lib\asyncio\runners.py", line 59, in __enter__
+    self._lazy_init()
+  File "C:\Python314\Lib\asyncio\runners.py", line 146, in _lazy_init
+    self._loop = events.new_event_loop()
+  File "C:\Python314\Lib\asyncio\events.py", line 844, in new_event_loop
+    return _get_event_loop_policy().new_event_loop()
+  File "C:\Python314\Lib\asyncio\events.py", line 732, in new_event_loop
+    return self._loop_factory()
+  File "C:\Python314\Lib\asyncio\windows_events.py", line 316, in __init__
+    super().__init__(proactor)
+  File "C:\Python314\Lib\asyncio\proactor_events.py", line 639, in __init__
+    self._make_self_pipe()
+  File "C:\Python314\Lib\asyncio\proactor_events.py", line 786, in _make_self_pipe
+    self._ssock, self._csock = socket.socketpair()
+  File "C:\Python314\Lib\socket.py", line 633, in _fallback_socketpair
+    ssock, _ = lsock.accept()
+  File "C:\Python314\Lib\socket.py", line 298, in accept
+    fd, addr = self._accept()
+
+=== STACK DUMP AT +6s ===
+--- Thread 30684 ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Nexus-Memory\GrafoConcierge\storage\connection.py", line 163, in _worker
+    job = self._queue.get(timeout=0.5)
+  File "C:\Python314\Lib\queue.py", line 210, in get
+    self.not_empty.wait(remaining)
+  File "C:\Python314\Lib\threading.py", line 373, in wait
+    gotit = waiter.acquire(True, timeout)
+--- Thread 26260 ---
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "<string>", line 11, in dump_stacks
+    f.write("".join(traceback.format_stack(frame)))
+--- Thread 32536 ---
+  File "<string>", line 18, in <module>
+    main.main()
+  File "C:\Nexus-Memory\GrafoConcierge\main.py", line 245, in main
+    server.run(transport=TRANSPORT)
+  File "C:\Nexus-Memory\GrafoConcierge\interface\mcp_server.py", line 1454, in run
+    asyncio.run(_run_server())
+  File "C:\Python314\Lib\asyncio\runners.py", line 203, in run
+    with Runner(debug=debug, loop_factory=loop_factory) as runner:
+  File "C:\Python314\Lib\asyncio\runners.py", line 59, in __enter__
+    self._lazy_init()
+  File "C:\Python314\Lib\asyncio\runners.py", line 146, in _lazy_init
+    self._loop = events.new_event_loop()
+  File "C:\Python314\Lib\asyncio\events.py", line 844, in new_event_loop
+    return _get_event_loop_policy().new_event_loop()
+  File "C:\Python314\Lib\asyncio\events.py", line 732, in new_event_loop
+    return self._loop_factory()
+  File "C:\Python314\Lib\asyncio\windows_events.py", line 316, in __init__
+    super().__init__(proactor)
+  File "C:\Python314\Lib\asyncio\proactor_events.py", line 639, in __init__
+    self._make_self_pipe()
+  File "C:\Python314\Lib\asyncio\proactor_events.py", line 786, in _make_self_pipe
+    self._ssock, self._csock = socket.socketpair()
+  File "C:\Python314\Lib\socket.py", line 633, in _fallback_socketpair
+    ssock, _ = lsock.accept()
+  File "C:\Python314\Lib\socket.py", line 298, in accept
+    fd, addr = self._accept()

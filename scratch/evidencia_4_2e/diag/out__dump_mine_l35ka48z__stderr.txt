@@ -1,0 +1,57 @@
+2026-10-28 16:43:27 │ INFO    │ grafo-concierge.main         │ ============================================================
+2026-10-28 16:43:27 │ INFO    │ grafo-concierge.main         │   Grafo Concierge v3.8.0 — Absolute Solidity
+2026-10-28 16:43:27 │ INFO    │ grafo-concierge.main         │ ============================================================
+2026-10-28 16:43:27 │ INFO    │ grafo-concierge.main         │   DB:       C:\Users\guial\AppData\Local\Temp\dump_mine_l35ka48z\db.sqlite
+2026-10-28 16:43:27 │ INFO    │ grafo-concierge.main         │   ChromaDB: C:\Users\guial\AppData\Local\Temp\dump_mine_l35ka48z\chroma (grafo_concierge)
+2026-10-28 16:43:27 │ INFO    │ grafo-concierge.main         │   Embedding: all-MiniLM-L6-v2
+2026-10-28 16:43:27 │ INFO    │ grafo-concierge.main         │   LLM:      gemini-2.0-flash
+2026-10-28 16:43:27 │ INFO    │ grafo-concierge.main         │   Janitor:  300s
+2026-10-28 16:43:27 │ INFO    │ grafo-concierge.main         │   Transport: stdio
+2026-10-28 16:43:27 │ INFO    │ grafo-concierge.main         │   Log Level: INFO
+2026-10-28 16:43:27 │ INFO    │ grafo-concierge.main         │ ============================================================
+2026-10-28 16:43:27 │ INFO    │ grafo-concierge.main         │ Initializing SqliteStore: C:\Users\guial\AppData\Local\Temp\dump_mine_l35ka48z\db.sqlite
+2026-10-28 16:43:28 │ INFO    │ grafo-concierge.schema       │ Migration: UNIQUE index 'uq_core_memory_scope_label' created in user_core_memory.
+2026-10-28 16:43:28 │ INFO    │ grafo-concierge.store        │ Schema v3.8.0 verified - all tables and triggers OK.
+2026-10-28 16:43:28 │ INFO    │ grafo-concierge.connection   │ SerializedWriteQueue started successfully (db: C:\Users\guial\AppData\Local\Temp\dump_mine_l35ka48z\db.sqlite)
+2026-10-28 16:43:28 │ INFO    │ grafo-concierge.store        │ SqliteStore initialized: C:\Users\guial\AppData\Local\Temp\dump_mine_l35ka48z\db.sqlite
+2026-10-28 16:43:28 │ INFO    │ grafo-concierge.main         │ Initializing EmbeddingManager: tier=FLASH
+2026-10-28 16:43:28 │ INFO    │ grafo-concierge.vector-store │ EmbeddingManager initialized: tier=flash, model=all-MiniLM-L6-v2, dims=384
+2026-10-28 16:43:28 │ INFO    │ grafo-concierge.main         │ Initializing ChromaVectorStore: path=C:\Users\guial\AppData\Local\Temp\dump_mine_l35ka48z\chroma, collection=grafo_concierge
+2026-10-28 16:43:28 │ INFO    │ grafo-concierge.vector-store │ ChromaVectorStore initialized: dir=C:\Users\guial\AppData\Local\Temp\dump_mine_l35ka48z\chroma, collection=grafo_concierge, tier=flash
+2026-10-28 16:43:28 │ INFO    │ grafo-concierge.main         │ Initializing ZoomSummarizer: model=gemini-2.0-flash
+2026-10-28 16:43:28 │ INFO    │ grafo-concierge.summarizer   │ LLMAdapter inicializado: model=gemini-2.0-flash, custom_fn=False
+2026-10-28 16:43:28 │ INFO    │ grafo-concierge.main         │ Initializing IngestionManager
+2026-10-28 16:43:28 │ INFO    │ grafo-concierge.crawler      │ ProjectCrawler initialized: 22 active ignore patterns.
+2026-10-28 16:43:28 │ INFO    │ grafo-concierge.orchestrator │ IngestionManager inicializado: summarizer=ON, embedder_tier=flash
+2026-10-28 16:43:28 │ INFO    │ grafo-concierge.main         │ Initializing JanitorService: interval=300s
+2026-10-28 16:43:28 │ INFO    │ grafo-concierge.janitor      │ JanitorService initialized: stale=30d, zoom_threshold=10, inactive=60d, super_node_threshold=10
+2026-10-28 16:43:28 │ INFO    │ grafo-concierge.main         │ Initializing GrafoConcierge Central Facade
+2026-10-28 16:43:28 │ INFO    │ grafo-concierge.middleware   │ GrafoConcierge (Facade) initialized successfully.
+2026-10-28 16:43:28 │ INFO    │ grafo-concierge.main         │ Initializing GrafoConciergeServer
+2026-10-28 16:43:29 │ INFO    │ grafo-concierge.mcp          │ GrafoConciergeServer initialized — 31 tools registered.
+2026-10-28 16:43:29 │ INFO    │ grafo-concierge.main         │ Bootstrap complete — all components initialized.
+2026-10-28 16:43:29 │ INFO    │ grafo-concierge.main         │ Janitor in idle mode (no GRAFO_JANITOR_PROJECT defined).
+2026-10-28 16:43:29 │ INFO    │ grafo-concierge.main         │ Starting MCP server (transport=stdio)...
+2026-10-28 16:43:29 │ INFO    │ grafo-concierge.mcp          │ Starting Grafo Concierge MCP Server (transport=stdio)...
+2026-10-28 16:43:29 │ INFO    │ mcp.server.lowlevel.server   │ Processing request of type CallToolRequest
+2026-10-28 16:43:29 │ INFO    │ grafo-concierge.middleware   │ Projeto registrado: 'proj' → 45e37d58-1ad9-4ace-9746-33adb5339b82 (wing='w', privacy='PUBLIC')
+2026-10-28 16:43:29 │ INFO    │ grafo-concierge.mcp          │ concierge_register OK: proj → 45e37d58-1ad9-4ace-9746-33adb5339b82 (wing=w, privacy=PUBLIC)
+2026-10-28 16:43:29 │ INFO    │ mcp.server.lowlevel.server   │ Processing request of type ListToolsRequest
+2026-10-28 16:43:29 │ INFO    │ mcp.server.lowlevel.server   │ Processing request of type CallToolRequest
+2026-10-28 16:43:29 │ INFO    │ grafo-concierge.mcp          │ [concierge_search] query='foo' project_identifier='proj' top_k=10 all_wings=False
+2026-10-28 16:43:29 │ INFO    │ grafo-concierge.hybrid-search │ Hybrid Search v4: query='foo...', project=45e37d58-1ad9-4ace-9746-33adb5339b82, top_k=10, refs=False, all_wings=False, node_type=None
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-10-28 16:43:30 │ WARNING │ huggingface_hub.utils._http  │ Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 5072.60it/s]
+2026-10-28 16:43:33 │ INFO    │ grafo-concierge.vector-store │ FLASH model loaded: all-MiniLM-L6-v2
+2026-10-28 16:43:34 │ INFO    │ grafo-concierge.hybrid-search │ No candidates found in both signals.
+2026-10-28 16:43:34 │ INFO    │ grafo-concierge.mcp          │ concierge_search OK: query='foo' → 0 results, 4.761s
+2026-10-28 16:43:34 │ INFO    │ grafo-concierge.main         │ Graceful shutdown initiated...
+2026-10-28 16:43:34 │ INFO    │ grafo-concierge.main         │ Janitor encerrado.
+2026-10-28 16:43:34 │ INFO    │ grafo-concierge.connection   │ Requesting stop of SerializedWriteQueue...
+2026-10-28 16:43:34 │ INFO    │ grafo-concierge.connection   │ SerializedWriteQueue finished.
+2026-10-28 16:43:34 │ INFO    │ grafo-concierge.store        │ SqliteStore closed.
+2026-10-28 16:43:34 │ INFO    │ grafo-concierge.main         │ SqliteStore encerrado.
+2026-10-28 16:43:34 │ INFO    │ grafo-concierge.main         │ ============================================================
+2026-10-28 16:43:34 │ INFO    │ grafo-concierge.main         │   Grafo Concierge encerrado com sucesso.
+2026-10-28 16:43:34 │ INFO    │ grafo-concierge.main         │ ============================================================

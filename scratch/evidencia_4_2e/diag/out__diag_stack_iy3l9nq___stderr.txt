@@ -1,0 +1,35 @@
+2026-10-28 16:16:23 │ INFO    │ grafo-concierge.main         │ ============================================================
+2026-10-28 16:16:23 │ INFO    │ grafo-concierge.main         │   Grafo Concierge v3.8.0 — Absolute Solidity
+2026-10-28 16:16:23 │ INFO    │ grafo-concierge.main         │ ============================================================
+2026-10-28 16:16:23 │ INFO    │ grafo-concierge.main         │   DB:       C:\Users\guial\AppData\Local\Temp\diag_stack_iy3l9nq_\db.sqlite
+2026-10-28 16:16:23 │ INFO    │ grafo-concierge.main         │   ChromaDB: C:\Users\guial\AppData\Local\Temp\diag_stack_iy3l9nq_\chroma (grafo_concierge)
+2026-10-28 16:16:23 │ INFO    │ grafo-concierge.main         │   Embedding: all-MiniLM-L6-v2
+2026-10-28 16:16:23 │ INFO    │ grafo-concierge.main         │   LLM:      gemini-2.0-flash
+2026-10-28 16:16:23 │ INFO    │ grafo-concierge.main         │   Janitor:  300s
+2026-10-28 16:16:23 │ INFO    │ grafo-concierge.main         │   Transport: stdio
+2026-10-28 16:16:23 │ INFO    │ grafo-concierge.main         │   Log Level: INFO
+2026-10-28 16:16:23 │ INFO    │ grafo-concierge.main         │ ============================================================
+2026-10-28 16:16:23 │ INFO    │ grafo-concierge.main         │ Initializing SqliteStore: C:\Users\guial\AppData\Local\Temp\diag_stack_iy3l9nq_\db.sqlite
+2026-10-28 16:16:26 │ INFO    │ grafo-concierge.schema       │ Migration: UNIQUE index 'uq_core_memory_scope_label' created in user_core_memory.
+2026-10-28 16:16:26 │ INFO    │ grafo-concierge.store        │ Schema v3.8.0 verified - all tables and triggers OK.
+2026-10-28 16:16:26 │ INFO    │ grafo-concierge.connection   │ SerializedWriteQueue started successfully (db: C:\Users\guial\AppData\Local\Temp\diag_stack_iy3l9nq_\db.sqlite)
+2026-10-28 16:16:26 │ INFO    │ grafo-concierge.store        │ SqliteStore initialized: C:\Users\guial\AppData\Local\Temp\diag_stack_iy3l9nq_\db.sqlite
+2026-10-28 16:16:26 │ INFO    │ grafo-concierge.main         │ Initializing EmbeddingManager: tier=FLASH
+2026-10-28 16:16:26 │ INFO    │ grafo-concierge.vector-store │ EmbeddingManager initialized: tier=flash, model=all-MiniLM-L6-v2, dims=384
+2026-10-28 16:16:26 │ INFO    │ grafo-concierge.main         │ Initializing ChromaVectorStore: path=C:\Users\guial\AppData\Local\Temp\diag_stack_iy3l9nq_\chroma, collection=grafo_concierge
+2026-10-28 16:16:26 │ INFO    │ grafo-concierge.vector-store │ ChromaVectorStore initialized: dir=C:\Users\guial\AppData\Local\Temp\diag_stack_iy3l9nq_\chroma, collection=grafo_concierge, tier=flash
+2026-10-28 16:16:26 │ INFO    │ grafo-concierge.main         │ Initializing ZoomSummarizer: model=gemini-2.0-flash
+2026-10-28 16:16:26 │ INFO    │ grafo-concierge.summarizer   │ LLMAdapter inicializado: model=gemini-2.0-flash, custom_fn=False
+2026-10-28 16:16:26 │ INFO    │ grafo-concierge.main         │ Initializing IngestionManager
+2026-10-28 16:16:26 │ INFO    │ grafo-concierge.crawler      │ ProjectCrawler initialized: 22 active ignore patterns.
+2026-10-28 16:16:26 │ INFO    │ grafo-concierge.orchestrator │ IngestionManager inicializado: summarizer=ON, embedder_tier=flash
+2026-10-28 16:16:26 │ INFO    │ grafo-concierge.main         │ Initializing JanitorService: interval=300s
+2026-10-28 16:16:26 │ INFO    │ grafo-concierge.janitor      │ JanitorService initialized: stale=30d, zoom_threshold=10, inactive=60d, super_node_threshold=10
+2026-10-28 16:16:26 │ INFO    │ grafo-concierge.main         │ Initializing GrafoConcierge Central Facade
+2026-10-28 16:16:26 │ INFO    │ grafo-concierge.middleware   │ GrafoConcierge (Facade) initialized successfully.
+2026-10-28 16:16:26 │ INFO    │ grafo-concierge.main         │ Initializing GrafoConciergeServer
+2026-10-28 16:16:27 │ INFO    │ grafo-concierge.mcp          │ GrafoConciergeServer initialized — 31 tools registered.
+2026-10-28 16:16:27 │ INFO    │ grafo-concierge.main         │ Bootstrap complete — all components initialized.
+2026-10-28 16:16:27 │ INFO    │ grafo-concierge.main         │ Janitor in idle mode (no GRAFO_JANITOR_PROJECT defined).
+2026-10-28 16:16:27 │ INFO    │ grafo-concierge.main         │ Starting MCP server (transport=stdio)...
+2026-10-28 16:16:27 │ INFO    │ grafo-concierge.mcp          │ Starting Grafo Concierge MCP Server (transport=stdio)...

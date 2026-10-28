@@ -1,0 +1,79 @@
+2026-10-28 16:39:40 │ INFO    │ grafo-concierge.main         │ ============================================================
+2026-10-28 16:39:40 │ INFO    │ grafo-concierge.main         │   Grafo Concierge v3.8.0 — Absolute Solidity
+2026-10-28 16:39:40 │ INFO    │ grafo-concierge.main         │ ============================================================
+2026-10-28 16:39:40 │ INFO    │ grafo-concierge.main         │   DB:       C:\Users\guial\AppData\Local\Temp\dump_mine_e21cosbz\db.sqlite
+2026-10-28 16:39:40 │ INFO    │ grafo-concierge.main         │   ChromaDB: C:\Users\guial\AppData\Local\Temp\dump_mine_e21cosbz\chroma (grafo_concierge)
+2026-10-28 16:39:40 │ INFO    │ grafo-concierge.main         │   Embedding: all-MiniLM-L6-v2
+2026-10-28 16:39:40 │ INFO    │ grafo-concierge.main         │   LLM:      none
+2026-10-28 16:39:40 │ INFO    │ grafo-concierge.main         │   Janitor:  300s
+2026-10-28 16:39:40 │ INFO    │ grafo-concierge.main         │   Transport: stdio
+2026-10-28 16:39:40 │ INFO    │ grafo-concierge.main         │   Log Level: INFO
+2026-10-28 16:39:40 │ INFO    │ grafo-concierge.main         │ ============================================================
+2026-10-28 16:39:40 │ INFO    │ grafo-concierge.main         │ Initializing SqliteStore: C:\Users\guial\AppData\Local\Temp\dump_mine_e21cosbz\db.sqlite
+2026-10-28 16:39:42 │ INFO    │ grafo-concierge.schema       │ Migration: UNIQUE index 'uq_core_memory_scope_label' created in user_core_memory.
+2026-10-28 16:39:42 │ INFO    │ grafo-concierge.store        │ Schema v3.8.0 verified - all tables and triggers OK.
+2026-10-28 16:39:42 │ INFO    │ grafo-concierge.connection   │ SerializedWriteQueue started successfully (db: C:\Users\guial\AppData\Local\Temp\dump_mine_e21cosbz\db.sqlite)
+2026-10-28 16:39:42 │ INFO    │ grafo-concierge.store        │ SqliteStore initialized: C:\Users\guial\AppData\Local\Temp\dump_mine_e21cosbz\db.sqlite
+2026-10-28 16:39:42 │ INFO    │ grafo-concierge.main         │ Initializing EmbeddingManager: tier=FLASH
+2026-10-28 16:39:42 │ INFO    │ grafo-concierge.vector-store │ EmbeddingManager initialized: tier=flash, model=all-MiniLM-L6-v2, dims=384
+2026-10-28 16:39:42 │ INFO    │ grafo-concierge.main         │ Initializing ChromaVectorStore: path=C:\Users\guial\AppData\Local\Temp\dump_mine_e21cosbz\chroma, collection=grafo_concierge
+2026-10-28 16:39:42 │ INFO    │ grafo-concierge.vector-store │ ChromaVectorStore initialized: dir=C:\Users\guial\AppData\Local\Temp\dump_mine_e21cosbz\chroma, collection=grafo_concierge, tier=flash
+2026-10-28 16:39:42 │ INFO    │ grafo-concierge.main         │ Initializing ZoomSummarizer: model=none
+2026-10-28 16:39:42 │ INFO    │ grafo-concierge.summarizer   │ LLMAdapter inicializado: model=none, custom_fn=False
+2026-10-28 16:39:42 │ INFO    │ grafo-concierge.main         │ Initializing IngestionManager
+2026-10-28 16:39:42 │ INFO    │ grafo-concierge.crawler      │ ProjectCrawler initialized: 22 active ignore patterns.
+2026-10-28 16:39:42 │ INFO    │ grafo-concierge.orchestrator │ IngestionManager inicializado: summarizer=ON, embedder_tier=flash
+2026-10-28 16:39:42 │ INFO    │ grafo-concierge.main         │ Initializing JanitorService: interval=300s
+2026-10-28 16:39:42 │ INFO    │ grafo-concierge.janitor      │ JanitorService initialized: stale=30d, zoom_threshold=10, inactive=60d, super_node_threshold=10
+2026-10-28 16:39:42 │ INFO    │ grafo-concierge.main         │ Initializing GrafoConcierge Central Facade
+2026-10-28 16:39:42 │ INFO    │ grafo-concierge.middleware   │ GrafoConcierge (Facade) initialized successfully.
+2026-10-28 16:39:42 │ INFO    │ grafo-concierge.main         │ Initializing GrafoConciergeServer
+2026-10-28 16:39:43 │ INFO    │ grafo-concierge.mcp          │ GrafoConciergeServer initialized — 31 tools registered.
+2026-10-28 16:39:43 │ INFO    │ grafo-concierge.main         │ Bootstrap complete — all components initialized.
+2026-10-28 16:39:43 │ INFO    │ grafo-concierge.main         │ Janitor in idle mode (no GRAFO_JANITOR_PROJECT defined).
+2026-10-28 16:39:43 │ INFO    │ grafo-concierge.main         │ Starting MCP server (transport=stdio)...
+2026-10-28 16:39:43 │ INFO    │ grafo-concierge.mcp          │ Starting Grafo Concierge MCP Server (transport=stdio)...
+2026-10-28 16:39:43 │ INFO    │ mcp.server.lowlevel.server   │ Processing request of type CallToolRequest
+2026-10-28 16:39:43 │ INFO    │ grafo-concierge.middleware   │ Projeto registrado: 'proj' → af44484b-228d-4588-811c-0defd5dc3042 (wing='w', privacy='PUBLIC')
+2026-10-28 16:39:43 │ INFO    │ grafo-concierge.mcp          │ concierge_register OK: proj → af44484b-228d-4588-811c-0defd5dc3042 (wing=w, privacy=PUBLIC)
+2026-10-28 16:39:43 │ INFO    │ mcp.server.lowlevel.server   │ Processing request of type ListToolsRequest
+2026-10-28 16:39:43 │ INFO    │ mcp.server.lowlevel.server   │ Processing request of type CallToolRequest
+2026-10-28 16:39:43 │ INFO    │ grafo-concierge.orchestrator │ ============================================================
+2026-10-28 16:39:43 │ INFO    │ grafo-concierge.orchestrator │ MINE STARTED: project=af44484b-228d-4588-811c-0defd5dc3042, source=C:\Users\guial\AppData\Local\Temp\dump_mine_e21cosbz\proj
+2026-10-28 16:39:43 │ INFO    │ grafo-concierge.orchestrator │ ============================================================
+2026-10-28 16:39:43 │ INFO    │ grafo-concierge.orchestrator │ [1/7] CRAWL — Filesystem scanning...
+2026-10-28 16:39:43 │ INFO    │ grafo-concierge.crawler      │ Crawl started: C:\Users\guial\AppData\Local\Temp\dump_mine_e21cosbz\proj (project: af44484b-228d-4588-811c-0defd5dc3042)
+2026-10-28 16:39:43 │ INFO    │ grafo-concierge.crawler      │ Default safety patterns loaded: 60 rules.
+2026-10-28 16:39:43 │ INFO    │ grafo-concierge.crawler      │ Crawl completed: 1 scanned, 1 new, 0 unchanged, 0 deleted (GC).
+2026-10-28 16:39:43 │ INFO    │ grafo-concierge.orchestrator │ [1/7] CRAWL completed: 1 new, 0 unchanged, 0 deleted.
+2026-10-28 16:39:43 │ INFO    │ grafo-concierge.orchestrator │ [2/8] PARSE — Semantic chunking of 1 files...
+2026-10-28 16:39:43 │ INFO    │ grafo-concierge.orchestrator │ [2/8] PARSE completed: 2 chunks extracted.
+2026-10-28 16:39:43 │ INFO    │ grafo-concierge.orchestrator │ [2.5/8] DELTA CACHE — Checking unchanged chunks...
+2026-10-28 16:39:43 │ INFO    │ grafo-concierge.orchestrator │ [2.5/8] DELTA CACHE completed: 0 cached, 2 new for LLM.
+2026-10-28 16:39:43 │ INFO    │ grafo-concierge.orchestrator │ [3/8] SUMMARIZE — Generating 2 L0 summaries (skipping 0 cached)...
+2026-10-28 16:39:43 │ INFO    │ grafo-concierge.orchestrator │ Grouping: 2 small chunks into groups of 5.
+2026-10-28 16:39:44 │ ERROR   │ grafo-concierge.summarizer   │ Failed to call legacy Gemini (none): 404 models/none is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.
+2026-10-28 16:39:44 │ WARNING │ grafo-concierge.summarizer   │ L0 grouped attempt 1/3 failed: LLM call failed: 404 models/none is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.
+2026-10-28 16:39:45 │ ERROR   │ grafo-concierge.summarizer   │ Failed to call legacy Gemini (none): 404 models/none is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.
+2026-10-28 16:39:45 │ WARNING │ grafo-concierge.summarizer   │ L0 grouped attempt 2/3 failed: LLM call failed: 404 models/none is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.
+2026-10-28 16:39:45 │ ERROR   │ grafo-concierge.summarizer   │ Failed to call legacy Gemini (none): 404 models/none is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.
+2026-10-28 16:39:45 │ WARNING │ grafo-concierge.summarizer   │ L0 grouped attempt 3/3 failed: LLM call failed: 404 models/none is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.
+2026-10-28 16:39:45 │ ERROR   │ grafo-concierge.summarizer   │ L0 grouped: all attempts failed for 2 chunks.
+2026-10-28 16:39:46 │ ERROR   │ grafo-concierge.summarizer   │ Async: Failed to call OpenAI/Provider (none): Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.
+2026-10-28 16:39:46 │ WARNING │ grafo-concierge.summarizer   │ L0 async attempt 1/3 failed for a.py: Async LLM call failed: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.
+2026-10-28 16:39:46 │ ERROR   │ grafo-concierge.summarizer   │ Async: Failed to call OpenAI/Provider (none): Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.
+2026-10-28 16:39:46 │ WARNING │ grafo-concierge.summarizer   │ L0 async attempt 2/3 failed for a.py: Async LLM call failed: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.
+2026-10-28 16:39:46 │ ERROR   │ grafo-concierge.summarizer   │ Async: Failed to call OpenAI/Provider (none): Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.
+2026-10-28 16:39:46 │ WARNING │ grafo-concierge.summarizer   │ L0 async attempt 3/3 failed for a.py: Async LLM call failed: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.
+2026-10-28 16:39:46 │ ERROR   │ grafo-concierge.summarizer   │ L0 async: all attempts failed for a.py — generating Dumb Summary.
+2026-10-28 16:39:46 │ ERROR   │ grafo-concierge.summarizer   │ Async: Failed to call OpenAI/Provider (none): Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.
+2026-10-28 16:39:46 │ WARNING │ grafo-concierge.summarizer   │ L0 async attempt 1/3 failed for a.py: Async LLM call failed: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.
+2026-10-28 16:39:46 │ ERROR   │ grafo-concierge.summarizer   │ Async: Failed to call OpenAI/Provider (none): Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.
+2026-10-28 16:39:46 │ WARNING │ grafo-concierge.summarizer   │ L0 async attempt 2/3 failed for a.py: Async LLM call failed: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.
+2026-10-28 16:39:46 │ ERROR   │ grafo-concierge.summarizer   │ Async: Failed to call OpenAI/Provider (none): Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.
+2026-10-28 16:39:46 │ WARNING │ grafo-concierge.summarizer   │ L0 async attempt 3/3 failed for a.py: Async LLM call failed: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.
+2026-10-28 16:39:46 │ ERROR   │ grafo-concierge.summarizer   │ L0 async: all attempts failed for a.py — generating Dumb Summary.
+2026-10-28 16:39:46 │ INFO    │ grafo-concierge.orchestrator │ [3/8] SUMMARIZE completed: 2 L0 summaries generated.
+2026-10-28 16:39:46 │ INFO    │ grafo-concierge.orchestrator │ [4/8] STORE SQLite — Persisting 2 chunks...
+2026-10-28 16:39:46 │ INFO    │ grafo-concierge.orchestrator │ [4/8] STORE SQLite completed: 2 nodes created.
+2026-10-28 16:39:46 │ INFO    │ grafo-concierge.orchestrator │ [5/8] EMBED — Generating embeddings for 2 chunks...
