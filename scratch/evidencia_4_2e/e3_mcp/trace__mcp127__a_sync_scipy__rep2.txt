@@ -1,0 +1,77 @@
+Timeout (0:00:15)!
+Thread 0x000040d0 [AnyIO worker thread] (most recent call first):
+  File "C:\Python314\Lib\threading.py", line 369 in wait
+  File "C:\Python314\Lib\queue.py", line 199 in get
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 991 in run
+  File "C:\Python314\Lib\threading.py", line 1082 in _bootstrap_inner
+  File "C:\Python314\Lib\threading.py", line 1044 in _bootstrap
+
+Thread 0x000029a0 [AnyIO worker thread] (most recent call first):
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 1002 in run
+  File "C:\Python314\Lib\threading.py", line 1082 in _bootstrap_inner
+  File "C:\Python314\Lib\threading.py", line 1044 in _bootstrap
+
+Thread 0x00006fec (most recent call first):
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 1053 in create_module
+  File "<frozen importlib._bootstrap>", line 816 in module_from_spec
+  File "<frozen importlib._bootstrap>", line 924 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1426 in _handle_fromlist
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\numpy\_core\multiarray.py", line 11 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1426 in _handle_fromlist
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\numpy\_core\__init__.py", line 24 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1314 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\numpy\__config__.py", line 4 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\numpy\__init__.py", line 125 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\scipy\__init__.py", line 56 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1314 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Nexus-Memory\GrafoConcierge\scratch\evidencia_4_2e\minimal_servers\server_a_sync_scipy.py", line 14 in run_action
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\utilities\func_metadata.py", line 95 in call_fn_with_arg_validation
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\tools\base.py", line 101 in run
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\tools\tool_manager.py", line 93 in call_tool
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\server.py", line 346 in call_tool
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 535 in handler
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 770 in _handle_request
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\lowlevel\server.py", line 703 in _handle_message
+  File "C:\Python314\Lib\asyncio\events.py", line 94 in _run
+  File "C:\Python314\Lib\asyncio\base_events.py", line 2046 in _run_once
+  File "C:\Python314\Lib\asyncio\base_events.py", line 677 in run_forever
+  File "C:\Python314\Lib\asyncio\base_events.py", line 706 in run_until_complete
+  File "C:\Python314\Lib\asyncio\runners.py", line 127 in run
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 2358 in run
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_core\_eventloop.py", line 77 in run
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\server\fastmcp\server.py", line 296 in run
+  File "C:\Nexus-Memory\GrafoConcierge\scratch\evidencia_4_2e\minimal_servers\server_a_sync_scipy.py", line 25 in <module>

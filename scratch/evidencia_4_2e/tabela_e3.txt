@@ -1,0 +1,12 @@
+=== TABELA EXPERIMENTO E3: MCP MINIMO COM VERSOES CORRETAS ===
+Venv       | Variante                   | Rep  | Classe   | Tempo(s)  | CPU Media(%)   | Trace Dump
+------------------------------------------------------------------------------------------
+mcp127     | a_sync_scipy               | 1    | ERRO     | 182.37    | 0.00           | SIM
+mcp127     | e_preimport_scipy          | 1    | OK       | 2.95      | 0.00           | NAO
+mcp127     | f_preimport_scipy_sklearn  | 1    | OK       | 5.15      | 0.00           | NAO
+mcp127     | g_preimport_st             | 1    | OK       | 17.82     | 0.00           | NAO
+mcp130     | a_sync_scipy               | 1    | TRAVOU   | 182.34    | 0.00           | SIM
+mcp130     | e_preimport_scipy          | 1    | OK       | 1.92      | 0.00           | NAO
+mcp130     | f_preimport_scipy_sklearn  | 1    | OK       | 3.74      | 0.00           | NAO
+mcp130     | g_preimport_st             | 1    | OK       | 15.07     | 0.00           | NAO
+------------------------------------------------------------------------------------------

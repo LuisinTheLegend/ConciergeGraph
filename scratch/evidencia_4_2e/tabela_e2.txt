@@ -1,0 +1,10 @@
+=== TABELA EXPERIMENTO E2: LOOP DE EVENTOS COM STDIN ABERTO ===
+Variante             | Rep  | Classe   | Tempo(s)  | Reader Blocked  | Import OK 
+---------------------------------------------------------------------------
+a_proactor           | 1    | TRAVOU   | 120.13    | True            | False     
+a_proactor           | 2    | TRAVOU   | 120.17    | True            | False     
+b_selector           | 1    | TRAVOU   | 120.14    | True            | False     
+b_selector           | 2    | TRAVOU   | 120.12    | True            | False     
+c_no_asyncio         | 1    | TRAVOU   | 120.16    | True            | False     
+c_no_asyncio         | 2    | TRAVOU   | 120.15    | True            | False     
+---------------------------------------------------------------------------

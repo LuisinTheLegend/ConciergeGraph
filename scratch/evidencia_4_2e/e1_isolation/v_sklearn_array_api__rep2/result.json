@@ -1,0 +1,10 @@
+{
+  "case": "v_sklearn_array_api",
+  "rep": 2,
+  "mode": "open",
+  "classe": "TRAVOU",
+  "time_s": 120.09,
+  "reader_blocked": true,
+  "import_ok": false,
+  "returncode": 1
+}
