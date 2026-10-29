@@ -1,0 +1,179 @@
+RODADA 4.2e - DESCRICAO DO PROBLEMA: TRAVAMENTO NA PRIMEIRA CARGA DO MODELO DENTRO DO SERVIDOR MCP
+Data: 2026-10-28
+Estado do repositorio: HEAD dd92d35 (nenhuma mudanca de producao feita na 4.2e ate agora)
+
+======================================================================
+1. RESUMO EM POUCAS LINHAS
+======================================================================
+- Pelo cliente MCP real (stdio), a primeira chamada que precisa do modelo de
+  embedding (concierge_mine OU concierge_search) TRAVA para sempre no Windows.
+- A thread principal do servidor fica presa em "import scipy.special" (extensao
+  C _ufuncs), chamado por sklearn, chamado por sentence_transformers.
+- O mesmo codigo, fora do servidor MCP (chamada direta em processo), funciona:
+  gc.mine() terminou em 41,54 s.
+- Quando o import de sentence_transformers e feito de forma SINCRONA na thread
+  principal ANTES de server.run(), a busca pelo MCP funciona (22,7 s no total).
+- Quando o mesmo import e feito numa THREAD daemon iniciada logo antes de
+  server.run() (que e exatamente o desenho da 4.2e), o servidor TRAVA.
+- Conclusao parcial: o aquecimento em thread pedido na 4.2e, do jeito
+  especificado, NAO conserta o problema. Aguardamos decisao do usuario.
+
+======================================================================
+2. CONTEXTO: O QUE A 4.2e QUERIA FAZER
+======================================================================
+- A 4.2d tirou ~11 s do bootstrap tornando o import de sentence_transformers/
+  torch preguicoso (lazy). O custo foi movido para a 1a chamada que gera
+  embedding: 15,7 s, 23,06 s e 25,07 s em medicoes anteriores.
+- A 4.2e propoe carregar o modelo numa thread em segundo plano logo antes de
+  server.run(), para esconder esse custo, e medir a 1a chamada de verdade pelo
+  cliente MCP real (a ferramenta antiga, scratch/mcp_e2e_profile.py, chamava as
+  ferramentas com parametros invalidos e nunca minerou nem buscou; o tempo de
+  ~0,002 s era erro de validacao, nao medicao).
+- Foi criada a ferramenta valida scratch/evidencia_4_2e/mcp_e2e_v2.py (cliente
+  MCP stdio real, parametros reais, valida isError/success, conta vetores no
+  Chroma, valida resultado da busca).
+
+======================================================================
+3. SINTOMA OBSERVADO
+======================================================================
+Rodando mcp_e2e_v2.py (5 arquivos Python temporarios, DB/Chroma temporarios):
+- initialize: ~2,7 s; list_tools: ~0,004 s; concierge_register: ~0,008 s (ok).
+- concierge_mine: executa CRAWL, PARSE (13 chunks), SUMMARIZE (~22 s, LLM falha
+  e cai em "Dumb Summary"), STORE SQLite (13 nos criados) e entra em
+  "[5/8] EMBED - Generating embeddings...". Dai em diante nao anda mais.
+- Ocorreu 3 vezes (uma delas deixou a medicao rodando mais de 9 minutos; outra,
+  27 minutos). Foi preciso cancelar manualmente.
+
+======================================================================
+4. O QUE FOI PROVADO (com evidencia)
+======================================================================
+4.1 Stack dump do processo servidor (dump_mine_hang.py, a cada 5 s):
+    - MainThread: dentro de concierge_mine -> _load_model -> import
+      sentence_transformers -> ... -> sklearn.utils._array_api ->
+      "import scipy.special" -> "from . import _ufuncs" ->
+      importlib create_module (carregamento da DLL/.pyd). Fica parada ali.
+    - Outras threads: AnyIO worker thread bloqueada lendo stdin (normal para o
+      servidor MCP stdio) e sqlite-writer ociosa.
+4.2 O SUMMARIZE NAO e a causa:
+    - Teste com o LLM desativado (GRAFO_LLM_API_KEY vazio, modelo "none"): ainda
+      trava no mesmo import (porem o caminho assincrono do summarizer ainda
+      rodou, so que sem rede).
+    - Teste decisivo: concierge_search como PRIMEIRA chamada, sem mineracao e
+      sem passar pelo SUMMARIZE: tambem trava no mesmo import scipy._ufuncs
+      (stack dump confirmado: scipy e sentence_transformers na pilha).
+    => O problema e carregar sentence_transformers/scipy pela primeira vez
+       DENTRO do servidor MCP ja em funcionamento.
+4.3 Fora do servidor funciona:
+    - diag_hang.py (gc.mine() em processo, sem MCP): concluiu em 41,54 s
+      (_load_model ~12 s, encode ~1 s).
+    - first_embed_profile.py da 4.2d tambem funciona (processo sem servidor).
+4.4 O boot do servidor nao e afetado:
+    - scratch/boot_check.py (initialize, 31 ferramentas, concierge_status)
+      passou e encerrou limpo em ~3 s.
+4.5 Teste de pre-import (um unico run de cada; n=1), busca via MCP sem minerar:
+    - import sync de sentence_transformers na thread principal antes de
+      server.run(): OK (22,7 s no total).
+    - import em thread daemon iniciada antes de server.run(): TRAVOU
+      (79,6 s; parado em importlib "acquire", ou seja, esperando o lock de
+      import que a outra thread tambem nao consegue liberar).
+
+======================================================================
+5. HIPOTESES DESCARTADAS (e uma retratacao)
+======================================================================
+- HIPOTESE DESCARTADA: "uma thread bloqueada lendo stdin trava o import do
+  scipy no Windows". Foi afirmada como "confirmada 100%" durante a
+  investigacao, mas isso foi precipitado. Matriz de 4 casos isolados
+  (repro_matrix.py: import sem leitor de stdin; thread bloqueada em
+  sys.stdin.buffer + import na main; idem + import em thread secundaria; stdin
+  DEVNULL) terminou OK em 1-2 s em todos. A hipotese esta REFUTADA.
+- HIPOTESE NAO TESTADA, DESCARTAR: "bloqueio de sockets do sandbox causava o
+  travamento". Nunca foi verificada. (Os testes que travavam em sandbox e os
+  que passaram com BypassSandbox variaram junto com outras coisas; nao ha prova.)
+- HIPOTESE DESCARTADA: "o SUMMARIZE com chamadas LLM falhas (gRPC/asyncio
+  aninhado) deixa estado que trava o import". A busca sem SUMMARIZE tambem trava.
+
+======================================================================
+6. HIPOTESE ATUAL (NAO CONFIRMADA)
+======================================================================
+O import de extensoes C do scipy (scipy.special._ufuncs) trava no Windows
+quando o loop asyncio do servidor (ProactorEventLoop) ja esta ativo ou esta
+sendo criado. Se o import termina ANTES de o loop existir (sincrono antes de
+server.run), funciona. Se o import corre em paralelo com o inicio do servidor
+(thread), ou depois dele, trava.
+Isto e coerente com todos os dados acima, mas o mecanismo exato (DllMain /
+loader lock / outra interacao do Proactor) NAO foi isolado. Os dados de
+sincrono-vs-thread sao de uma unica execucao cada.
+
+======================================================================
+7. CONSEQUENCIAS
+======================================================================
+a) O desenho da 4.2e (aquecimento em thread antes de server.run) travaria o
+   servidor. NAO deve ser implementado como esta especificado.
+b) ACHADO CRITICO FORA DO ESCOPO: qualquer uso real de concierge_search ou
+   concierge_mine pelo MCP na configuracao atual (HEAD, pos-4.2d) trava na
+   primeira chamada, no Windows com este ambiente (Python 3.14.3, mcp 1.27.0).
+c) O "teste funcional real" da 4.2d NAO exercitou isso, pois rodou em processo,
+   fora do servidor MCP. Sugestao: registrar em audits/fase4-achados.md como
+   achado critico.
+d) Nenhum arquivo de producao foi alterado nesta investigacao. Os scripts de
+   diagnostico estao em scratch/ e na pasta de artefatos da conversa.
+
+======================================================================
+8. OPCOES DE CORRECAO (aguardando decisao do usuario)
+======================================================================
+A) Pre-import SINCRONO antes de server.run().
+   + Comprovadamente funciona (1 run).
+   - Devolve ao initialize o custo de ~11 s que a 4.2d tinha removido
+     (comportamento anterior a 4.2d; risco de timeout de cliente no initialize).
+   - Conflita com os testes T1/T2 da 4.2d se o import ficar dentro de
+     bootstrap(); teria de ser feito em main(), fora de bootstrap().
+B) (RECOMENDADA PARA TESTAR) Pre-importar de forma sincrona apenas o minimo
+   que trava (scipy.special e possivelmente sklearn), antes de server.run(), e
+   deixar o resto (torch, carga do modelo) para thread/lazy.
+   + Se so o scipy travar, preserva quase todo o ganho da 4.2d.
+   - Ainda nao testado; torch/outros tambem podem travar. Teste de ~2 min.
+   - Dentro do escopo (apenas main.py).
+C) Carregar o modelo em outro processo (worker separado).
+   + Resolve a classe de problema de vez.
+   - Muda a arquitetura; fora do escopo da 4.2e.
+
+======================================================================
+9. PROXIMOS PASSOS PROPOSTOS
+======================================================================
+1. Usuario decide entre A, B ou C (ou outra abordagem).
+2. Se B: testar pre-import so de scipy.special sincrono + resto em thread, em
+   varias repeticoes (nao n=1), com busca e mineracao pelo MCP.
+3. Registrar o achado critico (item 7b) em audits/fase4-achados.md e corrigir
+   as errata 4.2c/4.2d que dependiam de medicoes invalidas.
+4. So depois seguir o plano original da 4.2e (testes TDD, implementacao,
+   mutacoes, boot_check, stdout limpo, encerramento durante aquecimento,
+   medicoes antes/depois, relatorio por build_report.py, Gate da Regra 7).
+   Os testes W1-W8 e o desenho do start_embedding_warmup precisarao ser
+   revistos conforme a decisao.
+
+======================================================================
+10. LIMITACOES E AVISOS HONESTOS
+======================================================================
+- Todos os resultados de pre-import (sync x thread) sao n=1.
+- O mecanismo exato do travamento nao foi isolado; a hipotese do item 6 e
+  apenas a que melhor explica os dados.
+- Nenhuma medicao valida de "antes/depois" da 4.2e foi concluida ainda, pois a
+  1a chamada trava no codigo atual. Os arquivos antes_S1_rep{1,2,3} nao foram
+  gerados com sucesso.
+- Alguns arquivos de evidencia mencionados em passos anteriores (ex.:
+  baseline_pytest.txt, passo0_git_state.txt) existem, mas o relatorio final via
+  build_report.py ainda nao foi produzido.
+
+======================================================================
+11. ARQUIVOS RELEVANTES
+======================================================================
+- scratch/evidencia_4_2e/mcp_e2e_v2.py            ferramenta de medicao valida
+- scratch/boot_check.py                           prova de boot (passa)
+- scratch/evidencia_4_2e/baseline_pytest.txt      baseline: 361 passed, 1 skipped, 1 failed (BL-015)
+- Pasta de artefatos da conversa, subpasta scratch/:
+    diag_hang.py            gc.mine() em processo (funciona, 41,54 s)
+    dump_mine_hang.py       stack dump do servidor durante a chamada MCP
+                            (variaveis: DIAG_ACTION, DIAG_NO_LLM, DIAG_PREIMPORT, DIAG_TIMEOUT)
+    repro_matrix.py         matriz stdin x import scipy (refutou hipotese)
+    run_preimport_matrix.py comparacao pre-import sync x thread
+

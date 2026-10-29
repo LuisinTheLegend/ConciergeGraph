@@ -1,0 +1,16 @@
+{
+  "repo": "C:\\Nexus-Memory\\_wt_4_2e\\7db9f7d",
+  "scenario": "mine",
+  "timeout_s": 180.0,
+  "blas_threads_1": false,
+  "python": "C:\\Python314\\python.exe",
+  "started": "2026-10-28T17:20:08",
+  "classe": "OK",
+  "t_initialize_s": 12.532,
+  "tool_critica": "concierge_mine",
+  "t_critica_s": 78.648,
+  "detalhe": {
+    "nodes_created": 13
+  },
+  "total_s": 93.74
+}

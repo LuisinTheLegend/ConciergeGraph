@@ -1,0 +1,70 @@
+===========================================================================
+GRAFO CONCIERGE — MCP E2E V2 PROFILE (STDIO REAL)
+===========================================================================
+Target Python:      C:\Python314\python.exe
+Temp DB:            C:\Users\guial\AppData\Local\Temp\grafo_e2e_v2__zcmwu88\e2e_v2_concierge.db
+Temp Chroma:        C:\Users\guial\AppData\Local\Temp\grafo_e2e_v2__zcmwu88\e2e_v2_chroma
+Sample Project Dir: C:\Users\guial\AppData\Local\Temp\grafo_e2e_v2__zcmwu88\sample_project (5 files)
+Warmup:             off
+Delay before mine:  0.0s
+Probe duration:     0.0s
+Offline:            False
+Self-test bad args: True
+===========================================================================
+[1/6] Enviando initialize...
+      -> Concluido em 3.2632s apos spawn
+[2/6] Solicitando list_tools...
+      -> 31 ferramentas listadas em 0.0089s
+[Self-Test Negativo] Chamando concierge_mine com argumentos incorretos ('project_name')...
+
+
+[FALHA FATAL NO E2E V2]: ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  + Exception Group Traceback (most recent call last):
+  |   File "C:\Nexus-Memory\GrafoConcierge\scratch\evidencia_4_2e\mcp_e2e_v2.py", line 464, in main
+  |     exit_code = asyncio.run(main_async(args))
+  |   File "C:\Python314\Lib\asyncio\runners.py", line 204, in run
+  |     return runner.run(main)
+  |            ~~~~~~~~~~^^^^^^
+  |   File "C:\Python314\Lib\asyncio\runners.py", line 127, in run
+  |     return self._loop.run_until_complete(task)
+  |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  |   File "C:\Python314\Lib\asyncio\base_events.py", line 719, in run_until_complete
+  |     return future.result()
+  |            ~~~~~~~~~~~~~^^
+  |   File "C:\Nexus-Memory\GrafoConcierge\scratch\evidencia_4_2e\mcp_e2e_v2.py", line 246, in main_async
+  |     async with stdio_client(server_params, errlog=server_err_file) as (read_stream, write_stream):
+  |                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Python314\Lib\contextlib.py", line 235, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\client\stdio\__init__.py", line 183, in stdio_client
+  |     anyio.create_task_group() as tg,
+  |     ~~~~~~~~~~~~~~~~~~~~~~~^^
+  |   File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 799, in __aexit__
+  |     raise BaseExceptionGroup(
+  |         "unhandled errors in a TaskGroup", self._exceptions
+  |     ) from None
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Exception Group Traceback (most recent call last):
+    |   File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\client\stdio\__init__.py", line 189, in stdio_client
+    |     yield read_stream, write_stream
+    |   File "C:\Nexus-Memory\GrafoConcierge\scratch\evidencia_4_2e\mcp_e2e_v2.py", line 256, in main_async
+    |     async with ClientSession(read_stream, write_stream) as session:
+    |                ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\mcp\shared\session.py", line 238, in __aexit__
+    |     return await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 799, in __aexit__
+    |     raise BaseExceptionGroup(
+    |         "unhandled errors in a TaskGroup", self._exceptions
+    |     ) from None
+    | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+    +-+---------------- 1 ----------------
+      | Traceback (most recent call last):
+      |   File "C:\Nexus-Memory\GrafoConcierge\scratch\evidencia_4_2e\mcp_e2e_v2.py", line 302, in main_async
+      |     parse_mcp_result(res_bad, "concierge_mine (self-test bad args)")
+      |     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      |   File "C:\Nexus-Memory\GrafoConcierge\scratch\evidencia_4_2e\mcp_e2e_v2.py", line 115, in parse_mcp_result
+      |     raise RuntimeError(f"Tool {tool_name} returned isError=True: {call_res}")
+      | RuntimeError: Tool concierge_mine (self-test bad args) returned isError=True: meta=None content=[TextContent(type='text', text="Error executing tool concierge_mine: 2 validation errors for concierge_mineArguments\npath\n  Field required [type=missing, input_value={'project_name': 'invalid_proj'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing\nproject_identifier\n  Field required [type=missing, input_value={'project_name': 'invalid_proj'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing", annotations=None, meta=None)] structuredContent=None isError=True
+      +------------------------------------

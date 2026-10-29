@@ -1,0 +1,34 @@
+===============================================================================================
+TABELA DO PASSO 2 — CONTROLE DE REGRESSÃO: 7db9f7d (pré-4.2d) vs dd92d35 (HEAD)
+===============================================================================================
+Commit     | Cenário       | Rep  | Status   | t_init (s)  | t_crit (s)  | Total (s)  | Detalhes
+-----------------------------------------------------------------------------------------------
+7db9f7d    | mine          | 1    | OK       | 12.53       | 78.65       | 93.74      | OK
+7db9f7d    | mine          | 2    | OK       | 13.35       | 78.18       | 94.10      | OK
+7db9f7d    | mine          | 3    | OK       | 12.73       | 78.89       | 94.27      | OK
+7db9f7d    | mine          | 4    | OK       | 12.61       | 78.19       | 93.36      | OK
+7db9f7d    | mine          | 5    | OK       | 13.54       | 78.32       | 94.50      | OK
+dd92d35    | mine          | 1    | TRAVOU   | 2.66        | 180.01      | 243.74     | PID=32144, CPU_samples=12
+dd92d35    | mine          | 2    | TRAVOU   | 2.58        | 180.00      | 243.77     | PID=25256, CPU_samples=12
+dd92d35    | mine          | 3    | TRAVOU   | 2.54        | 180.01      | 243.65     | PID=5384, CPU_samples=12
+dd92d35    | mine          | 4    | TRAVOU   | 2.64        | 180.02      | 243.77     | PID=27072, CPU_samples=12
+dd92d35    | mine          | 5    | TRAVOU   | 2.52        | 180.01      | 243.77     | PID=16460, CPU_samples=12
+7db9f7d    | search-first  | 1    | OK       | 13.43       | 4.97        | 121.28     | OK
+7db9f7d    | search-first  | 2    | OK       | 12.80       | 4.29        | 112.21     | OK
+7db9f7d    | search-first  | 3    | OK       | 13.16       | 4.47        | 114.94     | OK
+7db9f7d    | search-first  | 4    | OK       | 13.06       | 4.51        | 112.35     | OK
+7db9f7d    | search-first  | 5    | OK       | 12.98       | 5.00        | 113.78     | OK
+dd92d35    | search-first  | 1    | TRAVOU   | 2.42        | 180.00      | 338.53     | PID=7956, CPU_samples=12
+dd92d35    | search-first  | 2    | TRAVOU   | 2.51        | 180.01      | 338.30     | PID=19280, CPU_samples=12
+dd92d35    | search-first  | 3    | TRAVOU   | 2.36        | 180.01      | 337.58     | PID=18984, CPU_samples=12
+dd92d35    | search-first  | 4    | TRAVOU   | 2.43        | 180.00      | 337.64     | PID=12576, CPU_samples=12
+dd92d35    | search-first  | 5    | TRAVOU   | 2.60        | 180.01      | 337.93     | PID=4680, CPU_samples=12
+===============================================================================================
+
+RESUMO ESTATÍSTICO:
+--------------------------------------------------
+Commit 7db9f7d  | Cenário search-first | OK: 5/5 | TRAVOU: 0/5
+Commit dd92d35  | Cenário search-first | OK: 0/5 | TRAVOU: 5/5
+Commit 7db9f7d  | Cenário mine         | OK: 5/5 | TRAVOU: 0/5
+Commit dd92d35  | Cenário mine         | OK: 0/5 | TRAVOU: 5/5
+===============================================================================================

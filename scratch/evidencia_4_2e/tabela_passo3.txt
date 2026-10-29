@@ -1,0 +1,58 @@
+=====================================================================================
+TABELA DO PASSO 3 — REPRODUÇÃO MÍNIMA ISOLADA (SEM O CONCIERGE)
+=====================================================================================
+Venv (MCP)   | Variante        | Rep  | Status   | t_init (s)  | t_call (s)  | Total (s)
+-------------------------------------------------------------------------------------
+mcp127       | a_sync_scipy    | 1    | TRAVOU   | 1.60        | -           | 182.25
+mcp127       | a_sync_scipy    | 2    | TRAVOU   | 1.30        | -           | 181.97
+mcp127       | a_sync_scipy    | 3    | TRAVOU   | 1.31        | -           | 181.96
+mcp127       | a_sync_scipy    | 4    | TRAVOU   | 1.33        | -           | 181.99
+mcp127       | a_sync_scipy    | 5    | TRAVOU   | 1.27        | -           | 181.91
+mcp127       | b_sync_st       | 1    | TRAVOU   | 1.28        | -           | 183.29
+mcp127       | b_sync_st       | 2    | TRAVOU   | 1.27        | -           | 183.27
+mcp127       | b_sync_st       | 3    | TRAVOU   | 1.34        | -           | 183.36
+mcp127       | b_sync_st       | 4    | TRAVOU   | 1.36        | -           | 183.39
+mcp127       | b_sync_st       | 5    | TRAVOU   | 1.23        | -           | 183.25
+mcp127       | c_async_tot     | 1    | TRAVOU   | 1.29        | -           | 183.31
+mcp127       | c_async_tot     | 2    | TRAVOU   | 1.25        | -           | 183.27
+mcp127       | c_async_tot     | 3    | TRAVOU   | 1.37        | -           | 183.39
+mcp127       | c_async_tot     | 4    | TRAVOU   | 1.28        | -           | 183.30
+mcp127       | c_async_tot     | 5    | TRAVOU   | 1.21        | -           | 183.23
+mcp127       | d_preimport     | 1    | OK       | 11.46       | 0.02        | 12.72
+mcp127       | d_preimport     | 2    | OK       | 11.54       | 0.02        | 12.82
+mcp127       | d_preimport     | 3    | OK       | 11.33       | 0.02        | 12.60
+mcp127       | d_preimport     | 4    | OK       | 11.55       | 0.02        | 12.83
+mcp127       | d_preimport     | 5    | OK       | 11.29       | 0.02        | 12.56
+mcp130       | a_sync_scipy    | 1    | TRAVOU   | 1.08        | -           | 181.98
+mcp130       | a_sync_scipy    | 2    | TRAVOU   | 0.98        | -           | 181.91
+mcp130       | a_sync_scipy    | 3    | TRAVOU   | 1.06        | -           | 181.93
+mcp130       | a_sync_scipy    | 4    | TRAVOU   | 1.05        | -           | 181.91
+mcp130       | a_sync_scipy    | 5    | TRAVOU   | 1.00        | -           | 181.88
+mcp130       | b_sync_st       | 1    | TRAVOU   | 0.99        | -           | 193.06
+mcp130       | b_sync_st       | 2    | TRAVOU   | 1.03        | -           | 192.15
+mcp130       | b_sync_st       | 3    | TRAVOU   | 1.03        | -           | 193.80
+mcp130       | b_sync_st       | 4    | TRAVOU   | 1.02        | -           | 192.97
+mcp130       | b_sync_st       | 5    | TRAVOU   | 1.09        | -           | 193.02
+mcp130       | c_async_tot     | 1    | TRAVOU   | 0.99        | -           | 192.19
+mcp130       | c_async_tot     | 2    | TRAVOU   | 1.03        | -           | 192.16
+mcp130       | c_async_tot     | 3    | TRAVOU   | 1.09        | -           | 193.36
+mcp130       | c_async_tot     | 4    | TRAVOU   | 0.97        | -           | 193.33
+mcp130       | c_async_tot     | 5    | TRAVOU   | 1.00        | -           | 192.99
+mcp130       | d_preimport     | 1    | OK       | 10.91       | 0.01        | 12.14
+mcp130       | d_preimport     | 2    | OK       | 10.96       | 0.01        | 12.16
+mcp130       | d_preimport     | 3    | OK       | 11.74       | 0.01        | 12.96
+mcp130       | d_preimport     | 4    | OK       | 11.57       | 0.01        | 12.78
+mcp130       | d_preimport     | 5    | OK       | 11.64       | 0.01        | 12.86
+=====================================================================================
+
+RESUMO ESTATÍSTICO:
+-----------------------------------------------------------------
+Venv mcp127  | Variante a_sync_scipy    | OK: 0/5 | TRAVOU: 5/5
+Venv mcp127  | Variante b_sync_st       | OK: 0/5 | TRAVOU: 5/5
+Venv mcp127  | Variante c_async_tot     | OK: 0/5 | TRAVOU: 5/5
+Venv mcp127  | Variante d_preimport     | OK: 5/5 | TRAVOU: 0/5
+Venv mcp130  | Variante a_sync_scipy    | OK: 0/5 | TRAVOU: 5/5
+Venv mcp130  | Variante b_sync_st       | OK: 0/5 | TRAVOU: 5/5
+Venv mcp130  | Variante c_async_tot     | OK: 0/5 | TRAVOU: 5/5
+Venv mcp130  | Variante d_preimport     | OK: 5/5 | TRAVOU: 0/5
+=====================================================================================

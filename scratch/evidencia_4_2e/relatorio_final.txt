@@ -1,0 +1,194 @@
+==========================================================================================
+RELATÓRIO CONSOLIDADO — RODADA 4.2e (REVISADA) — DIAGNÓSTICO DO TRAVAMENTO NO MCP
+==========================================================================================
+Papel: executor | Regras: 2, 3, 4, 7, 10, 11, 12 | Status: CONCLUÍDO (SUSPENSÃO DA 4.2e ORIGINAL)
+==========================================================================================
+
+1. AMBIENTE E VERSÕES (scratch/evidencia_4_2e/ambiente.txt):
+------------------------------------------------------------------------------------------
+python: 3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]
+executable: C:\Python314\python.exe
+mcp: 1.27.0
+anyio: 4.13.0
+scipy: 1.17.1
+numpy: 2.4.4
+scikit-learn: 1.8.0
+torch: 2.11.0
+transformers: 5.7.0
+sentence-transformers: 5.4.1
+chromadb: 1.5.9
+psutil: 7.2.2
+uvicorn: 0.46.0
+starlette: 1.0.0
+platform: Windows-11-10.0.26300-SP0
+windows_version: 10.0.26300
+os_caption_build: Caption     : Microsoft Windows 11 Home Single Language
+Version     : 10.0.26300
+BuildNumber : 26300
+defender_realtime: RealTimeProtectionEnabled : True
+AntivirusEnabled          : True
+AMServiceEnabled          : True
+BehaviorMonitorEnabled    : True
+IoavProtectionEnabled     : True
+antivirus_products: displayName : Windows Defender
+launch_context: processo lancado pelo AGENTE (run_command da ferramenta), NAO por terminal interativo do dono
+stdin_isatty: False
+stdout_isatty: False
+env_PROMPT_or_WT_SESSION: WT_SESSION=None TERM_PROGRAM=None
+PYTHONPATH: None
+OPENBLAS_NUM_THREADS: None
+OMP_NUM_THREADS: None
+git_head: 7bfd7331604e106b7d9471c37ac6e99df5a09b1f
+
+==========================================================================================
+
+2. CONTROLE DE REGRESSÃO (Passo 2 — scratch/evidencia_4_2e/tabela_passo2.txt):
+------------------------------------------------------------------------------------------
+===============================================================================================
+TABELA DO PASSO 2 — CONTROLE DE REGRESSÃO: 7db9f7d (pré-4.2d) vs dd92d35 (HEAD)
+===============================================================================================
+Commit     | Cenário       | Rep  | Status   | t_init (s)  | t_crit (s)  | Total (s)  | Detalhes
+-----------------------------------------------------------------------------------------------
+7db9f7d    | mine          | 1    | OK       | 12.53       | 78.65       | 93.74      | OK
+7db9f7d    | mine          | 2    | OK       | 13.35       | 78.18       | 94.10      | OK
+7db9f7d    | mine          | 3    | OK       | 12.73       | 78.89       | 94.27      | OK
+7db9f7d    | mine          | 4    | OK       | 12.61       | 78.19       | 93.36      | OK
+7db9f7d    | mine          | 5    | OK       | 13.54       | 78.32       | 94.50      | OK
+dd92d35    | mine          | 1    | TRAVOU   | 2.66        | 180.01      | 243.74     | PID=32144, CPU_samples=12
+dd92d35    | mine          | 2    | TRAVOU   | 2.58        | 180.00      | 243.77     | PID=25256, CPU_samples=12
+dd92d35    | mine          | 3    | TRAVOU   | 2.54        | 180.01      | 243.65     | PID=5384, CPU_samples=12
+dd92d35    | mine          | 4    | TRAVOU   | 2.64        | 180.02      | 243.77     | PID=27072, CPU_samples=12
+dd92d35    | mine          | 5    | TRAVOU   | 2.52        | 180.01      | 243.77     | PID=16460, CPU_samples=12
+7db9f7d    | search-first  | 1    | OK       | 13.43       | 4.97        | 121.28     | OK
+7db9f7d    | search-first  | 2    | OK       | 12.80       | 4.29        | 112.21     | OK
+7db9f7d    | search-first  | 3    | OK       | 13.16       | 4.47        | 114.94     | OK
+7db9f7d    | search-first  | 4    | OK       | 13.06       | 4.51        | 112.35     | OK
+7db9f7d    | search-first  | 5    | OK       | 12.98       | 5.00        | 113.78     | OK
+dd92d35    | search-first  | 1    | TRAVOU   | 2.42        | 180.00      | 338.53     | PID=7956, CPU_samples=12
+dd92d35    | search-first  | 2    | TRAVOU   | 2.51        | 180.01      | 338.30     | PID=19280, CPU_samples=12
+dd92d35    | search-first  | 3    | TRAVOU   | 2.36        | 180.01      | 337.58     | PID=18984, CPU_samples=12
+dd92d35    | search-first  | 4    | TRAVOU   | 2.43        | 180.00      | 337.64     | PID=12576, CPU_samples=12
+dd92d35    | search-first  | 5    | TRAVOU   | 2.60        | 180.01      | 337.93     | PID=4680, CPU_samples=12
+===============================================================================================
+
+RESUMO ESTATÍSTICO:
+--------------------------------------------------
+Commit 7db9f7d  | Cenário search-first | OK: 5/5 | TRAVOU: 0/5
+Commit dd92d35  | Cenário search-first | OK: 0/5 | TRAVOU: 5/5
+Commit 7db9f7d  | Cenário mine         | OK: 5/5 | TRAVOU: 0/5
+Commit dd92d35  | Cenário mine         | OK: 0/5 | TRAVOU: 5/5
+===============================================================================================
+
+==========================================================================================
+
+3. REPRODUÇÃO MÍNIMA ISOLADA SEM O CONCIERGE (Passo 3 — scratch/evidencia_4_2e/tabela_passo3.txt):
+------------------------------------------------------------------------------------------
+=====================================================================================
+TABELA DO PASSO 3 — REPRODUÇÃO MÍNIMA ISOLADA (SEM O CONCIERGE)
+=====================================================================================
+Venv (MCP)   | Variante        | Rep  | Status   | t_init (s)  | t_call (s)  | Total (s)
+-------------------------------------------------------------------------------------
+mcp127       | a_sync_scipy    | 1    | TRAVOU   | 1.60        | -           | 182.25
+mcp127       | a_sync_scipy    | 2    | TRAVOU   | 1.30        | -           | 181.97
+mcp127       | a_sync_scipy    | 3    | TRAVOU   | 1.31        | -           | 181.96
+mcp127       | a_sync_scipy    | 4    | TRAVOU   | 1.33        | -           | 181.99
+mcp127       | a_sync_scipy    | 5    | TRAVOU   | 1.27        | -           | 181.91
+mcp127       | b_sync_st       | 1    | TRAVOU   | 1.28        | -           | 183.29
+mcp127       | b_sync_st       | 2    | TRAVOU   | 1.27        | -           | 183.27
+mcp127       | b_sync_st       | 3    | TRAVOU   | 1.34        | -           | 183.36
+mcp127       | b_sync_st       | 4    | TRAVOU   | 1.36        | -           | 183.39
+mcp127       | b_sync_st       | 5    | TRAVOU   | 1.23        | -           | 183.25
+mcp127       | c_async_tot     | 1    | TRAVOU   | 1.29        | -           | 183.31
+mcp127       | c_async_tot     | 2    | TRAVOU   | 1.25        | -           | 183.27
+mcp127       | c_async_tot     | 3    | TRAVOU   | 1.37        | -           | 183.39
+mcp127       | c_async_tot     | 4    | TRAVOU   | 1.28        | -           | 183.30
+mcp127       | c_async_tot     | 5    | TRAVOU   | 1.21        | -           | 183.23
+mcp127       | d_preimport     | 1    | OK       | 11.46       | 0.02        | 12.72
+mcp127       | d_preimport     | 2    | OK       | 11.54       | 0.02        | 12.82
+mcp127       | d_preimport     | 3    | OK       | 11.33       | 0.02        | 12.60
+mcp127       | d_preimport     | 4    | OK       | 11.55       | 0.02        | 12.83
+mcp127       | d_preimport     | 5    | OK       | 11.29       | 0.02        | 12.56
+mcp130       | a_sync_scipy    | 1    | TRAVOU   | 1.08        | -           | 181.98
+mcp130       | a_sync_scipy    | 2    | TRAVOU   | 0.98        | -           | 181.91
+mcp130       | a_sync_scipy    | 3    | TRAVOU   | 1.06        | -           | 181.93
+mcp130       | a_sync_scipy    | 4    | TRAVOU   | 1.05        | -           | 181.91
+mcp130       | a_sync_scipy    | 5    | TRAVOU   | 1.00        | -           | 181.88
+mcp130       | b_sync_st       | 1    | TRAVOU   | 0.99        | -           | 193.06
+mcp130       | b_sync_st       | 2    | TRAVOU   | 1.03        | -           | 192.15
+mcp130       | b_sync_st       | 3    | TRAVOU   | 1.03        | -           | 193.80
+mcp130       | b_sync_st       | 4    | TRAVOU   | 1.02        | -           | 192.97
+mcp130       | b_sync_st       | 5    | TRAVOU   | 1.09        | -           | 193.02
+mcp130       | c_async_tot     | 1    | TRAVOU   | 0.99        | -           | 192.19
+mcp130       | c_async_tot     | 2    | TRAVOU   | 1.03        | -           | 192.16
+mcp130       | c_async_tot     | 3    | TRAVOU   | 1.09        | -           | 193.36
+mcp130       | c_async_tot     | 4    | TRAVOU   | 0.97        | -           | 193.33
+mcp130       | c_async_tot     | 5    | TRAVOU   | 1.00        | -           | 192.99
+mcp130       | d_preimport     | 1    | OK       | 10.91       | 0.01        | 12.14
+mcp130       | d_preimport     | 2    | OK       | 10.96       | 0.01        | 12.16
+mcp130       | d_preimport     | 3    | OK       | 11.74       | 0.01        | 12.96
+mcp130       | d_preimport     | 4    | OK       | 11.57       | 0.01        | 12.78
+mcp130       | d_preimport     | 5    | OK       | 11.64       | 0.01        | 12.86
+=====================================================================================
+
+RESUMO ESTATÍSTICO:
+-----------------------------------------------------------------
+Venv mcp127  | Variante a_sync_scipy    | OK: 0/5 | TRAVOU: 5/5
+Venv mcp127  | Variante b_sync_st       | OK: 0/5 | TRAVOU: 5/5
+Venv mcp127  | Variante c_async_tot     | OK: 0/5 | TRAVOU: 5/5
+Venv mcp127  | Variante d_preimport     | OK: 5/5 | TRAVOU: 0/5
+Venv mcp130  | Variante a_sync_scipy    | OK: 0/5 | TRAVOU: 5/5
+Venv mcp130  | Variante b_sync_st       | OK: 0/5 | TRAVOU: 5/5
+Venv mcp130  | Variante c_async_tot     | OK: 0/5 | TRAVOU: 5/5
+Venv mcp130  | Variante d_preimport     | OK: 5/5 | TRAVOU: 0/5
+=====================================================================================
+
+==========================================================================================
+
+4. TESTE DE VARIÁVEIS DE AMBIENTE BLAS/OMP (Passo 4 — scratch/evidencia_4_2e/tabela_passo4.txt):
+------------------------------------------------------------------------------------------
+================================================================================
+TABELA DO PASSO 4 — IMPACTO DE OPENBLAS_NUM_THREADS=1 E OMP_NUM_THREADS=1
+Commit: dd92d35 (HEAD) | Cenário: mine | Repetições: 3 | Timeout: 180s
+================================================================================
+Rep  | Status   | t_init (s)  | t_crit (s)  | Total (s)  | Detalhes
+--------------------------------------------------------------------------------
+1    | TRAVOU   | 2.79        | 180.00      | 244.22     | CPU_samples=12
+2    | TRAVOU   | 2.71        | 180.01      | 243.98     | CPU_samples=12
+3    | TRAVOU   | 2.63        | 180.01      | 243.76     | CPU_samples=12
+================================================================================
+
+==========================================================================================
+
+5. PREPARAÇÃO DO COMANDO PARA EXECUÇÃO PELO DONO (Passo 5):
+------------------------------------------------------------------------------------------
+Script disponível: scratch/evidencia_4_2e/run_owner_check.py
+Comando para execução manual interativa no PowerShell:
+  python scratch\evidencia_4_2e\run_owner_check.py
+Arquivos gerados pela execução do dono:
+  - scratch/evidencia_4_2e/resultado_dono.json
+  - scratch/evidencia_4_2e/resultado_dono.txt
+
+==========================================================================================
+
+6. REGISTRO DE ACHADO (Passo 6):
+------------------------------------------------------------------------------------------
+Achado PROVISÓRIO registrado em audits/fase4-achados.md:
+  - Código: [F4-017]
+  - Título: 1ª chamada que usa o modelo trava dentro do servidor MCP no ambiente do agente (n pequeno)
+  - Status: NÃO CONFIRMADO
+  - Severidade: (A definir pelo dono/auditor)
+  - Status de F4-015 inalterado.
+
+==========================================================================================
+
+7. INTERPRETAÇÃO DOS DADOS (HIPÓTESES TÉCNICAS):
+------------------------------------------------------------------------------------------
+a) [HIPÓTESE NÃO CONFIRMADA FORA DO AGENTE]: O travamento decorre de uma restrição no runtime do
+   Windows quando o ProactorEventLoop do asyncio / pipes do stdio do MCP estão ativos e uma extensão C
+   compilada em Fortran/C (scipy.special._ufuncs) é carregada tardiamente durante a chamada de ferramenta.
+b) [FATO COMPROVADO]: O travamento é independente do Grafo Concierge — ocorre identicamente num servidor
+   FastMCP mínimo isolado de 10 linhas sob mcp 1.27.0 e mcp 1.30.0.
+c) [FATO COMPROVADO]: Quando o import é realizado no topo do script (pré-import), o servidor atende
+   normalmente em ~0.01s por chamada.
+d) [FATO COMPROVADO]: Restringir threads BLAS/OMP para 1 não evita o travamento.
+==========================================================================================

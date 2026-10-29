@@ -281,5 +281,33 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
   - Trade-off documentado: a carga de pesos e imports de ML passou para a 1ª chamada de embedding, variando de 4,59 s para **15,70 s** (+11,11 s); chamadas subsequentes realizam inferência quente em **~0,016 s**.
 - **Status:** **corrigido pelo executor, aguardando verificação independente** (Commits `34ad6d5`, `8366860`).
 
+---
+
+### [F4-017] 1ª chamada que usa o modelo trava dentro do servidor MCP no ambiente do agente (n pequeno)
+- **Status:** **NÃO CONFIRMADO** (Achado provisório; aguardando validação de execução pelo dono fora do ambiente do agente via `scratch/evidencia_4_2e/run_owner_check.py`)
+- **Severidade:** *(A definir pelo dono/auditor)*
+- **Arquivos & Linhas:** [`storage/vector_store.py:100-115`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py#L100-L115), [`main.py:245`](file:///c:/Nexus-Memory/GrafoConcierge/main.py#L245)
+- **Mecanismo da Falha (Hipótese Técnica):**
+  Após a alteração da Rodada 4.2d que tornou o import de `sentence_transformers` preguiçoso (`EmbeddingManager._load_model()`), a primeira chamada de ferramenta MCP que necessita gerar embeddings (`concierge_search` ou `concierge_mine`) trava por timeout de 180s quando executada através do transporte STDIO no Windows.
+  A amostragem de telemetria durante o travamento registra consumo de CPU em ~0.0% com 26-27 threads ativas e o `faulthandler` indica bloqueio na resolução e instanciação dinâmica do módulo C/Fortran compilado `scipy.special._ufuncs` (`importlib._bootstrap_external.create_module`).
+- **Comprovações Experimentais (Rodada 4.2e Revisada):**
+  1. **Controle de Regressão (Passo 2, 20 repetições alternadas com timeout 180s):**
+     - Commit `7db9f7d` (pré-4.2d, import antecipado no bootstrap): 5/5 OK em `search-first` e 5/5 OK em `mine`.
+     - Commit `dd92d35` (HEAD pós-4.2d, import lazy no `_load_model`): 5/5 TRAVOU em `search-first` e 5/5 TRAVOU em `mine`.
+     - Evidência gerada em: `scratch/evidencia_4_2e/tabela_passo2.txt`.
+  2. **Reprodução Mínima Externa (Passo 3, sem o Grafo Concierge, 40 repetições):**
+     - Em servidor FastMCP stdio isolado de 10 linhas sob `mcp==1.27.0` e `mcp==1.30.0`:
+       - Variante A (`import scipy.special` dentro de ferramenta `def`): 5/5 TRAVOU em ambos os venvs.
+       - Variante B (`import sentence_transformers` dentro de ferramenta `def`): 5/5 TRAVOU em ambos os venvs.
+       - Variante C (import dentro de `anyio.to_thread.run_sync`): 5/5 TRAVOU em ambos os venvs.
+       - Variante D (pré-import no topo do arquivo antes de `m.run()`): 5/5 OK em ambos os venvs (~11-12s de initialize, ~0.01s na ferramenta).
+     - Evidência gerada em: `scratch/evidencia_4_2e/tabela_passo3.txt`.
+  3. **Variáveis de Ambiente (Passo 4, 3 repetições):**
+     - Configuração `OPENBLAS_NUM_THREADS=1` e `OMP_NUM_THREADS=1` em `dd92d35`: 3/3 TRAVOU no cenário `mine`.
+     - Evidência gerada em: `scratch/evidencia_4_2e/tabela_passo4.txt`.
+- **Instruções para Validação pelo Dono:**
+  O script autônomo [`scratch/evidencia_4_2e/run_owner_check.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_2e/run_owner_check.py) foi preparado para execução no PowerShell interativo sem interferência de agentes, gerando `scratch/evidencia_4_2e/resultado_dono.json`.
+
+
 
 

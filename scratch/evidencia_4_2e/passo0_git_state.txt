@@ -1,0 +1,6 @@
+HEAD: dd92d35f51a21c3fca891c96bc8f7e2f158db64d
+STATUS:
+?? scratch/baseline_fase4_20261019.txt
+?? scratch/count_dumb_test_db.py
+?? scratch/evidencia_4_2d/head_commit.txt
+?? scratch/evidencia_4_2d/ls_remote.txt

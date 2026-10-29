@@ -1,0 +1,33 @@
+python: 3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]
+executable: C:\Python314\python.exe
+mcp: 1.27.0
+anyio: 4.13.0
+scipy: 1.17.1
+numpy: 2.4.4
+scikit-learn: 1.8.0
+torch: 2.11.0
+transformers: 5.7.0
+sentence-transformers: 5.4.1
+chromadb: 1.5.9
+psutil: 7.2.2
+uvicorn: 0.46.0
+starlette: 1.0.0
+platform: Windows-11-10.0.26300-SP0
+windows_version: 10.0.26300
+os_caption_build: Caption     : Microsoft Windows 11 Home Single Language
+Version     : 10.0.26300
+BuildNumber : 26300
+defender_realtime: RealTimeProtectionEnabled : True
+AntivirusEnabled          : True
+AMServiceEnabled          : True
+BehaviorMonitorEnabled    : True
+IoavProtectionEnabled     : True
+antivirus_products: displayName : Windows Defender
+launch_context: processo lancado pelo AGENTE (run_command da ferramenta), NAO por terminal interativo do dono
+stdin_isatty: False
+stdout_isatty: False
+env_PROMPT_or_WT_SESSION: WT_SESSION=None TERM_PROGRAM=None
+PYTHONPATH: None
+OPENBLAS_NUM_THREADS: None
+OMP_NUM_THREADS: None
+git_head: 7bfd7331604e106b7d9471c37ac6e99df5a09b1f

@@ -35,3 +35,4 @@ for src, name in items:
 with open(os.path.join(DEST, "LISTA_ARQUIVOS.txt"), "w", encoding="utf-8", newline="\n") as fh:
     fh.write("\n".join(lines) + "\n")
 print(len(lines) - 1, "arquivos copiados")
+
