@@ -1,0 +1,10 @@
+{
+  "case": "iii_numpy_only",
+  "rep": 4,
+  "mode": "open",
+  "classe": "TRAVOU",
+  "time_s": 120.08,
+  "reader_blocked": true,
+  "import_ok": false,
+  "returncode": 1
+}
