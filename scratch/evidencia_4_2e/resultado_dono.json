@@ -1,0 +1,54 @@
+{
+  "executor": "DONO (terminal interativo)",
+  "timestamp": "2026-10-28 21:45:57",
+  "results": [
+    {
+      "commit": "7db9f7d",
+      "rep": 1,
+      "classe": "OK",
+      "t_init": 11.746,
+      "t_crit": 4.576,
+      "dt_total": 111.72
+    },
+    {
+      "commit": "dd92d35",
+      "rep": 1,
+      "classe": "TRAVOU",
+      "t_init": 2.215,
+      "t_crit": 180.0,
+      "dt_total": 336.18
+    },
+    {
+      "commit": "7db9f7d",
+      "rep": 2,
+      "classe": "OK",
+      "t_init": 11.629,
+      "t_crit": 4.538,
+      "dt_total": 110.45
+    },
+    {
+      "commit": "dd92d35",
+      "rep": 2,
+      "classe": "TRAVOU",
+      "t_init": 2.22,
+      "t_crit": 180.01,
+      "dt_total": 335.09
+    },
+    {
+      "commit": "7db9f7d",
+      "rep": 3,
+      "classe": "OK",
+      "t_init": 11.267,
+      "t_crit": 4.433,
+      "dt_total": 110.19
+    },
+    {
+      "commit": "dd92d35",
+      "rep": 3,
+      "classe": "TRAVOU",
+      "t_init": 2.289,
+      "t_crit": 180.01,
+      "dt_total": 335.78
+    }
+  ]
+}

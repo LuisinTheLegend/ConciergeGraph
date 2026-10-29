@@ -1,0 +1,9 @@
+{
+  "variant": "a_proactor",
+  "rep": 1,
+  "classe": "TRAVOU",
+  "time_s": 120.13,
+  "reader_blocked": true,
+  "import_ok": false,
+  "returncode": 1
+}

@@ -1,0 +1,10 @@
+{
+  "case": "iv_scipy_linalg",
+  "rep": 1,
+  "mode": "open",
+  "classe": "TRAVOU",
+  "time_s": 120.01,
+  "reader_blocked": true,
+  "import_ok": false,
+  "returncode": 1
+}

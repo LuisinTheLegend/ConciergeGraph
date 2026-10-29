@@ -1,0 +1,10 @@
+{
+  "case": "viii_control_stdin_closed",
+  "rep": 1,
+  "mode": "close_immediately",
+  "classe": "OK",
+  "time_s": 3.23,
+  "reader_blocked": false,
+  "import_ok": true,
+  "returncode": 0
+}

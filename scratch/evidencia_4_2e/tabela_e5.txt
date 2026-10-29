@@ -1,0 +1,8 @@
+=== TABELA EXPERIMENTO E5: VIABILIDADE DE WORKER EM PROCESSO FILHO (n=5) ===
+Rep   | Classe   | Tempo(s)  | Saida do Worker                         
+----------------------------------------------------------------------
+1     | OK       | 2.68      | worker_exit=0;stdout=;stderr=
+2     | OK       | 2.57      | worker_exit=0;stdout=;stderr=
+3     | OK       | 2.73      | worker_exit=0;stdout=;stderr=
+4     | OK       | 2.74      | worker_exit=0;stdout=;stderr=
+5     | OK       | 2.59      | worker_exit=0;stdout=;stderr=
