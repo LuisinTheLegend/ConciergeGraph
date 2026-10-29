@@ -1,0 +1,10 @@
+{
+  "case": "ii_scipy_special_thread",
+  "rep": 5,
+  "mode": "open",
+  "classe": "TRAVOU",
+  "time_s": 120.07,
+  "reader_blocked": true,
+  "import_ok": false,
+  "returncode": 1
+}

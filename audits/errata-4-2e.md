@@ -40,3 +40,4 @@ Todos os comportamentos observados e descritos como fatos na Rodada 4.2e são es
 - **Interpretador:** Python 3.14.3 (tags/v3.14.3:323c59a, 64-bit AMD64)
 - **Bibliotecas Relevantes:** `scipy==1.17.1`, `numpy==2.4.4`, `scikit-learn==1.8.0`, `sentence-transformers==5.4.1`, `torch==2.11.0`
 - **Contexto de Lançamento:** Processo lançado pelo agente (`run_command`), com `stdin_isatty=False` e `stdout_isatty=False`, sob proteção ativa do Windows Defender (`RealTimeProtectionEnabled=True`).
+

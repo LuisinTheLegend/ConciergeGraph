@@ -1,0 +1,10 @@
+{
+  "case": "vii_sentence_transformers",
+  "rep": 5,
+  "mode": "open",
+  "classe": "TRAVOU",
+  "time_s": 120.06,
+  "reader_blocked": true,
+  "import_ok": false,
+  "returncode": 1
+}

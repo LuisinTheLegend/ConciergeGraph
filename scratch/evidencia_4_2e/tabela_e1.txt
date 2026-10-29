@@ -7,42 +7,52 @@ i_scipy_special_main         | 1    | TRAVOU   | 120.07     | True            | 
 i_scipy_special_main         | 2    | TRAVOU   | 120.06     | True            | rc=1
 i_scipy_special_main         | 3    | TRAVOU   | 120.08     | True            | rc=1
 i_scipy_special_main         | 4    | TRAVOU   | 120.10     | True            | rc=1
+i_scipy_special_main         | 5    | TRAVOU   | 120.08     | True            | rc=1
 ii_scipy_special_thread      | 1    | TRAVOU   | 120.07     | True            | rc=1
 ii_scipy_special_thread      | 2    | TRAVOU   | 120.07     | True            | rc=1
 ii_scipy_special_thread      | 3    | TRAVOU   | 120.02     | True            | rc=1
 ii_scipy_special_thread      | 4    | TRAVOU   | 120.08     | True            | rc=1
+ii_scipy_special_thread      | 5    | TRAVOU   | 120.07     | True            | rc=1
 iii_numpy_only               | 1    | TRAVOU   | 120.02     | True            | rc=1
 iii_numpy_only               | 2    | TRAVOU   | 120.08     | True            | rc=1
 iii_numpy_only               | 3    | TRAVOU   | 120.00     | True            | rc=1
 iii_numpy_only               | 4    | TRAVOU   | 120.08     | True            | rc=1
+iii_numpy_only               | 5    | TRAVOU   | 120.02     | True            | rc=1
 iv_scipy_linalg              | 1    | TRAVOU   | 120.01     | True            | rc=1
 iv_scipy_linalg              | 2    | TRAVOU   | 120.10     | True            | rc=1
 iv_scipy_linalg              | 3    | TRAVOU   | 120.06     | True            | rc=1
 iv_scipy_linalg              | 4    | TRAVOU   | 120.07     | True            | rc=1
+iv_scipy_linalg              | 5    | TRAVOU   | 120.02     | True            | rc=1
 v_sklearn_array_api          | 1    | TRAVOU   | 120.06     | True            | rc=1
 v_sklearn_array_api          | 2    | TRAVOU   | 120.09     | True            | rc=1
 v_sklearn_array_api          | 3    | TRAVOU   | 120.01     | True            | rc=1
 v_sklearn_array_api          | 4    | TRAVOU   | 120.10     | True            | rc=1
+v_sklearn_array_api          | 5    | TRAVOU   | 120.07     | True            | rc=1
 vi_torch_only                | 1    | TRAVOU   | 120.07     | True            | rc=1
 vi_torch_only                | 2    | TRAVOU   | 120.03     | True            | rc=1
 vi_torch_only                | 3    | TRAVOU   | 120.06     | True            | rc=1
 vi_torch_only                | 4    | TRAVOU   | 120.06     | True            | rc=1
+vi_torch_only                | 5    | TRAVOU   | 120.07     | True            | rc=1
 vii_sentence_transformers    | 1    | TRAVOU   | 120.03     | True            | rc=1
 vii_sentence_transformers    | 2    | TRAVOU   | 120.02     | True            | rc=1
 vii_sentence_transformers    | 3    | TRAVOU   | 120.08     | True            | rc=1
+vii_sentence_transformers    | 4    | TRAVOU   | 120.04     | True            | rc=1
+vii_sentence_transformers    | 5    | TRAVOU   | 120.06     | True            | rc=1
 viii_control_stdin_closed    | 1    | OK       | 3.23       | False           | rc=0
 viii_control_stdin_closed    | 2    | OK       | 3.04       | False           | rc=0
 viii_control_stdin_closed    | 3    | OK       | 3.02       | False           | rc=0
+viii_control_stdin_closed    | 4    | OK       | 3.12       | False           | rc=0
+viii_control_stdin_closed    | 5    | OK       | 3.13       | False           | rc=0
 ===============================================================================================
 
 RESUMO ESTATÍSTICO DO EXPERIMENTO E1 (REPETIÇÕES CONCLUÍDAS):
 -----------------------------------------------------------------
-Caso i_scipy_special_main       | OK: 0/4 | TRAVOU: 4/4 | ERRO: 0/4
-Caso ii_scipy_special_thread    | OK: 0/4 | TRAVOU: 4/4 | ERRO: 0/4
-Caso iii_numpy_only             | OK: 0/4 | TRAVOU: 4/4 | ERRO: 0/4
-Caso iv_scipy_linalg            | OK: 0/4 | TRAVOU: 4/4 | ERRO: 0/4
-Caso v_sklearn_array_api        | OK: 0/4 | TRAVOU: 4/4 | ERRO: 0/4
-Caso vi_torch_only              | OK: 0/4 | TRAVOU: 4/4 | ERRO: 0/4
-Caso vii_sentence_transformers  | OK: 0/3 | TRAVOU: 3/3 | ERRO: 0/3
-Caso viii_control_stdin_closed  | OK: 3/3 | TRAVOU: 0/3 | ERRO: 0/3
+Caso i_scipy_special_main       | OK: 0/5 | TRAVOU: 5/5 | ERRO: 0/5
+Caso ii_scipy_special_thread    | OK: 0/5 | TRAVOU: 5/5 | ERRO: 0/5
+Caso iii_numpy_only             | OK: 0/5 | TRAVOU: 5/5 | ERRO: 0/5
+Caso iv_scipy_linalg            | OK: 0/5 | TRAVOU: 5/5 | ERRO: 0/5
+Caso v_sklearn_array_api        | OK: 0/5 | TRAVOU: 5/5 | ERRO: 0/5
+Caso vi_torch_only              | OK: 0/5 | TRAVOU: 5/5 | ERRO: 0/5
+Caso vii_sentence_transformers  | OK: 0/5 | TRAVOU: 5/5 | ERRO: 0/5
+Caso viii_control_stdin_closed  | OK: 5/5 | TRAVOU: 0/5 | ERRO: 0/5
 ===============================================================================================
