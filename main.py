@@ -22,6 +22,7 @@ Environment variables:
     GRAFO_JANITOR_INTERVAL → Janitor interval in seconds (default: 300)
     GRAFO_LOG_LEVEL       → Log level (default: INFO)
     GRAFO_TRANSPORT       → MCP transport: stdio or sse (default: stdio)
+    GRAFO_STDIN_DECOUPLE  → Desacopla fd 0 no Windows para transporte stdio (default: 1)
 
 Usage:
     python main.py
@@ -105,6 +106,42 @@ def setup_logging(level: str = "INFO") -> None:
 # ---------------------------------------------------------------------------
 
 logger = logging.getLogger("grafo-concierge.main")
+
+
+def decouple_stdin_from_fd0() -> bool:
+    """Decouples fd 0 from sys.stdin on Windows to prevent CRT/OpenBLAS hang.
+
+    On Windows, late imports (e.g. scipy.special / OpenBLAS) acquire an internal CRT
+    file lock on open stdio descriptors. If a background reader thread is blocked
+    in sys.stdin.buffer.readline() on fd 0, LoadLibraryExW hangs permanently.
+    Redirecting fd 0 to os.devnull and wrapping the duplicated fd2 into sys.stdin
+    avoids the lock collision while preserving bidirectional MCP stdio communication.
+    """
+    if sys.platform != "win32":
+        return False
+
+    decouple_env = os.environ.get("GRAFO_STDIN_DECOUPLE", "1").strip().lower()
+    if decouple_env in ("0", "false", "off"):
+        return False
+
+    nul = -1
+    try:
+        nul = os.open(os.devnull, os.O_RDONLY)
+        fd2 = os.dup(0)
+        os.dup2(nul, 0)
+        os.close(nul)
+        nul = -1
+        sys.stdin = open(fd2, "r", encoding="utf-8", errors="replace", closefd=False)
+        logger.info("Decoupled sys.stdin from fd 0 (allocated duplicate fd=%d)", fd2)
+        return True
+    except Exception as exc:
+        if nul >= 0:
+            try:
+                os.close(nul)
+            except OSError:
+                pass
+        logger.warning("Failed to decouple sys.stdin from fd 0: %s", exc)
+        return False
 
 
 def bootstrap():
@@ -212,6 +249,10 @@ def main() -> None:
 
     # ── Logging ──
     setup_logging(LOG_LEVEL)
+
+    # ── Stdio Decouple (Windows only, avoids late import hang on fd 0) ──
+    if TRANSPORT == "stdio":
+        decouple_stdin_from_fd0()
 
     logger.info("=" * 60)
     logger.info("  Grafo Concierge v3.8.0 — Absolute Solidity")
