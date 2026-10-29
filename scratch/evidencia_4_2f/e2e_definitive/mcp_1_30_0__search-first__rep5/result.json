@@ -1,0 +1,16 @@
+{
+  "venv": "mcp_1_30_0",
+  "scenario": "search-first",
+  "rep": 5,
+  "classe": "OK",
+  "t_init": 1.3756767000013497,
+  "dur_critica": 9.389370299999428,
+  "dur_secundaria": 0.015596900004311465,
+  "cpu_samples": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "mean_cpu": 0.0,
+  "max_cpu": 0.0
+}

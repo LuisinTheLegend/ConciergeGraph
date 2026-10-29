@@ -1,0 +1,194 @@
+Timeout (0:02:00)!
+Thread 0x00003fac [AnyIO worker thread] (most recent call first):
+  File "C:\Python314\Lib\threading.py", line 369 in wait
+  File "C:\Python314\Lib\queue.py", line 199 in get
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 991 in run
+  File "C:\Python314\Lib\threading.py", line 1082 in _bootstrap_inner
+  File "C:\Python314\Lib\threading.py", line 1044 in _bootstrap
+
+Thread 0x000066c0 [AnyIO worker thread] (most recent call first):
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 1002 in run
+  File "C:\Python314\Lib\threading.py", line 1082 in _bootstrap_inner
+  File "C:\Python314\Lib\threading.py", line 1044 in _bootstrap
+
+Thread 0x00002c90 [sqlite-writer] (most recent call first):
+  File "C:\Python314\Lib\threading.py", line 373 in wait
+  File "C:\Python314\Lib\queue.py", line 210 in get
+  File "C:\Nexus-Memory\_wt_4_2e\dd92d35\storage\connection.py", line 163 in _worker
+  File "C:\Python314\Lib\threading.py", line 1024 in run
+  File "C:\Python314\Lib\threading.py", line 1082 in _bootstrap_inner
+  File "C:\Python314\Lib\threading.py", line 1044 in _bootstrap
+
+Thread 0x00006768 (most recent call first):
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 1053 in create_module
+  File "<frozen importlib._bootstrap>", line 816 in module_from_spec
+  File "<frozen importlib._bootstrap>", line 924 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1426 in _handle_fromlist
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\scipy\special\__init__.py", line 785 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\_array_api.py", line 13 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\validation.py", line 24 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\_param_validation.py", line 17 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\_chunking.py", line 11 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\__init__.py", line 9 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1314 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\base.py", line 19 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\__init__.py", line 70 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1314 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\util\similarity.py", line 9 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\util\retrieval.py", line 14 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\util\__init__.py", line 24 in <module>
+Timeout (0:02:00)!
+Thread 0x00003fac [AnyIO worker thread] (most recent call first):
+  File "C:\Python314\Lib\threading.py", line 369 in wait
+  File "C:\Python314\Lib\queue.py", line 199 in get
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 991 in run
+  File "C:\Python314\Lib\threading.py", line 1082 in _bootstrap_inner
+  File "C:\Python314\Lib\threading.py", line 1044 in _bootstrap
+
+Thread 0x000066c0 [AnyIO worker thread] (most recent call first):
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 1002 in run
+  File "C:\Python314\Lib\threading.py", line 1082 in _bootstrap_inner
+  File "C:\Python314\Lib\threading.py", line 1044 in _bootstrap
+
+Thread 0x00002c90 [sqlite-writer] (most recent call first):
+  File "C:\Python314\Lib\threading.py", line 373 in wait
+  File "C:\Python314\Lib\queue.py", line 210 in get
+  File "C:\Nexus-Memory\_wt_4_2e\dd92d35\storage\connection.py", line 163 in _worker
+  File "C:\Python314\Lib\threading.py", line 1024 in run
+  File "C:\Python314\Lib\threading.py", line 1082 in _bootstrap_inner
+  File "C:\Python314\Lib\threading.py", line 1044 in _bootstrap
+
+Thread 0x00006768 (most recent call first):
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 1053 in create_module
+  File "<frozen importlib._bootstrap>", line 816 in module_from_spec
+  File "<frozen importlib._bootstrap>", line 924 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1426 in _handle_fromlist
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\scipy\special\__init__.py", line 785 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\_array_api.py", line 13 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\validation.py", line 24 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\_param_validation.py", line 17 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\_chunking.py", line 11 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\utils\__init__.py", line 9 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1314 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\base.py", line 19 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sklearn\__init__.py", line 70 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1314 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\util\similarity.py", line 9 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\util\retrieval.py", line 14 in <module>
+  File "<frozen importlib._bootstrap>", line 491 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 759 in exec_module
+  File "<frozen importlib._bootstrap>", line 938 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1342 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1371 in _find_and_load
+  File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\sentence_transformers\util\__init__.py", line 24 in <module>

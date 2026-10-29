@@ -1,0 +1,27 @@
+=== TABELA PASSO 4f: REGRESSAO DOS COMMITS DE REFERENCIA ===
+Commits: 7db9f7d (pre-4.2d) vs dd92d35 (HEAD anterior, sem desacoplamento)
+Repeticoes: n=3 por cenario, Timeout: 180s
+
+Commit     | Cenario       | Rep  | Status   | t_init(s)  | t_crit(s)  | Total(s)   | Detalhes
+-----------------------------------------------------------------------------------------------
+7db9f7d    | mine          | 1    | OK       | 12.19      | 78.56      | 93.32      | OK
+7db9f7d    | mine          | 2    | OK       | 12.48      | 78.22      | 93.21      | OK
+7db9f7d    | mine          | 3    | OK       | 12.13      | 78.27      | 93.11      | OK
+dd92d35    | mine          | 1    | TRAVOU   | 2.56       | 180.00     | 243.62     | TRAVOU (CPU=0.1%)
+dd92d35    | mine          | 2    | TRAVOU   | 2.51       | 180.00     | 243.60     | TRAVOU (CPU=0.1%)
+dd92d35    | mine          | 3    | TRAVOU   | 2.71       | 180.01     | 243.87     | TRAVOU (CPU=0.1%)
+7db9f7d    | search-first  | 1    | OK       | 12.76      | 4.33       | 114.41     | OK
+7db9f7d    | search-first  | 2    | OK       | 12.58      | 4.65       | 112.73     | OK
+7db9f7d    | search-first  | 3    | OK       | 12.51      | 4.64       | 112.50     | OK
+dd92d35    | search-first  | 1    | TRAVOU   | 2.56       | 180.01     | 337.65     | TRAVOU (CPU=0.0%)
+dd92d35    | search-first  | 2    | TRAVOU   | 2.44       | 180.00     | 337.87     | TRAVOU (CPU=0.1%)
+dd92d35    | search-first  | 3    | TRAVOU   | 2.37       | 180.01     | 336.79     | TRAVOU (CPU=0.0%)
+-----------------------------------------------------------------------------------------------
+
+RESUMO ESTATISTICO:
+--------------------------------------------------
+Commit 7db9f7d  | Cenario search-first | OK: 3/3 | TRAVOU: 0/3
+Commit dd92d35  | Cenario search-first | OK: 0/3 | TRAVOU: 3/3
+Commit 7db9f7d  | Cenario mine         | OK: 3/3 | TRAVOU: 0/3
+Commit dd92d35  | Cenario mine         | OK: 0/3 | TRAVOU: 3/3
+===============================================================================================

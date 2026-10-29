@@ -1,0 +1,14 @@
+=== EXPERIMENTO E1-(i) COM main.decouple_stdin_from_fd0() (Passo 4g) ===
+Data: 2026-10-29 18:53:34
+Cenário: import scipy.special na thread principal com leitor de stdin bloqueado
+Número de repetições: n=5, Timeout: 60s por repetição
+
+Rep | Status | Tempo (s) | reader_blocked | import_ok | Codigo Saida
+--------------------------------------------------------------------
+ 1  |   OK   |  2.9198   |      True      |   True    |      0      
+ 2  |   OK   |  3.0242   |      True      |   True    |      0      
+ 3  |   OK   |  2.9145   |      True      |   True    |      0      
+ 4  |   OK   |  2.9246   |      True      |   True    |      0      
+ 5  |   OK   |  2.9191   |      True      |   True    |      0      
+--------------------------------------------------------------------
+Conclusão: 5/5 OK - Deadlock eliminado com sucesso

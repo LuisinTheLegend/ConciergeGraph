@@ -1,0 +1,74 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+_____________________________ test_d4_main_wiring _____________________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001B2DC8CC180>
+
+    def test_d4_main_wiring(monkeypatch):
+        """D4: main.main() chama a funcao somente quando TRANSPORT=='stdio'."""
+        import main
+    
+        called = []
+        def mock_decouple():
+            called.append(True)
+            return True
+    
+        monkeypatch.setattr(main, "decouple_stdin_from_fd0", mock_decouple)
+        monkeypatch.setattr(main, "bootstrap", lambda: (type("MockServer", (), {"run": lambda self, transport: None})(), None, None))
+    
+        # 1. Com stdio
+        monkeypatch.setattr(main, "TRANSPORT", "stdio")
+        called.clear()
+        main.main()
+        assert len(called) == 1, "Esperado que decouple_stdin_from_fd0 seja chamado com transport=stdio"
+    
+        # 2. Com sse
+        monkeypatch.setattr(main, "TRANSPORT", "sse")
+        called.clear()
+        main.main()
+>       assert len(called) == 0, "Nao deve chamar decouple_stdin_from_fd0 com transport=sse"
+E       AssertionError: Nao deve chamar decouple_stdin_from_fd0 com transport=sse
+E       assert 1 == 0
+E        +  where 1 = len([True])
+
+tests\test_stdin_decouple.py:205: AssertionError
+---------------------------- Captured stderr call -----------------------------
+2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Grafo Concierge v3.8.0 \u2014 Absolute Solidity\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   DB:       C:\\Nexus-Memory\\GrafoConcierge\\data\\concierge.db\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   ChromaDB: C:\\Nexus-Memory\\GrafoConcierge\\data\\chroma (grafo_concierge)\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Embedding: all-MiniLM-L6-v2\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   LLM:      gemini-2.0-flash\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Janitor:  300s\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Transport: stdio\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Log Level: INFO\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Janitor in idle mode (no GRAFO_JANITOR_PROJECT defined).\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Starting MCP server (transport=stdio)...\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Graceful shutdown initiated...\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Grafo Concierge encerrado com sucesso.\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Grafo Concierge v3.8.0 \u2014 Absolute Solidity\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Grafo Concierge v3.8.0 \u2014 Absolute Solidity\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   DB:       C:\\Nexus-Memory\\GrafoConcierge\\data\\concierge.db\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   DB:       C:\\Nexus-Memory\\GrafoConcierge\\data\\concierge.db\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   ChromaDB: C:\\Nexus-Memory\\GrafoConcierge\\data\\chroma (grafo_concierge)\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   ChromaDB: C:\\Nexus-Memory\\GrafoConcierge\\data\\chroma (grafo_concierge)\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Embedding: all-MiniLM-L6-v2\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Embedding: all-MiniLM-L6-v2\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   LLM:      gemini-2.0-flash\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   LLM:      gemini-2.0-flash\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Janitor:  300s\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Janitor:  300s\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Transport: sse\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Transport: sse\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Log Level: INFO\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Log Level: INFO\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Janitor in idle mode (no GRAFO_JANITOR_PROJECT defined).\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Janitor in idle mode (no GRAFO_JANITOR_PROJECT defined).\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Starting MCP server (transport=sse)...\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Starting MCP server (transport=sse)...\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Graceful shutdown initiated...\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 Graceful shutdown initiated...\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Grafo Concierge encerrado com sucesso.\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502   Grafo Concierge encerrado com sucesso.\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================\n2026-10-29 18:41:49 \u2502 INFO    \u2502 grafo-concierge.main         \u2502 ============================================================
+------------------------------ Captured log call ------------------------------
+INFO     grafo-concierge.main:main.py:257 ============================================================
+INFO     grafo-concierge.main:main.py:258   Grafo Concierge v3.8.0 � Absolute Solidity
+INFO     grafo-concierge.main:main.py:259 ============================================================
+INFO     grafo-concierge.main:main.py:260   DB:       C:\Nexus-Memory\GrafoConcierge\data\concierge.db
+INFO     grafo-concierge.main:main.py:261   ChromaDB: C:\Nexus-Memory\GrafoConcierge\data\chroma (grafo_concierge)
+INFO     grafo-concierge.main:main.py:262   Embedding: all-MiniLM-L6-v2
+INFO     grafo-concierge.main:main.py:263   LLM:      gemini-2.0-flash
+INFO     grafo-concierge.main:main.py:264   Janitor:  300s
+INFO     grafo-concierge.main:main.py:265   Transport: stdio
+INFO     grafo-concierge.main:main.py:266   Log Level: INFO
+INFO     grafo-concierge.main:main.py:267 ============================================================
+INFO     grafo-concierge.main:main.py:282 Janitor in idle mode (no GRAFO_JANITOR_PROJECT defined).
+INFO     grafo-concierge.main:main.py:285 Starting MCP server (transport=stdio)...
+INFO     grafo-concierge.main:main.py:297 Graceful shutdown initiated...
+INFO     grafo-concierge.main:main.py:313 ============================================================
+INFO     grafo-concierge.main:main.py:314   Grafo Concierge encerrado com sucesso.
+INFO     grafo-concierge.main:main.py:315 ============================================================
+INFO     grafo-concierge.main:main.py:257 ============================================================
+INFO     grafo-concierge.main:main.py:258   Grafo Concierge v3.8.0 � Absolute Solidity
+INFO     grafo-concierge.main:main.py:259 ============================================================
+INFO     grafo-concierge.main:main.py:260   DB:       C:\Nexus-Memory\GrafoConcierge\data\concierge.db
+INFO     grafo-concierge.main:main.py:261   ChromaDB: C:\Nexus-Memory\GrafoConcierge\data\chroma (grafo_concierge)
+INFO     grafo-concierge.main:main.py:262   Embedding: all-MiniLM-L6-v2
+INFO     grafo-concierge.main:main.py:263   LLM:      gemini-2.0-flash
+INFO     grafo-concierge.main:main.py:264   Janitor:  300s
+INFO     grafo-concierge.main:main.py:265   Transport: sse
+INFO     grafo-concierge.main:main.py:266   Log Level: INFO
+INFO     grafo-concierge.main:main.py:267 ============================================================
+INFO     grafo-concierge.main:main.py:282 Janitor in idle mode (no GRAFO_JANITOR_PROJECT defined).
+INFO     grafo-concierge.main:main.py:285 Starting MCP server (transport=sse)...
+INFO     grafo-concierge.main:main.py:297 Graceful shutdown initiated...
+INFO     grafo-concierge.main:main.py:313 ============================================================
+INFO     grafo-concierge.main:main.py:314   Grafo Concierge encerrado com sucesso.
+INFO     grafo-concierge.main:main.py:315 ============================================================
+=========================== short test summary info ===========================
+FAILED tests/test_stdin_decouple.py::test_d4_main_wiring - AssertionError: Na...
+1 failed, 4 deselected in 0.19s

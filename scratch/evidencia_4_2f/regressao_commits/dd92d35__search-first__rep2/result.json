@@ -1,0 +1,90 @@
+{
+  "repo": "C:\\Nexus-Memory\\_wt_4_2e\\dd92d35",
+  "scenario": "search-first",
+  "timeout_s": 180.0,
+  "blas_threads_1": false,
+  "python": "C:\\Python314\\python.exe",
+  "started": "2026-10-29T19:22:25",
+  "classe": "TRAVOU",
+  "seed_s": 94.26,
+  "seed_rc": 0,
+  "t_initialize_s": 2.444,
+  "tool_critica": "concierge_search",
+  "t_critica_s": 180.0,
+  "server_pid": 9712,
+  "cpu_samples": [
+    {
+      "t_s": 5.0,
+      "cpu_pct_1core": 0.0,
+      "threads": 27,
+      "rss_mb": 306.7
+    },
+    {
+      "t_s": 5.01,
+      "cpu_pct_1core": 0.0,
+      "threads": 27,
+      "rss_mb": 306.7
+    },
+    {
+      "t_s": 5.01,
+      "cpu_pct_1core": 0.0,
+      "threads": 27,
+      "rss_mb": 306.7
+    },
+    {
+      "t_s": 5.01,
+      "cpu_pct_1core": 0.31,
+      "threads": 27,
+      "rss_mb": 306.7
+    },
+    {
+      "t_s": 5.01,
+      "cpu_pct_1core": 0.0,
+      "threads": 27,
+      "rss_mb": 306.7
+    },
+    {
+      "t_s": 5.01,
+      "cpu_pct_1core": 0.0,
+      "threads": 27,
+      "rss_mb": 306.7
+    },
+    {
+      "t_s": 5.01,
+      "cpu_pct_1core": 0.0,
+      "threads": 27,
+      "rss_mb": 306.7
+    },
+    {
+      "t_s": 5.01,
+      "cpu_pct_1core": 0.0,
+      "threads": 27,
+      "rss_mb": 306.7
+    },
+    {
+      "t_s": 5.01,
+      "cpu_pct_1core": 0.0,
+      "threads": 27,
+      "rss_mb": 306.7
+    },
+    {
+      "t_s": 5.01,
+      "cpu_pct_1core": 0.31,
+      "threads": 27,
+      "rss_mb": 306.7
+    },
+    {
+      "t_s": 5.01,
+      "cpu_pct_1core": 0.0,
+      "threads": 27,
+      "rss_mb": 306.7
+    },
+    {
+      "t_s": 5.01,
+      "cpu_pct_1core": 0.0,
+      "threads": 27,
+      "rss_mb": 306.7
+    }
+  ],
+  "total_s": 337.87
+}

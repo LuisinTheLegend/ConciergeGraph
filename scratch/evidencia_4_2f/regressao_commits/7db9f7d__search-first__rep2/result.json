@@ -1,0 +1,19 @@
+{
+  "repo": "C:\\Nexus-Memory\\_wt_4_2e\\7db9f7d",
+  "scenario": "search-first",
+  "timeout_s": 180.0,
+  "blas_threads_1": false,
+  "python": "C:\\Python314\\python.exe",
+  "started": "2026-10-29T19:20:32",
+  "classe": "OK",
+  "seed_s": 93.24,
+  "seed_rc": 0,
+  "t_initialize_s": 12.581,
+  "tool_critica": "concierge_search",
+  "t_critica_s": 4.65,
+  "detalhe": {
+    "n_results": 5,
+    "top_label": "math_operations.py::calculate_rectangle_area"
+  },
+  "total_s": 112.73
+}

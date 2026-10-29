@@ -1,0 +1,11 @@
+=== TESTE DE ENCERRAMENTO GRACIOSO APOS FECHAMENTO DE STDIN (Passo 4h) ===
+Data: 2026-10-29 18:49:48
+Limite maximo aceitavel: < 15.0s
+
+Repeticao | Status | Tempo Encerramento (s) | Codigo Saida
+-----------------------------------------------------------
+    1     |   OK   |         0.2925         |      0      
+    2     |   OK   |         0.3029         |      0      
+    3     |   OK   |         0.3056         |      0      
+-----------------------------------------------------------
+Conclusao: TODOS PASSARAM (<15s)

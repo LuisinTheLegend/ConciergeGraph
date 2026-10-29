@@ -1,0 +1,112 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+_____________________ test_d1_subprocess_decouple_windows _____________________
+
+    def test_d1_subprocess_decouple_windows():
+        """D1: Subprocesso real no Windows desacopla fd 0 e leitor continua funcional."""
+        if sys.platform != "win32":
+            pytest.skip("D1 e exclusivo do ambiente Windows (verificacao de deadlock em fd 0 / CRT)")
+    
+        code = CHILD_D1_SCRIPT.replace("{repo_root}", str(REPO_ROOT))
+        env = os.environ.copy()
+        env["PYTHONUNBUFFERED"] = "1"
+        env["PYTHONUTF8"] = "1"
+        env["GRAFO_STDIN_DECOUPLE"] = "1"
+    
+        p = subprocess.Popen(
+            [sys.executable, "-u", "-c", code],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            env=env,
+            cwd=str(REPO_ROOT),
+        )
+    
+        try:
+            # Espera o filho confirmar que o leitor esta bloqueado e numpy importado
+            line1 = read_line_with_timeout(p.stdout, timeout=15.0)
+            assert line1 == "READER_BLOCKED_OK", f"Esperado READER_BLOCKED_OK, obtido: {line1}"
+    
+>           line2 = read_line_with_timeout(p.stdout, timeout=15.0)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_stdin_decouple.py:119: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+pipe = <_io.TextIOWrapper name=12 encoding='cp1252'>, timeout = 15.0
+
+    def read_line_with_timeout(pipe, timeout: float = 15.0) -> str:
+        """Le uma linha do pipe com timeout rigido para evitar travamento indefinido."""
+        res = []
+        def _read():
+            try:
+                res.append(pipe.readline())
+            except Exception as exc:
+                res.append(exc)
+    
+        t = threading.Thread(target=_read, daemon=True)
+        t.start()
+        t.join(timeout)
+        if t.is_alive():
+>           raise TimeoutError(f"Timeout de {timeout}s aguardando linha do pipe")
+E           TimeoutError: Timeout de 15.0s aguardando linha do pipe
+
+tests\test_stdin_decouple.py:32: TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+    def test_d1_subprocess_decouple_windows():
+        """D1: Subprocesso real no Windows desacopla fd 0 e leitor continua funcional."""
+        if sys.platform != "win32":
+            pytest.skip("D1 e exclusivo do ambiente Windows (verificacao de deadlock em fd 0 / CRT)")
+    
+        code = CHILD_D1_SCRIPT.replace("{repo_root}", str(REPO_ROOT))
+        env = os.environ.copy()
+        env["PYTHONUNBUFFERED"] = "1"
+        env["PYTHONUTF8"] = "1"
+        env["GRAFO_STDIN_DECOUPLE"] = "1"
+    
+        p = subprocess.Popen(
+            [sys.executable, "-u", "-c", code],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            env=env,
+            cwd=str(REPO_ROOT),
+        )
+    
+        try:
+            # Espera o filho confirmar que o leitor esta bloqueado e numpy importado
+            line1 = read_line_with_timeout(p.stdout, timeout=15.0)
+            assert line1 == "READER_BLOCKED_OK", f"Esperado READER_BLOCKED_OK, obtido: {line1}"
+    
+            line2 = read_line_with_timeout(p.stdout, timeout=15.0)
+            assert line2 == "IMPORT_NUMPY_OK", f"Esperado IMPORT_NUMPY_OK, obtido: {line2}"
+    
+            # Envia ping pelo stdin herdado do pai
+            p.stdin.write("ping\n")
+            p.stdin.flush()
+    
+            line3 = read_line_with_timeout(p.stdout, timeout=15.0)
+            assert line3 == "PING_RECEIVED_OK", f"Esperado PING_RECEIVED_OK, obtido: {line3}"
+    
+            rc = p.wait(timeout=10)
+            assert rc == 0, f"Child exited with code {rc}"
+        except Exception as exc:
+            p.kill()
+            try:
+                stdout_rem, stderr_rem = p.communicate(timeout=2)
+            except Exception:
+                stdout_rem, stderr_rem = "", ""
+>           raise AssertionError(f"D1 Falhou: {exc}\nSTDOUT:\n{stdout_rem}\nSTDERR:\n{stderr_rem}") from exc
+E           AssertionError: D1 Falhou: Timeout de 15.0s aguardando linha do pipe
+E           STDOUT:
+E           
+E           STDERR:
+
+tests\test_stdin_decouple.py:137: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_stdin_decouple.py::test_d1_subprocess_decouple_windows - As...
+1 failed, 4 deselected in 17.40s
