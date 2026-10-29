@@ -1,0 +1,9 @@
+{
+  "case": "numpy",
+  "rep": 4,
+  "classe": "OK",
+  "time_s": 3.01,
+  "reader_blocked": true,
+  "import_ok": true,
+  "returncode": 0
+}

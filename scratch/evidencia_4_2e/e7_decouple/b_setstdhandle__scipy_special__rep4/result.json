@@ -1,0 +1,11 @@
+{
+  "variant": "b_setstdhandle",
+  "import": "scipy_special",
+  "rep": 4,
+  "classe": "OK",
+  "time_s": 4.84,
+  "reader_blocked": true,
+  "import_ok": true,
+  "ping_received": true,
+  "returncode": 0
+}

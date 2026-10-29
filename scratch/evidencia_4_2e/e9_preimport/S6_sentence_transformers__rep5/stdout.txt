@@ -1,0 +1,2 @@
+reader_blocked=True
+RESULT_JSON={"t_pre_duration": 38.117, "t_import": 0.0, "t_load_model": 0.838, "t_encode": 0.052, "total_s": 0.889, "dim": 384}

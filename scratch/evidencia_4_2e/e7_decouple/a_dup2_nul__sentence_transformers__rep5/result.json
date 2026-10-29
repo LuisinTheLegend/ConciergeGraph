@@ -1,0 +1,11 @@
+{
+  "variant": "a_dup2_nul",
+  "import": "sentence_transformers",
+  "rep": 5,
+  "classe": "OK",
+  "time_s": 41.86,
+  "reader_blocked": true,
+  "import_ok": true,
+  "ping_received": true,
+  "returncode": 0
+}

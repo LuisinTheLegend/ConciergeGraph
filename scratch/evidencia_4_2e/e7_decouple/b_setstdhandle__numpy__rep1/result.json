@@ -1,0 +1,11 @@
+{
+  "variant": "b_setstdhandle",
+  "import": "numpy",
+  "rep": 1,
+  "classe": "OK",
+  "time_s": 3.04,
+  "reader_blocked": true,
+  "import_ok": true,
+  "ping_received": true,
+  "returncode": 0
+}

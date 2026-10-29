@@ -1,0 +1,2 @@
+reader_blocked=True
+import_ok=True

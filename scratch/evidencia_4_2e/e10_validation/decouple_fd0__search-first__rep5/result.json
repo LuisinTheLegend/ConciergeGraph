@@ -1,0 +1,11 @@
+{
+  "technique": "decouple_fd0",
+  "scenario": "search-first",
+  "rep": 5,
+  "classe": "OK",
+  "t_init_s": 2.716,
+  "t_mine_s": 0.016,
+  "t_search_s": 11.913,
+  "total_s": 16.081,
+  "error": ""
+}

@@ -1,0 +1,11 @@
+{
+  "variant": "a_dup2_nul",
+  "import": "scipy_special",
+  "rep": 4,
+  "classe": "OK",
+  "time_s": 4.65,
+  "reader_blocked": true,
+  "import_ok": true,
+  "ping_received": true,
+  "returncode": 0
+}

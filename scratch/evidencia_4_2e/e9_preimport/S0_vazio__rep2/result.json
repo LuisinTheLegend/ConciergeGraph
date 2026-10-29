@@ -1,0 +1,13 @@
+{
+  "set": "S0_vazio",
+  "rep": 2,
+  "classe": "TRAVOU",
+  "time_s": 180.02,
+  "reader_blocked": true,
+  "t_pre": null,
+  "t_import": null,
+  "t_load_model": null,
+  "t_encode": null,
+  "total_s": null,
+  "returncode": 1
+}

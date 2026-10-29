@@ -1,0 +1,11 @@
+{
+  "technique": "decouple_fd0",
+  "scenario": "mine",
+  "rep": 1,
+  "classe": "OK",
+  "t_init_s": 3.294,
+  "t_mine_s": 44.368,
+  "t_search_s": 0.03,
+  "total_s": 49.913,
+  "error": ""
+}

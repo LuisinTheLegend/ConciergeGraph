@@ -1,0 +1,11 @@
+{
+  "variant": "control_fd0",
+  "import": "sentence_transformers",
+  "rep": 3,
+  "classe": "TRAVOU",
+  "time_s": 120.08,
+  "reader_blocked": true,
+  "import_ok": false,
+  "ping_received": false,
+  "returncode": 1
+}

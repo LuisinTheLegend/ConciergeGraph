@@ -1,0 +1,11 @@
+{
+  "technique": "preimport",
+  "scenario": "mine",
+  "rep": 4,
+  "classe": "OK",
+  "t_init_s": 14.43,
+  "t_mine_s": 21.867,
+  "t_search_s": 0.02,
+  "total_s": 38.424,
+  "error": ""
+}

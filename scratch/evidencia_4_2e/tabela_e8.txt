@@ -1,0 +1,14 @@
+=== TABELA EXPERIMENTO E8: LEITOR EM PIPE QUE NÃO É STDIN (n=5 cada) ===
+Caso            | Rep  | Classe   | Tempo(s)  | Reader Blocked  | Import OK 
+---------------------------------------------------------------------------
+numpy           | 1    | OK       | 3.02      | True            | True      
+scipy_special   | 1    | OK       | 6.02      | True            | True      
+numpy           | 2    | OK       | 2.51      | True            | True      
+scipy_special   | 2    | OK       | 4.51      | True            | True      
+numpy           | 3    | OK       | 3.02      | True            | True      
+scipy_special   | 3    | OK       | 4.51      | True            | True      
+numpy           | 4    | OK       | 3.01      | True            | True      
+scipy_special   | 4    | OK       | 4.52      | True            | True      
+numpy           | 5    | OK       | 3.03      | True            | True      
+scipy_special   | 5    | OK       | 4.52      | True            | True      
+---------------------------------------------------------------------------

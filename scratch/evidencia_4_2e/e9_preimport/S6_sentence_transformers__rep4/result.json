@@ -1,0 +1,13 @@
+{
+  "set": "S6_sentence_transformers",
+  "rep": 4,
+  "classe": "OK",
+  "time_s": 49.54,
+  "reader_blocked": true,
+  "t_pre": 33.623,
+  "t_import": 0.0,
+  "t_load_model": 0.623,
+  "t_encode": 0.06,
+  "total_s": 0.683,
+  "returncode": 3221225477
+}

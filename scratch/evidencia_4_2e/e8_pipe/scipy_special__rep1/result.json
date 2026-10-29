@@ -1,0 +1,9 @@
+{
+  "case": "scipy_special",
+  "rep": 1,
+  "classe": "OK",
+  "time_s": 6.02,
+  "reader_blocked": true,
+  "import_ok": true,
+  "returncode": 0
+}

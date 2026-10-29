@@ -1,0 +1,11 @@
+{
+  "variant": "b_setstdhandle",
+  "import": "torch",
+  "rep": 3,
+  "classe": "OK",
+  "time_s": 13.59,
+  "reader_blocked": true,
+  "import_ok": true,
+  "ping_received": true,
+  "returncode": 0
+}

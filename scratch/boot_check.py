@@ -79,6 +79,7 @@ async def run_boot_check(
     target_python: str,
     entrypoint: str,
     timeout: float,
+    server_script: str = "main.py",
 ) -> None:
     # Importacao do cliente MCP
     try:
@@ -115,11 +116,12 @@ async def run_boot_check(
     env["GRAFO_TRANSPORT"] = "stdio"
     env["GRAFO_LOG_LEVEL"] = "INFO"
     env["PYTHONUNBUFFERED"] = "1"
+    env["HF_HUB_OFFLINE"] = "1"
     env["PYTHONPATH"] = str(REPO_ROOT)
 
     if entrypoint == "python-main":
         command = target_python
-        args = ["main.py"]
+        args = [server_script]
     elif entrypoint == "console-script":
         command = find_console_script(target_python)
         args = []
@@ -136,7 +138,7 @@ async def run_boot_check(
     )
 
     async def _check_logic():
-        async with stdio_client(server_params) as (read_stream, write_stream):
+        async with stdio_client(server_params, errlog=sys.stderr) as (read_stream, write_stream):
             async with ClientSession(read_stream, write_stream) as session:
                 print("Iniciando sessao MCP e enviando initialize...")
                 init_res = await session.initialize()
@@ -196,6 +198,11 @@ def main() -> None:
         default=180.0,
         help="Timeout total em segundos (default: 180.0)",
     )
+    parser.add_argument(
+        "--server-script",
+        default="main.py",
+        help="Script do servidor a ser executado (default: main.py)",
+    )
 
     args = parser.parse_args()
 
@@ -205,6 +212,7 @@ def main() -> None:
                 target_python=args.python,
                 entrypoint=args.entrypoint,
                 timeout=args.timeout,
+                server_script=args.server_script,
             )
         )
     except Exception as e:

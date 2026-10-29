@@ -1,0 +1,11 @@
+{
+  "variant": "b_setstdhandle",
+  "import": "sentence_transformers",
+  "rep": 2,
+  "classe": "OK",
+  "time_s": 40.22,
+  "reader_blocked": true,
+  "import_ok": true,
+  "ping_received": true,
+  "returncode": 0
+}

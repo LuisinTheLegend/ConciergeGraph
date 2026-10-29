@@ -1,0 +1,13 @@
+{
+  "set": "S3_numpy_scipy_sklearn",
+  "rep": 5,
+  "classe": "OK",
+  "time_s": 34.16,
+  "reader_blocked": true,
+  "t_pre": 4.22,
+  "t_import": 19.703,
+  "t_load_model": 0.348,
+  "t_encode": 0.044,
+  "total_s": 20.095,
+  "returncode": 3221225477
+}

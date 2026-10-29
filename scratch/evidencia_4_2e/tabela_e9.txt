@@ -1,0 +1,39 @@
+=== TABELA EXPERIMENTO E9: CONJUNTOS DE PRE-IMPORT + CAMINHO TARDIO (n=5 cada) ===
+Conjunto                   | Rep  | Classe   | Tempo(s)  | t_pre    | t_import  | t_load   | t_enc    | Blocked
+---------------------------------------------------------------------------------------------------------
+S6_sentence_transformers   | 1    | OK       | 55.52     | 41.10    | 0.00      | 0.82     | 0.09     | True
+S6_sentence_transformers   | 2    | OK       | 55.05     | 41.25    | 0.00      | 0.59     | 0.05     | True
+S6_sentence_transformers   | 3    | OK       | 58.52     | 43.63    | 0.00      | 0.99     | 0.07     | True
+S6_sentence_transformers   | 4    | OK       | 49.54     | 33.62    | 0.00      | 0.62     | 0.06     | True
+S6_sentence_transformers   | 5    | OK       | 51.04     | 38.12    | 0.00      | 0.84     | 0.05     | True
+S5_numpy_scipy_torch       | 1    | TRAVOU   | 180.04    | -        | -         | -        | -        | True
+S5_numpy_scipy_torch       | 2    | TRAVOU   | 180.02    | -        | -         | -        | -        | True
+S5_numpy_scipy_torch       | 3    | TRAVOU   | 180.07    | -        | -         | -        | -        | True
+S5_numpy_scipy_torch       | 4    | TRAVOU   | 180.03    | -        | -         | -        | -        | True
+S5_numpy_scipy_torch       | 5    | TRAVOU   | 180.08    | -        | -         | -        | -        | True
+S4_torch                   | 1    | TRAVOU   | 180.03    | -        | -         | -        | -        | True
+S4_torch                   | 2    | TRAVOU   | 180.01    | -        | -         | -        | -        | True
+S4_torch                   | 3    | TRAVOU   | 180.08    | -        | -         | -        | -        | True
+S4_torch                   | 4    | TRAVOU   | 180.06    | -        | -         | -        | -        | True
+S4_torch                   | 5    | TRAVOU   | 180.07    | -        | -         | -        | -        | True
+S3_numpy_scipy_sklearn     | 1    | OK       | 57.94     | 17.42    | 26.97     | 0.51     | 0.14     | True
+S3_numpy_scipy_sklearn     | 2    | OK       | 36.67     | 5.41     | 20.35     | 0.32     | 0.03     | True
+S3_numpy_scipy_sklearn     | 3    | OK       | 41.44     | 4.42     | 20.90     | 0.41     | 0.04     | True
+S3_numpy_scipy_sklearn     | 4    | OK       | 37.57     | 9.07     | 17.57     | 0.33     | 0.03     | True
+S3_numpy_scipy_sklearn     | 5    | OK       | 34.16     | 4.22     | 19.70     | 0.35     | 0.04     | True
+S2_numpy_scipy             | 1    | TRAVOU   | 180.02    | -        | -         | -        | -        | True
+S2_numpy_scipy             | 2    | TRAVOU   | 180.08    | -        | -         | -        | -        | True
+S2_numpy_scipy             | 3    | TRAVOU   | 180.02    | -        | -         | -        | -        | True
+S2_numpy_scipy             | 4    | TRAVOU   | 180.03    | -        | -         | -        | -        | True
+S2_numpy_scipy             | 5    | TRAVOU   | 180.01    | -        | -         | -        | -        | True
+S1_numpy                   | 1    | TRAVOU   | 180.03    | -        | -         | -        | -        | True
+S1_numpy                   | 2    | TRAVOU   | 180.05    | -        | -         | -        | -        | True
+S1_numpy                   | 3    | TRAVOU   | 180.03    | -        | -         | -        | -        | True
+S1_numpy                   | 4    | TRAVOU   | 180.05    | -        | -         | -        | -        | True
+S1_numpy                   | 5    | TRAVOU   | 180.02    | -        | -         | -        | -        | True
+S0_vazio                   | 1    | TRAVOU   | 180.10    | -        | -         | -        | -        | True
+S0_vazio                   | 2    | TRAVOU   | 180.02    | -        | -         | -        | -        | True
+S0_vazio                   | 3    | TRAVOU   | 180.06    | -        | -         | -        | -        | True
+S0_vazio                   | 4    | TRAVOU   | 180.03    | -        | -         | -        | -        | True
+S0_vazio                   | 5    | TRAVOU   | 180.03    | -        | -         | -        | -        | True
+---------------------------------------------------------------------------------------------------------

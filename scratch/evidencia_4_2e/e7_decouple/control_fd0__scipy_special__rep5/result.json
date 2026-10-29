@@ -1,0 +1,11 @@
+{
+  "variant": "control_fd0",
+  "import": "scipy_special",
+  "rep": 5,
+  "classe": "TRAVOU",
+  "time_s": 120.06,
+  "reader_blocked": true,
+  "import_ok": false,
+  "ping_received": false,
+  "returncode": 1
+}

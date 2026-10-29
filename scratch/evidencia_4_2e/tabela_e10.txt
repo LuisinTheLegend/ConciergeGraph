@@ -1,0 +1,24 @@
+=== TABELA EXPERIMENTO E10: SERVIDOR REAL COM WRAPPER (dd92d35) ===
+Tecnica         | Cenario       | Rep  | Classe   | t_init(s)  | t_mine(s)  | t_search(s)  | Total(s)
+-----------------------------------------------------------------------------------------------
+decouple_fd0    | mine          | 1    | OK       | 3.29       | 44.37      | 0.03         | 49.91
+decouple_fd0    | mine          | 2    | OK       | 2.99       | 37.62      | 0.02         | 42.80
+decouple_fd0    | mine          | 3    | OK       | 3.19       | 36.80      | 0.02         | 42.15
+decouple_fd0    | mine          | 4    | OK       | 3.16       | 34.63      | 0.02         | 39.95
+decouple_fd0    | mine          | 5    | OK       | 2.84       | 34.86      | 0.02         | 39.85
+decouple_fd0    | search-first  | 1    | OK       | 2.82       | 0.01       | 12.05        | 16.32
+decouple_fd0    | search-first  | 2    | OK       | 2.74       | 0.01       | 12.56        | 16.86
+decouple_fd0    | search-first  | 3    | OK       | 2.88       | 0.02       | 11.92        | 16.25
+decouple_fd0    | search-first  | 4    | OK       | 2.76       | 0.01       | 11.82        | 16.01
+decouple_fd0    | search-first  | 5    | OK       | 2.72       | 0.02       | 11.91        | 16.08
+preimport       | mine          | 1    | OK       | 14.80      | 25.69      | 0.02         | 42.64
+preimport       | mine          | 2    | OK       | 14.26      | 23.76      | 0.02         | 40.19
+preimport       | mine          | 3    | OK       | 14.26      | 21.68      | 0.02         | 38.12
+preimport       | mine          | 4    | OK       | 14.43      | 21.87      | 0.02         | 38.42
+preimport       | mine          | 5    | OK       | 14.50      | 23.89      | 0.02         | 40.52
+preimport       | search-first  | 1    | OK       | 14.15      | 0.01       | 0.65         | 16.18
+preimport       | search-first  | 2    | OK       | 13.65      | 0.02       | 0.66         | 15.70
+preimport       | search-first  | 3    | OK       | 17.52      | 0.02       | 0.73         | 19.61
+preimport       | search-first  | 4    | OK       | 14.15      | 0.02       | 0.64         | 16.16
+preimport       | search-first  | 5    | OK       | 13.55      | 0.01       | 0.65         | 15.61
+-----------------------------------------------------------------------------------------------

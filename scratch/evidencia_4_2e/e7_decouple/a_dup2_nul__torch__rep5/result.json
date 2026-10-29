@@ -1,0 +1,11 @@
+{
+  "variant": "a_dup2_nul",
+  "import": "torch",
+  "rep": 5,
+  "classe": "OK",
+  "time_s": 9.77,
+  "reader_blocked": true,
+  "import_ok": true,
+  "ping_received": true,
+  "returncode": 0
+}

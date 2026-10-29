@@ -1,0 +1,11 @@
+{
+  "technique": "preimport",
+  "scenario": "search-first",
+  "rep": 5,
+  "classe": "OK",
+  "t_init_s": 13.549,
+  "t_mine_s": 0.013,
+  "t_search_s": 0.652,
+  "total_s": 15.611,
+  "error": ""
+}

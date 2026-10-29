@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "<string>", line 55, in <module>
+    os._exit(0)
+    ^^
+NameError: name 'os' is not defined. Did you forget to import 'os'?
+Fatal Python error: _enter_buffered_busy: could not acquire lock for <_io.BufferedReader name='<stdin>'> at interpreter shutdown, possibly due to daemon threads
+Python runtime state: finalizing (tstate=0x00007ff87089ed10)
+
+Current thread 0x00000928 (most recent call first):
+  <no Python frame>

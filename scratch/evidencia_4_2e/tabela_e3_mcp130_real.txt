@@ -1,0 +1,9 @@
+=== TABELA EXPERIMENTO E3 EM MCP 1.30.0 REAL (n=3 cada) ===
+Versao       | Variante                   | Rep  | Classe   | Tempo(s)  | CPU Media(%)   | Trace Dump
+--------------------------------------------------------------------------------------------
+mcp 1.30.0   | a_sync_scipy               | 1    | TRAVOU   | 183.84    | 0.00           | SIM
+mcp 1.30.0   | e_preimport_scipy          | 1    | OK       | 3.38      | 0.00           | NAO
+mcp 1.30.0   | a_sync_scipy               | 2    | ERRO     | 183.25    | 0.00           | SIM
+mcp 1.30.0   | e_preimport_scipy          | 2    | OK       | 3.29      | 0.00           | NAO
+mcp 1.30.0   | a_sync_scipy               | 3    | ERRO     | 183.28    | 0.00           | SIM
+mcp 1.30.0   | e_preimport_scipy          | 3    | OK       | 3.40      | 0.00           | NAO

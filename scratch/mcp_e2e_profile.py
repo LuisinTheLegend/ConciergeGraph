@@ -1,12 +1,12 @@
 """
-scratch/mcp_e2e_profile.py — Medicao ponta a ponta com cliente MCP real.
+scratch/mcp_e2e_profile.py — [DEPRECADO / INVÁLIDO — Ver F4-016 e scratch/evidencia_4_2e/mcp_e2e_v2.py]
 
-Mede, a partir do spawn do processo:
-  (a) tempo ate a resposta do initialize;
-  (b) tempo ate list_tools;
-  (c) tempo da PRIMEIRA chamada que gera embedding, em projeto minimo temporario
-      (registrar + minerar 1 arquivo pequeno + 1 concierge_search),
-      separando a carga do modelo de embedding do restante.
+AVISO DA RODADA 4.2e:
+Este script chamava concierge_mine com 'project_name' (parâmetro inexistente) e concierge_search
+sem project_identifier nem all_wings=True, além de não verificar isError.
+Os tempos de ~0,0018s medidos nas rodadas 4.2c e 4.2d refletiam erro imediato de validação,
+não mineração nem carga real de embedding.
+Utilize exclusivamente scratch/evidencia_4_2e/mcp_e2e_v2.py.
 """
 
 from __future__ import annotations

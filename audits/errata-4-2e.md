@@ -41,3 +41,30 @@ Todos os comportamentos observados e descritos como fatos na Rodada 4.2e são es
 - **Bibliotecas Relevantes:** `scipy==1.17.1`, `numpy==2.4.4`, `scikit-learn==1.8.0`, `sentence-transformers==5.4.1`, `torch==2.11.0`
 - **Contexto de Lançamento:** Processo lançado pelo agente (`run_command`), com `stdin_isatty=False` e `stdout_isatty=False`, sob proteção ativa do Windows Defender (`RealTimeProtectionEnabled=True`).
 
+
+---
+
+## 5. Adendo à Errata — Retificações da Rodada 4.2e-2
+
+Em decorrência da revisão da Rodada 4.2e-2 e alinhamento com a Especificação 4.2e-3:
+
+### 5.1 Ausência de Teste em `mcp==1.30.0` no E3 Original
+- O experimento E3 da 4.2e-2 utilizou `venv_mcp127` (mcp 1.27.0) e `venv_mcp130` (mcp 1.3.0 real).
+- A versão `1.3.0` está fora da faixa suportada especificada pelo projeto (`>=1.27.0,<2`).
+- A afirmação de que o teste cobriu "ambas as versões pretendidas" é retificada: a versão `mcp==1.30.0` **NÃO havia sido testada**.
+- Foi provisionado o venv `venv_mcp130_real` com `mcp==1.30.0` estrito para executar a repetição formal de E3(a) e E3(e) com $n=3$.
+
+### 5.2 Qualificação da Pilha Nativa do E4 (`py-spy`)
+- No Windows, a resolução de pilha nativa pelo `py-spy` utiliza heurísticas de símbolos exportados mais próximos das DLLs carregadas, constituindo aproximações.
+- A expressão "comprova que a thread aguarda perror/CRT" é retificada e substituída pelo rigor metodológico: o dump é **compatível com** a `MainThread` em espera de seção crítica/condição de sincronização dentro de `LoadLibraryExW` / `libscipy_openblas64`, enquanto a thread leitora está bloqueada na chamada síncrona `read` / `ReadFile`. A atribuição direta a `perror`/CRT é reclassificada como aproximação simbólica.
+
+### 5.3 Reclassificação da Causa em `torch` e `sentence_transformers`
+- A atribuição de que os travamentos de `torch` e `sentence_transformers` ocorrem por "BLAS/OpenMP" é reclassificada formalmente como **HIPÓTESE NÃO CONFIRMADA**, visto que não foram inspecionadas pilhas internas isoladas para esses módulos específicos.
+
+### 5.4 Unificação de Rotulagem ERRO/TRAVOU e Métrica de CPU no E3
+- No E3, a variante (a) esgotou o timeout total de 180 s em ambas as versões. No cliente AnyIO/Asyncio, o esgotamento do prazo é capturado internamente como `TimeoutError` (rotulado como `TRAVOU` quando tratado no cliente ou `ERRO` com `ExceptionGroup` quando levantado pelo TaskGroup). Ambos os rótulos representam esgotamento total de timeout da ferramenta (180 s).
+- Nas variantes OK (onde a chamada respondeu em <5 s), a coluna de amostragem de CPU periódica refletia o valor inicial (0.00%) pois nenhuma iteração de 5 s do monitor foi disparada antes da conclusão imediata da ferramenta.
+
+### 5.5 Limitação de Escopo do Experimento E5 (Worker)
+- O Experimento E5 demonstrou viabilidade de execução isolada em processo filho com `stdin=subprocess.DEVNULL` exclusivamente para a instrução `import scipy.special`.
+- Registra-se expressamente que o ciclo completo de `sentence_transformers` + carga do modelo + inferência (encode) **NÃO foi testado** em E5, escopo este investigado na Rodada 4.2e-3.

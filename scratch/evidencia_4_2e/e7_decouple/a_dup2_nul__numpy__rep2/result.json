@@ -1,0 +1,11 @@
+{
+  "variant": "a_dup2_nul",
+  "import": "numpy",
+  "rep": 2,
+  "classe": "OK",
+  "time_s": 2.72,
+  "reader_blocked": true,
+  "import_ok": true,
+  "ping_received": true,
+  "returncode": 0
+}

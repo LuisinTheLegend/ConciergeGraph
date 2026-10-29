@@ -1,0 +1,3 @@
+reader_blocked=True
+import_ok=True
+ping_received=True
