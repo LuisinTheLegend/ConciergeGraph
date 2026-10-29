@@ -38,6 +38,10 @@ Preferências do dono: honestidade acima de tudo, caminho mais eficiente e profi
 | 4.2b | `28dd2a7`, `b38a510`, `5f6a9c6` | Limite de versão do `mcp` (F4-013), prova de instalação limpa e correção do T4 | Concluída | Sim (2026-10-24) |
 | 4.2c | `64e0d65` | Medição do tempo de inicialização (profile de bootstrap, imports e cliente MCP real) | Concluída | — |
 | 4.2d | `34ad6d5`, `8366860` | Import tardio de sentence_transformers/torch (F4-015); bootstrap reduzido para 2,77s | Concluída | — |
+| 4.2e | — | Diagnóstico do travamento na 1ª carga do modelo via MCP (OpenBLAS/CRT hang) | Concluída (diagnóstico) | — |
+| 4.2e-2 | — | Isolamento mecânico: deadlock CRT em `ReadFile` no fd 0 durante `LoadLibraryExW` | Concluída (diagnóstico) | — |
+| 4.2e-3 | — | Comparação de opções de solução (Opção A desacoplamento fd 0 vs Opção B pré-import) | Concluída (diagnóstico) | — |
+| 4.2f | `17f046e`, `a64f5f1` | Correção F4-017: Opção A (desacoplamento de fd 0 no Windows); E2E definitivo 20/20 OK | Concluída | — |
 | 4.3 | — | DDL só de `agent_checkpoints`; reimplementar `concierge_get_call_chain` sobre `edges`/`nodes` (caminhos de arquivo, só `calls`) | PLANEJADO, NÃO AUTORIZADO | — |
 | 4.4 | — | Remover `wing_keywords` de vez, com teste-guarda e regra de neutralidade no protocolo/CONTRIBUTING | PLANEJADO, NÃO AUTORIZADO | — |
 | 4.5 | — | Quarentena do código dormente em `archive/v4-experimental` (após 4.2) | PLANEJADO, NÃO AUTORIZADO | — |
@@ -57,7 +61,8 @@ Preferências do dono: honestidade acima de tudo, caminho mais eficiente e profi
 | F4-012 | `[DUMB]` persistido quando não há LLM | A confirmar (observação) | CORRIGIDO: [DUMB] omitido (`8d963ae`), teste efetivo (`9b70eef`) | ver §5 |
 | F4-013 | Incompatibilidade com `mcp>=2.0` por ausência de teto de versão | CRÍTICA | CORRIGIDO (verificado pelo auditor; commits 28dd2a7, b38a510, 5f6a9c6) | `pyproject.toml:39`, `requirements.txt:5`; `tests/test_dependency_pins.py`, provas em `scratch/evidencia_4_2b/` |
 | F4-014 | Tree-sitter e parsers de linguagem ausentes em dependências (degradação silenciosa de AST) | MÉDIA | ABERTO | `ingestion/parser.py:180-245`; prova em `scratch/evidencia_4_2b/p6_tree_sitter_probe.txt` |
-| F4-015 | Latência excessiva de inicialização por imports antecipados de ML (`torch`/`sentence_transformers`) no bootstrap | MÉDIA | corrigido pelo executor, aguardando verificação independente | `storage/vector_store.py:45-56, 151-177`; testes `tests/test_lazy_ml_imports.py`; provas em `scratch/evidencia_4_2d/` |
+| F4-015 | Latência excessiva de inicialização por imports antecipados de ML (`torch`/`sentence_transformers`) no bootstrap | MÉDIA | corrigido pelo executor, aguardando verificação independente | `storage/vector_store.py:45-56, 151-177`; testes `tests/test_lazy_ml_imports.py`; provas em `scratch/evidencia_4_2d/` e `4_2f/` |
+| F4-017 | 1ª chamada que usa o modelo trava dentro do servidor MCP no Windows (deadlock CRT fd 0) | CRÍTICA | corrigido pelo executor, aguardando verificação independente | `main.py:108-144`, `tests/test_stdin_decouple.py`; provas em `scratch/evidencia_4_2f/` (20/20 OK) |
 
 
 ## 5. Verificação independente da 4.1/E (2026-10-20)

@@ -279,37 +279,31 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
   - Presença no startup: `sentence_transformers` e `torch` foram **100% eliminados** do bootstrap (`depois_top20_imports.txt`).
   - Tempo residual de startup: consumido principalmente por `chromadb` (1,83 s de import + 0,20 s de instanciação).
   - Trade-off documentado: a carga de pesos e imports de ML passou para a 1ª chamada de embedding, variando de 4,59 s para **15,70 s** (+11,11 s); chamadas subsequentes realizam inferência quente em **~0,016 s**.
-- **Status:** **corrigido pelo executor, aguardando verificação independente** (Commits `34ad6d5`, `8366860`).
+- **Status:** **corrigido pelo executor, aguardando verificação independente** (Commits `34ad6d5`, `8366860`, `17f046e`). Os testes de lazy import da 4.2d (T1 a T5) continuam preservados e 100% verdes (D5 em `tests/test_stdin_decouple.py`). A Opção A adotada na 4.2f não exigiu aquecimento.
+- **Observações Importantes sobre Desempenho e Arquitetura:**
+  1. A regressão de latência na 1ª chamada que usa o modelo é esperada e decorre do carregamento sob demanda autorizado pelo dono do projeto para viabilizar um handshake FastMCP imediato (< 3s).
+  2. As medições de 4.2e-3 com pré-import mostram latência de ~21-25 s no `mine` e ~4-5 s no `search-first`.
+  3. Se a Opção D (aquecimento em thread de baixa prioridade) for desejada no futuro, ela requer rodada própria com medições de CPU/latência em concorrência com o handshake do cliente MCP.
 
 ---
 
-### [F4-017] 1ª chamada que usa o modelo trava dentro do servidor MCP no ambiente do agente (n pequeno)
-- **Status:** **CONFIRMADO NESTA MÁQUINA** (Não generalizar; reproduzido no PowerShell interativo do dono sem agente: `7db9f7d` OK 3/3; `dd92d35` TRAVOU 3/3 em Windows 10.0.26300, Python 3.14.3)
-- **Severidade:** *(A definir pelo dono/auditor)*
-- **Arquivos & Linhas:** [`storage/vector_store.py:100-115`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py#L100-L115), [`main.py:245`](file:///c:/Nexus-Memory/GrafoConcierge/main.py#L245)
-- **Mecanismo da Falha (Hipótese Técnica):**
-  Após a alteração da Rodada 4.2d que tornou o import de `sentence_transformers` preguiçoso (`EmbeddingManager._load_model()`), a primeira chamada de ferramenta MCP que necessita gerar embeddings (`concierge_search` ou `concierge_mine`) trava por timeout de 180s quando executada através do transporte STDIO no Windows.
-  A amostragem de telemetria durante o travamento registra consumo de CPU em ~0.0% com 26-27 threads ativas e o `faulthandler` indica bloqueio na resolução e instanciação dinâmica do módulo C/Fortran compilado `scipy.special._ufuncs` (`importlib._bootstrap_external.create_module`).
-- **Comprovações Experimentais (Rodada 4.2e Revisada e 4.2e-2):**
-  1. **Execução Interativa pelo Dono (Passo 5 / Item F, terminal PowerShell sem agente):**
-     - Commit `7db9f7d`: 3/3 OK (tempos totais ~110-111s, t_crit ~4.5s).
-     - Commit `dd92d35`: 3/3 TRAVOU (timeout esgotado de 180s na chamada crítica, total ~335-336s).
-     - Evidência gerada em: `scratch/evidencia_4_2e/resultado_dono.json` e `resultado_dono.txt`.
-  2. **Controle de Regressão pelo Agente (Passo 2, 20 repetições alternadas com timeout 180s):**
-     - Commit `7db9f7d` (pré-4.2d, import antecipado no bootstrap): 5/5 OK em `search-first` e 5/5 OK em `mine`.
-     - Commit `dd92d35` (HEAD pós-4.2d, import lazy no `_load_model`): 5/5 TRAVOU em `search-first` e 5/5 TRAVOU em `mine`.
-     - Evidência gerada em: `scratch/evidencia_4_2e/tabela_passo2.txt`.
-  3. **Reprodução Mínima Externa (Passo 3, sem o Grafo Concierge, 40 repetições):**
-     - Em servidor FastMCP stdio isolado de 10 linhas sob `mcp==1.27.0` e `mcp==1.3.0`:
-       - Variante A (`import scipy.special` dentro de ferramenta `def`): 5/5 TRAVOU em ambos os venvs.
-       - Variante B (`import sentence_transformers` dentro de ferramenta `def`): 5/5 TRAVOU em ambos os venvs.
-       - Variante C (import dentro de `anyio.to_thread.run_sync`): 5/5 TRAVOU em ambos os venvs.
-       - Variante D (pré-import no topo do arquivo antes de `m.run()`): 5/5 OK em ambos os venvs (~11-12s de initialize, ~0.01s na ferramenta).
-     - Evidência gerada em: `scratch/evidencia_4_2e/tabela_passo3.txt`.
-  4. **Variáveis de Ambiente (Passo 4, 3 repetições):**
-     - Configuração `OPENBLAS_NUM_THREADS=1` e `OMP_NUM_THREADS=1` em `dd92d35`: 3/3 TRAVOU no cenário `mine`.
-     - Evidência gerada em: `scratch/evidencia_4_2e/tabela_passo4.txt`.
-
-
-
-
+### [F4-017] 1ª chamada que usa o modelo trava dentro do servidor MCP no Windows (deadlock CRT fd 0)
+- **Status:** **corrigido pelo executor, aguardando verificação independente** (Commits `17f046e`, `a64f5f1`).
+- **Severidade:** 🔴 CRÍTICA (Bloqueio total e deadlock permanente do servidor MCP stdio na 1ª requisição que usa modelos numéricos no Windows).
+- **Arquivos & Linhas:** [`main.py:108-144, 250-256`](file:///c:/Nexus-Memory/GrafoConcierge/main.py#L108-L144), [`tests/test_stdin_decouple.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_stdin_decouple.py)
+- **Causa Real (Mecanismo da Falha):**
+  Deadlock da C-runtime do Windows (`msvcrt`/`ucrtbase` / `RtlEnterCriticalSection`) ao executar `ReadFile` síncrono no file descriptor 0 (`STD_INPUT_HANDLE`) enquanto uma thread principal executa `LoadLibraryExW` para carregar DLLs numéricas compiladas (OpenBLAS/MKL/OpenMP via `scipy.special` ou `torch`). O subsistema de carregamento dinâmico do Windows tenta adquirir locks internos de I/O de baixo nível sobre os descritores padrão abertos; como a thread de transporte do FastMCP stdio permanece bloqueada em leitura no descritor 0 aguardando mensagens JSON-RPC, a inicialização da DLL entra em impasse crítico irrecuperável com CPU em ~0.0%.
+- **Técnica Adotada (Opção A — Desacoplamento de fd 0):**
+  Implementada a função `decouple_stdin_from_fd0() -> bool` em `main.py`, invocada antes de iniciar o transporte FastMCP stdio no Windows. A função:
+  1. Duplica o descritor herdado do pai (`fd2 = os.dup(0)`);
+  2. Redireciona o fd 0 do C-runtime para o dispositivo nulo (`os.dup2(os.open(os.devnull, os.O_RDONLY), 0)`);
+  3. Reatribui `sys.stdin` a um novo fluxo de texto envolvendo `fd2`.
+  Isso livra o fd 0 de qualquer operação de leitura bloqueante (evitando a colisão de locks durante `LoadLibraryExW`), enquanto `sys.stdin.buffer` continua recebendo 100% das mensagens do cliente MCP bidirecionalmente através de `fd2`.
+- **Comprovações Experimentais e Evidências (Rodada 4.2f):**
+  1. **Testes Unitários e Integração (D1-D5):** 5/5 passaram (`scratch/evidencia_4_2f/d_green.txt`), cobrindo subprocesso Windows real com concorrência de thread, ping-pong bidirecional e desativação por variável de ambiente `GRAFO_STDIN_DECOUPLE=0`.
+  2. **Mutações:** Sem chamada em `main()` -> D4 falha; Sem `dup2(nul, 0)` -> D1 falha por timeout; Com chamada em transporte SSE -> D4 falha (`scratch/evidencia_4_2f/mutacao_*.txt`).
+  3. **FastMCP Handshake (Passo 4d):** `boot_check.py` 100% OK em `mcp 1.27.0` e `mcp 1.30.0` com 31 ferramentas ativas (`scratch/evidencia_4_2f/boot_check_mcp127.txt`, `boot_check_mcp130.txt`).
+  4. **Teste Definitivo E2E (Passo 4e):** 20 execuções sequenciais com cliente MCP real STDIO sem wrapper e sem aquecimento (5 `search-first` + 5 `mine` no `mcp 1.27.0`; 5 `search-first` + 5 `mine` no `mcp 1.30.0`): **20 OK, 0 TRAVOU** (`scratch/evidencia_4_2f/tabela_passo4e.txt`).
+  5. **Controle de Regressão nos Commits de Referência (Passo 4f):** Commit `7db9f7d`: 3/3 OK em ambos os cenários; Commit `dd92d35`: 3/3 TRAVOU em ambos os cenários (reproduzindo exatamente o comportamento anterior, provando a eficácia da correção) (`scratch/evidencia_4_2f/tabela_passo4f.txt`).
+  6. **Isolamento Unitário E1-(i) com Novo Código (Passo 4g):** 5/5 OK com tempo médio de ~2.9s (`scratch/evidencia_4_2f/e1_new_code.txt`).
+  7. **Encerramento Gracioso (Passo 4h):** Fechamento de stdin encerra o servidor MCP em ~0.30s (<15s) com código 0 (`scratch/evidencia_4_2f/shutdown_check.txt`).
