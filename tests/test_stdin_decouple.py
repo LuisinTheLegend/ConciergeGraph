@@ -9,11 +9,33 @@ import logging
 import os
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+
+def read_line_with_timeout(pipe, timeout: float = 15.0) -> str:
+    """Le uma linha do pipe com timeout rigido para evitar travamento indefinido."""
+    res = []
+    def _read():
+        try:
+            res.append(pipe.readline())
+        except Exception as exc:
+            res.append(exc)
+
+    t = threading.Thread(target=_read, daemon=True)
+    t.start()
+    t.join(timeout)
+    if t.is_alive():
+        raise TimeoutError(f"Timeout de {timeout}s aguardando linha do pipe")
+    if not res:
+        return ""
+    val = res[0]
+    if isinstance(val, Exception):
+        raise val
+    return val.strip()
 
 # Codigo do processo filho para o teste D1
 CHILD_D1_SCRIPT = r"""
@@ -91,24 +113,27 @@ def test_d1_subprocess_decouple_windows():
 
     try:
         # Espera o filho confirmar que o leitor esta bloqueado e numpy importado
-        line1 = p.stdout.readline().strip()
+        line1 = read_line_with_timeout(p.stdout, timeout=15.0)
         assert line1 == "READER_BLOCKED_OK", f"Esperado READER_BLOCKED_OK, obtido: {line1}"
 
-        line2 = p.stdout.readline().strip()
+        line2 = read_line_with_timeout(p.stdout, timeout=15.0)
         assert line2 == "IMPORT_NUMPY_OK", f"Esperado IMPORT_NUMPY_OK, obtido: {line2}"
 
         # Envia ping pelo stdin herdado do pai
         p.stdin.write("ping\n")
         p.stdin.flush()
 
-        line3 = p.stdout.readline().strip()
+        line3 = read_line_with_timeout(p.stdout, timeout=15.0)
         assert line3 == "PING_RECEIVED_OK", f"Esperado PING_RECEIVED_OK, obtido: {line3}"
 
         rc = p.wait(timeout=10)
         assert rc == 0, f"Child exited with code {rc}"
     except Exception as exc:
         p.kill()
-        stdout_rem, stderr_rem = p.communicate()
+        try:
+            stdout_rem, stderr_rem = p.communicate(timeout=2)
+        except Exception:
+            stdout_rem, stderr_rem = "", ""
         raise AssertionError(f"D1 Falhou: {exc}\nSTDOUT:\n{stdout_rem}\nSTDERR:\n{stderr_rem}") from exc
 
 
