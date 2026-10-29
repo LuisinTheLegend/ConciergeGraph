@@ -3,8 +3,17 @@ Variante             | Rep  | Classe   | Tempo(s)  | Reader Blocked  | Import OK
 ---------------------------------------------------------------------------
 a_proactor           | 1    | TRAVOU   | 120.13    | True            | False     
 a_proactor           | 2    | TRAVOU   | 120.17    | True            | False     
+a_proactor           | 3    | TRAVOU   | 120.17    | True            | False     
+a_proactor           | 4    | TRAVOU   | 120.15    | True            | False     
+a_proactor           | 5    | TRAVOU   | 120.16    | True            | False     
 b_selector           | 1    | TRAVOU   | 120.14    | True            | False     
 b_selector           | 2    | TRAVOU   | 120.12    | True            | False     
+b_selector           | 3    | TRAVOU   | 120.19    | True            | False     
+b_selector           | 4    | TRAVOU   | 120.14    | True            | False     
+b_selector           | 5    | TRAVOU   | 120.14    | True            | False     
 c_no_asyncio         | 1    | TRAVOU   | 120.16    | True            | False     
 c_no_asyncio         | 2    | TRAVOU   | 120.15    | True            | False     
+c_no_asyncio         | 3    | TRAVOU   | 120.15    | True            | False     
+c_no_asyncio         | 4    | TRAVOU   | 120.15    | True            | False     
+c_no_asyncio         | 5    | TRAVOU   | 120.16    | True            | False     
 ---------------------------------------------------------------------------

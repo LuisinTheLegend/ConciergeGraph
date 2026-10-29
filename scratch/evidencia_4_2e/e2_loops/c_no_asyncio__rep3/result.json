@@ -1,0 +1,9 @@
+{
+  "variant": "c_no_asyncio",
+  "rep": 3,
+  "classe": "TRAVOU",
+  "time_s": 120.15,
+  "reader_blocked": true,
+  "import_ok": false,
+  "returncode": 1
+}

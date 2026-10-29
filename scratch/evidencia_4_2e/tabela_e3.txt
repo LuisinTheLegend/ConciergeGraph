@@ -2,11 +2,35 @@
 Venv       | Variante                   | Rep  | Classe   | Tempo(s)  | CPU Media(%)   | Trace Dump
 ------------------------------------------------------------------------------------------
 mcp127     | a_sync_scipy               | 1    | ERRO     | 182.37    | 0.00           | SIM
+mcp127     | a_sync_scipy               | 2    | ERRO     | 182.28    | 0.00           | SIM
+mcp127     | a_sync_scipy               | 3    | ERRO     | 182.01    | 0.00           | SIM
+mcp127     | a_sync_scipy               | 4    | ERRO     | 181.95    | 0.00           | SIM
 mcp127     | e_preimport_scipy          | 1    | OK       | 2.95      | 0.00           | NAO
+mcp127     | e_preimport_scipy          | 2    | OK       | 2.45      | 0.00           | NAO
+mcp127     | e_preimport_scipy          | 3    | OK       | 2.10      | 0.00           | NAO
+mcp127     | e_preimport_scipy          | 4    | OK       | 2.54      | 0.00           | NAO
 mcp127     | f_preimport_scipy_sklearn  | 1    | OK       | 5.15      | 0.00           | NAO
+mcp127     | f_preimport_scipy_sklearn  | 2    | OK       | 4.81      | 0.00           | NAO
+mcp127     | f_preimport_scipy_sklearn  | 3    | OK       | 3.70      | 0.00           | NAO
+mcp127     | f_preimport_scipy_sklearn  | 4    | OK       | 3.62      | 0.00           | NAO
 mcp127     | g_preimport_st             | 1    | OK       | 17.82     | 0.00           | NAO
+mcp127     | g_preimport_st             | 2    | OK       | 16.30     | 0.00           | NAO
+mcp127     | g_preimport_st             | 3    | OK       | 13.37     | 0.00           | NAO
+mcp127     | g_preimport_st             | 4    | OK       | 13.61     | 0.00           | NAO
 mcp130     | a_sync_scipy               | 1    | TRAVOU   | 182.34    | 0.00           | SIM
+mcp130     | a_sync_scipy               | 2    | TRAVOU   | 182.01    | 0.00           | SIM
+mcp130     | a_sync_scipy               | 3    | TRAVOU   | 182.02    | 0.00           | SIM
+mcp130     | a_sync_scipy               | 4    | TRAVOU   | 182.03    | 0.00           | SIM
 mcp130     | e_preimport_scipy          | 1    | OK       | 1.92      | 0.00           | NAO
+mcp130     | e_preimport_scipy          | 2    | OK       | 1.83      | 0.00           | NAO
+mcp130     | e_preimport_scipy          | 3    | OK       | 1.82      | 0.00           | NAO
+mcp130     | e_preimport_scipy          | 4    | OK       | 2.04      | 0.00           | NAO
 mcp130     | f_preimport_scipy_sklearn  | 1    | OK       | 3.74      | 0.00           | NAO
+mcp130     | f_preimport_scipy_sklearn  | 2    | OK       | 3.38      | 0.00           | NAO
+mcp130     | f_preimport_scipy_sklearn  | 3    | OK       | 3.25      | 0.00           | NAO
+mcp130     | f_preimport_scipy_sklearn  | 4    | OK       | 3.71      | 0.00           | NAO
 mcp130     | g_preimport_st             | 1    | OK       | 15.07     | 0.00           | NAO
+mcp130     | g_preimport_st             | 2    | OK       | 13.44     | 0.00           | NAO
+mcp130     | g_preimport_st             | 3    | OK       | 13.18     | 0.00           | NAO
+mcp130     | g_preimport_st             | 4    | OK       | 15.19     | 0.00           | NAO
 ------------------------------------------------------------------------------------------

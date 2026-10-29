@@ -175,32 +175,42 @@ Caso                         | Rep  | Status   | Tempo (s)  | Reader Blocked  | 
 -----------------------------------------------------------------------------------------------
 i_scipy_special_main         | 1    | TRAVOU   | 120.07     | True            | rc=1
 i_scipy_special_main         | 2    | TRAVOU   | 120.06     | True            | rc=1
+i_scipy_special_main         | 3    | TRAVOU   | 120.08     | True            | rc=1
+i_scipy_special_main         | 4    | TRAVOU   | 120.10     | True            | rc=1
 ii_scipy_special_thread      | 1    | TRAVOU   | 120.07     | True            | rc=1
 ii_scipy_special_thread      | 2    | TRAVOU   | 120.07     | True            | rc=1
+ii_scipy_special_thread      | 3    | TRAVOU   | 120.02     | True            | rc=1
+ii_scipy_special_thread      | 4    | TRAVOU   | 120.08     | True            | rc=1
 iii_numpy_only               | 1    | TRAVOU   | 120.02     | True            | rc=1
 iii_numpy_only               | 2    | TRAVOU   | 120.08     | True            | rc=1
+iii_numpy_only               | 3    | TRAVOU   | 120.00     | True            | rc=1
 iv_scipy_linalg              | 1    | TRAVOU   | 120.01     | True            | rc=1
 iv_scipy_linalg              | 2    | TRAVOU   | 120.10     | True            | rc=1
+iv_scipy_linalg              | 3    | TRAVOU   | 120.06     | True            | rc=1
 v_sklearn_array_api          | 1    | TRAVOU   | 120.06     | True            | rc=1
 v_sklearn_array_api          | 2    | TRAVOU   | 120.09     | True            | rc=1
+v_sklearn_array_api          | 3    | TRAVOU   | 120.01     | True            | rc=1
 vi_torch_only                | 1    | TRAVOU   | 120.07     | True            | rc=1
 vi_torch_only                | 2    | TRAVOU   | 120.03     | True            | rc=1
+vi_torch_only                | 3    | TRAVOU   | 120.06     | True            | rc=1
 vii_sentence_transformers    | 1    | TRAVOU   | 120.03     | True            | rc=1
 vii_sentence_transformers    | 2    | TRAVOU   | 120.02     | True            | rc=1
+vii_sentence_transformers    | 3    | TRAVOU   | 120.08     | True            | rc=1
 viii_control_stdin_closed    | 1    | OK       | 3.23       | False           | rc=0
 viii_control_stdin_closed    | 2    | OK       | 3.04       | False           | rc=0
+viii_control_stdin_closed    | 3    | OK       | 3.02       | False           | rc=0
 ===============================================================================================
 
 RESUMO ESTATÍSTICO DO EXPERIMENTO E1 (REPETIÇÕES CONCLUÍDAS):
 -----------------------------------------------------------------
-Caso i_scipy_special_main       | OK: 0/2 | TRAVOU: 2/2 | ERRO: 0/2
-Caso ii_scipy_special_thread    | OK: 0/2 | TRAVOU: 2/2 | ERRO: 0/2
-Caso iii_numpy_only             | OK: 0/2 | TRAVOU: 2/2 | ERRO: 0/2
-Caso iv_scipy_linalg            | OK: 0/2 | TRAVOU: 2/2 | ERRO: 0/2
-Caso v_sklearn_array_api        | OK: 0/2 | TRAVOU: 2/2 | ERRO: 0/2
-Caso vi_torch_only              | OK: 0/2 | TRAVOU: 2/2 | ERRO: 0/2
-Caso vii_sentence_transformers  | OK: 0/2 | TRAVOU: 2/2 | ERRO: 0/2
-Caso viii_control_stdin_closed  | OK: 2/2 | TRAVOU: 0/2 | ERRO: 0/2
+Caso i_scipy_special_main       | OK: 0/4 | TRAVOU: 4/4 | ERRO: 0/4
+Caso ii_scipy_special_thread    | OK: 0/4 | TRAVOU: 4/4 | ERRO: 0/4
+Caso iii_numpy_only             | OK: 0/3 | TRAVOU: 3/3 | ERRO: 0/3
+Caso iv_scipy_linalg            | OK: 0/3 | TRAVOU: 3/3 | ERRO: 0/3
+Caso v_sklearn_array_api        | OK: 0/3 | TRAVOU: 3/3 | ERRO: 0/3
+Caso vi_torch_only              | OK: 0/3 | TRAVOU: 3/3 | ERRO: 0/3
+Caso vii_sentence_transformers  | OK: 0/3 | TRAVOU: 3/3 | ERRO: 0/3
+Caso viii_control_stdin_closed  | OK: 3/3 | TRAVOU: 0/3 | ERRO: 0/3
 ===============================================================================================
 ```
 
@@ -217,10 +227,19 @@ Variante             | Rep  | Classe   | Tempo(s)  | Reader Blocked  | Import OK
 ---------------------------------------------------------------------------
 a_proactor           | 1    | TRAVOU   | 120.13    | True            | False     
 a_proactor           | 2    | TRAVOU   | 120.17    | True            | False     
+a_proactor           | 3    | TRAVOU   | 120.17    | True            | False     
+a_proactor           | 4    | TRAVOU   | 120.15    | True            | False     
+a_proactor           | 5    | TRAVOU   | 120.16    | True            | False     
 b_selector           | 1    | TRAVOU   | 120.14    | True            | False     
 b_selector           | 2    | TRAVOU   | 120.12    | True            | False     
+b_selector           | 3    | TRAVOU   | 120.19    | True            | False     
+b_selector           | 4    | TRAVOU   | 120.14    | True            | False     
+b_selector           | 5    | TRAVOU   | 120.14    | True            | False     
 c_no_asyncio         | 1    | TRAVOU   | 120.16    | True            | False     
 c_no_asyncio         | 2    | TRAVOU   | 120.15    | True            | False     
+c_no_asyncio         | 3    | TRAVOU   | 120.15    | True            | False     
+c_no_asyncio         | 4    | TRAVOU   | 120.15    | True            | False     
+c_no_asyncio         | 5    | TRAVOU   | 120.16    | True            | False     
 ---------------------------------------------------------------------------
 ```
 
@@ -237,13 +256,37 @@ c_no_asyncio         | 2    | TRAVOU   | 120.15    | True            | False
 Venv       | Variante                   | Rep  | Classe   | Tempo(s)  | CPU Media(%)   | Trace Dump
 ------------------------------------------------------------------------------------------
 mcp127     | a_sync_scipy               | 1    | ERRO     | 182.37    | 0.00           | SIM
+mcp127     | a_sync_scipy               | 2    | ERRO     | 182.28    | 0.00           | SIM
+mcp127     | a_sync_scipy               | 3    | ERRO     | 182.01    | 0.00           | SIM
+mcp127     | a_sync_scipy               | 4    | ERRO     | 181.95    | 0.00           | SIM
 mcp127     | e_preimport_scipy          | 1    | OK       | 2.95      | 0.00           | NAO
+mcp127     | e_preimport_scipy          | 2    | OK       | 2.45      | 0.00           | NAO
+mcp127     | e_preimport_scipy          | 3    | OK       | 2.10      | 0.00           | NAO
+mcp127     | e_preimport_scipy          | 4    | OK       | 2.54      | 0.00           | NAO
 mcp127     | f_preimport_scipy_sklearn  | 1    | OK       | 5.15      | 0.00           | NAO
+mcp127     | f_preimport_scipy_sklearn  | 2    | OK       | 4.81      | 0.00           | NAO
+mcp127     | f_preimport_scipy_sklearn  | 3    | OK       | 3.70      | 0.00           | NAO
+mcp127     | f_preimport_scipy_sklearn  | 4    | OK       | 3.62      | 0.00           | NAO
 mcp127     | g_preimport_st             | 1    | OK       | 17.82     | 0.00           | NAO
+mcp127     | g_preimport_st             | 2    | OK       | 16.30     | 0.00           | NAO
+mcp127     | g_preimport_st             | 3    | OK       | 13.37     | 0.00           | NAO
+mcp127     | g_preimport_st             | 4    | OK       | 13.61     | 0.00           | NAO
 mcp130     | a_sync_scipy               | 1    | TRAVOU   | 182.34    | 0.00           | SIM
+mcp130     | a_sync_scipy               | 2    | TRAVOU   | 182.01    | 0.00           | SIM
+mcp130     | a_sync_scipy               | 3    | TRAVOU   | 182.02    | 0.00           | SIM
+mcp130     | a_sync_scipy               | 4    | TRAVOU   | 182.03    | 0.00           | SIM
 mcp130     | e_preimport_scipy          | 1    | OK       | 1.92      | 0.00           | NAO
+mcp130     | e_preimport_scipy          | 2    | OK       | 1.83      | 0.00           | NAO
+mcp130     | e_preimport_scipy          | 3    | OK       | 1.82      | 0.00           | NAO
+mcp130     | e_preimport_scipy          | 4    | OK       | 2.04      | 0.00           | NAO
 mcp130     | f_preimport_scipy_sklearn  | 1    | OK       | 3.74      | 0.00           | NAO
+mcp130     | f_preimport_scipy_sklearn  | 2    | OK       | 3.38      | 0.00           | NAO
+mcp130     | f_preimport_scipy_sklearn  | 3    | OK       | 3.25      | 0.00           | NAO
+mcp130     | f_preimport_scipy_sklearn  | 4    | OK       | 3.71      | 0.00           | NAO
 mcp130     | g_preimport_st             | 1    | OK       | 15.07     | 0.00           | NAO
+mcp130     | g_preimport_st             | 2    | OK       | 13.44     | 0.00           | NAO
+mcp130     | g_preimport_st             | 3    | OK       | 13.18     | 0.00           | NAO
+mcp130     | g_preimport_st             | 4    | OK       | 15.19     | 0.00           | NAO
 ------------------------------------------------------------------------------------------
 ```
 

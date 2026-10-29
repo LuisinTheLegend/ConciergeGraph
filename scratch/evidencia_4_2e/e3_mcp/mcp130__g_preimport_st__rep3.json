@@ -1,0 +1,11 @@
+{
+  "classe": "OK",
+  "cpu_samples": [
+    0.0
+  ],
+  "mean_cpu": 0.0,
+  "t_init": 11.938,
+  "t_call": 0.008,
+  "total_s": 13.177,
+  "error": null
+}

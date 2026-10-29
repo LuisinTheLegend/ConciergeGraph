@@ -21,3 +21,4 @@ for name, py_exe in VENVS.items():
 txt = "\n".join(out_lines) + "\n"
 (EV_DIR / "versoes_venvs_reais.txt").write_text(txt, encoding="utf-8")
 print(txt)
+
