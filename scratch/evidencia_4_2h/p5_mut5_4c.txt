@@ -1,0 +1,38 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: c:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 1 item
+
+tests/test_no_secrets_in_tracked_files.py::test_no_secrets_in_scratch_or_audits FAILED [100%]
+
+================================== FAILURES ===================================
+____________________ test_no_secrets_in_scratch_or_audits _____________________
+
+    def test_no_secrets_in_scratch_or_audits() -> None:
+        """Garante zero achados de segredos ou fragmentos de chaves em scratch/ e audits/."""
+        scanner, repo_root = _load_scanner()
+        findings, scanned_count = scanner.scan_files(repo_root=repo_root, include_untracked=True)
+        assert scanned_count > 0, "O scanner deveria ter varrido pelo menos 1 arquivo em scratch/ ou audits/."
+    
+        if findings:
+            summary_lines = []
+            for rel_path, hits in sorted(findings.items()):
+                pats = sorted({pat_name for _, pat_name, _ in hits})
+                lines = sorted({lineno for lineno, _, _ in hits})
+                summary_lines.append(
+                    f"{rel_path}: {len(hits)} hit(s) on line(s) {lines[:10]} patterns={pats}"
+                )
+>           raise AssertionError(
+                f"Encontrados padrões de segredo em {len(findings)} arquivo(s):\n"
+                + "\n".join(summary_lines)
+            )
+E           AssertionError: Encontrados padrões de segredo em 1 arquivo(s):
+E           scratch/_temp_mut5_secret_probe.txt: 1 hit(s) on line(s) [1] patterns=['AQ_KEY_FRAGMENT']
+
+tests\test_no_secrets_in_tracked_files.py:38: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_no_secrets_in_tracked_files.py::test_no_secrets_in_scratch_or_audits
+============================== 1 failed in 0.76s ==============================

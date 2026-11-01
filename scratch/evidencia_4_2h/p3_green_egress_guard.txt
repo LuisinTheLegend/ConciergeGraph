@@ -27,4 +27,4 @@ tests/test_llm_egress_guard.py::test_s8_custom_call_fn_works_unchanged PASSED [1
     if asyncio.iscoroutinefunction(f):
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-======================= 14 passed, 1 warning in 10.80s ========================
+======================= 14 passed, 1 warning in 10.73s ========================

@@ -1,0 +1,35 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: c:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 5 items / 4 deselected / 1 selected
+
+tests/test_secret_redaction.py::test_r5_setup_logging_installs_factory_and_is_idempotent FAILED [100%]
+
+================================== FAILURES ===================================
+__________ test_r5_setup_logging_installs_factory_and_is_idempotent ___________
+
+    def test_r5_setup_logging_installs_factory_and_is_idempotent() -> None:
+        """R5: setup_logging instala o filtro/factory e chamá-lo duas vezes não duplica nem empilha wrappers."""
+        main_mod.setup_logging("INFO")
+        factory_after_first = logging.getLogRecordFactory()
+    
+        main_mod.setup_logging("INFO")
+        factory_after_second = logging.getLogRecordFactory()
+    
+        assert factory_after_first is factory_after_second, (
+            "Chamar setup_logging duas vezes não deve empilhar novas factories"
+        )
+>       assert getattr(factory_after_second, "_grafo_secret_redacting", False) is True, (
+            "A LogRecordFactory instalada por setup_logging deve estar marcada com _grafo_secret_redacting=True"
+        )
+E       AssertionError: A LogRecordFactory instalada por setup_logging deve estar marcada com _grafo_secret_redacting=True
+E       assert False is True
+E        +  where False = getattr(<class 'logging.LogRecord'>, '_grafo_secret_redacting', False)
+
+tests\test_secret_redaction.py:138: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_secret_redaction.py::test_r5_setup_logging_installs_factory_and_is_idempotent
+======================= 1 failed, 4 deselected in 0.22s =======================

@@ -157,6 +157,9 @@ def resolve_llm_provider(
     base_clean = (base_url or "").strip()
     key_clean = (api_key or "").strip()
 
+    if model_clean in _DISABLED_LLM_TOKENS:
+        return "disabled"
+
     if exp:
         if exp in _DISABLED_LLM_TOKENS:
             return "disabled"
@@ -179,9 +182,6 @@ def resolve_llm_provider(
             "openai-compatible, openrouter ou none); LLM desativado.",
             raw_explicit,
         )
-        return "disabled"
-
-    if model_clean in _DISABLED_LLM_TOKENS:
         return "disabled"
     if model_clean.startswith("gemini-") and not base_clean:
         return "gemini"

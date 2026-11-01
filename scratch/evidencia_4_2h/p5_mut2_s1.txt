@@ -1,0 +1,209 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: c:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 14 items / 8 deselected / 6 selected
+
+tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[none] FAILED [ 16%]
+tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[NONE] FAILED [ 33%]
+tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[] FAILED [ 50%]
+tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[off] FAILED [ 66%]
+tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[disabled] FAILED [ 83%]
+tests/test_llm_egress_guard.py::test_s1_orchestrator_skips_summarize_when_llm_disabled PASSED [100%]
+
+================================== FAILURES ===================================
+__________________ test_s1_disabled_models_zero_egress[none] __________________
+
+llm_spy = {'clients': [], 'dns_hosts': [], 'config': {'openai_fail': None, 'gemini_fail': None}}
+disabled_model = 'none'
+caplog = <_pytest.logging.LogCaptureFixture object at 0x000001747D2ECC20>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001747C71BCE0>
+
+    @pytest.mark.parametrize("disabled_model", ["none", "NONE", "", "off", "disabled"])
+    def test_s1_disabled_models_zero_egress(
+        llm_spy: dict[str, Any],
+        disabled_model: str,
+        caplog: pytest.LogCaptureFixture,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        with caplog.at_level(logging.WARNING, logger="grafo-concierge.summarizer"):
+            adapter = LLMAdapter(model_name=disabled_model, api_key=FAKE_AQ_KEY)
+        assert getattr(adapter, "is_enabled", None) is False, (
+            f"LLMAdapter com model_name={disabled_model!r} deve ter is_enabled=False"
+        )
+>       assert [r for r in caplog.records if r.levelno >= logging.WARNING] == [], (
+            f"model_name={disabled_model!r} é desativação intencional e não deve emitir WARNING: {caplog.messages}"
+        )
+E       AssertionError: model_name='none' é desativação intencional e não deve emitir WARNING: ["Modelo LLM 'none' sem provedor explícito e sem base_url: defina GRAFO_LLM_PROVIDER (ex.: GRAFO_LLM_PROVIDER=openai). LLM desativado por segurança."]
+E       assert [<LogRecord: ... segurança.">] == []
+E         
+E         Left contains one more item: <LogRecord: grafo-concierge.summarizer, 30, c:\Nexus-Memory\GrafoConcierge\ingestion\summarizer.py, 193, "Modelo LLM %...r explícito e sem base_url: defina GRAFO_LLM_PROVIDER (ex.: GRAFO_LLM_PROVIDER=openai). LLM desativado por segurança.">
+E         
+E         Full diff:
+E         - []
+E         + [
+E         +     <LogRecord: grafo-concierge.summarizer, 30, c:\Nexus-Memory\GrafoConcierge\ingestion\summarizer.py, 193, "Modelo LLM %r sem provedor explícito e sem base_url: defina GRAFO_LLM_PROVIDER (ex.: GRAFO_LLM_PROVIDER=openai). LLM desativado por segurança.">,
+E         + ]
+
+tests\test_llm_egress_guard.py:231: AssertionError
+------------------------------ Captured log call ------------------------------
+WARNING  grafo-concierge.summarizer:summarizer.py:193 Modelo LLM 'none' sem provedor explícito e sem base_url: defina GRAFO_LLM_PROVIDER (ex.: GRAFO_LLM_PROVIDER=openai). LLM desativado por segurança.
+__________________ test_s1_disabled_models_zero_egress[NONE] __________________
+
+llm_spy = {'clients': [], 'dns_hosts': [], 'config': {'openai_fail': None, 'gemini_fail': None}}
+disabled_model = 'NONE'
+caplog = <_pytest.logging.LogCaptureFixture object at 0x000001747D131E50>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001747D1E0C30>
+
+    @pytest.mark.parametrize("disabled_model", ["none", "NONE", "", "off", "disabled"])
+    def test_s1_disabled_models_zero_egress(
+        llm_spy: dict[str, Any],
+        disabled_model: str,
+        caplog: pytest.LogCaptureFixture,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        with caplog.at_level(logging.WARNING, logger="grafo-concierge.summarizer"):
+            adapter = LLMAdapter(model_name=disabled_model, api_key=FAKE_AQ_KEY)
+        assert getattr(adapter, "is_enabled", None) is False, (
+            f"LLMAdapter com model_name={disabled_model!r} deve ter is_enabled=False"
+        )
+>       assert [r for r in caplog.records if r.levelno >= logging.WARNING] == [], (
+            f"model_name={disabled_model!r} é desativação intencional e não deve emitir WARNING: {caplog.messages}"
+        )
+E       AssertionError: model_name='NONE' é desativação intencional e não deve emitir WARNING: ["Modelo LLM 'NONE' sem provedor explícito e sem base_url: defina GRAFO_LLM_PROVIDER (ex.: GRAFO_LLM_PROVIDER=openai). LLM desativado por segurança."]
+E       assert [<LogRecord: ... segurança.">] == []
+E         
+E         Left contains one more item: <LogRecord: grafo-concierge.summarizer, 30, c:\Nexus-Memory\GrafoConcierge\ingestion\summarizer.py, 193, "Modelo LLM %...r explícito e sem base_url: defina GRAFO_LLM_PROVIDER (ex.: GRAFO_LLM_PROVIDER=openai). LLM desativado por segurança.">
+E         
+E         Full diff:
+E         - []
+E         + [
+E         +     <LogRecord: grafo-concierge.summarizer, 30, c:\Nexus-Memory\GrafoConcierge\ingestion\summarizer.py, 193, "Modelo LLM %r sem provedor explícito e sem base_url: defina GRAFO_LLM_PROVIDER (ex.: GRAFO_LLM_PROVIDER=openai). LLM desativado por segurança.">,
+E         + ]
+
+tests\test_llm_egress_guard.py:231: AssertionError
+------------------------------ Captured log call ------------------------------
+WARNING  grafo-concierge.summarizer:summarizer.py:193 Modelo LLM 'NONE' sem provedor explícito e sem base_url: defina GRAFO_LLM_PROVIDER (ex.: GRAFO_LLM_PROVIDER=openai). LLM desativado por segurança.
+____________________ test_s1_disabled_models_zero_egress[] ____________________
+
+llm_spy = {'clients': [], 'dns_hosts': [], 'config': {'openai_fail': None, 'gemini_fail': None}}
+disabled_model = ''
+caplog = <_pytest.logging.LogCaptureFixture object at 0x000001747D132AD0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001747D3CC4D0>
+
+    @pytest.mark.parametrize("disabled_model", ["none", "NONE", "", "off", "disabled"])
+    def test_s1_disabled_models_zero_egress(
+        llm_spy: dict[str, Any],
+        disabled_model: str,
+        caplog: pytest.LogCaptureFixture,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        with caplog.at_level(logging.WARNING, logger="grafo-concierge.summarizer"):
+            adapter = LLMAdapter(model_name=disabled_model, api_key=FAKE_AQ_KEY)
+        assert getattr(adapter, "is_enabled", None) is False, (
+            f"LLMAdapter com model_name={disabled_model!r} deve ter is_enabled=False"
+        )
+>       assert [r for r in caplog.records if r.levelno >= logging.WARNING] == [], (
+            f"model_name={disabled_model!r} é desativação intencional e não deve emitir WARNING: {caplog.messages}"
+        )
+E       AssertionError: model_name='' é desativação intencional e não deve emitir WARNING: ["Modelo LLM '' sem provedor explícito e sem base_url: defina GRAFO_LLM_PROVIDER (ex.: GRAFO_LLM_PROVIDER=openai). LLM desativado por segurança."]
+E       assert [<LogRecord: ... segurança.">] == []
+E         
+E         Left contains one more item: <LogRecord: grafo-concierge.summarizer, 30, c:\Nexus-Memory\GrafoConcierge\ingestion\summarizer.py, 193, "Modelo LLM %...r explícito e sem base_url: defina GRAFO_LLM_PROVIDER (ex.: GRAFO_LLM_PROVIDER=openai). LLM desativado por segurança.">
+E         
+E         Full diff:
+E         - []
+E         + [
+E         +     <LogRecord: grafo-concierge.summarizer, 30, c:\Nexus-Memory\GrafoConcierge\ingestion\summarizer.py, 193, "Modelo LLM %r sem provedor explícito e sem base_url: defina GRAFO_LLM_PROVIDER (ex.: GRAFO_LLM_PROVIDER=openai). LLM desativado por segurança.">,
+E         + ]
+
+tests\test_llm_egress_guard.py:231: AssertionError
+------------------------------ Captured log call ------------------------------
+WARNING  grafo-concierge.summarizer:summarizer.py:193 Modelo LLM '' sem provedor explícito e sem base_url: defina GRAFO_LLM_PROVIDER (ex.: GRAFO_LLM_PROVIDER=openai). LLM desativado por segurança.
+__________________ test_s1_disabled_models_zero_egress[off] ___________________
+
+llm_spy = {'clients': [], 'dns_hosts': [], 'config': {'openai_fail': None, 'gemini_fail': None}}
+disabled_model = 'off'
+caplog = <_pytest.logging.LogCaptureFixture object at 0x000001747D1E1810>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001747D274270>
+
+    @pytest.mark.parametrize("disabled_model", ["none", "NONE", "", "off", "disabled"])
+    def test_s1_disabled_models_zero_egress(
+        llm_spy: dict[str, Any],
+        disabled_model: str,
+        caplog: pytest.LogCaptureFixture,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        with caplog.at_level(logging.WARNING, logger="grafo-concierge.summarizer"):
+            adapter = LLMAdapter(model_name=disabled_model, api_key=FAKE_AQ_KEY)
+        assert getattr(adapter, "is_enabled", None) is False, (
+            f"LLMAdapter com model_name={disabled_model!r} deve ter is_enabled=False"
+        )
+>       assert [r for r in caplog.records if r.levelno >= logging.WARNING] == [], (
+            f"model_name={disabled_model!r} é desativação intencional e não deve emitir WARNING: {caplog.messages}"
+        )
+E       AssertionError: model_name='off' é desativação intencional e não deve emitir WARNING: ["Modelo LLM 'off' sem provedor explícito e sem base_url: defina GRAFO_LLM_PROVIDER (ex.: GRAFO_LLM_PROVIDER=openai). LLM desativado por segurança."]
+E       assert [<LogRecord: ... segurança.">] == []
+E         
+E         Left contains one more item: <LogRecord: grafo-concierge.summarizer, 30, c:\Nexus-Memory\GrafoConcierge\ingestion\summarizer.py, 193, "Modelo LLM %...r explícito e sem base_url: defina GRAFO_LLM_PROVIDER (ex.: GRAFO_LLM_PROVIDER=openai). LLM desativado por segurança.">
+E         
+E         Full diff:
+E         - []
+E         + [
+E         +     <LogRecord: grafo-concierge.summarizer, 30, c:\Nexus-Memory\GrafoConcierge\ingestion\summarizer.py, 193, "Modelo LLM %r sem provedor explícito e sem base_url: defina GRAFO_LLM_PROVIDER (ex.: GRAFO_LLM_PROVIDER=openai). LLM desativado por segurança.">,
+E         + ]
+
+tests\test_llm_egress_guard.py:231: AssertionError
+------------------------------ Captured log call ------------------------------
+WARNING  grafo-concierge.summarizer:summarizer.py:193 Modelo LLM 'off' sem provedor explícito e sem base_url: defina GRAFO_LLM_PROVIDER (ex.: GRAFO_LLM_PROVIDER=openai). LLM desativado por segurança.
+________________ test_s1_disabled_models_zero_egress[disabled] ________________
+
+llm_spy = {'clients': [], 'dns_hosts': [], 'config': {'openai_fail': None, 'gemini_fail': None}}
+disabled_model = 'disabled'
+caplog = <_pytest.logging.LogCaptureFixture object at 0x000001747D1E2520>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001747D274D10>
+
+    @pytest.mark.parametrize("disabled_model", ["none", "NONE", "", "off", "disabled"])
+    def test_s1_disabled_models_zero_egress(
+        llm_spy: dict[str, Any],
+        disabled_model: str,
+        caplog: pytest.LogCaptureFixture,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        with caplog.at_level(logging.WARNING, logger="grafo-concierge.summarizer"):
+            adapter = LLMAdapter(model_name=disabled_model, api_key=FAKE_AQ_KEY)
+        assert getattr(adapter, "is_enabled", None) is False, (
+            f"LLMAdapter com model_name={disabled_model!r} deve ter is_enabled=False"
+        )
+>       assert [r for r in caplog.records if r.levelno >= logging.WARNING] == [], (
+            f"model_name={disabled_model!r} é desativação intencional e não deve emitir WARNING: {caplog.messages}"
+        )
+E       AssertionError: model_name='disabled' é desativação intencional e não deve emitir WARNING: ["Modelo LLM 'disabled' sem provedor explícito e sem base_url: defina GRAFO_LLM_PROVIDER (ex.: GRAFO_LLM_PROVIDER=openai). LLM desativado por segurança."]
+E       assert [<LogRecord: ... segurança.">] == []
+E         
+E         Left contains one more item: <LogRecord: grafo-concierge.summarizer, 30, c:\Nexus-Memory\GrafoConcierge\ingestion\summarizer.py, 193, "Modelo LLM %...r explícito e sem base_url: defina GRAFO_LLM_PROVIDER (ex.: GRAFO_LLM_PROVIDER=openai). LLM desativado por segurança.">
+E         
+E         Full diff:
+E         - []
+E         + [
+E         +     <LogRecord: grafo-concierge.summarizer, 30, c:\Nexus-Memory\GrafoConcierge\ingestion\summarizer.py, 193, "Modelo LLM %r sem provedor explícito e sem base_url: defina GRAFO_LLM_PROVIDER (ex.: GRAFO_LLM_PROVIDER=openai). LLM desativado por segurança.">,
+E         + ]
+
+tests\test_llm_egress_guard.py:231: AssertionError
+------------------------------ Captured log call ------------------------------
+WARNING  grafo-concierge.summarizer:summarizer.py:193 Modelo LLM 'disabled' sem provedor explícito e sem base_url: defina GRAFO_LLM_PROVIDER (ex.: GRAFO_LLM_PROVIDER=openai). LLM desativado por segurança.
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[none]
+FAILED tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[NONE]
+FAILED tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[]
+FAILED tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[off]
+FAILED tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[disabled]
+============ 5 failed, 1 passed, 8 deselected, 1 warning in 3.46s =============

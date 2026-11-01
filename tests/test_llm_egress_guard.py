@@ -217,11 +217,25 @@ def _disable_google_sdk(monkeypatch: pytest.MonkeyPatch) -> None:
 # ---------------------------------------------------------------------------
 
 @pytest.mark.parametrize("disabled_model", ["none", "NONE", "", "off", "disabled"])
-def test_s1_disabled_models_zero_egress(llm_spy: dict[str, Any], disabled_model: str) -> None:
-    adapter = LLMAdapter(model_name=disabled_model, api_key=FAKE_AQ_KEY)
+def test_s1_disabled_models_zero_egress(
+    llm_spy: dict[str, Any],
+    disabled_model: str,
+    caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    with caplog.at_level(logging.WARNING, logger="grafo-concierge.summarizer"):
+        adapter = LLMAdapter(model_name=disabled_model, api_key=FAKE_AQ_KEY)
     assert getattr(adapter, "is_enabled", None) is False, (
         f"LLMAdapter com model_name={disabled_model!r} deve ter is_enabled=False"
     )
+    assert [r for r in caplog.records if r.levelno >= logging.WARNING] == [], (
+        f"model_name={disabled_model!r} é desativação intencional e não deve emitir WARNING: {caplog.messages}"
+    )
+
+    # Mesmo se GRAFO_LLM_PROVIDER estiver definido, model_name=none deve continuar desativado
+    monkeypatch.setenv("GRAFO_LLM_PROVIDER", "openai")
+    adapter_with_prov = LLMAdapter(model_name=disabled_model, api_key=FAKE_AQ_KEY)
+    assert getattr(adapter_with_prov, "is_enabled", None) is False
 
     with pytest.raises(RuntimeError):
         adapter.generate("Summarize this")

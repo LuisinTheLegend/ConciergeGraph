@@ -1,0 +1,61 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: c:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 14 items / 12 deselected / 2 selected
+
+tests/test_llm_egress_guard.py::test_s2_gemini_failure_never_falls_back_to_openai FAILED [ 50%]
+tests/test_llm_egress_guard.py::test_s2_gemini_missing_sdk_never_falls_back_to_openai FAILED [100%]
+
+================================== FAILURES ===================================
+______________ test_s2_gemini_failure_never_falls_back_to_openai ______________
+
+llm_spy = {'clients': [{'kind': 'GenAIClient', 'base_url': None, 'instance': <test_llm_egress_guard.FakeGenAIClient object at 0x...D940>}], 'dns_hosts': [], 'config': {'openai_fail': None, 'gemini_fail': RuntimeError('Simulated Gemini 503 failure')}}
+
+    def test_s2_gemini_failure_never_falls_back_to_openai(llm_spy: dict[str, Any]) -> None:
+        llm_spy["config"]["gemini_fail"] = RuntimeError("Simulated Gemini 503 failure")
+        adapter = LLMAdapter(model_name="gemini-2.0-flash", api_key=FAKE_AQ_KEY)
+    
+        with pytest.raises(RuntimeError):
+            adapter.generate("Prompt sync")
+    
+>       with pytest.raises(RuntimeError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE RuntimeError
+
+tests\test_llm_egress_guard.py:325: Failed
+------------------------------ Captured log call ------------------------------
+ERROR    grafo-concierge.summarizer:summarizer.py:308 Failed to call Google GenAI (gemini-2.0-flash): Simulated Gemini 503 failure
+ERROR    grafo-concierge.summarizer:summarizer.py:308 Failed to call Google GenAI (gemini-2.0-flash): Simulated Gemini 503 failure
+____________ test_s2_gemini_missing_sdk_never_falls_back_to_openai ____________
+
+llm_spy = {'clients': [{'kind': 'AsyncOpenAI', 'base_url': None, 'instance': <test_llm_egress_guard.FakeAsyncOpenAIClient object at 0x000001AE5BC73750>}], 'dns_hosts': [], 'config': {'openai_fail': None, 'gemini_fail': None}}
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001AE5BBAF230>
+
+    def test_s2_gemini_missing_sdk_never_falls_back_to_openai(
+        llm_spy: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        _disable_google_sdk(monkeypatch)
+    
+        adapter = LLMAdapter(model_name="gemini-2.0-flash", api_key=FAKE_AQ_KEY)
+    
+        with pytest.raises(RuntimeError):
+            adapter.generate("Prompt sync sem SDK")
+    
+>       with pytest.raises(RuntimeError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE RuntimeError
+
+tests\test_llm_egress_guard.py:344: Failed
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_llm_egress_guard.py::test_s2_gemini_failure_never_falls_back_to_openai
+FAILED tests/test_llm_egress_guard.py::test_s2_gemini_missing_sdk_never_falls_back_to_openai
+================= 2 failed, 12 deselected, 1 warning in 3.20s =================
