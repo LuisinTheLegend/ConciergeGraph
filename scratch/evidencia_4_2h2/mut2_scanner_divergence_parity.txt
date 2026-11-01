@@ -1,0 +1,36 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+____________________ test_f4_022_filter_and_scanner_parity ____________________
+
+    def test_f4_022_filter_and_scanner_parity() -> None:
+        """Item 1c: O filtro de logs (main.py) e o scanner (scan_secrets.py) d�o o mesmo resultado
+        sobre todos os casos positivos e negativos de F4-022.
+        """
+        import importlib.util
+        from pathlib import Path
+    
+        scanner_path = Path(__file__).resolve().parent.parent / "scratch" / "tools" / "scan_secrets.py"
+        spec = importlib.util.spec_from_file_location("scan_secrets_mod", scanner_path)
+        assert spec is not None and spec.loader is not None
+        scanner_mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(scanner_mod)
+    
+        def scanner_matches(text: str) -> bool:
+            return any(regex.search(text) is not None for _, regex in scanner_mod.SECRET_PATTERNS)
+    
+        def filter_redacts(text: str) -> bool:
+            return main_mod.redact_log_secrets(text) != text
+    
+        for neg in NEGATIVE_CASES_F4_022:
+            f_res = filter_redacts(neg)
+            s_res = scanner_matches(neg)
+>           assert f_res == s_res == False, (  # noqa: E712
+                f"Diverg�ncia ou falso positivo em caso negativo {neg!r}: filter={f_res}, scanner={s_res}"
+            )
+E           AssertionError: Diverg�ncia ou falso positivo em caso negativo 'risk-assessment-notes.md': filter=False, scanner=True
+E           assert False == True
+
+tests\test_secret_redaction.py:218: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_secret_redaction.py::test_f4_022_filter_and_scanner_parity
+1 failed, 21 deselected in 0.35s

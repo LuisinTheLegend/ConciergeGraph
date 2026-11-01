@@ -1,0 +1,84 @@
+FFFF.F                                                                   [100%]
+================================== FAILURES ===================================
+____ test_f4_022_negative_cases_remain_identical[risk-assessment-notes.md] ____
+
+neg_text = 'risk-assessment-notes.md'
+
+    @pytest.mark.parametrize("neg_text", NEGATIVE_CASES_F4_022)
+    def test_f4_022_negative_cases_remain_identical(neg_text: str) -> None:
+        """Item 1a (Negativos): nomes de arquivos e textos normais com 'sk-' interno saem id�nticos."""
+        main_mod.setup_logging("INFO")
+>       assert main_mod.redact_log_secrets(neg_text) == neg_text
+E       AssertionError: assert 'ri[REDACTED].md' == 'risk-assessment-notes.md'
+E         
+E         - risk-assessment-notes.md
+E         + ri[REDACTED].md
+
+tests\test_secret_redaction.py:178: AssertionError
+____ test_f4_022_negative_cases_remain_identical[disk-cache-manifest.json] ____
+
+neg_text = 'disk-cache-manifest.json'
+
+    @pytest.mark.parametrize("neg_text", NEGATIVE_CASES_F4_022)
+    def test_f4_022_negative_cases_remain_identical(neg_text: str) -> None:
+        """Item 1a (Negativos): nomes de arquivos e textos normais com 'sk-' interno saem id�nticos."""
+        main_mod.setup_logging("INFO")
+>       assert main_mod.redact_log_secrets(neg_text) == neg_text
+E       AssertionError: assert 'di[REDACTED].json' == 'disk-cache-manifest.json'
+E         
+E         - disk-cache-manifest.json
+E         + di[REDACTED].json
+
+tests\test_secret_redaction.py:178: AssertionError
+___ test_f4_022_negative_cases_remain_identical[task-scheduler-config.yaml] ___
+
+neg_text = 'task-scheduler-config.yaml'
+
+    @pytest.mark.parametrize("neg_text", NEGATIVE_CASES_F4_022)
+    def test_f4_022_negative_cases_remain_identical(neg_text: str) -> None:
+        """Item 1a (Negativos): nomes de arquivos e textos normais com 'sk-' interno saem id�nticos."""
+        main_mod.setup_logging("INFO")
+>       assert main_mod.redact_log_secrets(neg_text) == neg_text
+E       AssertionError: assert 'ta[REDACTED].yaml' == 'task-scheduler-config.yaml'
+E         
+E         - task-scheduler-config.yaml
+E         + ta[REDACTED].yaml
+
+tests\test_secret_redaction.py:178: AssertionError
+_ test_f4_022_negative_cases_remain_identical[C:\\proj\\desk-setup-checklist.md] _
+
+neg_text = 'C:\\proj\\desk-setup-checklist.md'
+
+    @pytest.mark.parametrize("neg_text", NEGATIVE_CASES_F4_022)
+    def test_f4_022_negative_cases_remain_identical(neg_text: str) -> None:
+        """Item 1a (Negativos): nomes de arquivos e textos normais com 'sk-' interno saem id�nticos."""
+        main_mod.setup_logging("INFO")
+>       assert main_mod.redact_log_secrets(neg_text) == neg_text
+E       AssertionError: assert 'C:\\proj\\de[REDACTED].md' == 'C:\\proj\\de...-checklist.md'
+E         
+E         - C:\proj\desk-setup-checklist.md
+E         + C:\proj\de[REDACTED].md
+
+tests\test_secret_redaction.py:178: AssertionError
+________ test_f4_022_negative_cases_remain_identical[mask-values-list] ________
+
+neg_text = 'mask-values-list'
+
+    @pytest.mark.parametrize("neg_text", NEGATIVE_CASES_F4_022)
+    def test_f4_022_negative_cases_remain_identical(neg_text: str) -> None:
+        """Item 1a (Negativos): nomes de arquivos e textos normais com 'sk-' interno saem id�nticos."""
+        main_mod.setup_logging("INFO")
+>       assert main_mod.redact_log_secrets(neg_text) == neg_text
+E       AssertionError: assert 'ma[REDACTED]' == 'mask-values-list'
+E         
+E         - mask-values-list
+E         + ma[REDACTED]
+
+tests\test_secret_redaction.py:178: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_secret_redaction.py::test_f4_022_negative_cases_remain_identical[risk-assessment-notes.md]
+FAILED tests/test_secret_redaction.py::test_f4_022_negative_cases_remain_identical[disk-cache-manifest.json]
+FAILED tests/test_secret_redaction.py::test_f4_022_negative_cases_remain_identical[task-scheduler-config.yaml]
+FAILED tests/test_secret_redaction.py::test_f4_022_negative_cases_remain_identical[C:\\proj\\desk-setup-checklist.md]
+FAILED tests/test_secret_redaction.py::test_f4_022_negative_cases_remain_identical[mask-values-list]
+5 failed, 1 passed, 16 deselected in 0.42s

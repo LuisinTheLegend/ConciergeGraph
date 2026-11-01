@@ -1,0 +1,27 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+__________ test_item4a_setup_logging_preserves_foreign_root_handlers __________
+
+    def test_item4a_setup_logging_preserves_foreign_root_handlers() -> None:
+        """Item 4a: um handler alheio j� presente no root logger N�O � removido por setup_logging;
+        chamar setup_logging duas vezes deixa exatamente um handler do Grafo.
+        """
+        root = logging.getLogger()
+        foreign_buf = io.StringIO()
+        foreign_handler = logging.StreamHandler(foreign_buf)
+        root.addHandler(foreign_handler)
+        try:
+            main_mod.setup_logging("INFO")
+            main_mod.setup_logging("INFO")
+    
+>           assert foreign_handler in root.handlers, (
+                "Handler alheio presente no root logger foi removido por setup_logging!"
+            )
+E           AssertionError: Handler alheio presente no root logger foi removido por setup_logging!
+E           assert <StreamHandler (NOTSET)> in [<StreamHandler <_TemporaryFileWrapper file=<_io.FileIO name='C:\\Users\\guial\\AppData\\Local\\Temp\\tmpa9suposo' mode='rb+' closefd=True>> (INFO)>]
+E            +  where [<StreamHandler <_TemporaryFileWrapper file=<_io.FileIO name='C:\\Users\\guial\\AppData\\Local\\Temp\\tmpa9suposo' mode='rb+' closefd=True>> (INFO)>] = <RootLogger root (INFO)>.handlers
+
+tests\test_secret_redaction.py:246: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_secret_redaction.py::test_item4a_setup_logging_preserves_foreign_root_handlers
+1 failed, 21 deselected in 0.37s

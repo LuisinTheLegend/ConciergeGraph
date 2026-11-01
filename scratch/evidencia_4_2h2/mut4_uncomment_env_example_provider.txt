@@ -1,0 +1,25 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+____________ test_env_example_does_not_define_active_llm_provider _____________
+
+    def test_env_example_does_not_define_active_llm_provider() -> None:
+        """F4-023: .env.example n�o traz GRAFO_LLM_PROVIDER ativo para n�o anular a regra de modelos gemini-*."""
+        assert ENV_EXAMPLE_PATH.is_file(), f".env.example n�o encontrado em {ENV_EXAMPLE_PATH}"
+        text = ENV_EXAMPLE_PATH.read_text(encoding="utf-8")
+        lines = text.splitlines()
+    
+        active_lines = [
+            (idx + 1, line)
+            for idx, line in enumerate(lines)
+            if re.match(r"^\s*GRAFO_LLM_PROVIDER\s*=", line)
+        ]
+>       assert not active_lines, (
+            f".env.example cont�m GRAFO_LLM_PROVIDER ativo nas linhas: {active_lines}"
+        )
+E       AssertionError: .env.example cont�m GRAFO_LLM_PROVIDER ativo nas linhas: [(24, 'GRAFO_LLM_PROVIDER=gemini')]
+E       assert not [(24, 'GRAFO_LLM_PROVIDER=gemini')]
+
+tests\test_env_example_provider.py:30: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_env_example_provider.py::test_env_example_does_not_define_active_llm_provider
+1 failed in 0.29s
