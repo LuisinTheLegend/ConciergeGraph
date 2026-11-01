@@ -279,7 +279,7 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
   - Presença no startup: `sentence_transformers` e `torch` foram **100% eliminados** do bootstrap (`depois_top20_imports.txt`).
   - Tempo residual de startup: consumido principalmente por `chromadb` (1,83 s de import + 0,20 s de instanciação).
   - Trade-off documentado: a carga de pesos e imports de ML passou para a 1ª chamada de embedding, variando de 4,59 s para **15,70 s** (+11,11 s); chamadas subsequentes realizam inferência quente em **~0,016 s**.
-- **Status:** **corrigido pelo executor, aguardando verificação independente** (Commits `34ad6d5`, `8366860`, `17f046e`, `6defadc`, `30d65c1`). Os testes de lazy import da 4.2d (T1 a T5 em `tests/test_lazy_ml_imports.py`) continuam preservados, 100% verdes e integrados ao workflow `.github/workflows/windows-stdin.yml` (o D5 duplicado e frágil em `tests/test_stdin_decouple.py` foi removido na 4.2g). A Opção A adotada na 4.2f não exigiu aquecimento.
+- **Status:** **corrigido; verificado pelo auditor; aceito pelo dono no Claude Desktop real (n=1, uma máquina) em 2026-11-01** (Commits `34ad6d5`, `8366860`, `17f046e`, `6defadc`, `30d65c1`). Os testes de lazy import da 4.2d (T1 a T5 em `tests/test_lazy_ml_imports.py`) continuam preservados, 100% verdes e integrados ao workflow `.github/workflows/windows-stdin.yml` (o D5 duplicado e frágil em `tests/test_stdin_decouple.py` foi removido na 4.2g). A Opção A adotada na 4.2f não exigiu aquecimento.
 - **Observações Importantes sobre Desempenho e Arquitetura:**
   1. A regressão de latência na 1ª chamada que usa o modelo é esperada e decorre do carregamento sob demanda autorizado pelo dono do projeto para viabilizar um handshake FastMCP imediato (< 3s).
   2. As medições de 4.2e-3 com pré-import mostram latência de ~21-25 s no `mine` e ~4-5 s no `search-first`.
@@ -288,7 +288,7 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
 ---
 
 ### [F4-017] 1ª chamada que usa o modelo trava dentro do servidor MCP no Windows (leitor bloqueado em fd 0)
-- **Status:** **corrigido pelo executor, aguardando verificação independente** (Commits `17f046e`, `a64f5f1`, `6defadc`, `5b173fd`, `30d65c1`).
+- **Status:** **corrigido; verificado pelo auditor; aceito pelo dono no Claude Desktop real (n=1, uma máquina) em 2026-11-01** (Commits `17f046e`, `a64f5f1`, `6defadc`, `5b173fd`, `30d65c1`, `96ba4d0`).
 - **Severidade:** 🔴 CRÍTICA (Bloqueio total do servidor MCP stdio na 1ª requisição que importa bibliotecas nativas com leitor bloqueado em fd 0 no Windows).
 - **Arquivos & Linhas:** [`main.py:111-146, 252-258`](file:///c:/Nexus-Memory/GrafoConcierge/main.py#L111-L146), [`tests/test_stdin_decouple.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_stdin_decouple.py), [`.github/workflows/windows-stdin.yml`](file:///c:/Nexus-Memory/GrafoConcierge/.github/workflows/windows-stdin.yml)
 - **Fatos Provados vs. Hipótese Não Demonstrada:**
@@ -307,3 +307,56 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
      - Em `mcp 1.30.0` completo (`venv_mcp130_full`, 4.2g Item 3c, com `chromadb=1.5.9`, `sentence_transformers=5.4.1`, `scipy=1.17.1`, `numpy=2.4.4`, `torch=2.11.0`): **10/10 OK** (`0 TRAVOU`, `0 INVÁLIDA`, `13 vetores` no Chroma após cada `mine`, `NO-OP=False`, `scratch/evidencia_4_2g/item3_tabela_head_mcp130.txt`).
   4. **Controle Negativo no Commit `dd92d35` (4.2f Passo 4f e 4.2g Item 3d):** No mesmo `venv_mcp130_full` completo ($n=3$ `search-first` + $n=3$ `mine`, timeout 180s), **6/6 TRAVOU** (`0 OK`, `CPU=0.0%`, `scratch/evidencia_4_2g/item3_tabela_control_dd92d35.txt`), confirmando que o ambiente exercita o travamento real e que o desacoplamento em `HEAD` o elimina.
   5. **CI Windows (`.github/workflows/windows-stdin.yml`, 4.2g Item 4):** Matriz executada em `windows-latest` com Python 3.10, 3.12 e 3.14 (`scratch/evidencia_4_2g/item4_gh_run_main.txt` e teste de mutação na branch descartável `ci-mutacao-4-2g` em `scratch/evidencia_4_2g/item4_gh_run_mutacao.txt`).
+
+---
+
+### [F4-018] Tabela Virtual `nodes_fts` (FTS5) Não Indexa `nodes.content`
+- **Status:** **ABERTO** (Planejado para a Rodada `4.2i`).
+- **Severidade:** 🟠 GRAVE (Perda de alcance na busca lexical FTS5 para termos presentes exclusivamente no corpo do documento/código quando `nodes.summary` é `NULL`).
+- **Arquivos & Linhas:** [`storage/schema.py:163-198`](file:///c:/Nexus-Memory/GrafoConcierge/storage/schema.py#L163-L198)
+- **Mecanismo da Falha:**
+  A tabela virtual FTS5 `nodes_fts` é definida em `storage/schema.py:163-168` indexando apenas `(label, tags, summary)` com `content='nodes'`. Ela não indexa a coluna `content` da tabela `nodes`. Quando o LLM está desativado (`GRAFO_LLM_MODEL=none`) ou indisponível, `nodes.summary` permanece `NULL` (política homologada na Rodada 4.1/E para não gravar placeholders `[DUMB]`). Como consequência, a consulta FTS5 (`SELECT rowid FROM nodes_fts WHERE nodes_fts MATCH ...`) busca apenas em `label` e `tags`, retornando vazio para palavras presentes apenas em `nodes.content` (observado no teste de aceitação do Claude Desktop real para as palavras-sentinela nos arquivos `.md`, onde a recuperação ocorreu exclusivamente pelo canal vetorial do Chroma).
+
+---
+
+### [F4-019] Egress Indevido de Chave de API e Fallback Silencioso Entre Provedores em `LLMAdapter` (`GRAFO_LLM_MODEL=none` e falha em `gemini-*`)
+- **Status:** **corrigido pelo executor, aguardando verificação independente** (Rodada `4.2h`).
+- **Severidade:** 🔴 CRÍTICA (Vazamento de chave de API para endpoint de terceiro não autorizado / chamada externa quando o LLM deveria estar desligado).
+- **Arquivos & Linhas:** [`ingestion/summarizer.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/summarizer.py), [`ingestion/orchestrator.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py), [`main.py`](file:///c:/Nexus-Memory/GrafoConcierge/main.py), [`interface/cli.py`](file:///c:/Nexus-Memory/GrafoConcierge/interface/cli.py), [`.env.example`](file:///c:/Nexus-Memory/GrafoConcierge/.env.example)
+- **Mecanismo da Falha:**
+  1. Com `GRAFO_LLM_MODEL=none`, `generate_async` em `ingestion/summarizer.py` não desligava o LLM: qualquer modelo que não começasse com `"gemini-"` (e sem `base_url`) caía no ramo `else:` e instanciava `openai.AsyncOpenAI(api_key=self.api_key)`, enviando a chave configurada no ambiente (mesmo sendo de outro provedor) para `https://api.openai.com/v1/chat/completions`.
+  2. Com modelos `"gemini-*"`, se a chamada ao Gemini falhasse em `generate_async` (ou se as bibliotecas do Google não estivessem instaladas no caminho síncrono `generate`), a execução prosseguia para o bloco da OpenAI com a mesma chave.
+- **Resolução Implementada (Rodada 4.2h):**
+  1. Implementada `resolve_llm_provider(model_name, provider, base_url, api_key)` e propriedade `is_enabled` em `LLMAdapter` e `ZoomSummarizer`:
+     - Modelos `""`, `"none"`, `"off"`, `"disabled"` (case-insensitive) ou `GRAFO_LLM_PROVIDER` em `("none", "off", "disabled")` ou ausência de chave/URL desativam estritamente o adaptador (`provider="disabled"`, `is_enabled=False`), sem instanciar nenhum cliente e sem chamadas de rede/DNS.
+     - Removido 100% do fallback entre provedores (falha ou `ImportError` no Gemini nunca cai para OpenAI).
+     - Para usar OpenAI ou endpoint compatível sem `gemini-*`, exige-se escolha explícita via `GRAFO_LLM_PROVIDER=openai` ou `GRAFO_LLM_PROVIDER=custom` + `GRAFO_LLM_BASE_URL`; sem isso, emite um único `WARNING` claro por instância e opera desativado.
+  2. Em `ingestion/orchestrator.py`, quando `not self._summarizer.is_enabled`, a etapa `SUMMARIZE` é pulada com log informativo `"LLM desativado: sumários L0 não gerados"`.
+  3. Testes em [`tests/test_llm_egress_guard.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_llm_egress_guard.py) (S1–S8) e prova E2E com Tripwire Proxy em `scratch/evidencia_4_2h/`.
+
+---
+
+### [F4-020] Clientes `AsyncOpenAI` / `OpenAI` Criados por Chamada e Nunca Fechados (`RuntimeError: Event loop is closed`)
+- **Status:** **corrigido pelo executor, aguardando verificação independente** (Rodada `4.2h`).
+- **Severidade:** 🟡 MÉDIA (Vazamento de recursos/sockets e 9 tracebacks `RuntimeError: Event loop is closed / Task exception was never retrieved` no fechamento do loop por mineração).
+- **Arquivos & Linhas:** [`ingestion/summarizer.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/summarizer.py), [`tests/test_llm_egress_guard.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_llm_egress_guard.py)
+- **Mecanismo da Falha:**
+  Em `ingestion/summarizer.py`, `openai.OpenAI` e `openai.AsyncOpenAI` eram instanciados dentro de `generate` e `generate_async` a cada tentativa sem contexto `with` / `async with` e sem chamada a `close()` / `await aclose()`. Como `ingestion/orchestrator.py` executa `asyncio.run(...)` para processar os chunks, o loop de eventos encerrava antes do coletor de lixo tentar fechar o cliente `httpx.AsyncClient` subjacente, disparando `RuntimeError: Event loop is closed` e `Task exception was never retrieved`.
+- **Resolução Implementada (Rodada 4.2h):**
+  - Caminho síncrono (`generate`): `with openai.OpenAI(...) as client:` garante `client.close()` determinístico mesmo em exceção.
+  - Caminho assíncrono (`generate_async`): `async with openai.AsyncOpenAI(...) as client:` garante `await client.__aexit__(...)` / `aclose()` antes do encerramento do loop de eventos, mesmo quando as 3 tentativas do `tenacity` falham.
+  - Provado pelos testes `S6` e `S7` em `tests/test_llm_egress_guard.py` e no E2E com Tripwire Proxy (`0` ocorrências de `Event loop is closed` e `Task exception was never retrieved` no `HEAD` da 4.2h).
+
+---
+
+### [F4-021] Trechos de Chaves Mascaradas pelo Provedor Presentes em Arquivos de Evidência Versionados e Ausência de Redação Automática em Logs
+- **Status:** **corrigido pelo executor, aguardando verificação independente** (Rodada `4.2h`).
+- **Severidade:** 🟡 MÉDIA (Exposição de fragmentos parciais de chave em logs de erro versionados no repositório público).
+- **Arquivos & Linhas:** [`scratch/tools/scan_secrets.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/tools/scan_secrets.py), [`main.py`](file:///c:/Nexus-Memory/GrafoConcierge/main.py), [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md), [`tests/test_no_secrets_in_tracked_files.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_no_secrets_in_tracked_files.py), [`tests/test_secret_redaction.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_secret_redaction.py)
+- **Mecanismo da Falha:**
+  Quando uma requisição com chave inválida retornava erro HTTP 401 da OpenAI, a mensagem de exceção incluía o prefixo e o sufixo mascarados da chave (`[REDACTED]`) e era gravada literalmente nos logs de `stderr` capturados em arquivos de evidência versionados (`scratch/evidencia_4_2/p3_matrix_run.txt`, `scratch/evidencia_4_2d/teste_funcional_real.txt`, `scratch/evidencia_4_2e/diag/out__dump_mine_2yfwxq1r__stderr.txt` e `audits/bypass-governanca-por-session-id.md`).
+- **Resolução Implementada (Rodada 4.2h):**
+  1. Criado scanner determinístico [`scratch/tools/scan_secrets.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/tools/scan_secrets.py) e teste de regressão [`tests/test_no_secrets_in_tracked_files.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_no_secrets_in_tracked_files.py).
+  2. Redigidos os 4 arquivos versionados substituindo apenas os tokens sensíveis por `[REDACTED]` (preservando integralmente contagens, tempos e diagnósticos; `0` achados após redação).
+  3. Implementado filtro idempotente de redação de segredos em `main.py` (`setup_logging` via `logging.setLogRecordFactory`), cobrindo `getMessage()` (`msg` + `args`) e exceções formatadas (`exc_info` / `exc_text`) em todos os handlers (incluindo `RichHandler`), redigindo `sk-...`, `AQ....`, `AIza...`, `Bearer <token>` e valores exatos de `GRAFO_LLM_API_KEY` / `GRAFO_API_KEY` ($\ge 8$ caracteres). Validado por [`tests/test_secret_redaction.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_secret_redaction.py) (R1–R5).
+  4. Adicionada a **Regra 13** ao [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md).
