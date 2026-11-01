@@ -220,9 +220,9 @@ TESTE FUNCIONAL REAL BEM-SUCEDIDO: VETORES GRAVADOS E BUSCA VALIDADA!
                              OpenAI/Provider                                   
                              (gemini-2.0-flash): Error code:                   
                              401 - {'error': {'message':                       
-                             'Incorrect API key provided:                      
-                             AQ.Ab8RN************************                  
-                             *****************IjEw. You can                    
+                             '[REDACTED]:                      
+                             [REDACTED]                  
+                             [REDACTED] You can                    
                              find your API key at                              
                              https://platform.openai.com/acco                  
                              unt/api-keys.', 'type':                           
@@ -234,8 +234,8 @@ TESTE FUNCIONAL REAL BEM-SUCEDIDO: VETORES GRAVADOS E BUSCA VALIDADA!
                              failed: Error code: 401 -                         
                              {'error': {'message': 'Incorrect                  
                              API key provided:                                 
-                             AQ.Ab8RN************************                  
-                             *****************IjEw. You can                    
+                             [REDACTED]                  
+                             [REDACTED] You can                    
                              find your API key at                              
                              https://platform.openai.com/acco                  
                              unt/api-keys.', 'type':                           
@@ -254,9 +254,9 @@ TESTE FUNCIONAL REAL BEM-SUCEDIDO: VETORES GRAVADOS E BUSCA VALIDADA!
                              OpenAI/Provider                                   
                              (gemini-2.0-flash): Error code:                   
                              401 - {'error': {'message':                       
-                             'Incorrect API key provided:                      
-                             AQ.Ab8RN************************                  
-                             *****************IjEw. You can                    
+                             '[REDACTED]:                      
+                             [REDACTED]                  
+                             [REDACTED] You can                    
                              find your API key at                              
                              https://platform.openai.com/acco                  
                              unt/api-keys.', 'type':                           
@@ -268,8 +268,8 @@ TESTE FUNCIONAL REAL BEM-SUCEDIDO: VETORES GRAVADOS E BUSCA VALIDADA!
                              failed: Error code: 401 -                         
                              {'error': {'message': 'Incorrect                  
                              API key provided:                                 
-                             AQ.Ab8RN************************                  
-                             *****************IjEw. You can                    
+                             [REDACTED]                  
+                             [REDACTED] You can                    
                              find your API key at                              
                              https://platform.openai.com/acco                  
                              unt/api-keys.', 'type':                           
@@ -280,9 +280,9 @@ TESTE FUNCIONAL REAL BEM-SUCEDIDO: VETORES GRAVADOS E BUSCA VALIDADA!
                              OpenAI/Provider                                   
                              (gemini-2.0-flash): Error code:                   
                              401 - {'error': {'message':                       
-                             'Incorrect API key provided:                      
-                             AQ.Ab8RN************************                  
-                             *****************IjEw. You can                    
+                             '[REDACTED]:                      
+                             [REDACTED]                  
+                             [REDACTED] You can                    
                              find your API key at                              
                              https://platform.openai.com/acco                  
                              unt/api-keys.', 'type':                           
@@ -294,8 +294,8 @@ TESTE FUNCIONAL REAL BEM-SUCEDIDO: VETORES GRAVADOS E BUSCA VALIDADA!
                              failed: Error code: 401 -                         
                              {'error': {'message': 'Incorrect                  
                              API key provided:                                 
-                             AQ.Ab8RN************************                  
-                             *****************IjEw. You can                    
+                             [REDACTED]                  
+                             [REDACTED] You can                    
                              find your API key at                              
                              https://platform.openai.com/acco                  
                              unt/api-keys.', 'type':                           
@@ -382,9 +382,9 @@ TESTE FUNCIONAL REAL BEM-SUCEDIDO: VETORES GRAVADOS E BUSCA VALIDADA!
                              OpenAI/Provider                                   
                              (gemini-2.0-flash): Error code:                   
                              401 - {'error': {'message':                       
-                             'Incorrect API key provided:                      
-                             AQ.Ab8RN************************                  
-                             *****************IjEw. You can                    
+                             '[REDACTED]:                      
+                             [REDACTED]                  
+                             [REDACTED] You can                    
                              find your API key at                              
                              https://platform.openai.com/acco                  
                              unt/api-keys.', 'type':                           
@@ -396,8 +396,8 @@ TESTE FUNCIONAL REAL BEM-SUCEDIDO: VETORES GRAVADOS E BUSCA VALIDADA!
                              failed: Error code: 401 -                         
                              {'error': {'message': 'Incorrect                  
                              API key provided:                                 
-                             AQ.Ab8RN************************                  
-                             *****************IjEw. You can                    
+                             [REDACTED]                  
+                             [REDACTED] You can                    
                              find your API key at                              
                              https://platform.openai.com/acco                  
                              unt/api-keys.', 'type':                           
@@ -416,9 +416,9 @@ TESTE FUNCIONAL REAL BEM-SUCEDIDO: VETORES GRAVADOS E BUSCA VALIDADA!
                              OpenAI/Provider                                   
                              (gemini-2.0-flash): Error code:                   
                              401 - {'error': {'message':                       
-                             'Incorrect API key provided:                      
-                             AQ.Ab8RN************************                  
-                             *****************IjEw. You can                    
+                             '[REDACTED]:                      
+                             [REDACTED]                  
+                             [REDACTED] You can                    
                              find your API key at                              
                              https://platform.openai.com/acco                  
                              unt/api-keys.', 'type':                           
@@ -430,8 +430,8 @@ TESTE FUNCIONAL REAL BEM-SUCEDIDO: VETORES GRAVADOS E BUSCA VALIDADA!
                              failed: Error code: 401 -                         
                              {'error': {'message': 'Incorrect                  
                              API key provided:                                 
-                             AQ.Ab8RN************************                  
-                             *****************IjEw. You can                    
+                             [REDACTED]                  
+                             [REDACTED] You can                    
                              find your API key at                              
                              https://platform.openai.com/acco                  
                              unt/api-keys.', 'type':                           
@@ -442,9 +442,9 @@ TESTE FUNCIONAL REAL BEM-SUCEDIDO: VETORES GRAVADOS E BUSCA VALIDADA!
                              OpenAI/Provider                                   
                              (gemini-2.0-flash): Error code:                   
                              401 - {'error': {'message':                       
-                             'Incorrect API key provided:                      
-                             AQ.Ab8RN************************                  
-                             *****************IjEw. You can                    
+                             '[REDACTED]:                      
+                             [REDACTED]                  
+                             [REDACTED] You can                    
                              find your API key at                              
                              https://platform.openai.com/acco                  
                              unt/api-keys.', 'type':                           
@@ -456,8 +456,8 @@ TESTE FUNCIONAL REAL BEM-SUCEDIDO: VETORES GRAVADOS E BUSCA VALIDADA!
                              failed: Error code: 401 -                         
                              {'error': {'message': 'Incorrect                  
                              API key provided:                                 
-                             AQ.Ab8RN************************                  
-                             *****************IjEw. You can                    
+                             [REDACTED]                  
+                             [REDACTED] You can                    
                              find your API key at                              
                              https://platform.openai.com/acco                  
                              unt/api-keys.', 'type':                           
@@ -544,9 +544,9 @@ TESTE FUNCIONAL REAL BEM-SUCEDIDO: VETORES GRAVADOS E BUSCA VALIDADA!
                              OpenAI/Provider                                   
                              (gemini-2.0-flash): Error code:                   
                              401 - {'error': {'message':                       
-                             'Incorrect API key provided:                      
-                             AQ.Ab8RN************************                  
-                             *****************IjEw. You can                    
+                             '[REDACTED]:                      
+                             [REDACTED]                  
+                             [REDACTED] You can                    
                              find your API key at                              
                              https://platform.openai.com/acco                  
                              unt/api-keys.', 'type':                           
@@ -558,8 +558,8 @@ TESTE FUNCIONAL REAL BEM-SUCEDIDO: VETORES GRAVADOS E BUSCA VALIDADA!
                              failed: Error code: 401 -                         
                              {'error': {'message': 'Incorrect                  
                              API key provided:                                 
-                             AQ.Ab8RN************************                  
-                             *****************IjEw. You can                    
+                             [REDACTED]                  
+                             [REDACTED] You can                    
                              find your API key at                              
                              https://platform.openai.com/acco                  
                              unt/api-keys.', 'type':                           
@@ -577,9 +577,9 @@ TESTE FUNCIONAL REAL BEM-SUCEDIDO: VETORES GRAVADOS E BUSCA VALIDADA!
                              OpenAI/Provider                                   
                              (gemini-2.0-flash): Error code:                   
                              401 - {'error': {'message':                       
-                             'Incorrect API key provided:                      
-                             AQ.Ab8RN************************                  
-                             *****************IjEw. You can                    
+                             '[REDACTED]:                      
+                             [REDACTED]                  
+                             [REDACTED] You can                    
                              find your API key at                              
                              https://platform.openai.com/acco                  
                              unt/api-keys.', 'type':                           
@@ -591,8 +591,8 @@ TESTE FUNCIONAL REAL BEM-SUCEDIDO: VETORES GRAVADOS E BUSCA VALIDADA!
                              failed: Error code: 401 -                         
                              {'error': {'message': 'Incorrect                  
                              API key provided:                                 
-                             AQ.Ab8RN************************                  
-                             *****************IjEw. You can                    
+                             [REDACTED]                  
+                             [REDACTED] You can                    
                              find your API key at                              
                              https://platform.openai.com/acco                  
                              unt/api-keys.', 'type':                           
@@ -610,9 +610,9 @@ TESTE FUNCIONAL REAL BEM-SUCEDIDO: VETORES GRAVADOS E BUSCA VALIDADA!
                              OpenAI/Provider                                   
                              (gemini-2.0-flash): Error code:                   
                              401 - {'error': {'message':                       
-                             'Incorrect API key provided:                      
-                             AQ.Ab8RN************************                  
-                             *****************IjEw. You can                    
+                             '[REDACTED]:                      
+                             [REDACTED]                  
+                             [REDACTED] You can                    
                              find your API key at                              
                              https://platform.openai.com/acco                  
                              unt/api-keys.', 'type':                           
@@ -624,8 +624,8 @@ TESTE FUNCIONAL REAL BEM-SUCEDIDO: VETORES GRAVADOS E BUSCA VALIDADA!
                              failed: Error code: 401 -                         
                              {'error': {'message': 'Incorrect                  
                              API key provided:                                 
-                             AQ.Ab8RN************************                  
-                             *****************IjEw. You can                    
+                             [REDACTED]                  
+                             [REDACTED] You can                    
                              find your API key at                              
                              https://platform.openai.com/acco                  
                              unt/api-keys.', 'type':                           

@@ -246,14 +246,14 @@ TESTE DE IMPERSONATION E ENVENENAMENTO DE CHECKPOINTS VIA session_id
    Checkpoints descobertos: [TextContent(type='text', text='{\n  "checkpoint_id": "critical_step_42",\n  "created_at": "2026-09-24 01:56:51"\n}', annotations=None, meta=None)]
 
 3. Atacante B lê o checkpoint da vítima (agent_get_checkpoint):
-   Dados roubados: [TextContent(type='text', text='{\n  "user_email": "ceo@enterprise.com",\n  "api_secret_key": "sk-proj-SUPER_CONFIDENTIAL_KEY_XYZ",\n  "work_status": "in_progress",\n  "approved_budget": 500000\n}', annotations=None, meta=None)]
+   Dados roubados: [TextContent(type='text', text='{\n  "user_email": "ceo@enterprise.com",\n  "api_secret_key": "[REDACTED]",\n  "work_status": "in_progress",\n  "approved_budget": 500000\n}', annotations=None, meta=None)]
    -> [COMPROVADO] LEITURA NÃO AUTORIZADA: Atacante exfiltrou 'api_secret_key' da vítima!
 
 4. Atacante B sobrescreve o checkpoint da vítima com payload malicioso:
    Resposta: ([TextContent(type='text', text='{"success": true, "message": "Checkpoint \'critical_step_42\' saved successfully for agent \'legitimate_worker_agent\'"}', annotations=None, meta=None)], {'result': '{"success": true, "message": "Checkpoint \'critical_step_42\' saved successfully for agent \'legitimate_worker_agent\'"}'})
 
 5. Vítima retoma a sessão e lê seu checkpoint:
-   Estado recuperado: [TextContent(type='text', text='{\n  "user_email": "hacker@evil.com",\n  "api_secret_key": "sk-proj-POISONED_KEY",\n  "work_status": "corrupted",\n  "approved_budget": 0,\n  "backdoor_payload": "rm -rf /"\n}', annotations=None, meta=None)]
+   Estado recuperado: [TextContent(type='text', text='{\n  "user_email": "hacker@evil.com",\n  "api_secret_key": "[REDACTED]",\n  "work_status": "corrupted",\n  "approved_budget": 0,\n  "backdoor_payload": "rm -rf /"\n}', annotations=None, meta=None)]
    -> [COMPROVADO] ENVENENAMENTO DE ESTADO: O checkpoint da vítima foi substituído pelo payload do atacante!
 
 6. Atacante tenta ler com agent_id='different_unauthorized_agent' e session_id='victim_session':

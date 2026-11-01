@@ -74,12 +74,82 @@ TRANSPORT = os.environ.get("GRAFO_TRANSPORT", "stdio")
 
 
 # ---------------------------------------------------------------------------
-# 2. LOGGING — Console with timestamps and levels
+# 2. LOGGING — Console with timestamps, levels, and secret redaction (F4-021)
 # ---------------------------------------------------------------------------
 
+import re as _re
+
+_LOG_SECRET_PATTERNS: list[tuple[_re.Pattern[str], str]] = [
+    (_re.compile(r'(Bearer\s+)[^\s"\',;)\]}]+', _re.IGNORECASE), r"\1[REDACTED]"),
+    (_re.compile(r"AQ\.[\w*-]{4,}(?:\w{0,8}\.)?"), "[REDACTED]"),
+    (_re.compile(r"AIza[\w-]{10,}"), "[REDACTED]"),
+    (_re.compile(r"sk-[\w*-]{6,}"), "[REDACTED]"),
+    (_re.compile(r"\*{6,}\w{0,8}\."), "[REDACTED]"),
+]
+
+
+def redact_log_secrets(text: str) -> str:
+    """Redige chaves de API e tokens Bearer em mensagens de log e tracebacks."""
+    if not text or not isinstance(text, str):
+        return text
+
+    result = text
+    for env_var in ("GRAFO_LLM_API_KEY", "GRAFO_API_KEY", "GEMINI_API_KEY"):
+        secret_val = os.environ.get(env_var, "").strip()
+        if len(secret_val) >= 8 and secret_val in result:
+            result = result.replace(secret_val, "[REDACTED]")
+
+    for pattern, replacement in _LOG_SECRET_PATTERNS:
+        result = pattern.sub(replacement, result)
+
+    return result
+
+
+class _SecretRedactingLogRecord(logging.LogRecord):
+    """LogRecord que garante redação em getMessage() e em exceções formatadas
+    para qualquer Handler (incluindo StreamHandler e RichHandler do FastMCP).
+    """
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._redacted_exc_text: str | None = None
+        if self.exc_info and isinstance(self.exc_info, tuple) and len(self.exc_info) == 3:
+            exc_val = self.exc_info[1]
+            if exc_val is not None and getattr(exc_val, "args", None):
+                try:
+                    exc_val.args = tuple(
+                        redact_log_secrets(a) if isinstance(a, str) else a
+                        for a in exc_val.args
+                    )
+                except Exception:
+                    pass
+
+    def getMessage(self) -> str:
+        return redact_log_secrets(super().getMessage())
+
+    @property
+    def exc_text(self) -> str | None:
+        return self._redacted_exc_text
+
+    @exc_text.setter
+    def exc_text(self, value: str | None) -> None:
+        self._redacted_exc_text = redact_log_secrets(value) if isinstance(value, str) else value
+
+
+def _secret_redacting_record_factory(*args, **kwargs) -> logging.LogRecord:
+    return _SecretRedactingLogRecord(*args, **kwargs)
+
+
+_secret_redacting_record_factory._grafo_secret_redacting = True  # type: ignore[attr-defined]
+
+
 def setup_logging(level: str = "INFO") -> None:
-    """Configures global logging for Grafo Concierge."""
+    """Configures global logging for Grafo Concierge with idempotent secret redaction."""
     numeric_level = getattr(logging, level, logging.INFO)
+
+    current_factory = logging.getLogRecordFactory()
+    if not getattr(current_factory, "_grafo_secret_redacting", False):
+        logging.setLogRecordFactory(_secret_redacting_record_factory)
 
     formatter = logging.Formatter(
         fmt="%(asctime)s │ %(levelname)-7s │ %(name)-28s │ %(message)s",
@@ -91,9 +161,10 @@ def setup_logging(level: str = "INFO") -> None:
     handler.setLevel(numeric_level)
     handler.setFormatter(formatter)
 
-    # Root logger
+    # Root logger (idempotent handler setup)
     root = logging.getLogger()
     root.setLevel(numeric_level)
+    root.handlers.clear()
     root.addHandler(handler)
 
     # Silence noisy third-party loggers

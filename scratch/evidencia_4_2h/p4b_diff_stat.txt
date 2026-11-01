@@ -1,0 +1,6 @@
+warning: in the working copy of 'audits/bypass-governanca-por-session-id.md', LF will be replaced by CRLF the next time Git touches it
+ audits/bypass-governanca-por-session-id.md         |   4 +-
+ scratch/evidencia_4_2/p3_matrix_run.txt            | 270 ++++++++++-----------
+ scratch/evidencia_4_2d/teste_funcional_real.txt    |  90 +++----
+ .../diag/out__dump_mine_2yfwxq1r__stderr.txt       |  24 +-
+ 4 files changed, 194 insertions(+), 194 deletions(-)

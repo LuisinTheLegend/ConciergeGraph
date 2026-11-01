@@ -1,0 +1,7 @@
+scanned_files=987
+files_with_findings=4
+total_pattern_hits=218
+FINDING: audits/bypass-governanca-por-session-id.md | lines=249,256 | patterns=[SK_KEY_FRAGMENT:2]
+FINDING: scratch/evidencia_4_2/p3_matrix_run.txt | lines=519,520,521,533,534,569,570,571,583,584,...(+125 lines) | patterns=[AQ_KEY_FRAGMENT:54, INCORRECT_API_KEY_MSG:27, MASKED_KEY_SUFFIX:54]
+FINDING: scratch/evidencia_4_2d/teste_funcional_real.txt | lines=223,224,225,237,238,257,258,259,271,272,...(+35 lines) | patterns=[AQ_KEY_FRAGMENT:18, INCORRECT_API_KEY_MSG:9, MASKED_KEY_SUFFIX:18]
+FINDING: scratch/evidencia_4_2e/diag/out__dump_mine_2yfwxq1r__stderr.txt | lines=66,67,70,71,72,73,78,79,81,82,...(+2 lines) | patterns=[AQ_KEY_FRAGMENT:12, INCORRECT_API_KEY_MSG:12, MASKED_KEY_SUFFIX:12]
