@@ -1,0 +1,30 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 14 items
+
+tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[none] PASSED [  7%]
+tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[NONE] PASSED [ 14%]
+tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[] PASSED [ 21%]
+tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[off] PASSED [ 28%]
+tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[disabled] PASSED [ 35%]
+tests/test_llm_egress_guard.py::test_s1_orchestrator_skips_summarize_when_llm_disabled PASSED [ 42%]
+tests/test_llm_egress_guard.py::test_s2_gemini_failure_never_falls_back_to_openai PASSED [ 50%]
+tests/test_llm_egress_guard.py::test_s2_gemini_missing_sdk_never_falls_back_to_openai PASSED [ 57%]
+tests/test_llm_egress_guard.py::test_s3_ambiguous_openai_model_without_explicit_provider_is_disabled PASSED [ 64%]
+tests/test_llm_egress_guard.py::test_s4_explicit_openai_provider_creates_openai_client PASSED [ 71%]
+tests/test_llm_egress_guard.py::test_s5_custom_base_url_and_openrouter_preserved PASSED [ 78%]
+tests/test_llm_egress_guard.py::test_s6_clients_are_always_closed_even_on_exception PASSED [ 85%]
+tests/test_llm_egress_guard.py::test_s7_subprocess_asyncio_run_401_no_unclosed_loop_tracebacks PASSED [ 92%]
+tests/test_llm_egress_guard.py::test_s8_custom_call_fn_works_unchanged PASSED [100%]
+
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 14 passed, 1 warning in 10.80s ========================

@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 from dataclasses import dataclass, field
 from enum import Enum
@@ -137,6 +138,66 @@ Respond with ONLY the JSON object, no markdown fences, no extra text."""
 # LLMAdapter — interface for LLM calls (Model Tiering)
 # ---------------------------------------------------------------------------
 
+_DISABLED_LLM_TOKENS = {"", "none", "off", "disabled", "false", "0"}
+
+
+def resolve_llm_provider(
+    model_name: Optional[str],
+    api_key: Optional[str] = None,
+    base_url: Optional[str] = None,
+    explicit: Optional[str] = None,
+) -> str:
+    """Resolves the target LLM provider without cross-provider fallbacks.
+
+    Returns one of: 'disabled' | 'gemini' | 'openai' | 'openai_compatible' | 'openrouter'.
+    """
+    raw_explicit = explicit if explicit is not None else os.environ.get("GRAFO_LLM_PROVIDER", "")
+    exp = (raw_explicit or "").strip().lower()
+    model_clean = (model_name or "").strip().lower()
+    base_clean = (base_url or "").strip()
+    key_clean = (api_key or "").strip()
+
+    if exp:
+        if exp in _DISABLED_LLM_TOKENS:
+            return "disabled"
+        if exp == "gemini":
+            return "gemini"
+        if exp == "openai":
+            return "openai"
+        if exp in ("openai-compatible", "openai_compatible"):
+            if not base_clean:
+                logger.warning(
+                    "GRAFO_LLM_PROVIDER=%r requer GRAFO_LLM_BASE_URL definido; LLM desativado.",
+                    raw_explicit,
+                )
+                return "disabled"
+            return "openai_compatible"
+        if exp == "openrouter":
+            return "openrouter"
+        logger.warning(
+            "Valor inválido para GRAFO_LLM_PROVIDER=%r (defina GRAFO_LLM_PROVIDER como gemini, openai, "
+            "openai-compatible, openrouter ou none); LLM desativado.",
+            raw_explicit,
+        )
+        return "disabled"
+
+    if model_clean in _DISABLED_LLM_TOKENS:
+        return "disabled"
+    if model_clean.startswith("gemini-") and not base_clean:
+        return "gemini"
+    if base_clean:
+        return "openai_compatible"
+    if key_clean.startswith("sk-or-"):
+        return "openrouter"
+
+    logger.warning(
+        "Modelo LLM %r sem provedor explícito e sem base_url: defina GRAFO_LLM_PROVIDER "
+        "(ex.: GRAFO_LLM_PROVIDER=openai). LLM desativado por segurança.",
+        model_name,
+    )
+    return "disabled"
+
+
 class LLMAdapter:
     """Adapter for LLM calls with support for Model Tiering.
 
@@ -144,10 +205,12 @@ class LLMAdapter:
     Accepts a custom call_fn for testing and alternative providers.
 
     Args:
-        model_name: Model name (e.g. 'gemini-2.0-flash', 'claude-haiku').
+        model_name: Model name (e.g. 'gemini-2.0-flash', 'gpt-4o-mini', 'none').
         api_key: Provider API key.
+        base_url: Custom OpenAI-compatible base URL.
         call_fn: Custom call function.
                  Signature: (prompt: str, max_tokens: int) -> str
+        provider: Explicit provider override (GRAFO_LLM_PROVIDER).
     """
 
     def __init__(
@@ -156,154 +219,181 @@ class LLMAdapter:
         api_key: Optional[str] = None,
         base_url: Optional[str] = None,
         call_fn: Optional[Callable[[str, int], str]] = None,
+        provider: Optional[str] = None,
     ) -> None:
         self._model_name = model_name
         self._api_key = api_key
-        self._base_url = base_url
+        effective_base_url = base_url if base_url is not None else (os.environ.get("GRAFO_LLM_BASE_URL") or None)
+        if effective_base_url is not None:
+            effective_base_url = effective_base_url.strip() or None
+        self._base_url = effective_base_url
         self._call_fn = call_fn
-        logger.info("LLMAdapter inicializado: model=%s, custom_fn=%s", model_name, call_fn is not None)
+
+        if call_fn is not None:
+            self._provider = "custom"
+            self._is_enabled = True
+        else:
+            self._provider = resolve_llm_provider(
+                model_name=self._model_name,
+                api_key=self._api_key,
+                base_url=self._base_url,
+                explicit=provider,
+            )
+            self._is_enabled = self._provider != "disabled"
+
+        logger.info(
+            "LLMAdapter inicializado: model=%s, provider=%s, enabled=%s, custom_fn=%s",
+            model_name, self._provider, self._is_enabled, call_fn is not None,
+        )
 
     @property
     def model_name(self) -> str:
         return self._model_name
 
-    def generate(self, prompt: str, max_tokens: int = 300) -> str:
-        """Sends prompt to LLM and returns the response.
+    @property
+    def provider(self) -> str:
+        return self._provider
 
-        If call_fn was provided, uses it directly.
-        Otherwise, attempts to use google.generativeai (Gemini).
+    @property
+    def is_enabled(self) -> bool:
+        return self._is_enabled
+
+    def generate(self, prompt: str, max_tokens: int = 300) -> str:
+        """Sends prompt to the resolved LLM provider and returns the response.
+
+        Dispatches strictly to the resolved provider without cross-provider fallback.
 
         Raises:
-            RuntimeError: If no LLM backend is available.
+            RuntimeError: If LLM is disabled or the resolved backend fails.
         """
-        # Custom mode (for testing or alternative providers)
         if self._call_fn is not None:
             return self._call_fn(prompt, max_tokens)
 
-        # Attempt with Google GenAI SDK (google.genai)
-        try:
-            from google import genai
-            client = genai.Client(api_key=self._api_key) if self._api_key else genai.Client()
-            response = client.models.generate_content(
-                model=self._model_name,
-                contents=prompt,
+        if not self._is_enabled:
+            raise RuntimeError(
+                f"LLM is disabled (provider={self._provider}, model={self._model_name!r})."
             )
-            if response.text:
-                return response.text
-        except ImportError:
-            # Attempt with legacy Google Generative AI
+
+        if self._provider == "gemini":
             try:
-                import warnings
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
-                    import google.generativeai as legacy_genai
-                if self._api_key:
-                    legacy_genai.configure(api_key=self._api_key)
-                model = legacy_genai.GenerativeModel(self._model_name)
-                response = model.generate_content(
-                    prompt,
-                    generation_config=legacy_genai.GenerationConfig(max_output_tokens=max_tokens),
+                from google import genai
+                client = genai.Client(api_key=self._api_key) if self._api_key else genai.Client()
+                response = client.models.generate_content(
+                    model=self._model_name,
+                    contents=prompt,
                 )
-                if response.text:
-                    return response.text
+                return response.text or ""
             except ImportError:
-                pass
+                try:
+                    import warnings
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore")
+                        import google.generativeai as legacy_genai
+                    if self._api_key:
+                        legacy_genai.configure(api_key=self._api_key)
+                    model = legacy_genai.GenerativeModel(self._model_name)
+                    response = model.generate_content(
+                        prompt,
+                        generation_config=legacy_genai.GenerationConfig(max_output_tokens=max_tokens),
+                    )
+                    return response.text or ""
+                except ImportError as exc:
+                    raise RuntimeError(
+                        "Google Gemini SDK ('google-genai' or 'google-generativeai') is not installed."
+                    ) from exc
+                except Exception as e:
+                    logger.error("Failed to call legacy Gemini (%s): %s", self._model_name, e)
+                    raise RuntimeError(f"LLM call failed: {e}") from e
             except Exception as e:
-                logger.error("Failed to call legacy Gemini (%s): %s", self._model_name, e)
+                logger.error("Failed to call Google GenAI (%s): %s", self._model_name, e)
                 raise RuntimeError(f"LLM call failed: {e}") from e
-        except Exception as e:
-            logger.error("Failed to call Google GenAI (%s): %s", self._model_name, e)
-            raise RuntimeError(f"LLM call failed: {e}") from e
 
-        # Attempt with OpenAI / Compatible Provider
-        try:
-            import openai
-            
-            # Auto-detection of OpenRouter by key if no base_url is informed
-            target_base_url = self._base_url
-            if not target_base_url and self._api_key and self._api_key.startswith("sk-or-"):
-                target_base_url = "https://openrouter.ai/api/v1"
-                
-            if target_base_url:
-                client = openai.OpenAI(
-                    api_key=self._api_key,
-                    base_url=target_base_url
-                )
-            else:
-                client = openai.OpenAI(api_key=self._api_key)
-                
-            response = client.chat.completions.create(
-                model=self._model_name,
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=max_tokens,
-            )
-            return response.choices[0].message.content or ""
-        except ImportError:
-            pass
-        except Exception as e:
-            logger.error("Failed to call OpenAI/Compatible Provider (%s): %s", self._model_name, e)
-            raise RuntimeError(f"LLM call failed: {e}") from e
+        if self._provider in ("openai", "openai_compatible", "openrouter"):
+            try:
+                import openai
+            except ImportError as exc:
+                raise RuntimeError(
+                    f"OpenAI SDK is not installed for provider '{self._provider}'."
+                ) from exc
 
-        raise RuntimeError(
-            "No LLM backend available. Install 'google-generativeai' or 'openai', "
-            "or provide a custom call_fn."
-        )
+            try:
+                target_base_url = self._base_url
+                if not target_base_url and self._provider == "openrouter":
+                    target_base_url = "https://openrouter.ai/api/v1"
+
+                if target_base_url:
+                    client_ctx = openai.OpenAI(
+                        api_key=self._api_key,
+                        base_url=target_base_url,
+                    )
+                else:
+                    client_ctx = openai.OpenAI(api_key=self._api_key)
+
+                with client_ctx as client:
+                    response = client.chat.completions.create(
+                        model=self._model_name,
+                        messages=[{"role": "user", "content": prompt}],
+                        max_tokens=max_tokens,
+                    )
+                    return response.choices[0].message.content or ""
+            except Exception as e:
+                logger.error("Failed to call OpenAI/Compatible Provider (%s): %s", self._model_name, e)
+                raise RuntimeError(f"LLM call failed: {e}") from e
+
+        raise RuntimeError(f"Unsupported LLM provider: {self._provider!r}")
 
     async def generate_async(self, prompt: str, max_tokens: int = 300) -> str:
         """Asynchronous version of generate() for high throughput.
 
-        Strategy by backend:
-            - custom call_fn: uses asyncio.to_thread (safe fallback).
-            - Native Gemini models (no custom base_url): prioritizes native Gemini SDK.
-            - OpenAI / compatible providers: uses native openai.AsyncOpenAI.
+        Dispatches strictly to the resolved provider without cross-provider fallback,
+        and always closes AsyncOpenAI clients via 'async with'.
         """
         import asyncio
 
-        # Custom mode
         if self._call_fn is not None:
             return await asyncio.to_thread(self._call_fn, prompt, max_tokens)
 
-        # If it is a native Gemini model and does not have an external custom base_url,
-        # prioritize native Gemini SDK to avoid conflict with the openai library
-        if self._model_name.startswith("gemini-") and not self._base_url:
-            try:
-                return await asyncio.to_thread(self.generate, prompt, max_tokens)
-            except Exception as e:
-                logger.warning("Failed initial asynchronous attempt with Gemini SDK: %s. Trying OpenAI...", e)
-
-        # Attempt with OpenAI / Compatible Provider (native async)
-        try:
-            import openai
-
-            target_base_url = self._base_url
-            if not target_base_url and self._api_key and self._api_key.startswith("sk-or-"):
-                target_base_url = "https://openrouter.ai/api/v1"
-
-            if target_base_url:
-                client = openai.AsyncOpenAI(
-                    api_key=self._api_key,
-                    base_url=target_base_url,
-                )
-            else:
-                client = openai.AsyncOpenAI(api_key=self._api_key)
-
-            response = await client.chat.completions.create(
-                model=self._model_name,
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=max_tokens,
+        if not self._is_enabled:
+            raise RuntimeError(
+                f"Async LLM is disabled (provider={self._provider}, model={self._model_name!r})."
             )
-            return response.choices[0].message.content or ""
-        except ImportError:
-            pass
-        except Exception as e:
-            logger.error("Async: Failed to call OpenAI/Provider (%s): %s", self._model_name, e)
-            raise RuntimeError(f"Async LLM call failed: {e}") from e
 
-        # General fallback
-        try:
+        if self._provider == "gemini":
             return await asyncio.to_thread(self.generate, prompt, max_tokens)
-        except Exception as e:
-            raise RuntimeError(f"Async LLM fallback failed: {e}") from e
+
+        if self._provider in ("openai", "openai_compatible", "openrouter"):
+            try:
+                import openai
+            except ImportError as exc:
+                raise RuntimeError(
+                    f"OpenAI SDK is not installed for provider '{self._provider}'."
+                ) from exc
+
+            try:
+                target_base_url = self._base_url
+                if not target_base_url and self._provider == "openrouter":
+                    target_base_url = "https://openrouter.ai/api/v1"
+
+                if target_base_url:
+                    client_ctx = openai.AsyncOpenAI(
+                        api_key=self._api_key,
+                        base_url=target_base_url,
+                    )
+                else:
+                    client_ctx = openai.AsyncOpenAI(api_key=self._api_key)
+
+                async with client_ctx as client:
+                    response = await client.chat.completions.create(
+                        model=self._model_name,
+                        messages=[{"role": "user", "content": prompt}],
+                        max_tokens=max_tokens,
+                    )
+                    return response.choices[0].message.content or ""
+            except Exception as e:
+                logger.error("Async: Failed to call OpenAI/Provider (%s): %s", self._model_name, e)
+                raise RuntimeError(f"Async LLM call failed: {e}") from e
+
+        raise RuntimeError(f"Unsupported async LLM provider: {self._provider!r}")
 
 
 
@@ -330,6 +420,10 @@ class ZoomSummarizer:
     ) -> None:
         self._llm = llm_adapter
         self._store = sqlite_store
+
+    @property
+    def is_enabled(self) -> bool:
+        return bool(getattr(self._llm, "is_enabled", True))
 
     # ===================================================================
     # L0 — Summary of individual chunk

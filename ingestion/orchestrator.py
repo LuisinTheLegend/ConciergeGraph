@@ -212,7 +212,10 @@ class IngestionManager:
         # --- STEP 3: SUMMARIZE (L0) ---
         uncached_chunks = [c for c in chunks if not c.cached]
         summaries: list[SummaryResult] = []
-        if uncached_chunks and self._summarizer:
+        summarizer_enabled = bool(self._summarizer and getattr(self._summarizer, "is_enabled", True))
+        if self._summarizer and not summarizer_enabled:
+            logger.info("LLM desativado: sumários L0 não gerados")
+        elif uncached_chunks and summarizer_enabled:
             logger.info("[3/8] SUMMARIZE — Generating %d L0 summaries (skipping %d cached)...",
                         len(uncached_chunks), cached_count)
             summaries = self._step_summarize(uncached_chunks, result)
@@ -220,7 +223,7 @@ class IngestionManager:
             logger.info("[3/8] SUMMARIZE completed: %d L0 summaries generated.", len(summaries))
         else:
             logger.info("[3/8] SUMMARIZE — Ignored (summarizer=%s, new=%d).",
-                        "OFF" if not self._summarizer else "ON", len(uncached_chunks))
+                        "OFF" if not summarizer_enabled else "ON", len(uncached_chunks))
 
         # --- STEP 4: STORE SQLite ---
         if chunks:
@@ -406,7 +409,12 @@ class IngestionManager:
             Dict with 'summary' (str) and 'tags' (list[str]), or None if LLM
             is not configured or fails.
         """
-        if not self._summarizer or not hasattr(self._summarizer, "_llm") or not self._summarizer._llm:
+        if (
+            not self._summarizer
+            or not hasattr(self._summarizer, "_llm")
+            or not self._summarizer._llm
+            or not getattr(self._summarizer._llm, "is_enabled", True)
+        ):
             return None
         try:
             prompt = (

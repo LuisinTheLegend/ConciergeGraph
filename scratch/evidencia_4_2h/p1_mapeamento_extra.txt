@@ -1,0 +1,35 @@
+agents/revisor_critico.py:183:        self._llm = llm_adapter
+agents/revisor_critico.py:224:        if self._llm is not None:
+agents/revisor_critico.py:225:            return self._llm_audit(draft)
+agents/revisor_critico.py:270:    def _llm_audit(self, draft: dict) -> AuditResult:
+agents/revisor_critico.py:286:            raw_response = self._llm.generate(prompt, max_tokens=300)
+agents/revisor_critico.py:413:        if self._llm is not None:
+agents/revisor_critico.py:414:            reranked = self._llm_rerank(top_candidates, task_context)
+agents/revisor_critico.py:451:    def _llm_rerank(self, candidates: list[dict], task_context: str) -> list[dict]:
+agents/revisor_critico.py:479:            raw_response = self._llm.generate(prompt, max_tokens=400)
+core/delta_manager.py:161:        self, community_id: str, cloud_llm_mock_callback
+core/delta_manager.py:188:        new_summary = cloud_llm_mock_callback(payload)
+ingestion/orchestrator.py:400:        from accessing self._ingestion._summarizer._llm directly (violation of Law of Demeter).
+ingestion/orchestrator.py:409:        if not self._summarizer or not hasattr(self._summarizer, "_llm") or not self._summarizer._llm:
+ingestion/orchestrator.py:421:            raw = self._summarizer._llm.generate(prompt, max_tokens=300)
+ingestion/summarizer.py:201:                    legacy_genai.configure(api_key=self._api_key)
+ingestion/summarizer.py:331:        self._llm = llm_adapter
+ingestion/summarizer.py:350:                raw_response = self._llm.generate(prompt, max_tokens=MAX_L0_TOKENS)
+ingestion/summarizer.py:367:                        model_used=self._llm.model_name,
+ingestion/summarizer.py:435:                raw_response = await self._llm.generate_async(prompt, max_tokens=MAX_L0_TOKENS)
+ingestion/summarizer.py:452:                        model_used=self._llm.model_name,
+ingestion/summarizer.py:531:                raw_response = self._llm.generate(prompt, max_tokens=estimated_response_tokens)
+ingestion/summarizer.py:570:                            model_used=self._llm.model_name,
+ingestion/summarizer.py:622:                raw_response = self._llm.generate(prompt, max_tokens=MAX_L1_TOKENS)
+ingestion/summarizer.py:637:                        model_used=self._llm.model_name,
+ingestion/summarizer.py:730:                raw_response = self._llm.generate(prompt, max_tokens=MAX_L2_TOKENS)
+ingestion/summarizer.py:745:                        model_used=self._llm.model_name,
+interface/action_hooks.py:60:            "LLM" if revisor and revisor._llm else "heuristic",
+interface/cli.py:72:    llm_model = os.environ.get("GRAFO_LLM_MODEL", "gemini-2.0-flash")
+interface/cli.py:73:    llm_api_key = os.environ.get("GRAFO_LLM_API_KEY", "")
+interface/cli.py:74:    llm_base_url = os.environ.get("GRAFO_LLM_BASE_URL", "")
+main.py:20:    GRAFO_LLM_MODEL       → LLM model for summarization (default: gemini-2.0-flash)
+main.py:21:    GRAFO_LLM_API_KEY     → LLM API Key (optional)
+main.py:61:LLM_MODEL = os.environ.get("GRAFO_LLM_MODEL", "gemini-2.0-flash")
+main.py:62:LLM_API_KEY = os.environ.get("GRAFO_LLM_API_KEY", "")
+main.py:63:LLM_BASE_URL = os.environ.get("GRAFO_LLM_BASE_URL", "")

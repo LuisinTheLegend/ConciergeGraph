@@ -1,0 +1,27 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 11 items
+
+tests/test_summary_persistence.py::TestSummaryPersistence::test_l0_summaries_persisted_in_nodes_table PASSED [  9%]
+tests/test_summary_persistence.py::TestSummaryPersistence::test_dumb_summary_not_persisted_in_nodes_table PASSED [ 18%]
+tests/test_ingestion_vector_repair.py::TestIngestionVectorRepair::test_scenario_a_model_unavailable_then_repaired PASSED [ 27%]
+tests/test_ingestion_vector_repair.py::TestIngestionVectorRepair::test_scenario_b_reset_collection_recomposed PASSED [ 36%]
+tests/test_ingestion_vector_repair.py::TestIngestionVectorRepair::test_scenario_c_partial_batch_failure_recovery PASSED [ 45%]
+tests/test_ingestion_vector_repair.py::TestIngestionVectorRepair::test_scenario_d_chroma_unavailable_no_exception_and_repaired PASSED [ 54%]
+tests/test_ingestion_vector_repair.py::TestIngestionVectorRepair::test_scenario_e_empty_or_whitespace_nodes_ignored PASSED [ 63%]
+tests/test_ingestion_vector_repair.py::TestIngestionVectorRepair::test_scenario_f_idempotence_third_mine_no_reembed PASSED [ 72%]
+tests/test_ingestion_vector_repair.py::TestIngestionVectorRepair::test_scenario_g_metadata_keys_identical_between_ingestion_and_repair PASSED [ 81%]
+tests/test_ingestion_vector_repair.py::TestIngestionVectorRepair::test_scenario_h_janitor_delegates_to_repair_and_removes_orphans PASSED [ 90%]
+tests/test_ingestion_vector_repair.py::TestIngestionVectorRepair::test_scenario_i_backward_compatible_node_type_search_without_chroma_metadata PASSED [100%]
+
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 11 passed, 1 warning in 4.88s ========================

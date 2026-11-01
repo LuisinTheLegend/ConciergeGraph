@@ -1,0 +1,643 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 14 items
+
+tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[none] FAILED [  7%]
+tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[NONE] FAILED [ 14%]
+tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[] FAILED [ 21%]
+tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[off] FAILED [ 28%]
+tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[disabled] FAILED [ 35%]
+tests/test_llm_egress_guard.py::test_s1_orchestrator_skips_summarize_when_llm_disabled FAILED [ 42%]
+tests/test_llm_egress_guard.py::test_s2_gemini_failure_never_falls_back_to_openai FAILED [ 50%]
+tests/test_llm_egress_guard.py::test_s2_gemini_missing_sdk_never_falls_back_to_openai FAILED [ 57%]
+tests/test_llm_egress_guard.py::test_s3_ambiguous_openai_model_without_explicit_provider_is_disabled FAILED [ 64%]
+tests/test_llm_egress_guard.py::test_s4_explicit_openai_provider_creates_openai_client PASSED [ 71%]
+tests/test_llm_egress_guard.py::test_s5_custom_base_url_and_openrouter_preserved PASSED [ 78%]
+tests/test_llm_egress_guard.py::test_s6_clients_are_always_closed_even_on_exception FAILED [ 85%]
+tests/test_llm_egress_guard.py::test_s7_subprocess_asyncio_run_401_no_unclosed_loop_tracebacks FAILED [ 92%]
+tests/test_llm_egress_guard.py::test_s8_custom_call_fn_works_unchanged PASSED [100%]
+
+================================== FAILURES ===================================
+__________________ test_s1_disabled_models_zero_egress[none] __________________
+
+llm_spy = {'clients': [], 'dns_hosts': [], 'config': {'openai_fail': None, 'gemini_fail': None}}
+disabled_model = 'none'
+
+    @pytest.mark.parametrize("disabled_model", ["none", "NONE", "", "off", "disabled"])
+    def test_s1_disabled_models_zero_egress(llm_spy: dict[str, Any], disabled_model: str) -> None:
+        adapter = LLMAdapter(model_name=disabled_model, api_key=FAKE_AQ_KEY)
+>       assert getattr(adapter, "is_enabled", None) is False, (
+            f"LLMAdapter com model_name={disabled_model!r} deve ter is_enabled=False"
+        )
+E       AssertionError: LLMAdapter com model_name='none' deve ter is_enabled=False
+E       assert None is False
+E        +  where None = getattr(<ingestion.summarizer.LLMAdapter object at 0x00000170434D8980>, 'is_enabled', None)
+
+tests\test_llm_egress_guard.py:222: AssertionError
+__________________ test_s1_disabled_models_zero_egress[NONE] __________________
+
+llm_spy = {'clients': [], 'dns_hosts': [], 'config': {'openai_fail': None, 'gemini_fail': None}}
+disabled_model = 'NONE'
+
+    @pytest.mark.parametrize("disabled_model", ["none", "NONE", "", "off", "disabled"])
+    def test_s1_disabled_models_zero_egress(llm_spy: dict[str, Any], disabled_model: str) -> None:
+        adapter = LLMAdapter(model_name=disabled_model, api_key=FAKE_AQ_KEY)
+>       assert getattr(adapter, "is_enabled", None) is False, (
+            f"LLMAdapter com model_name={disabled_model!r} deve ter is_enabled=False"
+        )
+E       AssertionError: LLMAdapter com model_name='NONE' deve ter is_enabled=False
+E       assert None is False
+E        +  where None = getattr(<ingestion.summarizer.LLMAdapter object at 0x0000017042A8C410>, 'is_enabled', None)
+
+tests\test_llm_egress_guard.py:222: AssertionError
+____________________ test_s1_disabled_models_zero_egress[] ____________________
+
+llm_spy = {'clients': [], 'dns_hosts': [], 'config': {'openai_fail': None, 'gemini_fail': None}}
+disabled_model = ''
+
+    @pytest.mark.parametrize("disabled_model", ["none", "NONE", "", "off", "disabled"])
+    def test_s1_disabled_models_zero_egress(llm_spy: dict[str, Any], disabled_model: str) -> None:
+        adapter = LLMAdapter(model_name=disabled_model, api_key=FAKE_AQ_KEY)
+>       assert getattr(adapter, "is_enabled", None) is False, (
+            f"LLMAdapter com model_name={disabled_model!r} deve ter is_enabled=False"
+        )
+E       AssertionError: LLMAdapter com model_name='' deve ter is_enabled=False
+E       assert None is False
+E        +  where None = getattr(<ingestion.summarizer.LLMAdapter object at 0x0000017042A8C7D0>, 'is_enabled', None)
+
+tests\test_llm_egress_guard.py:222: AssertionError
+__________________ test_s1_disabled_models_zero_egress[off] ___________________
+
+llm_spy = {'clients': [], 'dns_hosts': [], 'config': {'openai_fail': None, 'gemini_fail': None}}
+disabled_model = 'off'
+
+    @pytest.mark.parametrize("disabled_model", ["none", "NONE", "", "off", "disabled"])
+    def test_s1_disabled_models_zero_egress(llm_spy: dict[str, Any], disabled_model: str) -> None:
+        adapter = LLMAdapter(model_name=disabled_model, api_key=FAKE_AQ_KEY)
+>       assert getattr(adapter, "is_enabled", None) is False, (
+            f"LLMAdapter com model_name={disabled_model!r} deve ter is_enabled=False"
+        )
+E       AssertionError: LLMAdapter com model_name='off' deve ter is_enabled=False
+E       assert None is False
+E        +  where None = getattr(<ingestion.summarizer.LLMAdapter object at 0x00000170433C9220>, 'is_enabled', None)
+
+tests\test_llm_egress_guard.py:222: AssertionError
+________________ test_s1_disabled_models_zero_egress[disabled] ________________
+
+llm_spy = {'clients': [], 'dns_hosts': [], 'config': {'openai_fail': None, 'gemini_fail': None}}
+disabled_model = 'disabled'
+
+    @pytest.mark.parametrize("disabled_model", ["none", "NONE", "", "off", "disabled"])
+    def test_s1_disabled_models_zero_egress(llm_spy: dict[str, Any], disabled_model: str) -> None:
+        adapter = LLMAdapter(model_name=disabled_model, api_key=FAKE_AQ_KEY)
+>       assert getattr(adapter, "is_enabled", None) is False, (
+            f"LLMAdapter com model_name={disabled_model!r} deve ter is_enabled=False"
+        )
+E       AssertionError: LLMAdapter com model_name='disabled' deve ter is_enabled=False
+E       assert None is False
+E        +  where None = getattr(<ingestion.summarizer.LLMAdapter object at 0x00000170433C9A70>, 'is_enabled', None)
+
+tests\test_llm_egress_guard.py:222: AssertionError
+___________ test_s1_orchestrator_skips_summarize_when_llm_disabled ____________
+
+llm_spy = {'clients': [], 'dns_hosts': [], 'config': {'openai_fail': None, 'gemini_fail': None}}
+tmp_path = WindowsPath('C:/Users/guial/AppData/Local/Temp/pytest-of-guial/pytest-70/test_s1_orchestrator_skips_sum0')
+caplog = <_pytest.logging.LogCaptureFixture object at 0x00000170434D9400>
+
+    def test_s1_orchestrator_skips_summarize_when_llm_disabled(
+        llm_spy: dict[str, Any], tmp_path: Path, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Quando is_enabled é False, o orquestrador pula SUMMARIZE com log INFO e mantém summary NULL."""
+        from storage.store import SqliteStore
+        from ingestion.orchestrator import IngestionManager
+    
+        db_path = str(tmp_path / "test_s1_orch.db")
+        proj_dir = tmp_path / "sample_proj"
+        proj_dir.mkdir()
+        (proj_dir / "note.md").write_text("# Titulo\nTexto de exemplo abacaxi-zeta para ingestao.\n", encoding="utf-8")
+    
+        store = SqliteStore(db_path)
+        try:
+>           proj = store.create_project(name="proj-s1", path=str(proj_dir))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           TypeError: SqliteStore.create_project() got an unexpected keyword argument 'name'
+
+tests\test_llm_egress_guard.py:255: TypeError
+______________ test_s2_gemini_failure_never_falls_back_to_openai ______________
+
+llm_spy = {'clients': [{'kind': 'GenAIClient', 'base_url': None, 'instance': <test_llm_egress_guard.FakeGenAIClient object at 0x...A510>}], 'dns_hosts': [], 'config': {'openai_fail': None, 'gemini_fail': RuntimeError('Simulated Gemini 503 failure')}}
+
+    def test_s2_gemini_failure_never_falls_back_to_openai(llm_spy: dict[str, Any]) -> None:
+        llm_spy["config"]["gemini_fail"] = RuntimeError("Simulated Gemini 503 failure")
+        adapter = LLMAdapter(model_name="gemini-2.0-flash", api_key=FAKE_AQ_KEY)
+    
+        with pytest.raises(RuntimeError):
+            adapter.generate("Prompt sync")
+    
+>       with pytest.raises(RuntimeError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE RuntimeError
+
+tests\test_llm_egress_guard.py:296: Failed
+------------------------------ Captured log call ------------------------------
+ERROR    grafo-concierge.summarizer:summarizer.py:215 Failed to call Google GenAI (gemini-2.0-flash): Simulated Gemini 503 failure
+ERROR    grafo-concierge.summarizer:summarizer.py:215 Failed to call Google GenAI (gemini-2.0-flash): Simulated Gemini 503 failure
+WARNING  grafo-concierge.summarizer:summarizer.py:272 Failed initial asynchronous attempt with Gemini SDK: LLM call failed: Simulated Gemini 503 failure. Trying OpenAI...
+____________ test_s2_gemini_missing_sdk_never_falls_back_to_openai ____________
+
+llm_spy = {'clients': [{'kind': 'OpenAI', 'base_url': None, 'instance': <test_llm_egress_guard.FakeOpenAIClient object at 0x00000170434DA120>}], 'dns_hosts': [], 'config': {'openai_fail': None, 'gemini_fail': None}}
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001704357E120>
+
+    def test_s2_gemini_missing_sdk_never_falls_back_to_openai(
+        llm_spy: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        _disable_google_sdk(monkeypatch)
+    
+        adapter = LLMAdapter(model_name="gemini-2.0-flash", api_key=FAKE_AQ_KEY)
+    
+>       with pytest.raises(RuntimeError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE RuntimeError
+
+tests\test_llm_egress_guard.py:312: Failed
+____ test_s3_ambiguous_openai_model_without_explicit_provider_is_disabled _____
+
+llm_spy = {'clients': [], 'dns_hosts': [], 'config': {'openai_fail': None, 'gemini_fail': None}}
+caplog = <_pytest.logging.LogCaptureFixture object at 0x00000170435687D0>
+
+    def test_s3_ambiguous_openai_model_without_explicit_provider_is_disabled(
+        llm_spy: dict[str, Any], caplog: pytest.LogCaptureFixture
+    ) -> None:
+        with caplog.at_level(logging.WARNING, logger="grafo-concierge.summarizer"):
+            adapter = LLMAdapter(model_name="gpt-4o-mini", api_key=FAKE_SK_KEY)
+    
+>       assert getattr(adapter, "is_enabled", None) is False, (
+            "Sem GRAFO_LLM_PROVIDER explícito e sem base_url, gpt-4o-mini deve ficar desativado"
+        )
+E       AssertionError: Sem GRAFO_LLM_PROVIDER explícito e sem base_url, gpt-4o-mini deve ficar desativado
+E       assert None is False
+E        +  where None = getattr(<ingestion.summarizer.LLMAdapter object at 0x000001704347E140>, 'is_enabled', None)
+
+tests\test_llm_egress_guard.py:334: AssertionError
+_____________ test_s6_clients_are_always_closed_even_on_exception _____________
+
+llm_spy = {'clients': [{'kind': 'OpenAI', 'base_url': None, 'instance': <test_llm_egress_guard.FakeOpenAIClient object at 0x0000...5B5B50>}], 'dns_hosts': [], 'config': {'openai_fail': RuntimeError('401 Unauthorized simulated'), 'gemini_fail': None}}
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000170434E13D0>
+
+    def test_s6_clients_are_always_closed_even_on_exception(
+        llm_spy: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        _disable_google_sdk(monkeypatch)
+        monkeypatch.setenv("GRAFO_LLM_PROVIDER", "openai")
+        adapter = LLMAdapter(model_name="gpt-4o-mini", api_key=FAKE_SK_KEY)
+    
+        # 1. Sucesso
+        adapter.generate("ok sync")
+        asyncio.run(adapter.generate_async("ok async"))
+    
+        # 2. Exceção durante a chamada
+        llm_spy["config"]["openai_fail"] = RuntimeError("401 Unauthorized simulated")
+        with pytest.raises(RuntimeError):
+            adapter.generate("fail sync")
+        with pytest.raises(RuntimeError):
+            asyncio.run(adapter.generate_async("fail async"))
+    
+        assert len(llm_spy["clients"]) == 4
+        for idx, entry in enumerate(llm_spy["clients"]):
+            inst = entry["instance"]
+>           assert inst.entered is True, f"Cliente #{idx} ({entry['kind']}) não usou context manager (__enter__/__aenter__)"
+E           AssertionError: Cliente #0 (OpenAI) não usou context manager (__enter__/__aenter__)
+E           assert False is True
+E            +  where False = <test_llm_egress_guard.FakeOpenAIClient object at 0x00000170433CB360>.entered
+
+tests\test_llm_egress_guard.py:440: AssertionError
+------------------------------ Captured log call ------------------------------
+ERROR    grafo-concierge.summarizer:summarizer.py:244 Failed to call OpenAI/Compatible Provider (gpt-4o-mini): 401 Unauthorized simulated
+ERROR    grafo-concierge.summarizer:summarizer.py:299 Async: Failed to call OpenAI/Provider (gpt-4o-mini): 401 Unauthorized simulated
+_______ test_s7_subprocess_asyncio_run_401_no_unclosed_loop_tracebacks ________
+
+    def test_s7_subprocess_asyncio_run_401_no_unclosed_loop_tracebacks() -> None:
+        """Roda subprocesso com asyncio.run que falha 401 contra servidor local e verifica stderr."""
+        requests_count = 0
+    
+        class Handler401(http.server.BaseHTTPRequestHandler):
+            protocol_version = "HTTP/1.1"
+    
+            def do_POST(self) -> None:
+                nonlocal requests_count
+                requests_count += 1
+                content_len = int(self.headers.get("Content-Length", 0))
+                if content_len:
+                    self.rfile.read(content_len)
+                body = (
+                    b'{"error": {"message": "Simulated 401 unauthorized response", '
+                    b'"type": "invalid_request_error", "code": "invalid_api_key"}}'
+                )
+                self.send_response(401)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(body)))
+                self.send_header("Connection", "keep-alive")
+                self.end_headers()
+                self.wfile.write(body)
+    
+            def log_message(self, format: str, *args: Any) -> None:
+                pass
+    
+        server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler401)
+        port = server.server_address[1]
+        t = threading.Thread(target=server.serve_forever, daemon=True)
+        t.start()
+    
+        repo_root = str(Path(__file__).resolve().parent.parent)
+        code = f"""
+    import asyncio
+    import gc
+    import os
+    import sys
+    
+    fake_key = "sk-" + "FAKEFAKEFAKE0001"
+    os.environ["GRAFO_LLM_API_KEY"] = fake_key
+    os.environ["GRAFO_LLM_PROVIDER"] = "openai-compatible"
+    os.environ["GRAFO_LLM_BASE_URL"] = "http://127.0.0.1:{port}/v1"
+    
+    from ingestion.summarizer import LLMAdapter, ZoomSummarizer
+    from ingestion.parser import ParsedChunk, ChunkType
+    from ingestion.crawler import FileCategory
+    
+    adapter = LLMAdapter(
+        model_name="gpt-4o-mini",
+        api_key=fake_key,
+        base_url="http://127.0.0.1:{port}/v1",
+    )
+    summarizer = ZoomSummarizer(llm_adapter=adapter)
+    
+    chunks = [
+        ParsedChunk(
+            content=f"Conteudo de teste {{i}} " * 30,
+            armored_content=f"Conteudo de teste {{i}} " * 30,
+            chunk_type=ChunkType.SECTION,
+            chunk_index=i,
+            source_file=f"doc_{{i}}.md",
+            file_hash=f"hash_{{i}}",
+            category=FileCategory.DOC,
+            start_line=1,
+            end_line=5,
+            symbol_name=f"doc_{{i}}",
+        )
+        for i in range(3)
+    ]
+    
+    async def run_batch():
+        await asyncio.gather(*(summarizer.summarize_l0_async(c) for c in chunks))
+    
+    # Loop #1: executa batch de sumarização assíncrona (como orchestrator._step_summarize)
+    asyncio.run(run_batch())
+    
+    # Loop #2: simula o loop principal do servidor MCP onde o GC coleta clientes órfãos
+    async def mcp_loop_tick():
+        gc.collect()
+        await asyncio.sleep(0.05)
+    
+    asyncio.run(mcp_loop_tick())
+    """
+        env = os.environ.copy()
+        env["GRAFO_LLM_API_KEY"] = FAKE_SK_KEY
+        env["GRAFO_LLM_PROVIDER"] = "openai-compatible"
+        env["GRAFO_LLM_BASE_URL"] = f"http://127.0.0.1:{port}/v1"
+        env["PYTHONPATH"] = repo_root
+    
+        try:
+            proc = subprocess.run(
+                [sys.executable, "-c", code],
+                cwd=repo_root,
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+        finally:
+            server.shutdown()
+            server.server_close()
+    
+        assert requests_count > 0, f"O subprocesso deveria ter feito requisições HTTP ao servidor local (stderr={proc.stderr})"
+        assert proc.returncode == 0, f"Subprocesso falhou (rc={proc.returncode}): {proc.stderr}"
+>       assert "Event loop is closed" not in proc.stderr, (
+            f"stderr contém 'Event loop is closed':\n{proc.stderr}"
+        )
+E       AssertionError: stderr contém 'Event loop is closed':
+E         Async: Failed to call OpenAI/Provider (gpt-4o-mini): Error code: 401 - {'error': {'message': 'Simulated 401 unauthorized response', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+E         L0 async attempt 1/3 failed for doc_2.md: Async LLM call failed: Error code: 401 - {'error': {'message': 'Simulated 401 unauthorized response', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+E         Async: Failed to call OpenAI/Provider (gpt-4o-mini): Error code: 401 - {'error': {'message': 'Simulated 401 unauthorized response', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+E         L0 async attempt 1/3 failed for doc_0.md: Async LLM call failed: Error code: 401 - {'error': {'message': 'Simulated 401 unauthorized response', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+E         Async: Failed to call OpenAI/Provider (gpt-4o-mini): Error code: 401 - {'error': {'message': 'Simulated 401 unauthorized response', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+E         L0 async attempt 1/3 failed for doc_1.md: Async LLM call failed: Error code: 401 - {'error': {'message': 'Simulated 401 unauthorized response', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+E         Async: Failed to call OpenAI/Provider (gpt-4o-mini): Error code: 401 - {'error': {'message': 'Simulated 401 unauthorized response', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+E         L0 async attempt 2/3 failed for doc_2.md: Async LLM call failed: Error code: 401 - {'error': {'message': 'Simulated 401 unauthorized response', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+E         Async: Failed to call OpenAI/Provider (gpt-4o-mini): Error code: 401 - {'error': {'message': 'Simulated 401 unauthorized response', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+E         L0 async attempt 2/3 failed for doc_0.md: Async LLM call failed: Error code: 401 - {'error': {'message': 'Simulated 401 unauthorized response', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+E         Async: Failed to call OpenAI/Provider (gpt-4o-mini): Error code: 401 - {'error': {'message': 'Simulated 401 unauthorized response', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+E         L0 async attempt 2/3 failed for doc_1.md: Async LLM call failed: Error code: 401 - {'error': {'message': 'Simulated 401 unauthorized response', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+E         Async: Failed to call OpenAI/Provider (gpt-4o-mini): Error code: 401 - {'error': {'message': 'Simulated 401 unauthorized response', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+E         L0 async attempt 3/3 failed for doc_2.md: Async LLM call failed: Error code: 401 - {'error': {'message': 'Simulated 401 unauthorized response', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+E         L0 async: all attempts failed for doc_2.md — generating Dumb Summary.
+E         Async: Failed to call OpenAI/Provider (gpt-4o-mini): Error code: 401 - {'error': {'message': 'Simulated 401 unauthorized response', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+E         L0 async attempt 3/3 failed for doc_0.md: Async LLM call failed: Error code: 401 - {'error': {'message': 'Simulated 401 unauthorized response', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+E         L0 async: all attempts failed for doc_0.md — generating Dumb Summary.
+E         Async: Failed to call OpenAI/Provider (gpt-4o-mini): Error code: 401 - {'error': {'message': 'Simulated 401 unauthorized response', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+E         L0 async attempt 3/3 failed for doc_1.md: Async LLM call failed: Error code: 401 - {'error': {'message': 'Simulated 401 unauthorized response', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+E         L0 async: all attempts failed for doc_1.md — generating Dumb Summary.
+E         Task exception was never retrieved
+E         future: <Task finished name='Task-8' coro=<AsyncClient.aclose() done, defined at C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py:1978> exception=RuntimeError('Event loop is closed')>
+E         Traceback (most recent call last):
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py", line 1985, in aclose
+E             await self._transport.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_transports\default.py", line 406, in aclose
+E             await self._pool.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection_pool.py", line 353, in aclose
+E             await self._close_connections(closing_connections)
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection_pool.py", line 345, in _close_connections
+E             await connection.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection.py", line 173, in aclose
+E             await self._connection.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\http11.py", line 258, in aclose
+E             await self._network_stream.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_backends\anyio.py", line 53, in aclose
+E             await self._stream.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 1344, in aclose
+E             self._transport.close()
+E             ~~~~~~~~~~~~~~~~~~~~~^^
+E           File "C:\Python314\Lib\asyncio\proactor_events.py", line 109, in close
+E             self._loop.call_soon(self._call_connection_lost, None)
+E             ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "C:\Python314\Lib\asyncio\base_events.py", line 827, in call_soon
+E             self._check_closed()
+E             ~~~~~~~~~~~~~~~~~~^^
+E           File "C:\Python314\Lib\asyncio\base_events.py", line 550, in _check_closed
+E             raise RuntimeError('Event loop is closed')
+E         RuntimeError: Event loop is closed
+E         Task exception was never retrieved
+E         future: <Task finished name='Task-9' coro=<AsyncClient.aclose() done, defined at C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py:1978> exception=RuntimeError('Event loop is closed')>
+E         Traceback (most recent call last):
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py", line 1985, in aclose
+E             await self._transport.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_transports\default.py", line 406, in aclose
+E             await self._pool.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection_pool.py", line 353, in aclose
+E             await self._close_connections(closing_connections)
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection_pool.py", line 345, in _close_connections
+E             await connection.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection.py", line 173, in aclose
+E             await self._connection.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\http11.py", line 258, in aclose
+E             await self._network_stream.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_backends\anyio.py", line 53, in aclose
+E             await self._stream.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 1344, in aclose
+E             self._transport.close()
+E             ~~~~~~~~~~~~~~~~~~~~~^^
+E           File "C:\Python314\Lib\asyncio\proactor_events.py", line 109, in close
+E             self._loop.call_soon(self._call_connection_lost, None)
+E             ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "C:\Python314\Lib\asyncio\base_events.py", line 827, in call_soon
+E             self._check_closed()
+E             ~~~~~~~~~~~~~~~~~~^^
+E           File "C:\Python314\Lib\asyncio\base_events.py", line 550, in _check_closed
+E             raise RuntimeError('Event loop is closed')
+E         RuntimeError: Event loop is closed
+E         Task exception was never retrieved
+E         future: <Task finished name='Task-10' coro=<AsyncClient.aclose() done, defined at C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py:1978> exception=RuntimeError('Event loop is closed')>
+E         Traceback (most recent call last):
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py", line 1985, in aclose
+E             await self._transport.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_transports\default.py", line 406, in aclose
+E             await self._pool.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection_pool.py", line 353, in aclose
+E             await self._close_connections(closing_connections)
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection_pool.py", line 345, in _close_connections
+E             await connection.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection.py", line 173, in aclose
+E             await self._connection.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\http11.py", line 258, in aclose
+E             await self._network_stream.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_backends\anyio.py", line 53, in aclose
+E             await self._stream.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 1344, in aclose
+E             self._transport.close()
+E             ~~~~~~~~~~~~~~~~~~~~~^^
+E           File "C:\Python314\Lib\asyncio\proactor_events.py", line 109, in close
+E             self._loop.call_soon(self._call_connection_lost, None)
+E             ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "C:\Python314\Lib\asyncio\base_events.py", line 827, in call_soon
+E             self._check_closed()
+E             ~~~~~~~~~~~~~~~~~~^^
+E           File "C:\Python314\Lib\asyncio\base_events.py", line 550, in _check_closed
+E             raise RuntimeError('Event loop is closed')
+E         RuntimeError: Event loop is closed
+E         Task exception was never retrieved
+E         future: <Task finished name='Task-11' coro=<AsyncClient.aclose() done, defined at C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py:1978> exception=RuntimeError('Event loop is closed')>
+E         Traceback (most recent call last):
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py", line 1985, in aclose
+E             await self._transport.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_transports\default.py", line 406, in aclose
+E             await self._pool.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection_pool.py", line 353, in aclose
+E             await self._close_connections(closing_connections)
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection_pool.py", line 345, in _close_connections
+E             await connection.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection.py", line 173, in aclose
+E             await self._connection.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\http11.py", line 258, in aclose
+E             await self._network_stream.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_backends\anyio.py", line 53, in aclose
+E             await self._stream.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 1344, in aclose
+E             self._transport.close()
+E             ~~~~~~~~~~~~~~~~~~~~~^^
+E           File "C:\Python314\Lib\asyncio\proactor_events.py", line 109, in close
+E             self._loop.call_soon(self._call_connection_lost, None)
+E             ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "C:\Python314\Lib\asyncio\base_events.py", line 827, in call_soon
+E             self._check_closed()
+E             ~~~~~~~~~~~~~~~~~~^^
+E           File "C:\Python314\Lib\asyncio\base_events.py", line 550, in _check_closed
+E             raise RuntimeError('Event loop is closed')
+E         RuntimeError: Event loop is closed
+E         Task exception was never retrieved
+E         future: <Task finished name='Task-12' coro=<AsyncClient.aclose() done, defined at C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py:1978> exception=RuntimeError('Event loop is closed')>
+E         Traceback (most recent call last):
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py", line 1985, in aclose
+E             await self._transport.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_transports\default.py", line 406, in aclose
+E             await self._pool.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection_pool.py", line 353, in aclose
+E             await self._close_connections(closing_connections)
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection_pool.py", line 345, in _close_connections
+E             await connection.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection.py", line 173, in aclose
+E             await self._connection.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\http11.py", line 258, in aclose
+E             await self._network_stream.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_backends\anyio.py", line 53, in aclose
+E             await self._stream.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 1344, in aclose
+E             self._transport.close()
+E             ~~~~~~~~~~~~~~~~~~~~~^^
+E           File "C:\Python314\Lib\asyncio\proactor_events.py", line 109, in close
+E             self._loop.call_soon(self._call_connection_lost, None)
+E             ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "C:\Python314\Lib\asyncio\base_events.py", line 827, in call_soon
+E             self._check_closed()
+E             ~~~~~~~~~~~~~~~~~~^^
+E           File "C:\Python314\Lib\asyncio\base_events.py", line 550, in _check_closed
+E             raise RuntimeError('Event loop is closed')
+E         RuntimeError: Event loop is closed
+E         Task exception was never retrieved
+E         future: <Task finished name='Task-13' coro=<AsyncClient.aclose() done, defined at C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py:1978> exception=RuntimeError('Event loop is closed')>
+E         Traceback (most recent call last):
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py", line 1985, in aclose
+E             await self._transport.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_transports\default.py", line 406, in aclose
+E             await self._pool.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection_pool.py", line 353, in aclose
+E             await self._close_connections(closing_connections)
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection_pool.py", line 345, in _close_connections
+E             await connection.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection.py", line 173, in aclose
+E             await self._connection.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\http11.py", line 258, in aclose
+E             await self._network_stream.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_backends\anyio.py", line 53, in aclose
+E             await self._stream.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 1344, in aclose
+E             self._transport.close()
+E             ~~~~~~~~~~~~~~~~~~~~~^^
+E           File "C:\Python314\Lib\asyncio\proactor_events.py", line 109, in close
+E             self._loop.call_soon(self._call_connection_lost, None)
+E             ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "C:\Python314\Lib\asyncio\base_events.py", line 827, in call_soon
+E             self._check_closed()
+E             ~~~~~~~~~~~~~~~~~~^^
+E           File "C:\Python314\Lib\asyncio\base_events.py", line 550, in _check_closed
+E             raise RuntimeError('Event loop is closed')
+E         RuntimeError: Event loop is closed
+E         Task exception was never retrieved
+E         future: <Task finished name='Task-14' coro=<AsyncClient.aclose() done, defined at C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py:1978> exception=RuntimeError('Event loop is closed')>
+E         Traceback (most recent call last):
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py", line 1985, in aclose
+E             await self._transport.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_transports\default.py", line 406, in aclose
+E             await self._pool.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection_pool.py", line 353, in aclose
+E             await self._close_connections(closing_connections)
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection_pool.py", line 345, in _close_connections
+E             await connection.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection.py", line 173, in aclose
+E             await self._connection.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\http11.py", line 258, in aclose
+E             await self._network_stream.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_backends\anyio.py", line 53, in aclose
+E             await self._stream.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 1344, in aclose
+E             self._transport.close()
+E             ~~~~~~~~~~~~~~~~~~~~~^^
+E           File "C:\Python314\Lib\asyncio\proactor_events.py", line 109, in close
+E             self._loop.call_soon(self._call_connection_lost, None)
+E             ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "C:\Python314\Lib\asyncio\base_events.py", line 827, in call_soon
+E             self._check_closed()
+E             ~~~~~~~~~~~~~~~~~~^^
+E           File "C:\Python314\Lib\asyncio\base_events.py", line 550, in _check_closed
+E             raise RuntimeError('Event loop is closed')
+E         RuntimeError: Event loop is closed
+E         Task exception was never retrieved
+E         future: <Task finished name='Task-15' coro=<AsyncClient.aclose() done, defined at C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py:1978> exception=RuntimeError('Event loop is closed')>
+E         Traceback (most recent call last):
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py", line 1985, in aclose
+E             await self._transport.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_transports\default.py", line 406, in aclose
+E             await self._pool.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection_pool.py", line 353, in aclose
+E             await self._close_connections(closing_connections)
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection_pool.py", line 345, in _close_connections
+E             await connection.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection.py", line 173, in aclose
+E             await self._connection.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\http11.py", line 258, in aclose
+E             await self._network_stream.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_backends\anyio.py", line 53, in aclose
+E             await self._stream.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 1344, in aclose
+E             self._transport.close()
+E             ~~~~~~~~~~~~~~~~~~~~~^^
+E           File "C:\Python314\Lib\asyncio\proactor_events.py", line 109, in close
+E             self._loop.call_soon(self._call_connection_lost, None)
+E             ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "C:\Python314\Lib\asyncio\base_events.py", line 827, in call_soon
+E             self._check_closed()
+E             ~~~~~~~~~~~~~~~~~~^^
+E           File "C:\Python314\Lib\asyncio\base_events.py", line 550, in _check_closed
+E             raise RuntimeError('Event loop is closed')
+E         RuntimeError: Event loop is closed
+E         Task exception was never retrieved
+E         future: <Task finished name='Task-16' coro=<AsyncClient.aclose() done, defined at C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py:1978> exception=RuntimeError('Event loop is closed')>
+E         Traceback (most recent call last):
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py", line 1985, in aclose
+E             await self._transport.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpx\_transports\default.py", line 406, in aclose
+E             await self._pool.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection_pool.py", line 353, in aclose
+E             await self._close_connections(closing_connections)
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection_pool.py", line 345, in _close_connections
+E             await connection.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\connection.py", line 173, in aclose
+E             await self._connection.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_async\http11.py", line 258, in aclose
+E             await self._network_stream.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\httpcore\_backends\anyio.py", line 53, in aclose
+E             await self._stream.aclose()
+E           File "C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 1344, in aclose
+E             self._transport.close()
+E             ~~~~~~~~~~~~~~~~~~~~~^^
+E           File "C:\Python314\Lib\asyncio\proactor_events.py", line 109, in close
+E             self._loop.call_soon(self._call_connection_lost, None)
+E             ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "C:\Python314\Lib\asyncio\base_events.py", line 827, in call_soon
+E             self._check_closed()
+E             ~~~~~~~~~~~~~~~~~~^^
+E           File "C:\Python314\Lib\asyncio\base_events.py", line 550, in _check_closed
+E             raise RuntimeError('Event loop is closed')
+E         RuntimeError: Event loop is closed
+E         
+E       assert 'Event loop is closed' not in 'Async: Fail... is closed\n'
+E         
+E         'Event loop is closed' is contained here:
+E           Async: Failed to call OpenAI/Provider (gpt-4o-mini): Error code: 401 - {'error': {'message': 'Simulated 401 unauthorized response', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+E           L0 async attempt 1/3 failed for doc_2.md: Async LLM call failed: Error code: 401 - {'error': {'message': 'Simulated 401 unauthorized response', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+E           Async: Failed to call OpenAI/Provider (gpt-4o-mini): Error code: 401 - {'error': {'message': 'Simulated 401 unauthorized response', 'type':...
+E         
+E         ...Full output truncated (281 lines hidden), use '-vv' to show
+
+tests\test_llm_egress_guard.py:553: AssertionError
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[none]
+FAILED tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[NONE]
+FAILED tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[]
+FAILED tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[off]
+FAILED tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[disabled]
+FAILED tests/test_llm_egress_guard.py::test_s1_orchestrator_skips_summarize_when_llm_disabled
+FAILED tests/test_llm_egress_guard.py::test_s2_gemini_failure_never_falls_back_to_openai
+FAILED tests/test_llm_egress_guard.py::test_s2_gemini_missing_sdk_never_falls_back_to_openai
+FAILED tests/test_llm_egress_guard.py::test_s3_ambiguous_openai_model_without_explicit_provider_is_disabled
+FAILED tests/test_llm_egress_guard.py::test_s6_clients_are_always_closed_even_on_exception
+FAILED tests/test_llm_egress_guard.py::test_s7_subprocess_asyncio_run_401_no_unclosed_loop_tracebacks
+================== 11 failed, 3 passed, 1 warning in 10.95s ===================

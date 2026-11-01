@@ -1,0 +1,35 @@
+agents/revisor_critico.py:33:    - Reuses ingestion.summarizer.LLMAdapter for LLM calls
+agents/revisor_critico.py:47:from ingestion.summarizer import LLMAdapter
+agents/revisor_critico.py:180:        llm_adapter: Optional[LLMAdapter] = None,
+core/memory_extractor.py:56:            llm_adapter: LLM adaptation object (e.g. LLMAdapter or equivalent mock).
+ingestion/summarizer.py:137:# LLMAdapter — interface for LLM calls (Model Tiering)
+ingestion/summarizer.py:140:class LLMAdapter:
+ingestion/summarizer.py:164:        logger.info("LLMAdapter inicializado: model=%s, custom_fn=%s", model_name, call_fn is not None)
+ingestion/summarizer.py:186:            client = genai.Client(api_key=self._api_key) if self._api_key else genai.Client()
+ingestion/summarizer.py:202:                model = legacy_genai.GenerativeModel(self._model_name)
+ingestion/summarizer.py:228:                client = openai.OpenAI(
+ingestion/summarizer.py:233:                client = openai.OpenAI(api_key=self._api_key)
+ingestion/summarizer.py:258:            - OpenAI / compatible providers: uses native openai.AsyncOpenAI.
+ingestion/summarizer.py:283:                client = openai.AsyncOpenAI(
+ingestion/summarizer.py:288:                client = openai.AsyncOpenAI(api_key=self._api_key)
+ingestion/summarizer.py:328:        llm_adapter: LLMAdapter,
+interface/cli.py:56:    from ingestion.summarizer import LLMAdapter
+interface/cli.py:73:    llm_api_key = os.environ.get("GRAFO_LLM_API_KEY", "")
+interface/cli.py:80:    embedder = EmbeddingManager(tier=EmbeddingTier.FLASH)
+interface/cli.py:100:    llm_adapter = LLMAdapter(
+main.py:21:    GRAFO_LLM_API_KEY     → LLM API Key (optional)
+main.py:62:LLM_API_KEY = os.environ.get("GRAFO_LLM_API_KEY", "")
+main.py:166:    embedder = EmbeddingManager(tier=EmbeddingTier.FLASH)
+main.py:192:    from ingestion.summarizer import LLMAdapter
+main.py:194:    llm_adapter = LLMAdapter(
+storage/vector_store.py:89:        tier: EmbeddingTier.FLASH or EmbeddingTier.ELITE.
+storage/vector_store.py:90:        openai_api_key: OpenAI API key (required for tier ELITE).
+storage/vector_store.py:100:        EmbeddingTier.ELITE: {
+storage/vector_store.py:110:        openai_api_key: Optional[str] = None,
+storage/vector_store.py:116:        self._openai_key = openai_api_key
+storage/vector_store.py:169:            elif self._tier == EmbeddingTier.ELITE:
+storage/vector_store.py:172:                        "openai_api_key is required for the ELITE tier."
+storage/vector_store.py:176:                    self._model = openai.OpenAI(api_key=self._openai_key)
+storage/vector_store.py:205:            elif self._tier == EmbeddingTier.ELITE:
+storage/vector_store.py:248:        elif self._tier == EmbeddingTier.ELITE:
+storage/vector_store.py:293:        self._embedding_mgr = embedding_manager or EmbeddingManager()

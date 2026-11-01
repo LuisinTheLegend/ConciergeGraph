@@ -17,7 +17,8 @@ Environment variables:
     GRAFO_CHROMA_PATH     → ChromaDB path (default: ./data/chroma)
     GRAFO_CHROMA_COLLECTION → Collection name (default: grafo_concierge)
     GRAFO_EMBEDDING_MODEL → Embedding model (default: all-MiniLM-L6-v2)
-    GRAFO_LLM_MODEL       → LLM model for summarization (default: gemini-2.0-flash)
+    GRAFO_LLM_MODEL       → LLM model for summarization (default: gemini-2.0-flash; use 'none' to disable)
+    GRAFO_LLM_PROVIDER    → Explicit LLM provider: gemini, openai, openai-compatible, openrouter, none (optional)
     GRAFO_LLM_API_KEY     → LLM API Key (optional)
     GRAFO_JANITOR_INTERVAL → Janitor interval in seconds (default: 300)
     GRAFO_LOG_LEVEL       → Log level (default: INFO)
@@ -59,6 +60,7 @@ CHROMA_COLLECTION = os.environ.get("GRAFO_CHROMA_COLLECTION", "grafo_concierge")
 # Models
 EMBEDDING_MODEL = os.environ.get("GRAFO_EMBEDDING_MODEL", "all-MiniLM-L6-v2")
 LLM_MODEL = os.environ.get("GRAFO_LLM_MODEL", "gemini-2.0-flash")
+LLM_PROVIDER = os.environ.get("GRAFO_LLM_PROVIDER", "")
 LLM_API_KEY = os.environ.get("GRAFO_LLM_API_KEY", "")
 LLM_BASE_URL = os.environ.get("GRAFO_LLM_BASE_URL", "")
 
@@ -195,6 +197,7 @@ def bootstrap():
         model_name=LLM_MODEL,
         api_key=LLM_API_KEY or None,
         base_url=LLM_BASE_URL or None,
+        provider=LLM_PROVIDER or None,
     )
     summarizer = ZoomSummarizer(
         llm_adapter=llm_adapter,
