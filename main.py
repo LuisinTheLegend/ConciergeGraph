@@ -114,6 +114,10 @@ def redact_log_secrets(text: str) -> str:
 class _SecretRedactingLogRecord(logging.LogRecord):
     """LogRecord que garante redação em getMessage() e em exceções formatadas
     para qualquer Handler (incluindo StreamHandler e RichHandler do FastMCP).
+
+    Nota: possui efeito colateral em `exc.args` da exceção logada (muta `exc.args`
+    in-place aplicando `redact_log_secrets` apenas nas partes que casam com padrões
+    de segredos, preservando o texto ao redor idêntico).
     """
 
     def __init__(self, *args, **kwargs) -> None:
@@ -166,11 +170,14 @@ def setup_logging(level: str = "INFO") -> None:
     handler = logging.StreamHandler(sys.stderr)
     handler.setLevel(numeric_level)
     handler.setFormatter(formatter)
+    handler._grafo_log_handler = True  # type: ignore[attr-defined]
 
-    # Root logger (idempotent handler setup)
+    # Root logger (idempotent handler setup: remove only previous Grafo handlers)
     root = logging.getLogger()
     root.setLevel(numeric_level)
-    root.handlers.clear()
+    for existing_h in list(root.handlers):
+        if getattr(existing_h, "_grafo_log_handler", False):
+            root.removeHandler(existing_h)
     root.addHandler(handler)
 
     # Silence noisy third-party loggers

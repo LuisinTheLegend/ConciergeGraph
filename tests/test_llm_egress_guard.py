@@ -256,6 +256,7 @@ def test_s1_orchestrator_skips_summarize_when_llm_disabled(
     llm_spy: dict[str, Any], tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:
     """Quando is_enabled é False, o orquestrador pula SUMMARIZE com log INFO e mantém summary NULL."""
+    pytest.importorskip("chromadb")
     from storage.store import SqliteStore
     from storage.vector_store import ChromaVectorStore, EmbeddingTier
     from ingestion.orchestrator import IngestionManager
