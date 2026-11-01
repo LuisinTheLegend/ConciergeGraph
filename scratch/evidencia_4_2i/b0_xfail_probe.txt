@@ -1,0 +1,21 @@
+=== WHEN_FAILING_BL015_OPEN | test_pytest_xfail_strict | rc=0 ===
+   cachedir: .pytest_cache
+   ..\..\Users\guial\AppData\Local\Temp\tmpal7cw_61\test_sample.py::SampleCase::test_pytest_xfail_strict XFAIL [100%]
+   XFAIL ..\..\Users\guial\AppData\Local\Temp\tmpal7cw_61\test_sample.py::SampleCase::test_pytest_xfail_strict - BL-015: default_state is EXECUTION instead of PLANNING (see audits/backlog-final.md#L309)
+   ====================== 1 deselected, 1 xfailed in 0.30s =======================
+=== WHEN_FAILING_BL015_OPEN | test_unittest_expected_failure | rc=0 ===
+   cachedir: .pytest_cache
+   ..\..\Users\guial\AppData\Local\Temp\tmpal7cw_61\test_sample.py::SampleCase::test_unittest_expected_failure XFAIL [100%]
+   XFAIL ..\..\Users\guial\AppData\Local\Temp\tmpal7cw_61\test_sample.py::SampleCase::test_unittest_expected_failure
+   ====================== 1 deselected, 1 xfailed in 0.32s =======================
+=== WHEN_PASSING_BL015_FIXED | test_pytest_xfail_strict | rc=1 ===
+   cachedir: .pytest_cache
+   ..\..\Users\guial\AppData\Local\Temp\tmpal7cw_61\test_sample.py::SampleCase::test_pytest_xfail_strict FAILED [100%]
+   _____________________ SampleCase.test_pytest_xfail_strict _____________________
+   [XPASS(strict)] BL-015: default_state is EXECUTION instead of PLANNING (see audits/backlog-final.md#L309)
+   ======================= 1 failed, 1 deselected in 0.06s =======================
+=== WHEN_PASSING_BL015_FIXED | test_unittest_expected_failure | rc=1 ===
+   cachedir: .pytest_cache
+   ..\..\Users\guial\AppData\Local\Temp\tmpal7cw_61\test_sample.py::SampleCase::test_unittest_expected_failure FAILED [100%]
+   __________________ SampleCase.test_unittest_expected_failure __________________
+   ======================= 1 failed, 1 deselected in 0.05s =======================

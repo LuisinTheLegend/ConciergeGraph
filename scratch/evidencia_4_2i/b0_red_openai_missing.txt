@@ -1,0 +1,112 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\_venvs_4_2g\venv_min_no_ml\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.15.1
+collecting ... collected 14 items
+
+tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[none] ERROR [  7%]
+tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[NONE] ERROR [ 14%]
+tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[] ERROR [ 21%]
+tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[off] ERROR [ 28%]
+tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[disabled] ERROR [ 35%]
+tests/test_llm_egress_guard.py::test_s1_orchestrator_skips_summarize_when_llm_disabled ERROR [ 42%]
+tests/test_llm_egress_guard.py::test_s2_gemini_failure_never_falls_back_to_openai ERROR [ 50%]
+tests/test_llm_egress_guard.py::test_s2_gemini_missing_sdk_never_falls_back_to_openai ERROR [ 57%]
+tests/test_llm_egress_guard.py::test_s3_ambiguous_openai_model_without_explicit_provider_is_disabled ERROR [ 64%]
+tests/test_llm_egress_guard.py::test_s4_explicit_openai_provider_creates_openai_client ERROR [ 71%]
+tests/test_llm_egress_guard.py::test_s5_custom_base_url_and_openrouter_preserved ERROR [ 78%]
+tests/test_llm_egress_guard.py::test_s6_clients_are_always_closed_even_on_exception ERROR [ 85%]
+tests/test_llm_egress_guard.py::test_s7_subprocess_asyncio_run_401_no_unclosed_loop_tracebacks FAILED [ 92%]
+tests/test_llm_egress_guard.py::test_s8_custom_call_fn_works_unchanged ERROR [100%]
+
+=================================== ERRORS ====================================
+_________ ERROR at setup of test_s1_disabled_models_zero_egress[none] _________
+tests\test_llm_egress_guard.py:179: in llm_spy
+    import openai
+E   ModuleNotFoundError: No module named 'openai'
+_________ ERROR at setup of test_s1_disabled_models_zero_egress[NONE] _________
+tests\test_llm_egress_guard.py:179: in llm_spy
+    import openai
+E   ModuleNotFoundError: No module named 'openai'
+___________ ERROR at setup of test_s1_disabled_models_zero_egress[] ___________
+tests\test_llm_egress_guard.py:179: in llm_spy
+    import openai
+E   ModuleNotFoundError: No module named 'openai'
+_________ ERROR at setup of test_s1_disabled_models_zero_egress[off] __________
+tests\test_llm_egress_guard.py:179: in llm_spy
+    import openai
+E   ModuleNotFoundError: No module named 'openai'
+_______ ERROR at setup of test_s1_disabled_models_zero_egress[disabled] _______
+tests\test_llm_egress_guard.py:179: in llm_spy
+    import openai
+E   ModuleNotFoundError: No module named 'openai'
+__ ERROR at setup of test_s1_orchestrator_skips_summarize_when_llm_disabled ___
+tests\test_llm_egress_guard.py:179: in llm_spy
+    import openai
+E   ModuleNotFoundError: No module named 'openai'
+_____ ERROR at setup of test_s2_gemini_failure_never_falls_back_to_openai _____
+tests\test_llm_egress_guard.py:179: in llm_spy
+    import openai
+E   ModuleNotFoundError: No module named 'openai'
+___ ERROR at setup of test_s2_gemini_missing_sdk_never_falls_back_to_openai ___
+tests\test_llm_egress_guard.py:179: in llm_spy
+    import openai
+E   ModuleNotFoundError: No module named 'openai'
+_ ERROR at setup of test_s3_ambiguous_openai_model_without_explicit_provider_is_disabled _
+tests\test_llm_egress_guard.py:179: in llm_spy
+    import openai
+E   ModuleNotFoundError: No module named 'openai'
+__ ERROR at setup of test_s4_explicit_openai_provider_creates_openai_client ___
+tests\test_llm_egress_guard.py:179: in llm_spy
+    import openai
+E   ModuleNotFoundError: No module named 'openai'
+_____ ERROR at setup of test_s5_custom_base_url_and_openrouter_preserved ______
+tests\test_llm_egress_guard.py:179: in llm_spy
+    import openai
+E   ModuleNotFoundError: No module named 'openai'
+____ ERROR at setup of test_s6_clients_are_always_closed_even_on_exception ____
+tests\test_llm_egress_guard.py:179: in llm_spy
+    import openai
+E   ModuleNotFoundError: No module named 'openai'
+__________ ERROR at setup of test_s8_custom_call_fn_works_unchanged ___________
+tests\test_llm_egress_guard.py:179: in llm_spy
+    import openai
+E   ModuleNotFoundError: No module named 'openai'
+================================== FAILURES ===================================
+_______ test_s7_subprocess_asyncio_run_401_no_unclosed_loop_tracebacks ________
+tests\test_llm_egress_guard.py:581: in test_s7_subprocess_asyncio_run_401_no_unclosed_loop_tracebacks
+    assert requests_count > 0, f"O subprocesso deveria ter feito requisições HTTP ao servidor local (stderr={proc.stderr})"
+E   AssertionError: O subprocesso deveria ter feito requisições HTTP ao servidor local (stderr=chromadb not installed. Install with: pip install chromadb>=0.4.0
+E     sentence-transformers not installed. Tier FLASH unavailable. Install with: pip install sentence-transformers
+E     L0 async attempt 1/3 failed for doc_0.md: OpenAI SDK is not installed for provider 'openai_compatible'.
+E     L0 async attempt 2/3 failed for doc_0.md: OpenAI SDK is not installed for provider 'openai_compatible'.
+E     L0 async attempt 3/3 failed for doc_0.md: OpenAI SDK is not installed for provider 'openai_compatible'.
+E     L0 async: all attempts failed for doc_0.md — generating Dumb Summary.
+E     L0 async attempt 1/3 failed for doc_1.md: OpenAI SDK is not installed for provider 'openai_compatible'.
+E     L0 async attempt 2/3 failed for doc_1.md: OpenAI SDK is not installed for provider 'openai_compatible'.
+E     L0 async attempt 3/3 failed for doc_1.md: OpenAI SDK is not installed for provider 'openai_compatible'.
+E     L0 async: all attempts failed for doc_1.md — generating Dumb Summary.
+E     L0 async attempt 1/3 failed for doc_2.md: OpenAI SDK is not installed for provider 'openai_compatible'.
+E     L0 async attempt 2/3 failed for doc_2.md: OpenAI SDK is not installed for provider 'openai_compatible'.
+E     L0 async attempt 3/3 failed for doc_2.md: OpenAI SDK is not installed for provider 'openai_compatible'.
+E     L0 async: all attempts failed for doc_2.md — generating Dumb Summary.
+E     )
+E   assert 0 > 0
+=========================== short test summary info ===========================
+FAILED tests/test_llm_egress_guard.py::test_s7_subprocess_asyncio_run_401_no_unclosed_loop_tracebacks
+ERROR tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[none]
+ERROR tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[NONE]
+ERROR tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[]
+ERROR tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[off]
+ERROR tests/test_llm_egress_guard.py::test_s1_disabled_models_zero_egress[disabled]
+ERROR tests/test_llm_egress_guard.py::test_s1_orchestrator_skips_summarize_when_llm_disabled
+ERROR tests/test_llm_egress_guard.py::test_s2_gemini_failure_never_falls_back_to_openai
+ERROR tests/test_llm_egress_guard.py::test_s2_gemini_missing_sdk_never_falls_back_to_openai
+ERROR tests/test_llm_egress_guard.py::test_s3_ambiguous_openai_model_without_explicit_provider_is_disabled
+ERROR tests/test_llm_egress_guard.py::test_s4_explicit_openai_provider_creates_openai_client
+ERROR tests/test_llm_egress_guard.py::test_s5_custom_base_url_and_openrouter_preserved
+ERROR tests/test_llm_egress_guard.py::test_s6_clients_are_always_closed_even_on_exception
+ERROR tests/test_llm_egress_guard.py::test_s8_custom_call_fn_works_unchanged
+======================== 1 failed, 13 errors in 1.08s =========================

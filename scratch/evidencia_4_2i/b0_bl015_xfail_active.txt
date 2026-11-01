@@ -1,0 +1,25 @@
+$ pytest tests/test_progressive_tool_disclosure.py -v -rxX
+[returncode=0]
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 5 items
+
+tests/test_progressive_tool_disclosure.py::TestProgressiveToolDisclosure::test_should_disclose_all_tools_in_maintenance_state PASSED [ 20%]
+tests/test_progressive_tool_disclosure.py::TestProgressiveToolDisclosure::test_should_disclose_mutation_tools_in_execution_state PASSED [ 40%]
+tests/test_progressive_tool_disclosure.py::TestProgressiveToolDisclosure::test_should_filter_tools_in_planning_state PASSED [ 60%]
+tests/test_progressive_tool_disclosure.py::TestProgressiveToolDisclosure::test_should_raise_security_exception_on_direct_call_attempt PASSED [ 80%]
+tests/test_progressive_tool_disclosure.py::TestProgressiveToolDisclosure::test_telemetry_api_mcp_state_endpoints XFAIL [100%]
+
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+XFAIL tests/test_progressive_tool_disclosure.py::TestProgressiveToolDisclosure::test_telemetry_api_mcp_state_endpoints - BL-015: MCPToolGovernor inicia com default_state='EXECUTION' em vez de 'PLANNING' (ver audits/backlog-final.md#L309 e audits/fase4-roadmap.md)
+=================== 4 passed, 1 xfailed, 1 warning in 2.85s ===================

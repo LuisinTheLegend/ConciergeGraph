@@ -1,0 +1,36 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 13 items
+
+tests/test_adaptive_gating.py::TestSecurityGuardBounds::test_cross_platform_absolute_paths_and_unc_are_unsafe FAILED [  7%]
+tests/test_adaptive_gating.py::TestSecurityGuardBounds::test_empty_path_is_safe_noop PASSED [ 15%]
+tests/test_adaptive_gating.py::TestSecurityGuardBounds::test_path_outside_monorepo_is_unsafe PASSED [ 23%]
+tests/test_adaptive_gating.py::TestSecurityGuardBounds::test_path_within_monorepo_is_safe PASSED [ 30%]
+tests/test_adaptive_gating.py::TestSecurityGuardCommandClassifier::test_critical_commands_detected PASSED [ 38%]
+tests/test_adaptive_gating.py::TestSecurityGuardCommandClassifier::test_safe_commands_detected PASSED [ 46%]
+tests/test_adaptive_gating.py::TestSecurityGuardCommandClassifier::test_warning_commands_detected PASSED [ 53%]
+tests/test_adaptive_gating.py::TestAdaptiveGatingInterceptor::test_should_allow_local_path_mutation PASSED [ 61%]
+tests/test_adaptive_gating.py::TestAdaptiveGatingInterceptor::test_should_allow_warning_command_in_ask_mode_with_user_approval PASSED [ 69%]
+tests/test_adaptive_gating.py::TestAdaptiveGatingInterceptor::test_should_block_critical_commands_always_even_in_auto_approve PASSED [ 76%]
+tests/test_adaptive_gating.py::TestAdaptiveGatingInterceptor::test_should_block_mutations_in_plan_only_mode PASSED [ 84%]
+tests/test_adaptive_gating.py::TestAdaptiveGatingInterceptor::test_should_block_out_of_bounds_path_mutation PASSED [ 92%]
+tests/test_adaptive_gating.py::TestAdaptiveGatingInterceptor::test_should_block_warning_command_in_ask_mode_when_user_rejects PASSED [100%]
+
+================================== FAILURES ===================================
+_ TestSecurityGuardBounds.test_cross_platform_absolute_paths_and_unc_are_unsafe _
+tests\test_adaptive_gating.py:75: in test_cross_platform_absolute_paths_and_unc_are_unsafe
+    self.assertFalse(
+E   AssertionError: True is not false : Deveria ser inseguro sob semântica POSIX (Linux): 'C:\\Windows\\System32\\config'
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_adaptive_gating.py::TestSecurityGuardBounds::test_cross_platform_absolute_paths_and_unc_are_unsafe
+=================== 1 failed, 12 passed, 1 warning in 5.00s ===================

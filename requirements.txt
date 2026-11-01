@@ -19,6 +19,7 @@ psutil>=5.9.0
 
 # LLM Providers (Google GenAI & OpenAI)
 google-genai>=0.1.0
+openai>=1.0.0
 
 # Optional Vector Backends
 qdrant-client>=1.7.0

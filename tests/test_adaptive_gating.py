@@ -41,6 +41,82 @@ class TestSecurityGuardBounds(unittest.TestCase):
         self.assertTrue(self.guard.is_safe_path(""))
         self.assertTrue(self.guard.is_safe_path(None))
 
+    def test_cross_platform_absolute_paths_and_unc_are_unsafe(self):
+        """Paridade Windows/POSIX: caminhos absolutos Windows (drive, UNC) e POSIX fora da raiz
+        são sempre inseguros em qualquer SO, sem mudar o comportamento para caminhos dentro da raiz.
+        """
+        import ntpath
+        import os
+        import posixpath
+
+        external_paths = [
+            "/etc/passwd",
+            "/var/log/syslog",
+            "C:\\Windows\\System32\\config",
+            "c:/Windows/System32/drivers/etc/hosts",
+            "D:\\secret\\keys.txt",
+            "C:relative_on_drive.txt",
+            "\\\\server\\share\\confidential.txt",
+            "//server/share/confidential.txt",
+            "..\\..\\outside.txt",
+            "../../outside.txt",
+        ]
+        for p in external_paths:
+            self.assertFalse(
+                self.guard.is_safe_path(p), f"Deveria ser inseguro no SO atual: {p!r}"
+            )
+
+        # Caminhos dentro da raiz no SO atual (relativos com / ou \, e absolutos dentro da raiz)
+        self.assertTrue(self.guard.is_safe_path("core/database.py"))
+        self.assertTrue(self.guard.is_safe_path("core\\database.py"))
+        self.assertTrue(
+            self.guard.is_safe_path(
+                os.path.join(self.guard.project_root, "core", "database.py")
+            )
+        )
+
+        # 1. Simula comportamento Linux (posixpath.realpath + os.sep='/' + cwd='/workspace/GrafoConcierge')
+        def _fake_posix_realpath(x: str) -> str:
+            s = str(x)
+            if posixpath.isabs(s):
+                return posixpath.normpath(s)
+            return posixpath.normpath(posixpath.join("/workspace/GrafoConcierge", s))
+
+        with patch("core.security_guard.os.path.realpath", side_effect=_fake_posix_realpath), \
+             patch("core.security_guard.os.sep", "/"):
+            posix_guard = SecurityGuard(project_root="/workspace/GrafoConcierge")
+            for p in external_paths:
+                self.assertFalse(
+                    posix_guard.is_safe_path(p),
+                    f"Deveria ser inseguro sob semântica POSIX (Linux): {p!r}",
+                )
+            self.assertTrue(posix_guard.is_safe_path("core/database.py"))
+            self.assertTrue(posix_guard.is_safe_path("core\\database.py"))
+            self.assertTrue(
+                posix_guard.is_safe_path("/workspace/GrafoConcierge/core/database.py")
+            )
+
+        # 2. Simula comportamento Windows (ntpath.abspath + os.sep='\\' + cwd='C:\\workspace\\GrafoConcierge')
+        def _fake_nt_realpath(x: str) -> str:
+            s = str(x)
+            if ntpath.isabs(s):
+                return ntpath.normpath(s)
+            return ntpath.normpath(ntpath.join("C:\\workspace\\GrafoConcierge", s))
+
+        with patch("core.security_guard.os.path.realpath", side_effect=_fake_nt_realpath), \
+             patch("core.security_guard.os.sep", "\\"):
+            nt_guard = SecurityGuard(project_root="C:\\workspace\\GrafoConcierge")
+            for p in external_paths:
+                self.assertFalse(
+                    nt_guard.is_safe_path(p),
+                    f"Deveria ser inseguro sob semântica Windows (NT): {p!r}",
+                )
+            self.assertTrue(nt_guard.is_safe_path("core/database.py"))
+            self.assertTrue(nt_guard.is_safe_path("core\\database.py"))
+            self.assertTrue(
+                nt_guard.is_safe_path("C:\\workspace\\GrafoConcierge\\core\\database.py")
+            )
+
 
 class TestSecurityGuardCommandClassifier(unittest.TestCase):
     """Testa o classificador de comandos de terminal."""

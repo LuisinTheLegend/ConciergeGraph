@@ -62,14 +62,49 @@ class SecurityGuard:
         project root directory. Empty paths are treated as safe no-ops
         (no target path = no hazard).
 
+        Cross-platform parity:
+          - Foreign OS absolute paths (e.g. Windows drive/UNC on POSIX, or root-relative
+            POSIX paths on Windows) are always rejected.
+          - Backslashes in relative paths on POSIX are normalized to '/' so traversals
+            like '..\\..\\outside' cannot bypass boundary resolution.
+
         Returns:
           True  — if path is within monorepo or is empty/null.
           False — if normalized path falls outside monorepo boundaries.
         """
         if not target_path:
             return True
+        if not isinstance(target_path, str):
+            return False
         try:
-            absolute_target = os.path.realpath(target_path)
+            raw = target_path.strip()
+            if not raw:
+                return True
+
+            has_win_drive = bool(re.match(r"^[a-zA-Z]:", raw))
+            is_win_drive_abs = bool(re.match(r"^[a-zA-Z]:[\\/]", raw))
+            is_unc = raw.startswith("\\\\") or raw.startswith("//")
+
+            # UNC paths (\\server\share or //server/share) and drive-relative paths (C:foo)
+            # are never safe monorepo targets on any OS.
+            if is_unc or (has_win_drive and not is_win_drive_abs):
+                return False
+
+            if os.sep == "/":
+                # On POSIX: any Windows drive path (e.g. C:\... or C:/...) or leading backslash
+                # is an external Windows path and must be rejected.
+                if has_win_drive or raw.startswith("\\"):
+                    return False
+                normalized_input = raw.replace("\\", "/")
+            else:
+                # On Windows: any path starting with '/' or '\' (POSIX absolute path like
+                # /etc/passwd or drive-root-relative path like \Windows\System32) is rejected,
+                # while keeping relative paths and Windows paths inside project_root working.
+                if raw.startswith("/") or raw.startswith("\\"):
+                    return False
+                normalized_input = raw
+
+            absolute_target = os.path.realpath(normalized_input)
             # Verify target path starts with project root + separator
             # to prevent partial string collisions (e.g. /home/user/project-evil vs /home/user/project)
             return absolute_target.startswith(

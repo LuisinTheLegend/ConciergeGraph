@@ -184,7 +184,11 @@ def test_f4_022_negative_cases_remain_identical(neg_text: str) -> None:
     assert f"Processando item: {neg_text}" in "\n".join(rh.rendered)
 
 
-@pytest.mark.parametrize("pos_text", POSITIVE_CASES_F4_022)
+@pytest.mark.parametrize(
+    "pos_text",
+    POSITIVE_CASES_F4_022,
+    ids=[f"pos_{i}" for i in range(len(POSITIVE_CASES_F4_022))],
+)
 def test_f4_022_positive_cases_are_redacted(pos_text: str) -> None:
     """Item 1a (Positivos): chaves isoladas ou precedidas por pontuação/aspas são redigidas."""
     main_mod.setup_logging("INFO")
