@@ -1,10 +1,11 @@
 # tests/test_stdin_decouple.py
 """
-Rodada 4.2f: Testes de unidade e integracao para decouple_stdin_from_fd0().
-Cobre requisitos D1, D2, D3, D4 e D5.
+Rodada 4.2f / 4.2g: Testes de unidade e integracao para decouple_stdin_from_fd0().
+Cobre requisitos D1, D2, D3 e D4.
 """
 from __future__ import annotations
 
+import importlib.util
 import logging
 import os
 import subprocess
@@ -94,6 +95,8 @@ def test_d1_subprocess_decouple_windows():
     """D1: Subprocesso real no Windows desacopla fd 0 e leitor continua funcional."""
     if sys.platform != "win32":
         pytest.skip("D1 e exclusivo do ambiente Windows (verificacao de deadlock em fd 0 / CRT)")
+    if importlib.util.find_spec("scipy") is None or importlib.util.find_spec("scipy.special") is None:
+        pytest.skip("D1 requer scipy.special instalado para exercitar o gatilho do travamento no Windows")
 
     code = CHILD_D1_SCRIPT.replace("{repo_root}", str(REPO_ROOT))
     env = os.environ.copy()
@@ -204,14 +207,3 @@ def test_d4_main_wiring(monkeypatch):
     main.main()
     assert len(called) == 0, "Nao deve chamar decouple_stdin_from_fd0 com transport=sse"
 
-
-def test_d5_lazy_ml_imports_remain_green():
-    """D5: Verifica que os testes T1 e T2 de test_lazy_ml_imports.py continuam passando."""
-    res = subprocess.run(
-        [sys.executable, "-m", "pytest", "tests/test_lazy_ml_imports.py", "-k", "test_t1 or test_t2", "-q"],
-        capture_output=True,
-        text=True,
-        cwd=str(REPO_ROOT),
-    )
-    assert res.returncode == 0, f"T1/T2 falharam: {res.stdout}\n{res.stderr}"
-    assert "2 passed" in res.stdout
