@@ -109,13 +109,15 @@ logger = logging.getLogger("grafo-concierge.main")
 
 
 def decouple_stdin_from_fd0() -> bool:
-    """Decouples fd 0 from sys.stdin on Windows to prevent CRT/OpenBLAS hang.
+    """Desacopla o fd 0 de sys.stdin no Windows para evitar travamento em imports nativos tardios.
 
-    On Windows, late imports (e.g. scipy.special / OpenBLAS) acquire an internal CRT
-    file lock on open stdio descriptors. If a background reader thread is blocked
-    in sys.stdin.buffer.readline() on fd 0, LoadLibraryExW hangs permanently.
-    Redirecting fd 0 to os.devnull and wrapping the duplicated fd2 into sys.stdin
-    avoids the lock collision while preserving bidirectional MCP stdio communication.
+    - PROVADO (ver scratch/evidencia_4_2e e scratch/evidencia_4_2f): com um leitor
+      bloqueado em fd 0 do stdin (ex.: sys.stdin.buffer.readline()), o primeiro
+      import de bibliotecas nativas (scipy.special, openblas, torch) trava no
+      Windows; desacoplar o fd 0 (redirecionando fd 0 para os.devnull e envolvendo
+      o descritor duplicado fd2 em sys.stdin) elimina o travamento preservando o
+      canal stdio bidirecional do MCP.
+    - HIPÓTESE NÃO DEMONSTRADA: o mecanismo interno do Windows (lock do CRT / loader).
     """
     if sys.platform != "win32":
         return False
