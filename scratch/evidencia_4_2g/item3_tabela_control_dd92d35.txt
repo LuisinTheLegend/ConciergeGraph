@@ -1,0 +1,16 @@
+=== TABELA ITEM 3d: CONTROLE NEGATIVO NO COMMIT dd92d35 COM MCP 1.30.0 COMPLETO ===
+Data: 2026-11-01 00:23:07
+Commit alvo: dd92d35
+Versões no venv: mcp=1.30.0, chromadb=1.5.9, sentence_transformers=5.4.1, scipy=1.17.1, numpy=2.4.4, torch=2.11.0
+Total de execuções sequenciais: 6 (2 cenários x 3 repetições)
+
+Commit     | Cenário       | Rep | Classe   | t_init(s) | t_crit(s)  | t_sec(s)  | Vetores | NO-OP | not_inst | CPU(%)
+----------------------------------------------------------------------------------------------------------------------
+dd92d35    | search-first  | 1   | TRAVOU   | 2.49      | 180.01     | N/A       | 0       | False | False    | 0.0   
+dd92d35    | search-first  | 2   | TRAVOU   | 2.40      | 180.00     | N/A       | 0       | False | False    | 0.0   
+dd92d35    | search-first  | 3   | TRAVOU   | 3.07      | 180.00     | N/A       | 0       | False | False    | 0.0   
+dd92d35    | mine          | 1   | TRAVOU   | 3.12      | 180.01     | N/A       | 0       | False | False    | 0.0   
+dd92d35    | mine          | 2   | TRAVOU   | 2.81      | 180.01     | N/A       | 0       | False | False    | 0.0   
+dd92d35    | mine          | 3   | TRAVOU   | 2.88      | 180.01     | N/A       | 0       | False | False    | 0.0   
+----------------------------------------------------------------------------------------------------------------------
+Resumo: OK=0/6 | TRAVOU=6/6 | INVÁLIDA=0/6 | ERRO=0/6

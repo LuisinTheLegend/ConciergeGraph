@@ -1,0 +1,59 @@
+=== ITEM 4d: MUTACAO NO CI WINDOWS (BRANCH DESCARTAVEL ci-mutacao-4-2g) ===
+Mutacao aplicada: remocao de `os.dup2(nul, 0)` em `decouple_stdin_from_fd0()` de `main.py`
+
+=== GIT DIFF DA MUTACAO NA BRANCH ci-mutacao-4-2g ===
+diff --git a/main.py b/main.py
+index 03683e4..c604d7b 100644
+--- a/main.py
++++ b/main.py
+@@ -130,7 +130,6 @@ def decouple_stdin_from_fd0() -> bool:
+     try:
+         nul = os.open(os.devnull, os.O_RDONLY)
+         fd2 = os.dup(0)
+-        os.dup2(nul, 0)
+         os.close(nul)
+         nul = -1
+         sys.stdin = open(fd2, "r", encoding="utf-8", errors="replace", closefd=False)
+
+=== RESULTADO DO WORKFLOW NO GITHUB ACTIONS (MUTACAO SEM os.dup2(nul, 0)) ===
+Run ID: 41269127942
+Workflow: Windows Stdin Decouple & Lazy ML Imports
+Branch: ci-mutacao-4-2g
+Head SHA: 4fe080302db85b130fdf50e6e08a5cfb47f73ef9
+Status: completed | Conclusion: failure
+URL: https://github.com/LuisinTheLegend/ConciergeGraph/actions/runs/41269127942
+
+Jobs da Matriz:
+  - Job: Windows (3.12) | status=completed | conclusion=failure | started=2026-11-01T03:25:46Z | completed=2026-11-01T03:29:36Z
+      step [1] Set up job: status=completed, conclusion=success
+      step [2] Checkout repository: status=completed, conclusion=success
+      step [3] Set up Python 3.12: status=completed, conclusion=success
+      step [4] Upgrade pip and install dependencies: status=completed, conclusion=success
+      step [5] Run stdin decouple and lazy ML import tests: status=completed, conclusion=failure
+      step [9] Post Set up Python 3.12: status=completed, conclusion=skipped
+      step [10] Post Checkout repository: status=completed, conclusion=success
+      step [11] Complete job: status=completed, conclusion=success
+  - Job: Windows (3.10) | status=completed | conclusion=failure | started=2026-11-01T03:25:42Z | completed=2026-11-01T03:29:24Z
+      step [1] Set up job: status=completed, conclusion=success
+      step [2] Checkout repository: status=completed, conclusion=success
+      step [3] Set up Python 3.10: status=completed, conclusion=success
+      step [4] Upgrade pip and install dependencies: status=completed, conclusion=success
+      step [5] Run stdin decouple and lazy ML import tests: status=completed, conclusion=failure
+      step [9] Post Set up Python 3.10: status=completed, conclusion=skipped
+      step [10] Post Checkout repository: status=completed, conclusion=success
+      step [11] Complete job: status=completed, conclusion=success
+  - Job: Windows (3.14) | status=completed | conclusion=failure | started=2026-11-01T03:25:41Z | completed=2026-11-01T03:29:11Z
+      step [1] Set up job: status=completed, conclusion=success
+      step [2] Checkout repository: status=completed, conclusion=success
+      step [3] Set up Python 3.14: status=completed, conclusion=success
+      step [4] Upgrade pip and install dependencies: status=completed, conclusion=success
+      step [5] Run stdin decouple and lazy ML import tests: status=completed, conclusion=failure
+      step [9] Post Set up Python 3.14: status=completed, conclusion=skipped
+      step [10] Post Checkout repository: status=completed, conclusion=success
+      step [11] Complete job: status=completed, conclusion=success
+
+=== LIMPEZA DA BRANCH DESCARTAVEL ===
+git push origin --delete ci-mutacao-4-2g: To https://github.com/LuisinTheLegend/ConciergeGraph.git
+ - [deleted]         ci-mutacao-4-2g
+git branch -D ci-mutacao-4-2g: Deleted branch ci-mutacao-4-2g (was 4fe0803).
+Branch ativa apos limpeza: main (HEAD=30d65c1d859858b8407f8bb0d72f14c7732c1688)

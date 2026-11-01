@@ -1,0 +1,4 @@
+s...                                                                     [100%]
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_stdin_decouple.py:99: D1 requer scipy.special instalado para exercitar o gatilho do travamento no Windows
+3 passed, 1 skipped in 0.10s

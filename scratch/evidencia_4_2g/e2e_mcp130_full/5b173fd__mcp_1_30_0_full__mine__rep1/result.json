@@ -1,0 +1,36 @@
+{
+  "commit": "5b173fd",
+  "venv": "mcp_1_30_0_full",
+  "python": "C:\\Nexus-Memory\\_venvs_4_2g\\venv_mcp130_full\\Scripts\\python.exe",
+  "versions": {
+    "mcp": "1.30.0",
+    "chromadb": "1.5.9",
+    "sentence_transformers": "5.4.1",
+    "scipy": "1.17.1",
+    "numpy": "2.4.4",
+    "torch": "2.11.0"
+  },
+  "scenario": "mine",
+  "rep": 1,
+  "classe": "OK",
+  "raw_classe": "OK",
+  "t_init": 3.2912,
+  "dur_critica": 29.9448,
+  "dur_secundaria": 0.0263,
+  "seed_vectors": 0,
+  "post_mine_vectors": 13,
+  "stderr_contains_noop": false,
+  "stderr_contains_not_installed": false,
+  "cpu_samples": [
+    0.0,
+    0.3,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "mean_cpu": 0.04,
+  "max_cpu": 0.3,
+  "details": "OK"
+}

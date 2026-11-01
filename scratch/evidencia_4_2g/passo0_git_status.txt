@@ -1,0 +1,8 @@
+?? scratch/baseline_fase4_20261019.txt
+?? scratch/count_dumb_test_db.py
+?? scratch/evidencia_4_2d/head_commit.txt
+?? scratch/evidencia_4_2d/ls_remote.txt
+?? scratch/evidencia_4_2g/
+?? scratch/test_wrapper_probe.py
+?? scratch/update_fase4_achados.py
+?? scratch/update_fase4_roadmap.py

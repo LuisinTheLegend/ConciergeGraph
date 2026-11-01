@@ -1,0 +1,39 @@
+gh CLI path: NAO INSTALADO NO PATH
+Consultando GitHub REST API pública para LuisinTheLegend/ConciergeGraph (commit prefix: 30d65c1)...
+
+Run ID: 41267621956
+Workflow: Windows Stdin Decouple & Lazy ML Imports
+Branch: main
+Head SHA: 30d65c1d859858b8407f8bb0d72f14c7732c1688
+Status: completed | Conclusion: success
+URL: https://github.com/LuisinTheLegend/ConciergeGraph/actions/runs/41267621956
+
+Jobs da Matriz:
+  - Job: Windows (3.10) | status=completed | conclusion=success | started=2026-11-01T03:03:35Z | completed=2026-11-01T03:07:18Z
+      step [1] Set up job: status=completed, conclusion=success
+      step [2] Checkout repository: status=completed, conclusion=success
+      step [3] Set up Python 3.10: status=completed, conclusion=success
+      step [4] Upgrade pip and install dependencies: status=completed, conclusion=success
+      step [5] Run stdin decouple and lazy ML import tests: status=completed, conclusion=success
+      step [9] Post Set up Python 3.10: status=completed, conclusion=success
+      step [10] Post Checkout repository: status=completed, conclusion=success
+      step [11] Complete job: status=completed, conclusion=success
+  - Job: Windows (3.14) | status=completed | conclusion=success | started=2026-11-01T03:03:35Z | completed=2026-11-01T03:06:39Z
+      step [1] Set up job: status=completed, conclusion=success
+      step [2] Checkout repository: status=completed, conclusion=success
+      step [3] Set up Python 3.14: status=completed, conclusion=success
+      step [4] Upgrade pip and install dependencies: status=completed, conclusion=success
+      step [5] Run stdin decouple and lazy ML import tests: status=completed, conclusion=success
+      step [9] Post Set up Python 3.14: status=completed, conclusion=success
+      step [10] Post Checkout repository: status=completed, conclusion=success
+      step [11] Complete job: status=completed, conclusion=success
+  - Job: Windows (3.12) | status=completed | conclusion=success | started=2026-11-01T03:03:35Z | completed=2026-11-01T03:09:22Z
+      step [1] Set up job: status=completed, conclusion=success
+      step [2] Checkout repository: status=completed, conclusion=success
+      step [3] Set up Python 3.12: status=completed, conclusion=success
+      step [4] Upgrade pip and install dependencies: status=completed, conclusion=success
+      step [5] Run stdin decouple and lazy ML import tests: status=completed, conclusion=success
+      step [9] Post Set up Python 3.12: status=completed, conclusion=success
+      step [10] Post Checkout repository: status=completed, conclusion=success
+      step [11] Complete job: status=completed, conclusion=success
+

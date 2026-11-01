@@ -1,0 +1,20 @@
+=== TABELA ITEM 3c: E2E NO HEAD COM MCP 1.30.0 COMPLETO (SEM WRAPPER / SEM WARMUP) ===
+Data: 2026-11-01 00:03:02
+Commit alvo: 5b173fd
+Versões no venv: mcp=1.30.0, chromadb=1.5.9, sentence_transformers=5.4.1, scipy=1.17.1, numpy=2.4.4, torch=2.11.0
+Total de execuções sequenciais: 10 (2 cenários x 5 repetições)
+
+Commit     | Cenário       | Rep | Classe   | t_init(s) | t_crit(s)  | t_sec(s)  | Vetores | NO-OP | not_inst | CPU(%)
+----------------------------------------------------------------------------------------------------------------------
+5b173fd    | search-first  | 1   | OK       | 2.97      | 12.93      | 0.02      | 13      | False | False    | 0.0   
+5b173fd    | search-first  | 2   | OK       | 2.88      | 14.23      | 0.01      | 13      | False | False    | 0.0   
+5b173fd    | search-first  | 3   | OK       | 2.73      | 13.38      | 0.02      | 13      | False | False    | 0.0   
+5b173fd    | search-first  | 4   | OK       | 4.52      | 20.49      | 0.03      | 13      | False | False    | 0.0   
+5b173fd    | search-first  | 5   | OK       | 2.87      | 18.33      | 0.02      | 13      | False | False    | 0.0   
+5b173fd    | mine          | 1   | OK       | 3.29      | 29.94      | 0.03      | 13      | False | False    | 0.0   
+5b173fd    | mine          | 2   | OK       | 3.19      | 28.72      | 0.02      | 13      | False | False    | 0.0   
+5b173fd    | mine          | 3   | OK       | 2.83      | 20.66      | 0.02      | 13      | False | False    | 0.0   
+5b173fd    | mine          | 4   | OK       | 2.85      | 21.13      | 0.02      | 13      | False | False    | 0.0   
+5b173fd    | mine          | 5   | OK       | 3.32      | 21.80      | 0.02      | 13      | False | False    | 0.0   
+----------------------------------------------------------------------------------------------------------------------
+Resumo: OK=10/10 | TRAVOU=0/10 | INVÁLIDA=0/10 | ERRO=0/10
