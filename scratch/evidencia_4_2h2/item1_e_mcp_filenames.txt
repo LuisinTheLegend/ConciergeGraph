@@ -1,0 +1,45 @@
+=== ITEM 1e: PROVA FUNCIONAL MCP STDIO (NOMES DE ARQUIVO COM 'sk-' INTERNO, n=3 SEQUENCIAIS) ===
+Arquivos no projeto de teste: risk-assessment-notes.md, disk-cache-manifest.md, task-scheduler-config.md
+Configuracao: GRAFO_LLM_MODEL=none, GRAFO_LLM_API_KEY=<falsa explicita>, GRAFO_LOG_LEVEL=DEBUG
+
+Alvo            | Rep | St   | t(s)   | Files | Nodes | risk-.. | disk-.. | task-.. | [REDACTED]
+------------------------------------------------------------------------------------------------
+before_c5e1c2c  | 1   | OK   | 17.69  | 3     | 3     | 0       | 0       | 0       | 3         
+before_c5e1c2c  | 2   | OK   | 18.56  | 3     | 3     | 0       | 0       | 0       | 3         
+before_c5e1c2c  | 3   | OK   | 20.20  | 3     | 3     | 0       | 0       | 0       | 3         
+after_fix       | 1   | OK   | 19.64  | 3     | 3     | 1       | 1       | 1       | 0         
+after_fix       | 2   | OK   | 15.87  | 3     | 3     | 1       | 1       | 1       | 0         
+after_fix       | 3   | OK   | 16.12  | 3     | 3     | 1       | 1       | 1       | 0         
+------------------------------------------------------------------------------------------------
+
+=== LINHAS LITERAIS DO STDERR CONTENDO OS NOMES DOS ARQUIVOS OU '[REDACTED]' ===
+
+[before_c5e1c2c | rep=1] redacted_total=3 db_labels=['<root>', 'disk-cache-manifest.md::Disk Cache Manifest', 'risk-assessment-notes.md::Risk Assessment Notes', 'task-scheduler-config.md::Task Scheduler Configuration']
+  2026-11-01 12:42:11 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of di[REDACTED].md removed.
+  2026-11-01 12:42:11 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of ri[REDACTED].md removed.
+  2026-11-01 12:42:11 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of ta[REDACTED].md removed.
+
+[before_c5e1c2c | rep=2] redacted_total=3 db_labels=['<root>', 'disk-cache-manifest.md::Disk Cache Manifest', 'risk-assessment-notes.md::Risk Assessment Notes', 'task-scheduler-config.md::Task Scheduler Configuration']
+  2026-11-01 12:42:28 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of di[REDACTED].md removed.
+  2026-11-01 12:42:28 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of ri[REDACTED].md removed.
+  2026-11-01 12:42:28 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of ta[REDACTED].md removed.
+
+[before_c5e1c2c | rep=3] redacted_total=3 db_labels=['<root>', 'disk-cache-manifest.md::Disk Cache Manifest', 'risk-assessment-notes.md::Risk Assessment Notes', 'task-scheduler-config.md::Task Scheduler Configuration']
+  2026-11-01 12:42:47 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of di[REDACTED].md removed.
+  2026-11-01 12:42:47 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of ri[REDACTED].md removed.
+  2026-11-01 12:42:47 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of ta[REDACTED].md removed.
+
+[after_fix | rep=1] redacted_total=0 db_labels=['<root>', 'disk-cache-manifest.md::Disk Cache Manifest', 'risk-assessment-notes.md::Risk Assessment Notes', 'task-scheduler-config.md::Task Scheduler Configuration']
+  2026-11-01 12:43:07 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of disk-cache-manifest.md removed.
+  2026-11-01 12:43:07 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of risk-assessment-notes.md removed.
+  2026-11-01 12:43:07 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of task-scheduler-config.md removed.
+
+[after_fix | rep=2] redacted_total=0 db_labels=['<root>', 'disk-cache-manifest.md::Disk Cache Manifest', 'risk-assessment-notes.md::Risk Assessment Notes', 'task-scheduler-config.md::Task Scheduler Configuration']
+  2026-11-01 12:43:26 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of disk-cache-manifest.md removed.
+  2026-11-01 12:43:26 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of risk-assessment-notes.md removed.
+  2026-11-01 12:43:26 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of task-scheduler-config.md removed.
+
+[after_fix | rep=3] redacted_total=0 db_labels=['<root>', 'disk-cache-manifest.md::Disk Cache Manifest', 'risk-assessment-notes.md::Risk Assessment Notes', 'task-scheduler-config.md::Task Scheduler Configuration']
+  2026-11-01 12:43:42 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of disk-cache-manifest.md removed.
+  2026-11-01 12:43:42 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of risk-assessment-notes.md removed.
+  2026-11-01 12:43:42 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of task-scheduler-config.md removed.

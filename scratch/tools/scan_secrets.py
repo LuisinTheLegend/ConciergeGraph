@@ -20,9 +20,16 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 ALLOWED_EXTENSIONS = {".txt", ".md", ".json", ".log"}
 
 SECRET_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
-    ("AQ_KEY_FRAGMENT", re.compile(r"AQ\.[\w*-]{4,}")),
-    ("AIZA_KEY_FRAGMENT", re.compile(r"AIza[\w-]{10,}")),
-    ("SK_KEY_FRAGMENT", re.compile(r"sk-[\w*-]{6,}")),
+    (
+        "BEARER_TOKEN",
+        re.compile(
+            r'(?<![A-Za-z0-9_])Bearer\s+(?!\[REDACTED\])(?=[^\s"\',;)\]}]*[0-9])[A-Za-z0-9._~+/=-]{8,}',
+            re.IGNORECASE,
+        ),
+    ),
+    ("AQ_KEY_FRAGMENT", re.compile(r"(?<![A-Za-z0-9_])AQ\.[\w*-]{4,}(?:\w{0,8}\.)?")),
+    ("AIZA_KEY_FRAGMENT", re.compile(r"(?<![A-Za-z0-9_])AIza[\w-]{10,}")),
+    ("SK_KEY_FRAGMENT", re.compile(r"(?<![A-Za-z0-9_])sk-[\w*-]{6,}")),
     ("INCORRECT_API_KEY_MSG", re.compile(r"Incorrect API key provided")),
     ("MASKED_KEY_SUFFIX", re.compile(r"\*{6,}\w{0,8}\.")),
 ]

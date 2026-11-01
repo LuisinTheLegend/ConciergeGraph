@@ -1,0 +1,182 @@
+[
+  {
+    "label": "before_c5e1c2c",
+    "rep": 1,
+    "status": "OK",
+    "elapsed_s": 17.69,
+    "files_processed": 3,
+    "nodes_created": 3,
+    "intact_counts_in_stderr": {
+      "risk-assessment-notes.md": 0,
+      "disk-cache-manifest.md": 0,
+      "task-scheduler-config.md": 0
+    },
+    "corrupted_counts_in_stderr": {
+      "ri[REDACTED].md": 1,
+      "di[REDACTED].md": 1,
+      "ta[REDACTED].md": 1
+    },
+    "redacted_total_in_stderr": 3,
+    "matching_stderr_lines": [
+      "2026-11-01 12:42:11 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of di[REDACTED].md removed.",
+      "2026-11-01 12:42:11 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of ri[REDACTED].md removed.",
+      "2026-11-01 12:42:11 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of ta[REDACTED].md removed."
+    ],
+    "db_labels": [
+      "<root>",
+      "disk-cache-manifest.md::Disk Cache Manifest",
+      "risk-assessment-notes.md::Risk Assessment Notes",
+      "task-scheduler-config.md::Task Scheduler Configuration"
+    ]
+  },
+  {
+    "label": "before_c5e1c2c",
+    "rep": 2,
+    "status": "OK",
+    "elapsed_s": 18.56,
+    "files_processed": 3,
+    "nodes_created": 3,
+    "intact_counts_in_stderr": {
+      "risk-assessment-notes.md": 0,
+      "disk-cache-manifest.md": 0,
+      "task-scheduler-config.md": 0
+    },
+    "corrupted_counts_in_stderr": {
+      "ri[REDACTED].md": 1,
+      "di[REDACTED].md": 1,
+      "ta[REDACTED].md": 1
+    },
+    "redacted_total_in_stderr": 3,
+    "matching_stderr_lines": [
+      "2026-11-01 12:42:28 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of di[REDACTED].md removed.",
+      "2026-11-01 12:42:28 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of ri[REDACTED].md removed.",
+      "2026-11-01 12:42:28 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of ta[REDACTED].md removed."
+    ],
+    "db_labels": [
+      "<root>",
+      "disk-cache-manifest.md::Disk Cache Manifest",
+      "risk-assessment-notes.md::Risk Assessment Notes",
+      "task-scheduler-config.md::Task Scheduler Configuration"
+    ]
+  },
+  {
+    "label": "before_c5e1c2c",
+    "rep": 3,
+    "status": "OK",
+    "elapsed_s": 20.2,
+    "files_processed": 3,
+    "nodes_created": 3,
+    "intact_counts_in_stderr": {
+      "risk-assessment-notes.md": 0,
+      "disk-cache-manifest.md": 0,
+      "task-scheduler-config.md": 0
+    },
+    "corrupted_counts_in_stderr": {
+      "ri[REDACTED].md": 1,
+      "di[REDACTED].md": 1,
+      "ta[REDACTED].md": 1
+    },
+    "redacted_total_in_stderr": 3,
+    "matching_stderr_lines": [
+      "2026-11-01 12:42:47 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of di[REDACTED].md removed.",
+      "2026-11-01 12:42:47 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of ri[REDACTED].md removed.",
+      "2026-11-01 12:42:47 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of ta[REDACTED].md removed."
+    ],
+    "db_labels": [
+      "<root>",
+      "disk-cache-manifest.md::Disk Cache Manifest",
+      "risk-assessment-notes.md::Risk Assessment Notes",
+      "task-scheduler-config.md::Task Scheduler Configuration"
+    ]
+  },
+  {
+    "label": "after_fix",
+    "rep": 1,
+    "status": "OK",
+    "elapsed_s": 19.64,
+    "files_processed": 3,
+    "nodes_created": 3,
+    "intact_counts_in_stderr": {
+      "risk-assessment-notes.md": 1,
+      "disk-cache-manifest.md": 1,
+      "task-scheduler-config.md": 1
+    },
+    "corrupted_counts_in_stderr": {
+      "ri[REDACTED].md": 0,
+      "di[REDACTED].md": 0,
+      "ta[REDACTED].md": 0
+    },
+    "redacted_total_in_stderr": 0,
+    "matching_stderr_lines": [
+      "2026-11-01 12:43:07 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of disk-cache-manifest.md removed.",
+      "2026-11-01 12:43:07 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of risk-assessment-notes.md removed.",
+      "2026-11-01 12:43:07 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of task-scheduler-config.md removed."
+    ],
+    "db_labels": [
+      "<root>",
+      "disk-cache-manifest.md::Disk Cache Manifest",
+      "risk-assessment-notes.md::Risk Assessment Notes",
+      "task-scheduler-config.md::Task Scheduler Configuration"
+    ]
+  },
+  {
+    "label": "after_fix",
+    "rep": 2,
+    "status": "OK",
+    "elapsed_s": 15.87,
+    "files_processed": 3,
+    "nodes_created": 3,
+    "intact_counts_in_stderr": {
+      "risk-assessment-notes.md": 1,
+      "disk-cache-manifest.md": 1,
+      "task-scheduler-config.md": 1
+    },
+    "corrupted_counts_in_stderr": {
+      "ri[REDACTED].md": 0,
+      "di[REDACTED].md": 0,
+      "ta[REDACTED].md": 0
+    },
+    "redacted_total_in_stderr": 0,
+    "matching_stderr_lines": [
+      "2026-11-01 12:43:26 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of disk-cache-manifest.md removed.",
+      "2026-11-01 12:43:26 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of risk-assessment-notes.md removed.",
+      "2026-11-01 12:43:26 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of task-scheduler-config.md removed."
+    ],
+    "db_labels": [
+      "<root>",
+      "disk-cache-manifest.md::Disk Cache Manifest",
+      "risk-assessment-notes.md::Risk Assessment Notes",
+      "task-scheduler-config.md::Task Scheduler Configuration"
+    ]
+  },
+  {
+    "label": "after_fix",
+    "rep": 3,
+    "status": "OK",
+    "elapsed_s": 16.12,
+    "files_processed": 3,
+    "nodes_created": 3,
+    "intact_counts_in_stderr": {
+      "risk-assessment-notes.md": 1,
+      "disk-cache-manifest.md": 1,
+      "task-scheduler-config.md": 1
+    },
+    "corrupted_counts_in_stderr": {
+      "ri[REDACTED].md": 0,
+      "di[REDACTED].md": 0,
+      "ta[REDACTED].md": 0
+    },
+    "redacted_total_in_stderr": 0,
+    "matching_stderr_lines": [
+      "2026-11-01 12:43:42 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of disk-cache-manifest.md removed.",
+      "2026-11-01 12:43:42 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of risk-assessment-notes.md removed.",
+      "2026-11-01 12:43:42 │ DEBUG   │ grafo-concierge.orchestrator │ Cleanup post-ingestion: obsolete nodes of task-scheduler-config.md removed."
+    ],
+    "db_labels": [
+      "<root>",
+      "disk-cache-manifest.md::Disk Cache Manifest",
+      "risk-assessment-notes.md::Risk Assessment Notes",
+      "task-scheduler-config.md::Task Scheduler Configuration"
+    ]
+  }
+]

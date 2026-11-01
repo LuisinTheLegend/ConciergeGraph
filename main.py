@@ -80,10 +80,16 @@ TRANSPORT = os.environ.get("GRAFO_TRANSPORT", "stdio")
 import re as _re
 
 _LOG_SECRET_PATTERNS: list[tuple[_re.Pattern[str], str]] = [
-    (_re.compile(r'(Bearer\s+)[^\s"\',;)\]}]+', _re.IGNORECASE), r"\1[REDACTED]"),
-    (_re.compile(r"AQ\.[\w*-]{4,}(?:\w{0,8}\.)?"), "[REDACTED]"),
-    (_re.compile(r"AIza[\w-]{10,}"), "[REDACTED]"),
-    (_re.compile(r"sk-[\w*-]{6,}"), "[REDACTED]"),
+    (
+        _re.compile(
+            r'(?<![A-Za-z0-9_])(Bearer\s+)(?!\[REDACTED\])(?=[^\s"\',;)\]}]*[0-9])[A-Za-z0-9._~+/=-]{8,}',
+            _re.IGNORECASE,
+        ),
+        r"\1[REDACTED]",
+    ),
+    (_re.compile(r"(?<![A-Za-z0-9_])AQ\.[\w*-]{4,}(?:\w{0,8}\.)?"), "[REDACTED]"),
+    (_re.compile(r"(?<![A-Za-z0-9_])AIza[\w-]{10,}"), "[REDACTED]"),
+    (_re.compile(r"(?<![A-Za-z0-9_])sk-[\w*-]{6,}"), "[REDACTED]"),
     (_re.compile(r"\*{6,}\w{0,8}\."), "[REDACTED]"),
 ]
 
