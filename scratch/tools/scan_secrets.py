@@ -30,7 +30,7 @@ SECRET_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("AQ_KEY_FRAGMENT", re.compile(r"(?<![A-Za-z0-9_])AQ\.[\w*-]{4,}(?:\w{0,8}\.)?")),
     ("AIZA_KEY_FRAGMENT", re.compile(r"(?<![A-Za-z0-9_])AIza[\w-]{10,}")),
     ("SK_KEY_FRAGMENT", re.compile(r"(?<![A-Za-z0-9_])sk-[\w*-]{6,}")),
-    ("INCORRECT_API_KEY_MSG", re.compile(r"Incorrect API key provided")),
+    ("INCORRECT_API_KEY_MSG", re.compile(r"Incorrect API key provided:\s+")),
     ("MASKED_KEY_SUFFIX", re.compile(r"\*{6,}\w{0,8}\.")),
 ]
 

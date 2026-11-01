@@ -320,7 +320,7 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
 ---
 
 ### [F4-019] Egress Indevido de Chave de API e Fallback Silencioso Entre Provedores em `LLMAdapter` (`GRAFO_LLM_MODEL=none` e falha em `gemini-*`)
-- **Status:** **corrigido pelo executor, aguardando verificação independente** (Rodada `4.2h`).
+- **Status:** **corrigido; verificado pelo auditor (reprodução independente dos testes S1-S7 e das mutações em Linux; E2E por tripwire apenas por evidência do executor)** (Rodadas `4.2h` e `4.2h-2`).
 - **Severidade:** 🔴 CRÍTICA (Vazamento de chave de API para endpoint de terceiro não autorizado / chamada externa quando o LLM deveria estar desligado).
 - **Arquivos & Linhas:** [`ingestion/summarizer.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/summarizer.py), [`ingestion/orchestrator.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py), [`main.py`](file:///c:/Nexus-Memory/GrafoConcierge/main.py), [`interface/cli.py`](file:///c:/Nexus-Memory/GrafoConcierge/interface/cli.py), [`.env.example`](file:///c:/Nexus-Memory/GrafoConcierge/.env.example)
 - **Mecanismo da Falha:**
@@ -330,14 +330,14 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
   1. Implementada `resolve_llm_provider(model_name, provider, base_url, api_key)` e propriedade `is_enabled` em `LLMAdapter` e `ZoomSummarizer`:
      - Modelos `""`, `"none"`, `"off"`, `"disabled"` (case-insensitive) ou `GRAFO_LLM_PROVIDER` em `("none", "off", "disabled")` ou ausência de chave/URL desativam estritamente o adaptador (`provider="disabled"`, `is_enabled=False`), sem instanciar nenhum cliente e sem chamadas de rede/DNS.
      - Removido 100% do fallback entre provedores (falha ou `ImportError` no Gemini nunca cai para OpenAI).
-     - Para usar OpenAI ou endpoint compatível sem `gemini-*`, exige-se escolha explícita via `GRAFO_LLM_PROVIDER=openai` ou `GRAFO_LLM_PROVIDER=custom` + `GRAFO_LLM_BASE_URL`; sem isso, emite um único `WARNING` claro por instância e opera desativado.
+     - Para usar OpenAI ou endpoint compatível sem `gemini-*`, exige-se escolha explícita via `GRAFO_LLM_PROVIDER=openai` ou `GRAFO_LLM_PROVIDER=openai-compatible` + `GRAFO_LLM_BASE_URL`; sem isso, emite um único `WARNING` claro por instância e opera desativado.
   2. Em `ingestion/orchestrator.py`, quando `not self._summarizer.is_enabled`, a etapa `SUMMARIZE` é pulada com log informativo `"LLM desativado: sumários L0 não gerados"`.
   3. Testes em [`tests/test_llm_egress_guard.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_llm_egress_guard.py) (S1–S8) e prova E2E com Tripwire Proxy em `scratch/evidencia_4_2h/`.
 
 ---
 
 ### [F4-020] Clientes `AsyncOpenAI` / `OpenAI` Criados por Chamada e Nunca Fechados (`RuntimeError: Event loop is closed`)
-- **Status:** **corrigido pelo executor, aguardando verificação independente** (Rodada `4.2h`).
+- **Status:** **corrigido; verificado pelo auditor (reprodução independente dos testes S1-S7 e das mutações em Linux; E2E por tripwire apenas por evidência do executor)** (Rodadas `4.2h` e `4.2h-2`; ver [`audits/errata-4-2h.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/errata-4-2h.md)).
 - **Severidade:** 🟡 MÉDIA (Vazamento de recursos/sockets e 9 tracebacks `RuntimeError: Event loop is closed / Task exception was never retrieved` no fechamento do loop por mineração).
 - **Arquivos & Linhas:** [`ingestion/summarizer.py`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/summarizer.py), [`tests/test_llm_egress_guard.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_llm_egress_guard.py)
 - **Mecanismo da Falha:**
@@ -345,18 +345,43 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
 - **Resolução Implementada (Rodada 4.2h):**
   - Caminho síncrono (`generate`): `with openai.OpenAI(...) as client:` garante `client.close()` determinístico mesmo em exceção.
   - Caminho assíncrono (`generate_async`): `async with openai.AsyncOpenAI(...) as client:` garante `await client.__aexit__(...)` / `aclose()` antes do encerramento do loop de eventos, mesmo quando as 3 tentativas do `tenacity` falham.
-  - Provado pelos testes `S6` e `S7` em `tests/test_llm_egress_guard.py` e no E2E com Tripwire Proxy (`0` ocorrências de `Event loop is closed` e `Task exception was never retrieved` no `HEAD` da 4.2h).
+  - Provado pelos testes **`S6`** e **`S7`** em [`tests/test_llm_egress_guard.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_llm_egress_guard.py) (`S7` usa servidor HTTP local respondendo `401` sem túnel `CONNECT`, reproduzindo o `Event loop is closed` no código sem `async with` e provando `0` ocorrências com `async with`; conforme registrado em [`audits/errata-4-2h.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/errata-4-2h.md), a prova E2E por Tripwire Proxy não reproduz `F4-020` porque o proxy recusa o `CONNECT` com `403` antes de existir conexão TLS/HTTP ativa a fechar).
 
 ---
 
 ### [F4-021] Trechos de Chaves Mascaradas pelo Provedor Presentes em Arquivos de Evidência Versionados e Ausência de Redação Automática em Logs
-- **Status:** **corrigido pelo executor, aguardando verificação independente** (Rodada `4.2h`).
+- **Status:** **corrigido pelo executor, aguardando verificação independente** (Rodadas `4.2h` e `4.2h-2`).
 - **Severidade:** 🟡 MÉDIA (Exposição de fragmentos parciais de chave em logs de erro versionados no repositório público).
-- **Arquivos & Linhas:** [`scratch/tools/scan_secrets.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/tools/scan_secrets.py), [`main.py`](file:///c:/Nexus-Memory/GrafoConcierge/main.py), [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md), [`tests/test_no_secrets_in_tracked_files.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_no_secrets_in_tracked_files.py), [`tests/test_secret_redaction.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_secret_redaction.py)
+- **Arquivos & Linhas:** [`scratch/tools/scan_secrets.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/tools/scan_secrets.py), [`main.py`](file:///c:/Nexus-Memory/GrafoConcierge/main.py), [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md#L46), [`tests/test_no_secrets_in_tracked_files.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_no_secrets_in_tracked_files.py), [`tests/test_secret_redaction.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_secret_redaction.py)
 - **Mecanismo da Falha:**
-  Quando uma requisição com chave inválida retornava erro HTTP 401 da OpenAI, a mensagem de exceção incluía o prefixo e o sufixo mascarados da chave (`[REDACTED]`) e era gravada literalmente nos logs de `stderr` capturados em arquivos de evidência versionados (`scratch/evidencia_4_2/p3_matrix_run.txt`, `scratch/evidencia_4_2d/teste_funcional_real.txt`, `scratch/evidencia_4_2e/diag/out__dump_mine_2yfwxq1r__stderr.txt` e `audits/bypass-governanca-por-session-id.md`).
-- **Resolução Implementada (Rodada 4.2h):**
+  Quando uma requisição com chave inválida retornava erro HTTP 401 da OpenAI, a mensagem de exceção incluía o prefixo e o sufixo mascarados da chave (`[REDACTED]`) e era gravada literalmente nos logs de `stderr` capturados em arquivos de evidência versionados (`scratch/evidencia_4_2/p3_matrix_run.txt`, `scratch/evidencia_4_2d/teste_funcional_real.txt`, `scratch/evidencia_4_2e/diag/out__dump_mine_2yfwxq1r__stderr.txt`; também havia um mock de teste em `audits/bypass-governanca-por-session-id.md`, ver `audits/errata-4-2h.md`).
+- **Resolução Implementada (Rodadas 4.2h e 4.2h-2):**
   1. Criado scanner determinístico [`scratch/tools/scan_secrets.py`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/tools/scan_secrets.py) e teste de regressão [`tests/test_no_secrets_in_tracked_files.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_no_secrets_in_tracked_files.py).
-  2. Redigidos os 4 arquivos versionados substituindo apenas os tokens sensíveis por `[REDACTED]` (preservando integralmente contagens, tempos e diagnósticos; `0` achados após redação).
-  3. Implementado filtro idempotente de redação de segredos em `main.py` (`setup_logging` via `logging.setLogRecordFactory`), cobrindo `getMessage()` (`msg` + `args`) e exceções formatadas (`exc_info` / `exc_text`) em todos os handlers (incluindo `RichHandler`), redigindo `sk-...`, `AQ....`, `AIza...`, `Bearer <token>` e valores exatos de `GRAFO_LLM_API_KEY` / `GRAFO_API_KEY` ($\ge 8$ caracteres). Validado por [`tests/test_secret_redaction.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_secret_redaction.py) (R1–R5).
-  4. Adicionada a **Regra 13** ao [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md).
+  2. Redigidos os arquivos versionados substituindo apenas os tokens que casavam com padrões de chave por `[REDACTED]` (`0` achados após redação).
+  3. Implementado filtro idempotente de redação de segredos em `main.py` (`setup_logging` via `logging.setLogRecordFactory`), cobrindo `getMessage()` (`msg` + `args`) e exceções formatadas (`exc_info` / `exc_text`) em todos os handlers (incluindo `RichHandler`), redigindo `sk-...`, `AQ....`, `AIza...`, `Bearer <token>` e valores exatos de `GRAFO_LLM_API_KEY` / `GRAFO_API_KEY` ($\ge 8$ caracteres), e refinado na Rodada `4.2h-2` (`F4-022`) com lookbehind negativo `(?<![A-Za-z0-9_])` e paridade estrita com `scan_secrets.py`. Validado por [`tests/test_secret_redaction.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_secret_redaction.py) (R1–R6 e casos de F4-022).
+  4. Adicionada a **Regra 13** ao [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md#L46) (linha 46).
+
+---
+
+### [F4-022] Falsos Positivos no Filtro de Redação de Segredos e no Scanner (`sk-[\w*-]{6,}` sem Limite de Palavra Corrompe Nomes de Arquivos)
+- **Status:** **corrigido pelo executor, aguardando verificação independente** (Rodada `4.2h-2`).
+- **Severidade:** 🟡 MÉDIA (Corrupção de texto normal e nomes de arquivos contendo `"sk-"` interno nos logs do servidor MCP, como `"risk-assessment-notes.md"` $\to$ `"ri[REDACTED].md"`).
+- **Arquivos & Linhas:** [`main.py:82-95`](file:///c:/Nexus-Memory/GrafoConcierge/main.py#L82-L95), [`scratch/tools/scan_secrets.py:22-35`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/tools/scan_secrets.py#L22-L35), [`tests/test_secret_redaction.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_secret_redaction.py)
+- **Mecanismo da Falha:**
+  Na Rodada `4.2h`, o padrão `sk-[\w*-]{6,}` em `_LOG_SECRET_PATTERNS` (`main.py`) e em `SECRET_PATTERNS` (`scratch/tools/scan_secrets.py`) não exigia limite de palavra à esquerda. Qualquer palavra inglesa terminada em `"sk"` seguida de hífen e 6+ caracteres (`risk-assessment-notes.md`, `disk-cache-manifest.json`, `task-scheduler-config.yaml`, `desk-setup-checklist.md`, `mask-values-list`) casava a partir de `sk-` e era truncada para `ri[REDACTED].md`, `di[REDACTED].json`, `ta[REDACTED].yaml`, etc. Além disso, o padrão `Bearer\s+[^\s"',;)\]}]+` em `main.py` não exigia dígito no token nem estava presente em `scan_secrets.py`.
+- **Resolução Implementada (Rodada 4.2h-2):**
+  1. Adicionado lookbehind negativo `(?<![A-Za-z0-9_])` nos padrões `sk-`, `AQ.`, `AIza` e `Bearer\s+` tanto em `main.py` quanto em `scratch/tools/scan_secrets.py`, exigindo que o prefixo do segredo não venha colado a letra, número ou sublinhado.
+  2. Unificado o padrão de `Bearer` entre `main.py` e `scan_secrets.py` (`(?<![A-Za-z0-9_])(Bearer\s+)(?!\[REDACTED\])(?=[^\s"',;)\]}]*[0-9])[A-Za-z0-9._~+/=-]{8,}`), evitando falso positivo em frases como `"Bearer token"` sem dígito e mantendo paridade entre filtro e scanner.
+  3. Adicionados testes negativos, positivos e de paridade filtro-scanner em [`tests/test_secret_redaction.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_secret_redaction.py), além de prova funcional E2E via MCP `stdio` ($n=3$ sequenciais antes e depois) em `scratch/evidencia_4_2h2/item1_e_mcp_filenames.txt`.
+
+---
+
+### [F4-023] `.env.example` Traz `GRAFO_LLM_PROVIDER=gemini` Ativo por Padrão
+- **Status:** **corrigido pelo executor, aguardando verificação independente** (Rodada `4.2h-2`).
+- **Severidade:** 🟢 BAIXA (Se o usuário copiar `.env.example` para `.env` e trocar apenas `GRAFO_LLM_MODEL` para um modelo não-`gemini-*`, `GRAFO_LLM_PROVIDER=gemini` permaneceria ativo e anularia a trava de segurança de provedor explícito).
+- **Arquivos & Linhas:** [`.env.example:20-24`](file:///c:/Nexus-Memory/GrafoConcierge/.env.example#L20-L24), [`tests/test_env_example_provider.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_env_example_provider.py)
+- **Mecanismo da Falha:**
+  Na Rodada `4.2h`, `.env.example` documentou `GRAFO_LLM_PROVIDER` deixando a linha `GRAFO_LLM_PROVIDER=gemini` descomentada (ativa). Como `resolve_llm_provider` prioriza `GRAFO_LLM_PROVIDER` explícito sobre o prefixo de `GRAFO_LLM_MODEL`, um `.env` derivado diretamente de `.env.example` forçaria o provedor `gemini` mesmo que o usuário mudasse `GRAFO_LLM_MODEL` para outro modelo sem ajustar `GRAFO_LLM_PROVIDER`.
+- **Resolução Implementada (Rodada 4.2h-2):**
+  1. Comentada a linha `# GRAFO_LLM_PROVIDER=gemini` em [`.env.example`](file:///c:/Nexus-Memory/GrafoConcierge/.env.example#L20-L24) com aviso explícito de que, se `GRAFO_LLM_MODEL` não começar com `"gemini-"`, o provedor deve ser definido explicitamente, caso contrário o LLM permanece desativado por segurança.
+  2. Criado teste unitário [`tests/test_env_example_provider.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_env_example_provider.py) (vermelho antes, verde depois, e validado por mutação).
