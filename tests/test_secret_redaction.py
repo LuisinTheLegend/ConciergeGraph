@@ -141,3 +141,4 @@ def test_r5_setup_logging_installs_factory_and_is_idempotent() -> None:
     assert len(logging.getLogger().handlers) == 1, (
         f"Root logger deve ter exatamente 1 handler após chamadas repetidas, mas tem {len(logging.getLogger().handlers)}"
     )
+

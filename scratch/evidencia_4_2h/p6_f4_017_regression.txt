@@ -1,0 +1,33 @@
+=== PASSO 6B: HARNESS F4-017 EM venv_mcp127 E venv_mcp130_full (GRAFO_LLM_MODEL=none) ===
+Commit: 6b3202b
+
+Venv             | MCP    | Cenário      | Rep | Classe   | t_init | t_crit | t_sec | Vecs | NO-OP | LoopCl | TaskEx | ERR | WARN
+---------------------------------------------------------------------------------------------------------------------------------
+venv_mcp127      | 1.27.0 | search-first | 1   | OK       | 3.02   | 11.88  | 0.01  | 13   | False | 0      | 0      | 0   | 0   
+venv_mcp127      | 1.27.0 | search-first | 2   | OK       | 2.51   | 11.26  | 0.01  | 13   | False | 0      | 0      | 0   | 0   
+venv_mcp127      | 1.27.0 | search-first | 3   | OK       | 2.43   | 11.21  | 0.02  | 13   | False | 0      | 0      | 0   | 0   
+venv_mcp127      | 1.27.0 | mine         | 1   | OK       | 2.63   | 11.73  | 0.02  | 13   | False | 0      | 0      | 0   | 0   
+venv_mcp127      | 1.27.0 | mine         | 2   | OK       | 2.62   | 11.7   | 0.02  | 13   | False | 0      | 0      | 0   | 0   
+venv_mcp127      | 1.27.0 | mine         | 3   | OK       | 2.68   | 12.27  | 0.02  | 13   | False | 0      | 0      | 0   | 0   
+venv_mcp130_full | 1.30.0 | search-first | 1   | OK       | 2.48   | 11.7   | 0.01  | 13   | False | 0      | 0      | 0   | 0   
+venv_mcp130_full | 1.30.0 | search-first | 2   | OK       | 2.44   | 11.51  | 0.02  | 13   | False | 0      | 0      | 0   | 0   
+venv_mcp130_full | 1.30.0 | search-first | 3   | OK       | 2.41   | 11.47  | 0.02  | 13   | False | 0      | 0      | 0   | 0   
+venv_mcp130_full | 1.30.0 | mine         | 1   | OK       | 2.74   | 12.83  | 0.02  | 13   | False | 0      | 0      | 0   | 0   
+venv_mcp130_full | 1.30.0 | mine         | 2   | OK       | 2.69   | 11.9   | 0.02  | 13   | False | 0      | 0      | 0   | 0   
+venv_mcp130_full | 1.30.0 | mine         | 3   | OK       | 2.69   | 11.98  | 0.02  | 13   | False | 0      | 0      | 0   | 0   
+---------------------------------------------------------------------------------------------------------------------------------
+Resumo Geral: OK=12/12 | TRAVOU=0/12
+
+=== DETALHAMENTO DE ERROR / WARNING POR EXECUÇÃO ===
+[venv_mcp127 | search-first | rep=1] ERROR(0)={} | WARNING(0)={}
+[venv_mcp127 | search-first | rep=2] ERROR(0)={} | WARNING(0)={}
+[venv_mcp127 | search-first | rep=3] ERROR(0)={} | WARNING(0)={}
+[venv_mcp127 | mine | rep=1] ERROR(0)={} | WARNING(0)={}
+[venv_mcp127 | mine | rep=2] ERROR(0)={} | WARNING(0)={}
+[venv_mcp127 | mine | rep=3] ERROR(0)={} | WARNING(0)={}
+[venv_mcp130_full | search-first | rep=1] ERROR(0)={} | WARNING(0)={}
+[venv_mcp130_full | search-first | rep=2] ERROR(0)={} | WARNING(0)={}
+[venv_mcp130_full | search-first | rep=3] ERROR(0)={} | WARNING(0)={}
+[venv_mcp130_full | mine | rep=1] ERROR(0)={} | WARNING(0)={}
+[venv_mcp130_full | mine | rep=2] ERROR(0)={} | WARNING(0)={}
+[venv_mcp130_full | mine | rep=3] ERROR(0)={} | WARNING(0)={}

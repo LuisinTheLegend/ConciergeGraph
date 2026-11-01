@@ -39,3 +39,4 @@ def test_no_secrets_in_scratch_or_audits() -> None:
             f"Encontrados padrões de segredo em {len(findings)} arquivo(s):\n"
             + "\n".join(summary_lines)
         )
+
