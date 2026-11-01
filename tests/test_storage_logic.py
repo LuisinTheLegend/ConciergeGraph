@@ -83,6 +83,9 @@ class InMemoryConnManager:
                 label TEXT NOT NULL,
                 node_type TEXT NOT NULL DEFAULT 'FACT',
                 body TEXT,
+                tags TEXT,
+                summary TEXT,
+                content TEXT,
                 last_commit_at TEXT,
                 created_at TEXT DEFAULT (datetime('now')),
                 FOREIGN KEY (project_uuid) REFERENCES projects(uuid)
@@ -117,25 +120,26 @@ class InMemoryConnManager:
 
             -- FTS5 virtual table for text search
             CREATE VIRTUAL TABLE IF NOT EXISTS nodes_fts USING fts5(
-                label, body, content=nodes, content_rowid=id
+                label, tags, summary, content, content=nodes, content_rowid=id,
+                tokenize='unicode61 remove_diacritics 2'
             );
 
             -- FTS5 sync triggers
             CREATE TRIGGER IF NOT EXISTS nodes_ai AFTER INSERT ON nodes BEGIN
-                INSERT INTO nodes_fts(rowid, label, body)
-                VALUES (new.id, new.label, new.body);
+                INSERT INTO nodes_fts(rowid, label, tags, summary, content)
+                VALUES (new.id, new.label, COALESCE(new.tags, ''), COALESCE(new.summary, ''), COALESCE(new.content, new.body));
             END;
 
             CREATE TRIGGER IF NOT EXISTS nodes_ad AFTER DELETE ON nodes BEGIN
-                INSERT INTO nodes_fts(nodes_fts, rowid, label, body)
-                VALUES ('delete', old.id, old.label, old.body);
+                INSERT INTO nodes_fts(nodes_fts, rowid, label, tags, summary, content)
+                VALUES ('delete', old.id, old.label, COALESCE(old.tags, ''), COALESCE(old.summary, ''), COALESCE(old.content, old.body));
             END;
 
             CREATE TRIGGER IF NOT EXISTS nodes_au AFTER UPDATE ON nodes BEGIN
-                INSERT INTO nodes_fts(nodes_fts, rowid, label, body)
-                VALUES ('delete', old.id, old.label, old.body);
-                INSERT INTO nodes_fts(rowid, label, body)
-                VALUES (new.id, new.label, new.body);
+                INSERT INTO nodes_fts(nodes_fts, rowid, label, tags, summary, content)
+                VALUES ('delete', old.id, old.label, COALESCE(old.tags, ''), COALESCE(old.summary, ''), COALESCE(old.content, old.body));
+                INSERT INTO nodes_fts(rowid, label, tags, summary, content)
+                VALUES (new.id, new.label, COALESCE(new.tags, ''), COALESCE(new.summary, ''), COALESCE(new.content, new.body));
             END;
         """)
 

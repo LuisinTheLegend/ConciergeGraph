@@ -710,7 +710,7 @@ class SqliteStore:
             WHERE nodes_fts MATCH ? AND n.type IN ('class', 'function', 'method')
             ORDER BY CASE n.type WHEN 'class' THEN 1 WHEN 'function' THEN 2 WHEN 'method' THEN 3 ELSE 4 END, n.id
         """
-        params: list[Any] = [f'"{safe_query}"']
+        params: list[Any] = [f'label : "{safe_query}"']
         if project_uuid:
             sql += " AND n.project_uuid = ?"
             params.append(project_uuid)

@@ -1,0 +1,32 @@
+=== 1. SQLite Version & Minimum Requirements ===
+Local machine sqlite3.sqlite_version: 3.50.4
+Minimum SQLite version for 'unicode61 remove_diacritics 2': 3.27.0 (released 2019-02-07)
+Local version >= 3.27.0: True
+CI Ubuntu matrix (actions/setup-python):
+  - Python 3.10: bundled with SQLite ~3.37.2 (supported)
+  - Python 3.11: bundled with SQLite ~3.39.4 (supported)
+  - Python 3.12: bundled with SQLite ~3.45.1 (supported)
+  - Python 3.14 (local Windows): bundled with SQLite 3.50.4 (supported)
+
+=== 2. Database Size & Reindex Duration Measurements ===
+Populated 250 realistic nodes with actual codebase files.
+Database size BEFORE migration (3 columns, no content in FTS5): 589,824 bytes (0.56 MB)
+Database size AFTER migration (4 columns, content indexed in FTS5): 839,680 bytes (0.80 MB)
+Size delta: +249,856 bytes (+42.4%)
+Migration duration (backup + drop + create + rebuild + integrity-check): 0.2173 s
+Manual rebuild duration (rebuild + integrity-check): 0.0188 s
+Integrity check passed: True
+Nodes table preserved SHA-256: 7e6332c0785eb3f8ca747331a1ddbab5b269842fb9eb1904146a4e9e397a68ba
+
+=== 3. Content Size & Truncation Analysis ===
+Nodes measured: 44
+MAX(LENGTH(nodes.content)): 45,320 characters
+AVG(LENGTH(nodes.content)): 11,629.3 characters
+MIN(LENGTH(nodes.content)): 311 characters
+Oversized file and chunk handling:
+  - crawler.py: MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024 (10 MB).
+    Files strictly exceeding 10 MB are skipped by the crawler with a warning log ('Skipping oversized file...').
+  - parser.py: MAX_CHUNK_TOKENS = 512 tokens (~2048 chars).
+    Files or sections larger than MAX_CHUNK_TOKENS are NOT truncated: parser._split_oversized
+    subdivides them into consecutive sub-chunks indexed as base_name[0], base_name[1], etc.,
+    preserving 100% of the content without data loss.

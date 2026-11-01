@@ -1,0 +1,42 @@
+# Mutacao 1: Reverter nodes_fts para 3 colunas (sem 'content')
+[returncode=1]
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Nexus-Memory\_venvs_4_2g\venv_mcp130_full\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 10 items / 9 deselected / 1 selected
+
+tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_sentinel_words_found_in_content_when_summary_is_null FAILED [100%]
+
+================================== FAILURES ===================================
+_ TestFTSCodeSearchAndInjection.test_sentinel_words_found_in_content_when_summary_is_null _
+tests\test_fts_code_search.py:75: in test_sentinel_words_found_in_content_when_summary_is_null
+    self._insert_test_node(
+tests\test_fts_code_search.py:66: in _insert_test_node
+    return self.store._conn_mgr.write(_write)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:295: in write
+    return self._write_queue.submit(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:137: in submit
+    raise job.error
+storage\connection.py:175: in _worker
+    job.result = job.fn(self._conn, *job.args, **job.kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_fts_code_search.py:57: in _write
+    cur.execute(
+E   sqlite3.OperationalError: table nodes_fts has no column named content
+------------------------------ Captured log call ------------------------------
+ERROR    grafo-concierge.connection:connection.py:182 Error in write thread (transaction rolled back): table nodes_fts has no column named content
+ERROR    grafo-concierge.connection:connection.py:136 Job execution failed: table nodes_fts has no column named content
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_sentinel_words_found_in_content_when_summary_is_null
+================= 1 failed, 9 deselected, 1 warning in 2.13s ==================

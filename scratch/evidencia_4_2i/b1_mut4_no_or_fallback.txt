@@ -1,0 +1,26 @@
+# Mutacao 4: Desabilitar o fallback OR em fts_search
+[returncode=1]
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Nexus-Memory\_venvs_4_2g\venv_mcp130_full\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 10 items / 9 deselected / 1 selected
+
+tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_multiword_and_fallback_to_or FAILED [100%]
+
+================================== FAILURES ===================================
+_______ TestFTSCodeSearchAndInjection.test_multiword_and_fallback_to_or _______
+tests\test_fts_code_search.py:238: in test_multiword_and_fallback_to_or
+    self.assertIn(
+E   AssertionError: 2 not found in [] : Fallback OR deveria retornar docs contendo 'reembolso'
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_multiword_and_fallback_to_or
+================= 1 failed, 9 deselected, 1 warning in 2.07s ==================

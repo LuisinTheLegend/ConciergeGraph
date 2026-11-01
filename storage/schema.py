@@ -20,6 +20,7 @@ Responsibilities:
 from __future__ import annotations
 
 import logging
+import os
 import sqlite3
 from typing import Optional
 
@@ -161,26 +162,27 @@ CREATE INDEX IF NOT EXISTS idx_semantic_facts_temporal ON semantic_facts(t_valid
 
 FTS5_TABLE_SQL: str = """
 CREATE VIRTUAL TABLE IF NOT EXISTS nodes_fts USING fts5(
-    label, tags, summary, content='nodes', content_rowid='id'
+    label, tags, summary, content, content='nodes', content_rowid='id',
+    tokenize='unicode61 remove_diacritics 2'
 );
 """
 
 FTS5_TRIGGERS_SQL: str = """
 CREATE TRIGGER IF NOT EXISTS nodes_ai AFTER INSERT ON nodes BEGIN
-  INSERT INTO nodes_fts(rowid, label, tags, summary)
-  VALUES (new.id, new.label, new.tags, new.summary);
+  INSERT INTO nodes_fts(rowid, label, tags, summary, content)
+  VALUES (new.id, new.label, new.tags, new.summary, new.content);
 END;
 
 CREATE TRIGGER IF NOT EXISTS nodes_ad AFTER DELETE ON nodes BEGIN
-  INSERT INTO nodes_fts(nodes_fts, rowid, label, tags, summary)
-  VALUES('delete', old.id, old.label, old.tags, old.summary);
+  INSERT INTO nodes_fts(nodes_fts, rowid, label, tags, summary, content)
+  VALUES('delete', old.id, old.label, old.tags, old.summary, old.content);
 END;
 
 CREATE TRIGGER IF NOT EXISTS nodes_au AFTER UPDATE ON nodes BEGIN
-  INSERT INTO nodes_fts(nodes_fts, rowid, label, tags, summary)
-  VALUES('delete', old.id, old.label, old.tags, old.summary);
-  INSERT INTO nodes_fts(rowid, label, tags, summary)
-  VALUES (new.id, new.label, new.tags, new.summary);
+  INSERT INTO nodes_fts(nodes_fts, rowid, label, tags, summary, content)
+  VALUES('delete', old.id, old.label, old.tags, old.summary, old.content);
+  INSERT INTO nodes_fts(rowid, label, tags, summary, content)
+  VALUES (new.id, new.label, new.tags, new.summary, new.content);
 END;
 """
 
@@ -205,7 +207,7 @@ class SchemaManager:
     """
 
     # Semantic schema version for controlling future migrations.
-    SCHEMA_VERSION: str = "3.8.0"
+    SCHEMA_VERSION: str = "3.8.2"
 
     def __init__(self, conn: sqlite3.Connection) -> None:
         self._conn = conn
@@ -246,6 +248,66 @@ class SchemaManager:
                 self._conn.execute("ALTER TABLE semantic_facts ADD COLUMN utility_beta REAL NOT NULL DEFAULT 1.0;")
                 self._conn.commit()
                 logger.info("Migration: 'utility_beta' column added to table 'semantic_facts'.")
+
+            # FTS5 Migration: upgrade nodes_fts to 4 columns (label, tags, summary, content)
+            # with unicode61 remove_diacritics 2.
+            cursor = self._conn.execute(
+                "SELECT sql FROM sqlite_master WHERE type='table' AND name='nodes_fts'"
+            )
+            fts_row = cursor.fetchone()
+            needs_fts_upgrade = False
+            if fts_row and fts_row[0]:
+                fts_sql = fts_row[0].lower()
+                if "content," not in fts_sql and "content)" not in fts_sql:
+                    needs_fts_upgrade = True
+                elif "remove_diacritics 2" not in fts_sql:
+                    needs_fts_upgrade = True
+            elif not fts_row:
+                needs_fts_upgrade = True
+
+            if needs_fts_upgrade and fts_row:
+                # Non-new database with old nodes_fts schema:
+                # 1. Check if database has nodes; if so, create backup before modifying.
+                node_count = 0
+                try:
+                    cur_cnt = self._conn.execute("SELECT COUNT(*) FROM nodes")
+                    node_count = cur_cnt.fetchone()[0]
+                except Exception:
+                    pass
+
+                if node_count > 0:
+                    try:
+                        db_list = self._conn.execute("PRAGMA database_list").fetchall()
+                        db_path = None
+                        for db_entry in db_list:
+                            if db_entry[1] == "main" and db_entry[2]:
+                                db_path = db_entry[2]
+                                break
+                        if db_path and os.path.exists(db_path) and db_path != ":memory:":
+                            bak_path = f"{db_path}.pre_fts_v2.bak"
+                            # Use SQLite online backup API
+                            backup_conn = sqlite3.connect(bak_path)
+                            self._conn.backup(backup_conn)
+                            backup_conn.close()
+                            logger.info("FTS Migration: backup created at %s", bak_path)
+                    except Exception as bak_err:
+                        logger.warning("FTS Migration backup warning: %s", bak_err)
+
+                # 2. Drop old triggers and old nodes_fts virtual table (nodes table is NEVER touched)
+                self._conn.execute("DROP TRIGGER IF EXISTS nodes_ai;")
+                self._conn.execute("DROP TRIGGER IF EXISTS nodes_ad;")
+                self._conn.execute("DROP TRIGGER IF EXISTS nodes_au;")
+                self._conn.execute("DROP TABLE IF EXISTS nodes_fts;")
+
+                # 3. Recreate nodes_fts with 4 columns + unicode61 remove_diacritics 2 and triggers
+                self._conn.executescript(FTS5_TABLE_SQL)
+                self._conn.executescript(FTS5_TRIGGERS_SQL)
+
+                # 4. Rebuild and integrity-check
+                self._conn.execute("INSERT INTO nodes_fts(nodes_fts) VALUES('rebuild');")
+                self._conn.execute("INSERT INTO nodes_fts(nodes_fts) VALUES('integrity-check');")
+                self._conn.commit()
+                logger.info("FTS Migration: nodes_fts upgraded to 4 columns with unicode61 remove_diacritics 2.")
 
             # Ensure the current version is saved in DB.
             current_version = self.get_schema_version()
@@ -361,8 +423,9 @@ class SchemaManager:
         logger.info("Manual rebuild of FTS5 index started...")
         try:
             self._conn.execute("INSERT INTO nodes_fts(nodes_fts) VALUES('rebuild');")
+            self._conn.execute("INSERT INTO nodes_fts(nodes_fts) VALUES('integrity-check');")
             self._conn.commit()
-            logger.info("FTS5 index rebuilt successfully.")
+            logger.info("FTS5 index rebuilt and integrity-checked successfully.")
         except Exception as e:
             self._conn.rollback()
             logger.error("Failed to rebuild FTS5: %s", e)

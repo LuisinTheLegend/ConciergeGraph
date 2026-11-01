@@ -1,0 +1,26 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Nexus-Memory\_venvs_4_2g\venv_mcp130_full\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 10 items
+
+tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_bm25_weights_label_ranks_before_content_only PASSED [ 10%]
+tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_diacritics_insensitivity PASSED [ 20%]
+tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_empty_and_symbol_only_queries_safe_noop PASSED [ 30%]
+tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_exact_phrase_matching_with_quotes PASSED [ 40%]
+tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_fts5_injection_safety PASSED [ 50%]
+tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_identifiers_matching PASSED [ 60%]
+tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_multiword_and_fallback_to_or PASSED [ 70%]
+tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_search_symbols_restricted_to_label_regression PASSED [ 80%]
+tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_sentinel_words_found_in_content_when_summary_is_null PASSED [ 90%]
+tests/test_fts_code_search.py::TestFTSMigration::test_migration_upgrades_schema_preserves_nodes_and_creates_backup PASSED [100%]
+
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 10 passed, 1 warning in 2.53s ========================

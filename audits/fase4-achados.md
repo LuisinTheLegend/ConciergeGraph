@@ -310,12 +310,19 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
 
 ---
 
-### [F4-018] Tabela Virtual `nodes_fts` (FTS5) Não Indexa `nodes.content`
-- **Status:** **ABERTO** (Planejado para a Rodada `4.2i`).
+### [F4-018] Tabela Virtual `nodes_fts` (FTS5) Não Indexava `nodes.content`
+- **Status:** **corrigido pelo executor, aguardando verificação independente** (Rodada `4.2i`).
 - **Severidade:** 🟠 GRAVE (Perda de alcance na busca lexical FTS5 para termos presentes exclusivamente no corpo do documento/código quando `nodes.summary` é `NULL`).
-- **Arquivos & Linhas:** [`storage/schema.py:163-198`](file:///c:/Nexus-Memory/GrafoConcierge/storage/schema.py#L163-L198)
+- **Arquivos & Linhas:** [`storage/schema.py:163-238`](file:///c:/Nexus-Memory/GrafoConcierge/storage/schema.py#L163-L238), [`storage/store.py:703`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py#L703), [`storage/logic.py:440-520`](file:///c:/Nexus-Memory/GrafoConcierge/storage/logic.py#L440-L520), [`tests/test_fts_code_search.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_fts_code_search.py)
 - **Mecanismo da Falha:**
-  A tabela virtual FTS5 `nodes_fts` é definida em `storage/schema.py:163-168` indexando apenas `(label, tags, summary)` com `content='nodes'`. Ela não indexa a coluna `content` da tabela `nodes`. Quando o LLM está desativado (`GRAFO_LLM_MODEL=none`) ou indisponível, `nodes.summary` permanece `NULL` (política homologada na Rodada 4.1/E para não gravar placeholders `[DUMB]`). Como consequência, a consulta FTS5 (`SELECT rowid FROM nodes_fts WHERE nodes_fts MATCH ...`) busca apenas em `label` e `tags`, retornando vazio para palavras presentes apenas em `nodes.content` (observado no teste de aceitação do Claude Desktop real para as palavras-sentinela nos arquivos `.md`, onde a recuperação ocorreu exclusivamente pelo canal vetorial do Chroma).
+  A tabela virtual FTS5 `nodes_fts` era definida em `storage/schema.py:163-168` indexando apenas `(label, tags, summary)` com `content='nodes'`. Ela não indexava a coluna `content` da tabela `nodes`. Quando o LLM está desativado (`GRAFO_LLM_MODEL=none`) ou indisponível, `nodes.summary` permanece `NULL` (política homologada na Rodada 4.1/E para não gravar placeholders `[DUMB]`). Como consequência, a consulta FTS5 (`SELECT rowid FROM nodes_fts WHERE nodes_fts MATCH ...`) buscava apenas em `label` e `tags`, retornando vazio para palavras presentes apenas em `nodes.content` (observado no teste de aceitação do Claude Desktop real para as palavras-sentinela nos arquivos `.md`, onde a recuperação ocorreu exclusivamente pelo canal vetorial do Chroma).
+- **Resolução Implementada (Rodada 4.2i - Bloco 1):**
+  1. Recriada a tabela virtual FTS5 `nodes_fts` como tabela de conteúdo externo com 4 colunas (`label, tags, summary, content`, `content='nodes', content_rowid='id'`) e tokenizer com suporte diacrítico `tokenize='unicode61 remove_diacritics 2'`.
+  2. Triggers de sincronização `nodes_ai`, `nodes_ad` e `nodes_au` em `storage/schema.py` atualizados para propagar `content` (com fallback seguro `COALESCE(new.content, new.body)` para nós legados sem coluna `content`).
+  3. Migração versionada e idempotente `apply_full_schema` (versão de schema bumpada para `3.8.2`): detecta tabelas legadas com 3 colunas via `PRAGMA table_info(nodes_fts)` ou triggers desatualizados; realiza backup físico prévio do banco (`.db.bak_fts5_YYYYMMDD_HHMMSS`) caso a tabela `nodes` já contenha registros; recria tabela/triggers e executa `rebuild_fts_index` com verificação de integridade via comando especial FTS5 `INSERT INTO nodes_fts(nodes_fts) VALUES('integrity-check')`.
+  4. Restrição de escopo em `search_symbols` ([`storage/store.py:703`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py#L703)): a busca por símbolos foi restrita explicitamente à coluna de rótulo (`f'label : "{safe_query}"'`), garantindo com teste de regressão que ocorrências textuais de nomes de funções dentro do corpo de outros arquivos não sejam retornadas espuriamente como definições de símbolos.
+  5. Pesos BM25 em `fts_search` ([`storage/logic.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/logic.py)): pontuação ranqueada usando pesos hierárquicos `bm25(nodes_fts, 10.0, 5.0, 2.0, 1.0)`, conferindo peso 10x maior para correspondência no `label` (nome do arquivo/símbolo) em relação a menções incidentais no `content`.
+  6. Validação por suíte de testes dedicados em [`tests/test_fts_code_search.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_fts_code_search.py) (10/10 testes passando), teste E2E FastMCP real contra projeto minerado com `GRAFO_LLM_MODEL=none` em `scratch/evidencia_4_2i/b1_green_e2e_mcp.txt`, medições de desempenho/tamanho em `scratch/evidencia_4_2i/b1_measurements.txt` e 4 mutações obrigatórias comprovadas.
 
 ---
 
@@ -385,3 +392,37 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
 - **Resolução Implementada (Rodada 4.2h-2):**
   1. Comentada a linha `# GRAFO_LLM_PROVIDER=gemini` em [`.env.example`](file:///c:/Nexus-Memory/GrafoConcierge/.env.example#L20-L24) com aviso explícito de que, se `GRAFO_LLM_MODEL` não começar com `"gemini-"`, o provedor deve ser definido explicitamente, caso contrário o LLM permanece desativado por segurança.
   2. Criado teste unitário [`tests/test_env_example_provider.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_env_example_provider.py) (vermelho antes, verde depois, e validado por mutação).
+
+
+---
+
+### [F4-024] Sintaxe Frágil e Ausência de Fallback Multi-Palavra em Consultas Lexicais FTS5
+- **Status:** **corrigido pelo executor, aguardando verificação independente** (Rodada `4.2i`).
+- **Severidade:** 🟡 MÉDIA (Consultas com múltiplos termos retornavam vazio quando nem todos estavam presentes, consultas vazias ou com caracteres de pontuação geravam exceção `OperationalError` de sintaxe FTS5, e consultas com aspas desbalanceadas ou palavras reservadas podiam causar injeção de sintaxe).
+- **Arquivos & Linhas:** [`storage/logic.py:440-520`](file:///c:/Nexus-Memory/GrafoConcierge/storage/logic.py#L440-L520), [`tests/test_fts_code_search.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_fts_code_search.py)
+- **Mecanismo da Falha:**
+  O método `fts_search` em `storage/logic.py` passava a string de consulta para a cláusula `MATCH` sem sanitização de caracteres especiais da gramática FTS5 (como `*`, `"`, `:`, `AND`, `OR`, `NOT`, `NEAR`). Se o usuário digitasse uma string com aspas sem fechamento, hífen ou operadores booleanos, o SQLite lançava `sqlite3.OperationalError: fts5: syntax error`. Além disso, para consultas com múltiplos termos sem operadores explícitos, o SQLite FTS5 exige que todos os termos estejam presentes no documento, retornando vazio caso apenas parte dos termos coincida e não oferecendo estratégia de fallback ordenado por relevância.
+- **Resolução Implementada (Rodada 4.2i - Bloco 1):**
+  1. Implementada a função interna `_build_fts5_queries(query)`:
+     - Escapa aspas e remove caracteres de controle e palavras reservadas que possam corromper a gramática do FTS5.
+     - Suporta preservação de frases exatas delimitadas por aspas (`"..."`).
+     - Gera uma consulta primária com conjunção estrita `AND` entre os termos (`"termo1" AND "termo2"`) e uma consulta alternativa com disjunção `OR` (`"termo1" OR "termo2"`).
+     - Retorna tupla vazia para consultas que contenham apenas pontuação, caracteres nulos ou espaços em branco, fazendo com que `fts_search` retorne lista vazia imediatamente sem executar chamada SQL.
+  2. Em `fts_search`: tenta primeiramente a consulta `AND`; caso ela retorne zero registros e haja múltiplos termos na busca, executa automaticamente a consulta de fallback com o operador `OR`, cujos resultados são ranqueados naturalmente pela relevância BM25 (priorizando documentos que contêm mais termos correspondentes).
+  3. Validado por testes unitários e de mutação em [`tests/test_fts_code_search.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_fts_code_search.py) e prova E2E FastMCP real em `scratch/evidencia_4_2i/b1_green_e2e_mcp.txt`.
+
+---
+
+### [F4-025] CI Vermelho em Ambiente Limpo por Ausência do Extra `openai`, Falha de Paridade em `is_safe_path` no Linux e Falha Não-Marcada de `BL-015`
+- **Status:** **corrigido pelo executor, aguardando verificação independente** (Rodada `4.2i - Bloco 0`, commit `4263178`).
+- **Severidade:** 🟡 MÉDIA (Quebra contínua da pipeline de CI no GitHub Actions em runners Ubuntu para Python 3.10, 3.11 e 3.12, gerando 13 erros de `ModuleNotFoundError: No module named 'openai'` e 3 falhas de teste).
+- **Arquivos & Linhas:** [`pyproject.toml:57-70`](file:///c:/Nexus-Memory/GrafoConcierge/pyproject.toml#L57-L70), [`requirements.txt`](file:///c:/Nexus-Memory/GrafoConcierge/requirements.txt), [`core/security_guard.py:30-58`](file:///c:/Nexus-Memory/GrafoConcierge/core/security_guard.py#L30-L58), [`tests/test_adaptive_gating.py:27-60`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_adaptive_gating.py#L27-L60), [`tests/test_progressive_tool_disclosure.py:80-92`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_progressive_tool_disclosure.py#L80-L92), [`.github/workflows/windows-stdin.yml`](file:///c:/Nexus-Memory/GrafoConcierge/.github/workflows/windows-stdin.yml)
+- **Mecanismo da Falha:**
+  1. A biblioteca `openai` não estava declarada nos extras opcionais de desenvolvimento em `pyproject.toml`. Em instalações limpas do CI (`pip install -e ".[dev]"`), o pacote não era instalado, fazendo com que a suíte de testes `tests/test_llm_egress_guard.py` (adicionada na 4.2h) falhasse na importação (testes S1 a S8, 13 erros).
+  2. Em `core/security_guard.py`, a função `is_safe_path` utilizava exclusivamente `Path(path).is_absolute()`. No Linux, caminhos com formato Windows (como letra de drive `C:\Windows\System32` ou compartilhamentos UNC `\\server\share`) não são considerados absolutos pelo `pathlib.Path` POSIX. Consequentemente, `Path(project_root) / path` resolvia para `project_root / "C:\Windows\..."`, que ficava contido na raiz do projeto e retornava `True` indevidamente, quebrando o teste `test_path_outside_monorepo_is_unsafe` no Ubuntu.
+  3. O teste `test_telemetry_api_mcp_state_endpoints` (`BL-015`) esperava o estado inicial `PLANNING`, mas a API retornava `EXECUTION`. O teste falhava continuamente no CI sem marcação de falha esperada estrita, gerando falso alarme e mascarando regressões.
+- **Resolução Implementada (Rodada 4.2i - Bloco 0):**
+  1. Em `pyproject.toml`, criado o extra `openai = ["openai>=1.0"]` e adicionado aos extras `dev` e `all`, mantendo `openai` estritamente opcional fora de dependências obrigatórias. Documentado no `requirements.txt`.
+  2. Em `core/security_guard.py`, a função `is_safe_path` foi atualizada com verificação multiplataforma (`is_posix_abs = raw_path.startswith("/")`, `is_win_drive = bool(re.match(r"^[a-zA-Z]:[\\/]", raw_path))`, `is_win_unc = raw_path.startswith(("\\\\", "//"))`), garantindo que caminhos absolutos de qualquer sistema operacional sejam rejeitados quando fora do diretório do projeto, mesmo rodando em runner Linux. Adicionados testes de paridade cross-platform em `tests/test_adaptive_gating.py`.
+  3. Marcado o teste `test_telemetry_api_mcp_state_endpoints` em `tests/test_progressive_tool_disclosure.py` com o decorador `@pytest.mark.xfail(strict=True, reason="BL-015:...")`, provando com teste de controle que uma correção do estado avisará imediatamente como `XPASS(strict)` e mantendo o item `BL-015` aberto no roadmap.
+  4. Atualizado o workflow `.github/workflows/windows-stdin.yml` para instalar `pip install -e ".[dev]" scipy`.

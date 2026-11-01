@@ -1,0 +1,68 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Nexus-Memory\_venvs_4_2g\venv_mcp130_full\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 10 items
+
+tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_bm25_weights_label_ranks_before_content_only FAILED [ 10%]
+tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_diacritics_insensitivity FAILED [ 20%]
+tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_empty_and_symbol_only_queries_safe_noop PASSED [ 30%]
+tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_exact_phrase_matching_with_quotes FAILED [ 40%]
+tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_fts5_injection_safety PASSED [ 50%]
+tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_identifiers_matching FAILED [ 60%]
+tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_multiword_and_fallback_to_or FAILED [ 70%]
+tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_search_symbols_restricted_to_label_regression FAILED [ 80%]
+tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_sentinel_words_found_in_content_when_summary_is_null FAILED [ 90%]
+tests/test_fts_code_search.py::TestFTSMigration::test_migration_upgrades_schema_preserves_nodes_and_creates_backup FAILED [100%]
+
+================================== FAILURES ===================================
+_ TestFTSCodeSearchAndInjection.test_bm25_weights_label_ranks_before_content_only _
+tests\test_fts_code_search.py:197: in test_bm25_weights_label_ranks_before_content_only
+    self.assertTrue(len(res) >= 2, f"Esperava encontrar ambos os nós para {term}")
+E   AssertionError: False is not true : Esperava encontrar ambos os nós para autenticacao
+_________ TestFTSCodeSearchAndInjection.test_diacritics_insensitivity _________
+tests\test_fts_code_search.py:106: in test_diacritics_insensitivity
+    self.assertTrue(
+E   AssertionError: False is not true : Busca por 'aliquota' (sem acento) não encontrou 'alíquota'!
+____ TestFTSCodeSearchAndInjection.test_exact_phrase_matching_with_quotes _____
+tests\test_fts_code_search.py:261: in test_exact_phrase_matching_with_quotes
+    self.assertIn(id_exact, ids, "Frase exata deve casar palavras adjacentes")
+E   AssertionError: 1 not found in [] : Frase exata deve casar palavras adjacentes
+___________ TestFTSCodeSearchAndInjection.test_identifiers_matching ___________
+tests\test_fts_code_search.py:130: in test_identifiers_matching
+    self.assertTrue(
+E   AssertionError: False is not true : Identificador 'calcular_imposto_renda' não foi encontrado!
+_______ TestFTSCodeSearchAndInjection.test_multiword_and_fallback_to_or _______
+tests\test_fts_code_search.py:226: in test_multiword_and_fallback_to_or
+    self.assertTrue(len(res_and) > 0)
+E   AssertionError: False is not true
+_ TestFTSCodeSearchAndInjection.test_search_symbols_restricted_to_label_regression _
+tests\test_fts_code_search.py:166: in test_search_symbols_restricted_to_label_regression
+    self.assertIn(
+E   AssertionError: 'calcular_imposto_renda' not found in [] : search_symbols deveria encontrar símbolo cujo label é 'calcular_imposto_renda'
+_ TestFTSCodeSearchAndInjection.test_sentinel_words_found_in_content_when_summary_is_null _
+tests\test_fts_code_search.py:83: in test_sentinel_words_found_in_content_when_summary_is_null
+    self.assertTrue(
+E   AssertionError: False is not true : Palavra-sentinela 'abacaxi-zeta' não foi encontrada pela busca FTS quando presente apenas no content!
+_ TestFTSMigration.test_migration_upgrades_schema_preserves_nodes_and_creates_backup _
+tests\test_fts_code_search.py:410: in test_migration_upgrades_schema_preserves_nodes_and_creates_backup
+    self.assertTrue(
+E   AssertionError: False is not true : Arquivo de backup não foi encontrado no diretório: ['legacy_migration.db']
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_bm25_weights_label_ranks_before_content_only
+FAILED tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_diacritics_insensitivity
+FAILED tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_exact_phrase_matching_with_quotes
+FAILED tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_identifiers_matching
+FAILED tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_multiword_and_fallback_to_or
+FAILED tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_search_symbols_restricted_to_label_regression
+FAILED tests/test_fts_code_search.py::TestFTSCodeSearchAndInjection::test_sentinel_words_found_in_content_when_summary_is_null
+FAILED tests/test_fts_code_search.py::TestFTSMigration::test_migration_upgrades_schema_preserves_nodes_and_creates_backup
+=================== 8 failed, 2 passed, 1 warning in 2.94s ====================

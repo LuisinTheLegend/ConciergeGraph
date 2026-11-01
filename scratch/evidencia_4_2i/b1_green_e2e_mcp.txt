@@ -1,0 +1,264 @@
+Starting E2E MCP with db=C:\Users\guial\AppData\Local\Temp\grafo_e2e_mcp_qm33tt6x\concierge_e2e.db, chroma=C:\Users\guial\AppData\Local\Temp\grafo_e2e_mcp_qm33tt6x\chroma_e2e
+Register project result: success=True, uuid=59a9f8cd-35a2-4434-97dc-cd949660d069
+Mine result: success=True, files_processed=3
+Query: 'abacaxi-zeta'               -> FTS=2 nodes, MCP=2 nodes
+Query: 'violoncelo-omega'           -> FTS=2 nodes, MCP=2 nodes
+Query: 'farol-sigma'                -> FTS=2 nodes, MCP=2 nodes
+Query: 'aliquota'                   -> FTS=2 nodes, MCP=2 nodes
+Query: 'calcular_imposto_renda'     -> FTS=2 nodes, MCP=2 nodes
+Query: 'ZEBRA-42'                   -> FTS=2 nodes, MCP=2 nodes
+Query: 'reembolso estorno'          -> FTS=2 nodes, MCP=2 nodes
+
+[E2E GREEN] All 7 queries passed via real MCP server and FTS!
+[11/01/26 14:05:21] INFO     GrafoConciergeServer initialized mcp_server.py:229
+                             — 31 tools registered.                            
+                    INFO     Bootstrap complete — all components    main.py:328
+                             initialized.                                      
+                    INFO     Projeto registrado:              middleware.py:146
+                             'sample_repo' →                                   
+                             59a9f8cd-35a2-4434-97dc-cd949660                  
+                             d069 (wing='geral',                               
+                             privacy='PUBLIC')                                 
+                    INFO     concierge_register OK:          mcp_server.py:1030
+                             sample_repo →                                     
+                             59a9f8cd-35a2-4434-97dc-cd94966                   
+                             0d069 (wing=geral,                                
+                             privacy=PUBLIC)                                   
+                    INFO     ============================== orchestrator.py:164
+                             ==============================                    
+                    INFO     MINE STARTED:                  orchestrator.py:165
+                             project=59a9f8cd-35a2-4434-97d                    
+                             c-cd949660d069,                                   
+                             source=C:\Users\guial\AppData\                    
+                             Local\Temp\grafo_e2e_mcp_qm33t                    
+                             t6x\sample_repo                                   
+                    INFO     ============================== orchestrator.py:166
+                             ==============================                    
+                    INFO     [1/7] CRAWL — Filesystem       orchestrator.py:175
+                             scanning...                                       
+                    INFO     Crawl started:                      crawler.py:475
+                             C:\Users\guial\AppData\Local\Temp\g               
+                             rafo_e2e_mcp_qm33tt6x\sample_repo                 
+                             (project:                                         
+                             59a9f8cd-35a2-4434-97dc-cd949660d06               
+                             9)                                                
+                    INFO     Default safety patterns loaded: 60  crawler.py:482
+                             rules.                                            
+                    INFO     Crawl completed: 3 scanned, 3 new,  crawler.py:586
+                             0 unchanged, 0 deleted (GC).                      
+                    INFO     [1/7] CRAWL completed: 3 new,  orchestrator.py:180
+                             0 unchanged, 0 deleted.                           
+                    WARNING  Vector store is unavailable;   orchestrator.py:902
+                             skipping vector repair.                           
+                    INFO     [2/8] PARSE — Semantic         orchestrator.py:198
+                             chunking of 3 files...                            
+                    INFO     [2/8] PARSE completed: 6       orchestrator.py:200
+                             chunks extracted.                                 
+                    INFO     [2.5/8] DELTA CACHE — Checking orchestrator.py:205
+                             unchanged chunks...                               
+                    INFO     [2.5/8] DELTA CACHE completed: orchestrator.py:207
+                             0 cached, 6 new for LLM.                          
+                    INFO     LLM desativado: sumários L0    orchestrator.py:217
+                             não gerados                                       
+                    INFO     [4/8] STORE SQLite —           orchestrator.py:230
+                             Persisting 6 chunks...                            
+                    INFO     [4/8] STORE SQLite completed:  orchestrator.py:233
+                             6 nodes created.                                  
+                    INFO     [5/8] EMBED — Generating       orchestrator.py:253
+                             embeddings for 6 chunks...                        
+                    ERROR    Model unavailable for          vector_store.py:235
+                             embed_batch(): Lightweight                        
+                             mode active - local model                         
+                             disabled.                                         
+                    INFO     [5/8] EMBED completed: 6       orchestrator.py:257
+                             embeddings generated.                             
+                    INFO     [6/8] STORE Vector — Batch     orchestrator.py:261
+                             insert of 6 embeddings...                         
+                    WARNING  store_embeddings_batch         vector_store.py:387
+                             ignored: ChromaDB unavailable.                    
+                    INFO     [6/8] STORE Vector completed:  orchestrator.py:264
+                             0 embeddings stored.                              
+                    INFO     Skipping immediate vector      orchestrator.py:272
+                             repair in this cycle because                      
+                             Step 5 experienced embedding                      
+                             failures.                                         
+                    INFO     [7/8] GC — No orphan nodes     orchestrator.py:281
+                             detected.                                         
+                    INFO     ============================== orchestrator.py:287
+                             ==============================                    
+                    INFO     MINE COMPLETED in 0.06s: 3     orchestrator.py:288
+                             processed, 6 nodes, 0                             
+                             embeddings, 1 errors.                             
+                    INFO     ============================== orchestrator.py:293
+                             ==============================                    
+                    INFO     Primary Wing definida:        project_index.py:140
+                             projeto=59a9f8cd-35a2-4434-97                     
+                             dc-cd949660d069, wing='geral'                     
+                    INFO     concierge_mine OK: sample_repo  mcp_server.py:1086
+                             → 3 files, 6 nodes, 0.06s                         
+                    INFO     [concierge_search]              mcp_server.py:1121
+                             query='abacaxi-zeta'                              
+                             project_identifier='59a9f8cd-35                   
+                             a2-4434-97dc-cd949660d069'                        
+                             top_k=10 all_wings=False                          
+                    INFO     Hybrid Search v4:             hybrid_search.py:120
+                             query='abacaxi-zeta...',                          
+                             project=59a9f8cd-35a2-4434-97                     
+                             dc-cd949660d069, top_k=10,                        
+                             refs=False, all_wings=False,                      
+                             node_type=None                                    
+                    ERROR    Model unavailable for embed(): vector_store.py:197
+                             Lightweight mode active -                         
+                             local model disabled.                             
+                    ERROR    Semantic Fallback: query      hybrid_search.py:143
+                             embedding failed. Returning                       
+                             FTS-only.                                         
+                    WARNING  FTS-only fallback active —    hybrid_search.py:284
+                             results without vector                            
+                             component.                                        
+                    INFO     concierge_search OK:            mcp_server.py:1169
+                             query='abacaxi-zeta' → 2                          
+                             results, 0.008s                                   
+                    INFO     [concierge_search]              mcp_server.py:1121
+                             query='violoncelo-omega'                          
+                             project_identifier='59a9f8cd-35                   
+                             a2-4434-97dc-cd949660d069'                        
+                             top_k=10 all_wings=False                          
+                    INFO     Hybrid Search v4:             hybrid_search.py:120
+                             query='violoncelo-omega...',                      
+                             project=59a9f8cd-35a2-4434-97                     
+                             dc-cd949660d069, top_k=10,                        
+                             refs=False, all_wings=False,                      
+                             node_type=None                                    
+                    ERROR    Model unavailable for embed(): vector_store.py:197
+                             Lightweight mode active -                         
+                             local model disabled.                             
+                    ERROR    Semantic Fallback: query      hybrid_search.py:143
+                             embedding failed. Returning                       
+                             FTS-only.                                         
+                    WARNING  FTS-only fallback active —    hybrid_search.py:284
+                             results without vector                            
+                             component.                                        
+                    INFO     concierge_search OK:            mcp_server.py:1169
+                             query='violoncelo-omega' → 2                      
+                             results, 0.008s                                   
+                    INFO     [concierge_search]              mcp_server.py:1121
+                             query='farol-sigma'                               
+                             project_identifier='59a9f8cd-35                   
+                             a2-4434-97dc-cd949660d069'                        
+                             top_k=10 all_wings=False                          
+                    INFO     Hybrid Search v4:             hybrid_search.py:120
+                             query='farol-sigma...',                           
+                             project=59a9f8cd-35a2-4434-97                     
+                             dc-cd949660d069, top_k=10,                        
+                             refs=False, all_wings=False,                      
+                             node_type=None                                    
+                    ERROR    Model unavailable for embed(): vector_store.py:197
+                             Lightweight mode active -                         
+                             local model disabled.                             
+                    ERROR    Semantic Fallback: query      hybrid_search.py:143
+                             embedding failed. Returning                       
+                             FTS-only.                                         
+                    WARNING  FTS-only fallback active —    hybrid_search.py:284
+                             results without vector                            
+                             component.                                        
+                    INFO     concierge_search OK:            mcp_server.py:1169
+                             query='farol-sigma' → 2                           
+                             results, 0.009s                                   
+                    INFO     [concierge_search]              mcp_server.py:1121
+                             query='aliquota'                                  
+                             project_identifier='59a9f8cd-35                   
+                             a2-4434-97dc-cd949660d069'                        
+                             top_k=10 all_wings=False                          
+                    INFO     Hybrid Search v4:             hybrid_search.py:120
+                             query='aliquota...',                              
+                             project=59a9f8cd-35a2-4434-97                     
+                             dc-cd949660d069, top_k=10,                        
+                             refs=False, all_wings=False,                      
+                             node_type=None                                    
+                    ERROR    Model unavailable for embed(): vector_store.py:197
+                             Lightweight mode active -                         
+                             local model disabled.                             
+                    ERROR    Semantic Fallback: query      hybrid_search.py:143
+                             embedding failed. Returning                       
+                             FTS-only.                                         
+                    WARNING  FTS-only fallback active —    hybrid_search.py:284
+                             results without vector                            
+                             component.                                        
+                    INFO     concierge_search OK:            mcp_server.py:1169
+                             query='aliquota' → 2 results,                     
+                             0.007s                                            
+                    INFO     [concierge_search]              mcp_server.py:1121
+                             query='calcular_imposto_renda'                    
+                             project_identifier='59a9f8cd-35                   
+                             a2-4434-97dc-cd949660d069'                        
+                             top_k=10 all_wings=False                          
+                    INFO     Hybrid Search v4:             hybrid_search.py:120
+                             query='calcular_imposto_renda                     
+                             ...',                                             
+                             project=59a9f8cd-35a2-4434-97                     
+                             dc-cd949660d069, top_k=10,                        
+                             refs=False, all_wings=False,                      
+                             node_type=None                                    
+                    ERROR    Model unavailable for embed(): vector_store.py:197
+                             Lightweight mode active -                         
+                             local model disabled.                             
+                    ERROR    Semantic Fallback: query      hybrid_search.py:143
+                             embedding failed. Returning                       
+                             FTS-only.                                         
+                    WARNING  FTS-only fallback active —    hybrid_search.py:284
+                             results without vector                            
+                             component.                                        
+                    INFO     concierge_search OK:            mcp_server.py:1169
+                             query='calcular_imposto_renda'                    
+                             → 2 results, 0.012s                               
+                    INFO     [concierge_search]              mcp_server.py:1121
+                             query='ZEBRA-42'                                  
+                             project_identifier='59a9f8cd-35                   
+                             a2-4434-97dc-cd949660d069'                        
+                             top_k=10 all_wings=False                          
+                    INFO     Hybrid Search v4:             hybrid_search.py:120
+                             query='ZEBRA-42...',                              
+                             project=59a9f8cd-35a2-4434-97                     
+                             dc-cd949660d069, top_k=10,                        
+                             refs=False, all_wings=False,                      
+                             node_type=None                                    
+                    ERROR    Model unavailable for embed(): vector_store.py:197
+                             Lightweight mode active -                         
+                             local model disabled.                             
+                    ERROR    Semantic Fallback: query      hybrid_search.py:143
+                             embedding failed. Returning                       
+                             FTS-only.                                         
+                    WARNING  FTS-only fallback active —    hybrid_search.py:284
+                             results without vector                            
+                             component.                                        
+                    INFO     concierge_search OK:            mcp_server.py:1169
+                             query='ZEBRA-42' → 2 results,                     
+                             0.012s                                            
+                    INFO     [concierge_search]              mcp_server.py:1121
+                             query='reembolso estorno'                         
+                             project_identifier='59a9f8cd-35                   
+                             a2-4434-97dc-cd949660d069'                        
+                             top_k=10 all_wings=False                          
+                    INFO     Hybrid Search v4:             hybrid_search.py:120
+                             query='reembolso estorno...',                     
+                             project=59a9f8cd-35a2-4434-97                     
+                             dc-cd949660d069, top_k=10,                        
+                             refs=False, all_wings=False,                      
+                             node_type=None                                    
+                    ERROR    Model unavailable for embed(): vector_store.py:197
+                             Lightweight mode active -                         
+                             local model disabled.                             
+                    ERROR    Semantic Fallback: query      hybrid_search.py:143
+                             embedding failed. Returning                       
+                             FTS-only.                                         
+                    WARNING  FTS-only fallback active —    hybrid_search.py:284
+                             results without vector                            
+                             component.                                        
+                    INFO     concierge_search OK:            mcp_server.py:1169
+                             query='reembolso estorno' → 2                     
+                             results, 0.009s                                   
+                    INFO     Requesting stop of               connection.py:105
+                             SerializedWriteQueue...                           
+                    INFO     SerializedWriteQueue finished.   connection.py:109
+                    INFO     SqliteStore closed.                   store.py:114

@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import logging
 import math
+import re
 from datetime import datetime, timezone
 from typing import Any, Optional, TYPE_CHECKING
 
@@ -352,6 +353,54 @@ class GraphLogic:
     # 4. FTS5 — Text search with normalized BM25
     # ===================================================================
 
+    @staticmethod
+    def _build_fts5_queries(query: str) -> tuple[Optional[str], Optional[str]]:
+        """Parses and sanitizes raw user query into FTS5-safe expressions.
+
+        Returns:
+            (and_query, or_query):
+              - and_query: primary expression (exact phrase or terms joined by AND).
+              - or_query: secondary fallback expression (terms joined by OR), or None.
+        """
+        if not query or not isinstance(query, str):
+            return None, None
+
+        stripped = query.strip()
+        if not stripped:
+            return None, None
+
+        # Exact phrase matching: user wrapped query in quotes: "reembolso estorno"
+        if (
+            len(stripped) >= 2
+            and stripped.startswith('"')
+            and stripped.endswith('"')
+            and '"' not in stripped[1:-1]
+        ):
+            inner = stripped[1:-1]
+            tokens = re.findall(r"\w+(?:-\w+)*", inner, flags=re.UNICODE)
+            if not tokens:
+                return None, None
+            exact_expr = '"' + " ".join(tokens) + '"'
+            return exact_expr, None
+
+        # General multi-word tokenization: extract words and hyphenated tokens (abacaxi-zeta, ZEBRA-42)
+        raw_tokens = re.findall(r"\w+(?:-\w+)*", stripped, flags=re.UNICODE)
+        if not raw_tokens:
+            return None, None
+
+        # Strip standalone boolean operators (AND, OR, NOT, NEAR) to prevent query hijacking
+        fts_keywords = {"AND", "OR", "NOT", "NEAR"}
+        filtered = [t for t in raw_tokens if t.upper() not in fts_keywords]
+        effective_tokens = filtered if filtered else raw_tokens
+
+        escaped = ['"' + t.replace('"', '""') + '"' for t in effective_tokens]
+        if len(escaped) == 1:
+            return escaped[0], None
+
+        and_query = " AND ".join(escaped)
+        or_query = " OR ".join(escaped)
+        return and_query, or_query
+
     def fts_search(
         self,
         query: str,
@@ -361,45 +410,54 @@ class GraphLogic:
     ) -> list[dict]:
         """Text search via FTS5 with BM25 normalized to [0, 1].
 
-        SQLite returns bm25() as negative value (more negative = more relevant).
-        We normalize to [0, 1] using:  1.0 - (rank / min_rank)
-        where min_rank is the most negative (most relevant) value of the batch.
+        BM25 Weights:
+            bm25(nodes_fts, 10.0, 5.0, 2.0, 1.0)
+            - label (10.0): Highest priority. Filenames/symbol names are direct targets.
+            - tags (5.0): High priority domain/syntax markers.
+            - summary (2.0): Intermediate priority LLM/macro descriptions.
+            - content (1.0): Base priority full text body (prevents long content from drowning labels).
 
-        Args:
-            query: Search text. Special characters are escaped.
-            project_uuid: Optional filter by project (Strict Scoping).
-            node_type: Targeted filter (FACT, SKILL, INSIGHT, TRAJECTORY, PATCH).
-            limit: Maximum results.
+        Multi-word Strategy (F4-024):
+            1. Escapes and sanitizes all query tokens against FTS5 syntax injection.
+            2. Executes primary query with all terms (AND) or exact phrase.
+            3. If primary query yields 0 results, falls back to alternative query (OR).
 
         Returns:
             List of dicts with node fields + normalized 'bm25_score' [0, 1].
             Sorted from most relevant to least relevant.
         """
-        # Escapes quotes in query to prevent FTS5 injection
-        safe_query = query.replace('"', '""')
+        and_query, or_query = self._build_fts5_queries(query)
+        if not and_query:
+            return []
 
-        # Assembles the SQL query dynamically according to the filters
-        sql = """
-            SELECT n.*, bm25(nodes_fts) AS rank
+        # Base query with weighted BM25 across 4 columns (label, tags, summary, content)
+        sql_base = """
+            SELECT n.*, bm25(nodes_fts, 10.0, 5.0, 2.0, 1.0) AS rank
             FROM nodes_fts f
             JOIN nodes n ON n.id = f.rowid
             WHERE nodes_fts MATCH ?
         """
-        params: list[Any] = [f'"{safe_query}"']
-
+        params_base: list[Any] = []
         if project_uuid:
-            sql += " AND n.project_uuid = ?"
-            params.append(project_uuid)
-
+            sql_base += " AND n.project_uuid = ?"
+            params_base.append(project_uuid)
         if node_type:
-            sql += " AND n.node_type = ?"
-            params.append(node_type)
+            sql_base += " AND n.node_type = ?"
+            params_base.append(node_type)
+        sql_base += " ORDER BY rank LIMIT ?"
+        params_base.append(limit)
 
-        sql += " ORDER BY rank LIMIT ?"
-        params.append(limit)
+        def _execute_match(match_expr: str) -> list[Any]:
+            p = [match_expr] + params_base
+            with self._conn.read() as conn:
+                return conn.execute(sql_base, tuple(p)).fetchall()
 
-        with self._conn.read() as conn:
-            rows = conn.execute(sql, tuple(params)).fetchall()
+        # Step 1: Attempt AND query
+        rows = _execute_match(and_query)
+
+        # Step 2: Fallback to OR query if AND yielded no results
+        if not rows and or_query:
+            rows = _execute_match(or_query)
 
         if not rows:
             return []
@@ -407,26 +465,27 @@ class GraphLogic:
         results = [dict(r) for r in rows]
 
         # Normalizes BM25: the most negative rank becomes 1.0 and the least negative becomes ~0.0
-        min_rank = min(r["rank"] for r in results)  # most negative value
+        min_rank = min(r["rank"] for r in results)
         for r in results:
             if min_rank < 0:
                 r["bm25_score"] = round(r["rank"] / min_rank, 4)
             else:
                 r["bm25_score"] = 1.0
-            del r["rank"]  # Removes internal SQLite field
+            del r["rank"]
 
         return results
 
     def fts_rebuild(self) -> None:
-        """Rebuilds the complete FTS5 index.
+        """Rebuilds the complete FTS5 index and verifies integrity.
 
         Use after massive ingestion (concierge mine) to optimize performance.
         """
         def _do(conn: Any) -> None:
             conn.execute("INSERT INTO nodes_fts(nodes_fts) VALUES('rebuild');")
+            conn.execute("INSERT INTO nodes_fts(nodes_fts) VALUES('integrity-check');")
 
         self._conn.write(_do)
-        logger.info("FTS5 index rebuilt successfully.")
+        logger.info("FTS5 index rebuilt and integrity-checked successfully.")
 
     # ===================================================================
     # 5. WEIGHTED HYBRID SEARCH (Hybrid Search v4)
