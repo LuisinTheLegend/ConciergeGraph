@@ -426,3 +426,30 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
   2. Em `core/security_guard.py`, a função `is_safe_path` foi atualizada com verificação multiplataforma (`is_posix_abs = raw_path.startswith("/")`, `is_win_drive = bool(re.match(r"^[a-zA-Z]:[\\/]", raw_path))`, `is_win_unc = raw_path.startswith(("\\\\", "//"))`), garantindo que caminhos absolutos de qualquer sistema operacional sejam rejeitados quando fora do diretório do projeto, mesmo rodando em runner Linux. Adicionados testes de paridade cross-platform em `tests/test_adaptive_gating.py`.
   3. Marcado o teste `test_telemetry_api_mcp_state_endpoints` em `tests/test_progressive_tool_disclosure.py` com o decorador `@pytest.mark.xfail(strict=True, reason="BL-015:...")`, provando com teste de controle que uma correção do estado avisará imediatamente como `XPASS(strict)` e mantendo o item `BL-015` aberto no roadmap.
   4. Atualizado o workflow `.github/workflows/windows-stdin.yml` para instalar `pip install -e ".[dev]" scipy`.
+
+
+---
+
+### [F4-026] Migração FTS Não-Atômica e Ausência de Verificação de Consistência na Inicialização
+- **Status:** **corrigido pelo executor, aguardando verificação independente** (Rodada `4.2j`, commit `b360bb9`).
+- **Severidade:** 🟡 MÉDIA (Se o processo caísse após o `DROP TABLE nodes_fts` e antes do `rebuild`, ou durante o `rebuild`, o uso de `executescript` gerava commit implícito deixando o FTS vazio na versão 3.8.2; a inicialização subsequente não detectava a inconsistência e a busca por nós existentes retornava 0 resultados sem erro).
+- **Arquivos & Linhas:** [`storage/schema.py:268-355`](file:///c:/Nexus-Memory/GrafoConcierge/storage/schema.py#L268-L355), [`tests/test_fts_atomic_migration.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_fts_atomic_migration.py)
+- **Mecanismo da Falha:**
+  Em `storage/schema.py`, a migração do FTS para 4 colunas utilizava `self._conn.executescript(FTS5_TABLE_SQL)` e `self._conn.executescript(FTS5_TRIGGERS_SQL)`. No SQLite/Python, `executescript` emite um `COMMIT` implícito antes de executar cada script. Se o processo sofresse uma interrupção (crash, SIGKILL, falta de energia) após o `DROP` e criação das tabelas mas antes do `rebuild`, as tabelas e triggers FTS ficavam criados vazios e persistidos. Na inicialização seguinte, o `SchemaManager` via a versão `3.8.2` e a tabela `nodes_fts` já existente com 4 colunas e não executava novo `rebuild`. Como o FTS externo (`content='nodes'`) utiliza tabelas shadow (`nodes_fts_docsize`) para saber quais documentos foram indexados, o índice permanecia completamente vazio enquanto a tabela `nodes` continha centenas de registros.
+- **Resolução Implementada (Rodada 4.2j - Item 1):**
+  1. A sequência de migração (`DROP TRIGGER IF EXISTS ...`, `DROP TABLE IF EXISTS ...`, `CREATE VIRTUAL TABLE ...`, criação individual de cada trigger via `self._conn.execute(...)`, `rebuild` e `integrity-check`) foi envolvida em uma única transação explícita com `BEGIN IMMEDIATE;` ... `COMMIT;` e `ROLLBACK;` em bloco `try...except`, sem qualquer chamada a `executescript`.
+  2. Implementada verificação de consistência na inicialização (`_check_and_repair_fts_consistency`): se `nodes` tem registros (`node_count > 0`), compara com `SELECT COUNT(*) FROM nodes_fts_docsize`. Se houver divergência (`doc_count != node_count`), emite aviso em log (`logger.warning`) e executa rebuild automático com `rebuild_fts_index()`.
+  3. O backup pré-migração foi documentado e logado explicitamente como "melhor esforço" (`melhor esforço`), emitindo `logger.warning` em caso de falha sem abortar a migração atômica.
+  4. Criada suíte de testes em [`tests/test_fts_atomic_migration.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_fts_atomic_migration.py), com prova de atomicidade (falha no rebuild reverte ao banco de 3 colunas e busca legada segue funcionando), detecção do cenário do auditor e idempotência com preservação exata do hash dos dados de `nodes`. Validação por 2 mutações obrigatórias.
+
+---
+
+### [F4-027] Filtro de Palavras-Chave FTS5 (AND, OR, NOT, NEAR) no Construtor de Consultas
+- **Status:** **corrigido pelo executor, aguardando verificação independente** (Rodada `4.2j`, commit `4313351`).
+- **Severidade:** 🟢 BAIXA (Palavras perfeitamente legítimas da língua e de código-fonte como "not found", "AND", "NEAR(a b)" e "a AND b OR c" tinham seus termos removidos indevidamente antes do envio ao FTS5).
+- **Arquivos & Linhas:** [`storage/logic.py:386-403`](file:///c:/Nexus-Memory/GrafoConcierge/storage/logic.py#L386-L403), [`tests/test_fts_code_search.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_fts_code_search.py)
+- **Mecanismo da Falha:**
+  Em `storage/logic.py`, o método `_build_fts5_queries` continha uma lista de palavras reservadas `fts_keywords = {"AND", "OR", "NOT", "NEAR"}` e removia qualquer token que coincidisse com elas. Porém, como cada token é delimitado individualmente por aspas duplas (`'"' + t.replace('"', '""') + '"'`), a gramática do SQLite FTS5 trata palavras entre aspas como literais puros, e não como operadores de consulta. A remoção indevida fazia com que buscas por "not found" virassem apenas `"found"` (retornando documentos que não continham "not"), buscas por "NEAR(a b)" virassem `"a" AND "b"`, e buscas por "AND" em expressões tivessem palavras suprimidas.
+- **Resolução Implementada (Rodada 4.2j - Item 2):**
+  1. Removida a filtragem de `fts_keywords` em `_build_fts5_queries`: todos os tokens extraídos por expressão regular recebem aspas duplas, desarmando operadores booleanos do FTS5 e buscando-os como palavras literais.
+  2. Adicionados testes em [`tests/test_fts_code_search.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_fts_code_search.py) cobrindo especificamente: `"not found"`, `"AND"` isolado, `"NEAR(a b)"` e `"a AND b OR c"`, provando que antes da correção documentos que continham apenas `found` casavam indevidamente e após a correção apenas documentos contendo ambos os termos são retornados. Validado por mutação.

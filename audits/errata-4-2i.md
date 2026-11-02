@@ -104,3 +104,4 @@
   - Processos Python que disparam servidores de teste MCP, chamadas de subprocesso com pipes bidirecionais simultâneos ou clientes HTTP/SSE locais ficam bloqueados em chamadas de I/O do sistema operacional quando executados sob `BypassSandbox: false`.
   - Quando um timeout de shell é atingido ou o comando é jogado em background, o processo filho do Windows permanece suspenso no kernel aguardando o socket/pipe.
   - **Solução Operacional:** Para comandos que exigem comunicação interprocesso (IPC), sockets de loopback ou operações no repositório git que tocam `.git/index.lock`, a execução fora do sandbox (`BypassSandbox: true`) foi necessária para evitar o deadlock de rede/IPC imposto pelo sandbox no Windows.
+
