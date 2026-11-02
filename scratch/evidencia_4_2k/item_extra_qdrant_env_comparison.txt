@@ -1,0 +1,11 @@
+=== COMPARAÇÃO DE AMBIENTE: QDRANT-CLIENT E O TESTE SKIPPED ===
+
+1. AMBIENTE DA RODADA 4.2j (C:\Python314\python.exe):
+  qdrant_client: NÃO INSTALADO (No module named 'qdrant_client')
+
+2. AMBIENTE DA RODADA 4.2i (C:\Nexus-Memory\_venvs_4_2i\venv_py314_clean\Scripts\python.exe):
+  qdrant_client: INSTALADO em C:\Nexus-Memory\_venvs_4_2i\venv_py314_clean\Lib\site-packages\qdrant_client\__init__.py
+
+3. GUARDA DO TESTE EM tests/test_conversational_db.py:132:
+  @pytest.mark.skipif(not QDRANT_AVAILABLE, reason="qdrant-client não instalado")
+  def test_qdrant_collection_initialization_real(): ...
