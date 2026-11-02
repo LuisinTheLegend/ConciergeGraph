@@ -308,6 +308,82 @@ class TestFTSCodeSearchAndInjection(unittest.TestCase):
                     f"Payload de injeção {payload!r} causou sqlite3.OperationalError: {e}"
                 )
 
+    def test_fts_query_builder_preserves_reserved_keywords_as_literals(self):
+        """F4-027: _build_fts5_queries deve preservar AND, OR, NOT, NEAR como literais entre aspas."""
+        # 1. 'not found' deve manter ambos os termos na consulta AND e OR
+        and_q, or_q = GraphLogic._build_fts5_queries("not found")
+        self.assertEqual(and_q, '"not" AND "found"', "Termo 'not' não pode ser removido da consulta")
+        self.assertEqual(or_q, '"not" OR "found"', "Termo 'not' não pode ser removido do fallback OR")
+
+        # 2. 'AND' sozinho deve buscar a palavra literal 'AND'
+        and_q, or_q = GraphLogic._build_fts5_queries("AND")
+        self.assertEqual(and_q, '"AND"', "Termo 'AND' sozinho deve ser preservado")
+        self.assertIsNone(or_q)
+
+        # 3. 'NEAR(a b)' deve preservar a palavra 'NEAR' como literal
+        and_q, or_q = GraphLogic._build_fts5_queries("NEAR(a b)")
+        self.assertEqual(and_q, '"NEAR" AND "a" AND "b"', "Operador NEAR deve ser preservado como token literal")
+        self.assertEqual(or_q, '"NEAR" OR "a" OR "b"')
+
+        # 4. 'a AND b OR c' deve preservar todas as palavras literais
+        and_q, or_q = GraphLogic._build_fts5_queries("a AND b OR c")
+        self.assertEqual(
+            and_q,
+            '"a" AND "AND" AND "b" AND "OR" AND "c"',
+            "Palavras AND e OR em consultas complexas devem ser tratadas como literais",
+        )
+        self.assertEqual(
+            or_q,
+            '"a" OR "AND" OR "b" OR "OR" OR "c"',
+        )
+
+    def test_fts_search_with_keywords_matches_accurate_documents(self):
+        """F4-027: Busca real com palavras-chave FTS5 distingue nós corretamente."""
+        # Doc com 'not' e 'found'
+        id_not_found = self._insert_test_node(
+            label="error_handler.py",
+            content="HTTP 404: resource not found in repository.",
+        )
+        # Doc apenas com 'found' (sem 'not')
+        id_found_only = self._insert_test_node(
+            label="cache_lookup.py",
+            content="item successfully found in memory cache.",
+        )
+        # Doc sem 'NEAR', contendo 'a' e 'b'
+        id_near = self._insert_test_node(
+            label="geo_service.py",
+            content="calculates distance between points a and b in space.",
+        )
+        # Doc com 'NEAR' literal
+        id_near_code = self._insert_test_node(
+            label="query_doc.py",
+            content="documentation describes NEAR(a b) usage in search.",
+        )
+
+        # Busca por 'not found': deve casar id_not_found via AND
+        # Em código com filtro de keywords, 'not' era removido e a busca virava 'found',
+        # casando id_found_only indevidamente.
+        res = self.store.fts_search(query="not found", project_uuid=self.project_uuid)
+        res_ids = [r["id"] for r in res]
+        self.assertIn(id_not_found, res_ids)
+        self.assertNotIn(
+            id_found_only,
+            res_ids,
+            "Documento que contém apenas 'found' (sem 'not') NÃO deve ser retornado na busca 'not found'",
+        )
+
+        # Busca por 'NEAR(a b)': deve casar id_near_code (que tem 'NEAR', 'a', 'b')
+        # e NÃO id_near (que não tem 'NEAR')
+        res_near = self.store.fts_search(query="NEAR(a b)", project_uuid=self.project_uuid)
+        res_near_ids = [r["id"] for r in res_near]
+        self.assertIn(id_near_code, res_near_ids)
+        self.assertNotIn(
+            id_near,
+            res_near_ids,
+            "Documento sem o termo 'NEAR' não deve casar consulta 'NEAR(a b)'",
+        )
+
+
 
 class TestFTSMigration(unittest.TestCase):
     """Testa a migração do esquema FTS antigo (3 colunas) para o novo (4 colunas + unicode61 remove_diacritics 2)."""

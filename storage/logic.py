@@ -388,12 +388,9 @@ class GraphLogic:
         if not raw_tokens:
             return None, None
 
-        # Strip standalone boolean operators (AND, OR, NOT, NEAR) to prevent query hijacking
-        fts_keywords = {"AND", "OR", "NOT", "NEAR"}
-        filtered = [t for t in raw_tokens if t.upper() not in fts_keywords]
-        effective_tokens = filtered if filtered else raw_tokens
-
-        escaped = ['"' + t.replace('"', '""') + '"' for t in effective_tokens]
+        # All tokens are wrapped in double quotes, which SQLite FTS5 treats as literals
+        # (operators like AND, OR, NOT, NEAR are neutralised and matched literally).
+        escaped = ['"' + t.replace('"', '""') + '"' for t in raw_tokens]
         if len(escaped) == 1:
             return escaped[0], None
 
