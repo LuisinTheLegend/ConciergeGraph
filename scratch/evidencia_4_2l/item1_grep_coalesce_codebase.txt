@@ -1,0 +1,10 @@
+>> git grep -n COALESCE(new.content
+audits/errata-4-2i.md:49:- **Texto anterior no relatório 4.2i [retificado na 4.2k]:** Afirmava que os triggers de sincronização FTS em produção utilizavam `COALESCE(new.content, '')`.
+audits/errata-4-2i.md:59:- **Status da Citação Anterior:** A frase `COALESCE(new.content, '')` **não foi encontrada em arquivo versionado** (`audits/relatorio_4_2i.md` contém zero ocorrências de `COALESCE`; evidência em `scratch/evidencia_4_2k/item3_grep_coalesce_relatorio_4_2i.txt`). A citação existiu **apenas no contexto de conversa do chat**.
+audits/errata-4-2i.md:60:- **Fato Verificável no Repositório:** A instrução `COALESCE(new.content, new.body)` existe na fixture de teste [`tests/test_storage_logic.py:130, 135, 140, 142`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_storage_logic.py#L130) (evidência em `scratch/evidencia_4_2k/item3_grep_coalesce_codebase.txt`), e **não** nos triggers de produção de `storage/schema.py:171-187`.
+audits/fase4-achados.md:321:  2. Triggers de sincronização `nodes_ai`, `nodes_ad` e `nodes_au` em `storage/schema.py` atualizados para propagar `content` (com fallback seguro `COALESCE(new.content, new.body)` para nós legados sem coluna `content`).
+Binary file audits/relatorio_4_2k.md matches
+scratch/evidencia_4_2i/apply_b1_changes.py:431:                VALUES (new.id, new.label, COALESCE(new.tags, ''), COALESCE(new.summary, ''), COALESCE(new.content, new.body));
+scratch/evidencia_4_2i/apply_b1_changes.py:443:                VALUES (new.id, new.label, COALESCE(new.tags, ''), COALESCE(new.summary, ''), COALESCE(new.content, new.body));
+tests/test_storage_logic.py:130:                VALUES (new.id, new.label, COALESCE(new.tags, ''), COALESCE(new.summary, ''), COALESCE(new.content, new.body));
+tests/test_storage_logic.py:142:                VALUES (new.id, new.label, COALESCE(new.tags, ''), COALESCE(new.summary, ''), COALESCE(new.content, new.body));

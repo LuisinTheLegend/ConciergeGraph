@@ -1,0 +1,68 @@
+=== BUSCA FRASE 4: '8 novos testes de paridade Windows/POSIX' E VARIAÇÕES ===
+
+--- Termo: '8 novos testes de paridade Windows/POSIX' ---
+>> git grep -n -i -F em HEAD:
+  HEAD:audits/errata-4-2i.md:31:- **Texto anterior no relatório 4.2i [retificado na 4.2k]:** Afirmava a criação de "8 novos testes de paridade Windows/POSIX".
+  HEAD:audits/errata-4-2i.md:38:- **Status da Citação Anterior:** A frase "8 novos testes de paridade Windows/POSIX" **não foi encontrada em arquivo versionado** (`audits/relatorio_4_2i.md` não contém essa frase; evidência em `scratch/evidencia_4_2k/item2_grep_8_testes.txt`). Essa formulação existiu **apenas no resumo de chat da Rodada 4.2i**. No relatório versionado, a seção de paridade consta na linha 192 (`#### Verde: Testes de Paridade Cross-Platform`).
+  Binary file HEAD:audits/relatorio_4_2k.md matches
+>> busca no transcript_full.jsonl:
+  Total de ocorrências: 9
+  - Linha 4850 | Step 4853 | MODEL | Snippet: 
+  - Linha 4933 | Step 4936 | MODEL | Snippet: c.py:282:    - **Depois:** 299 testes coletados (-38 testes) audits/errata-4-2i.md:22:- **Texto anterior no relatório 4.2i:** Afirmava a criação de "8 novos testes de paridade Windows/POSIX". audits/relatorio_4_2j.md:65:2. **Contagem de Testes:** Esclarecido que foram 8 asserções num único método de teste (`test_path_outside_monorepo_is
+  - Linha 5003 | Step 5006 | MODEL | Snippet:  18: --- 19:  20: ## 2. Contagem de Testes de Paridade (Testes vs. Asserções) 21:  22: - **Texto anterior no relatório 4.2i:** Afirmava a criação de "8 novos testes de paridade Windows/POSIX". 23: - **Retificação Factual:** 24:   - Não foram criadas 8 funções de teste independentes. 25:   - Foram adicionadas **8 asserções** parametrizadas
+  - Linha 5012 | Step 5015 | MODEL | Snippet: 
+  - Linha 5042 | Step 5045 | MODEL | Snippet: 
+
+--- Termo: '8 novos testes de paridade' ---
+>> git grep -n -i -F em HEAD:
+  HEAD:audits/errata-4-2i.md:31:- **Texto anterior no relatório 4.2i [retificado na 4.2k]:** Afirmava a criação de "8 novos testes de paridade Windows/POSIX".
+  HEAD:audits/errata-4-2i.md:38:- **Status da Citação Anterior:** A frase "8 novos testes de paridade Windows/POSIX" **não foi encontrada em arquivo versionado** (`audits/relatorio_4_2i.md` não contém essa frase; evidência em `scratch/evidencia_4_2k/item2_grep_8_testes.txt`). Essa formulação existiu **apenas no resumo de chat da Rodada 4.2i**. No relatório versionado, a seção de paridade consta na linha 192 (`#### Verde: Testes de Paridade Cross-Platform`).
+  Binary file HEAD:audits/relatorio_4_2k.md matches
+>> busca no transcript_full.jsonl:
+  Total de ocorrências: 9
+  - Linha 4850 | Step 4853 | MODEL | Snippet: 
+  - Linha 4933 | Step 4936 | MODEL | Snippet: c.py:282:    - **Depois:** 299 testes coletados (-38 testes) audits/errata-4-2i.md:22:- **Texto anterior no relatório 4.2i:** Afirmava a criação de "8 novos testes de paridade Windows/POSIX". audits/relatorio_4_2j.md:65:2. **Contagem de Testes:** Esclarecido que foram 8 asserções num único método de teste (`test_path_outsi
+  - Linha 5003 | Step 5006 | MODEL | Snippet:  18: --- 19:  20: ## 2. Contagem de Testes de Paridade (Testes vs. Asserções) 21:  22: - **Texto anterior no relatório 4.2i:** Afirmava a criação de "8 novos testes de paridade Windows/POSIX". 23: - **Retificação Factual:** 24:   - Não foram criadas 8 funções de teste independentes. 25:   - Foram adicionadas **8 asserções** 
+  - Linha 5012 | Step 5015 | MODEL | Snippet: 
+  - Linha 5042 | Step 5045 | MODEL | Snippet: 
+
+--- Termo: '8 testes de paridade cross-platform' ---
+>> git grep -n -i -F em HEAD:
+  [NENHUM RESULTADO NO GIT]
+>> busca no transcript_full.jsonl:
+  Total de ocorrências: 5
+  - Linha 4582 | Step 4585 | MODEL | Snippet: videncia_4_2i/b0_green_security_guard_parity.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_2i/b0_green_security_guard_parity.txt) (8 testes de paridade cross-platform em [`tests/test_adaptive_gating.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_adaptive_gating.py#L50-L120)). 3. **Marcação Estrita de `BL-01
+  - Linha 4583 | Step 4586 | USER_EXPLICIT | Snippet: ado, sem apagar o texto original. Pontos a retificar, cada um com a evidência:  HEAD de partida: o relatório diz c5e1c2c.... O correto é 7abba97.... “8 testes de paridade cross-platform”: é 1 teste (test_cross_platform_absolute_paths_and_unc_are_unsafe) com 10 caminhos em 3 cenários. Diga isso. COALESCE(new.content, new.body): está n
+  - Linha 5059 | Step 5062 | USER_EXPLICIT | Snippet: om a mesma busca, a frase “8 novos testes de paridade Windows/POSIX” (item 2). A errata cita essa redação entre aspas, enquanto o resumo da 4.2i diz “8 testes de paridade cross-platform”. Se a redação citada na errata não for a original, corrija a citação para o texto original verbatim. Item 2: ocorrência residual em relatorio_4_2j.m
+  - Linha 5066 | Step 5069 | MODEL | Snippet: 
+  - Linha 5070 | Step 5073 | MODEL | Snippet: 
+
+--- Termo: '8 testes de paridade' ---
+>> git grep -n -i -F em HEAD:
+  [NENHUM RESULTADO NO GIT]
+>> busca no transcript_full.jsonl:
+  Total de ocorrências: 6
+  - Linha 4582 | Step 4585 | MODEL | Snippet: videncia_4_2i/b0_green_security_guard_parity.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_2i/b0_green_security_guard_parity.txt) (8 testes de paridade cross-platform em [`tests/test_adaptive_gating.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_adaptive_gating.py#L50-L120)). 3. **Marcação Es
+  - Linha 4583 | Step 4586 | USER_EXPLICIT | Snippet: ado, sem apagar o texto original. Pontos a retificar, cada um com a evidência:  HEAD de partida: o relatório diz c5e1c2c.... O correto é 7abba97.... “8 testes de paridade cross-platform”: é 1 teste (test_cross_platform_absolute_paths_and_unc_are_unsafe) com 10 caminhos em 3 cenários. Diga isso. COALESCE(new.content, ne
+  - Linha 4938 | Step 4941 | MODEL | Snippet: 
+  - Linha 5059 | Step 5062 | USER_EXPLICIT | Snippet: 3.10 a 3.14) trazem SQLite >= 3.35”; “apenas 2% a 8%”.  O resumo de chat da 4.2i que o dono entregou ao auditor não contém nenhuma delas. Ele contém “8 testes de paridade”, +42.4% e COALESCE(new.content, new.body). Também não existe arquivo de evidência mostrando que você procurou essas frases no seu histórico.  Faça o
+  - Linha 5066 | Step 5069 | MODEL | Snippet: 
+
+--- Termo: 'testes de paridade' ---
+>> git grep -n -i -F em HEAD:
+  HEAD:.agents/skills/reversa-reconstructor/references/reconstruction-plan-migration-template.md:88:**Constrói:** suíte de testes de paridade rodando contra legado e novo, relatório de divergências
+  HEAD:audits/errata-4-2i.md:29:## 2. Contagem de Testes de Paridade (Testes vs. Asserções)
+  HEAD:audits/errata-4-2i.md:31:- **Texto anterior no relatório 4.2i [retificado na 4.2k]:** Afirmava a criação de "8 novos testes de paridade Windows/POSIX".
+  HEAD:audits/errata-4-2i.md:38:- **Status da Citação Anterior:** A frase "8 novos testes de paridade Windows/POSIX" **não foi encontrada em arquivo versionado** (`audits/relatorio_4_2i.md` não contém essa frase; evidência em `scratch/evidencia_4_2k/item2_grep_8_testes.txt`). Essa formulação existiu **apenas no resumo de chat da Rodada 4.2i**. No relatório versionado, a seção de paridade consta na linha 192 (`#### Verde: Testes de Paridade Cross-Platform`).
+  HEAD:audits/fase4-achados.md:426:  2. Em `core/security_guard.py`, a função `is_safe_path` foi atualizada com verificação multiplataforma (`is_posix_abs = raw_path.startswith("/")`, `is_win_drive = bool(re.match(r"^[a-zA-Z]:[\\/]", raw_path))`, `is_win_unc = raw_path.startswith(("\\\\", "//"))`), garantindo que caminhos absolutos de qualquer sistema operacional sejam rejeitados quando fora do diretório do projeto, mesmo rodando em runner Linux. Adicionados testes de paridade cross-platform em `tests/test_adaptive_gating.py`.
+  HEAD:audits/relatorio_4_2i.md:192:#### Verde: Testes de Paridade Cross-Platform (`scratch/evidencia_4_2i/b0_green_security_guard_parity.txt`)
+  Binary file HEAD:audits/relatorio_4_2k.md matches
+  HEAD:scratch/build_relatorio_4_2i.py:75:        "#### Verde: Testes de Paridade Cross-Platform (`scratch/evidencia_4_2i/b0_green_security_guard_parity.txt`)",
+>> busca no transcript_full.jsonl:
+  Total de ocorrências: 22
+  - Linha 3689 | Step 3691 | USER_EXPLICIT | Snippet: POSIX sejam sempre inseguros, em qualquer sistema operacional, sem mudar o comportamento no Windows para caminhos dentro da raiz do projeto. Adicione testes de paridade (Windows e POSIX, em ambos os sistemas). BL-015 (test_telemetry_api_mcp_state_endpoints). Não corrija o estado padrão nesta rodada. Marque o teste co
+  - Linha 3759 | Step 3761 | SYSTEM | Snippet: POSIX sejam sempre inseguros, em qualquer sistema operacional, sem mudar o comportamento no Windows para caminhos dentro da raiz do projeto. Adicione testes de paridade (Windows e POSIX, em ambos os sistemas). BL-015 (test_telemetry_api_mcp_state_endpoints). Não corrija o estado padrão nesta rodada. Marque o teste co
+  - Linha 4152 | Step 4155 | SYSTEM | Snippet: POSIX sejam sempre inseguros, em qualquer sistema operacional, sem mudar o comportamento no Windows para caminhos dentro da raiz do projeto. Adicione testes de paridade (Windows e POSIX, em ambos os sistemas). BL-015 (test_telemetry_api_mcp_state_endpoints). Não corrija o estado padrão nesta rodada. Marque o teste co
+  - Linha 4337 | Step 4340 | MODEL | Snippet: 
+  - Linha 4345 | Step 4348 | MODEL | Snippet: 
+

@@ -1,0 +1,4 @@
+>> git grep -n 8 asserções
+audits/errata-4-2i.md:34:  - Foram adicionadas **8 asserções** parametrizadas dentro de um único método de teste (`TestSecurityGuardBounds::test_path_outside_monorepo_is_unsafe`), cobrindo letras de drive do Windows (`C:\...`), caminhos UNC (`\\server\share\...`) e caminhos POSIX absolutos (`/...`), além de **2 casos de asserção** adicionados em `test_is_safe_path_security`.
+audits/errata-4-2i.md:43:- O método `test_path_outside_monorepo_is_unsafe` já existia previamente e não recebeu as 8 asserções; a errata da 4.2j atribuiu as asserções ao método errado.
+audits/relatorio_4_2j.md:65:2. **Contagem de Testes:** Esclarecido que foram 8 asserções num único método de teste (`test_path_outside_monorepo_is_unsafe`) e 2 em `test_is_safe_path_security`, e não 8 novos testes avulsos.

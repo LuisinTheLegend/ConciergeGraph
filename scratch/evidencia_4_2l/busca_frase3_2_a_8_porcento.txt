@@ -1,0 +1,85 @@
+=== BUSCA FRASE 3: 'apenas 2% a 8%' E VARIAÇÕES ===
+
+--- Termo: 'apenas 2% a 8%' ---
+>> git grep -n -i -F em HEAD:
+  HEAD:audits/errata-4-2i.md:103:- **Texto anterior no relatório 4.2i [retificado na 4.2k]:** Afirmava que a inclusão da coluna `content` no FTS5 expandia a base SQLite em "apenas 2% a 8%".
+  HEAD:audits/errata-4-2i.md:109:- **Status da Citação Anterior:** A frase "apenas 2% a 8%" **não existe em `audits/relatorio_4_2i.md`** (existiu apenas como estimativa informal no chat da 4.2i).
+  Binary file HEAD:audits/relatorio_4_2k.md matches
+>> busca no transcript_full.jsonl:
+  Total de ocorrências: 11
+  - Linha 4850 | Step 4853 | MODEL | Snippet: 
+  - Linha 4919 | Step 4922 | USER_EXPLICIT | Snippet: .txt). Declare que 3.10, 3.12 e 3.13 não foram medidos, e que o CI da nuvem não imprime a versão do SQLite. Item 6 (tamanho do banco). A errata cita “apenas 2% a 8%”. O relatório da 4.2i diz Size delta: +249,856 bytes (+42.4%) (linha 1087 de audits/relatorio_4_2i.md, confirme o número da linha). Substitua o texto
+  - Linha 4952 | Step 4955 | MODEL | Snippet: 
+  - Linha 5003 | Step 5006 | MODEL | Snippet: o de Tamanho de Banco 64:  65: - **Texto anterior no relatório 4.2i:** Afirmava que a inclusão da coluna `content` no FTS5 expandia a base SQLite em "apenas 2% a 8%". 66: - **Retificação Factual:** 67:   - A medição foi realizada em uma base de testes sintética e reduzida (aproximadamente 589 KB), na qual o taman
+  - Linha 5004 | Step 5007 | MODEL | Snippet: 
+
+--- Termo: '2% a 8%' ---
+>> git grep -n -i -F em HEAD:
+  HEAD:audits/errata-4-2i.md:103:- **Texto anterior no relatório 4.2i [retificado na 4.2k]:** Afirmava que a inclusão da coluna `content` no FTS5 expandia a base SQLite em "apenas 2% a 8%".
+  HEAD:audits/errata-4-2i.md:109:- **Status da Citação Anterior:** A frase "apenas 2% a 8%" **não existe em `audits/relatorio_4_2i.md`** (existiu apenas como estimativa informal no chat da 4.2i).
+  HEAD:audits/errata-4-2i.md:192:| **Item 6** (Tamanho Banco) | `audits/relatorio_4_2i.md:1087`: `Size delta: +249,856 bytes (+42.4%)`; citação "2% a 8%" apenas no chat | `git grep -n "Size delta" audits/relatorio_4_2i.md` | `scratch/evidencia_4_2k/item6_grep_size_delta.txt` |
+  Binary file HEAD:audits/relatorio_4_2k.md matches
+>> busca no transcript_full.jsonl:
+  Total de ocorrências: 11
+  - Linha 4850 | Step 4853 | MODEL | Snippet: 
+  - Linha 4919 | Step 4922 | USER_EXPLICIT | Snippet: Declare que 3.10, 3.12 e 3.13 não foram medidos, e que o CI da nuvem não imprime a versão do SQLite. Item 6 (tamanho do banco). A errata cita “apenas 2% a 8%”. O relatório da 4.2i diz Size delta: +249,856 bytes (+42.4%) (linha 1087 de audits/relatorio_4_2i.md, confirme o número da linha). Substitua o texto
+  - Linha 4952 | Step 4955 | MODEL | Snippet: 
+  - Linha 5003 | Step 5006 | MODEL | Snippet: manho de Banco 64:  65: - **Texto anterior no relatório 4.2i:** Afirmava que a inclusão da coluna `content` no FTS5 expandia a base SQLite em "apenas 2% a 8%". 66: - **Retificação Factual:** 67:   - A medição foi realizada em uma base de testes sintética e reduzida (aproximadamente 589 KB), na qual o taman
+  - Linha 5004 | Step 5007 | MODEL | Snippet: 
+
+--- Termo: '2% a 8' ---
+>> git grep -n -i -F em HEAD:
+  HEAD:audits/errata-4-2i.md:103:- **Texto anterior no relatório 4.2i [retificado na 4.2k]:** Afirmava que a inclusão da coluna `content` no FTS5 expandia a base SQLite em "apenas 2% a 8%".
+  HEAD:audits/errata-4-2i.md:109:- **Status da Citação Anterior:** A frase "apenas 2% a 8%" **não existe em `audits/relatorio_4_2i.md`** (existiu apenas como estimativa informal no chat da 4.2i).
+  HEAD:audits/errata-4-2i.md:192:| **Item 6** (Tamanho Banco) | `audits/relatorio_4_2i.md:1087`: `Size delta: +249,856 bytes (+42.4%)`; citação "2% a 8%" apenas no chat | `git grep -n "Size delta" audits/relatorio_4_2i.md` | `scratch/evidencia_4_2k/item6_grep_size_delta.txt` |
+  Binary file HEAD:audits/relatorio_4_2k.md matches
+>> busca no transcript_full.jsonl:
+  Total de ocorrências: 11
+  - Linha 4850 | Step 4853 | MODEL | Snippet: 
+  - Linha 4919 | Step 4922 | USER_EXPLICIT | Snippet: Declare que 3.10, 3.12 e 3.13 não foram medidos, e que o CI da nuvem não imprime a versão do SQLite. Item 6 (tamanho do banco). A errata cita “apenas 2% a 8%”. O relatório da 4.2i diz Size delta: +249,856 bytes (+42.4%) (linha 1087 de audits/relatorio_4_2i.md, confirme o número da linha). Substitua o text
+  - Linha 4952 | Step 4955 | MODEL | Snippet: 
+  - Linha 5003 | Step 5006 | MODEL | Snippet: manho de Banco 64:  65: - **Texto anterior no relatório 4.2i:** Afirmava que a inclusão da coluna `content` no FTS5 expandia a base SQLite em "apenas 2% a 8%". 66: - **Retificação Factual:** 67:   - A medição foi realizada em uma base de testes sintética e reduzida (aproximadamente 589 KB), na qual o tama
+  - Linha 5004 | Step 5007 | MODEL | Snippet: 
+
+--- Termo: '2%' ---
+>> git grep -n -i -F em HEAD:
+  HEAD:audits/core-delta-manager.md:60:| TypeScript | 2 lines | 7 lines | 2/9 (22%) | ✗ blind |
+  HEAD:audits/core-delta-manager.md:66:| Cpp | 1 lines | 7 lines | 1/8 (12%) | ✗ blind |
+  HEAD:audits/errata-4-2i.md:103:- **Texto anterior no relatório 4.2i [retificado na 4.2k]:** Afirmava que a inclusão da coluna `content` no FTS5 expandia a base SQLite em "apenas 2% a 8%".
+  HEAD:audits/errata-4-2i.md:109:- **Status da Citação Anterior:** A frase "apenas 2% a 8%" **não existe em `audits/relatorio_4_2i.md`** (existiu apenas como estimativa informal no chat da 4.2i).
+  HEAD:audits/errata-4-2i.md:192:| **Item 6** (Tamanho Banco) | `audits/relatorio_4_2i.md:1087`: `Size delta: +249,856 bytes (+42.4%)`; citação "2% a 8%" apenas no chat | `git grep -n "Size delta" audits/relatorio_4_2i.md` | `scratch/evidencia_4_2k/item6_grep_size_delta.txt` |
+  HEAD:audits/fase4-1d-relatorio-retificado.md:203:tests/test_ingestion_vector_repair.py::TestIngestionVectorRepair::test_scenario_h_janitor_delegates_to_repair_and_removes_orphans PASSED [ 72%]
+  HEAD:audits/fase4-1g-investigacao-summary.md:254:| `method` | 814 | 268 | 32,92% | 546 |
+  HEAD:audits/fase4-achados.md:278:  - Tempo até resposta `initialize` E2E: reduzido de **13,90 s** para **3,03 s** (**-78,2%**, economia de 10,87 s).
+  HEAD:audits/relatorio_4_2h.md:186:tests/test_llm_egress_guard.py::test_s1_orchestrator_skips_summarize_when_llm_disabled FAILED [ 42%]
+  HEAD:audits/relatorio_4_2h.md:193:tests/test_llm_egress_guard.py::test_s7_subprocess_asyncio_run_401_no_unclosed_loop_tracebacks FAILED [ 92%]
+  ... e mais 120 resultados
+>> busca no transcript_full.jsonl:
+  Total de ocorrências: 49
+  - Linha 47 | Step 47 | MODEL | Snippet: .7073 148:         Skipped 427,503 potential negatives (8.36%) due to the relative_margin of 0.05. 149:         Skipped 978 potential negatives (0.02%) due to the max_score of 0.8. 150:         Could not find enough negatives for 13290 samples (2.65%). Consider adjusting the range_max, range_min, r
+  - Linha 62 | Step 62 | MODEL | Snippet: 2 s** para **2,77 s** (**-79,1%**, economia de 10,45 s). 278:   - Tempo até resposta `initialize` E2E: reduzido de **13,90 s** para **3,03 s** (**-78,2%**, economia de 10,87 s). 279:   - Presença no startup: `sentence_transformers` e `torch` foram **100% eliminados** do bootstrap (`depois_top20_import
+  - Linha 542 | Step 543 | MODEL | Snippet: 2 s** para **2,77 s** (**-79,1%**, economia de 10,45 s). 278:   - Tempo até resposta `initialize` E2E: reduzido de **13,90 s** para **3,03 s** (**-78,2%**, economia de 10,87 s). 279:   - Presença no startup: `sentence_transformers` e `torch` foram **100% eliminados** do bootstrap (`depois_top20_import
+  - Linha 559 | Step 560 | MODEL | Snippet: 
+  - Linha 2178 | Step 2180 | MODEL | Snippet: .md:203:tests/test_ingestion_vector_repair.py::TestIngestionVectorRepair::test_scen ario_h_janitor_delegates_to_repair_and_removes_orphans PASSED [ 72%] audits\fase4-1d-relatorio-retificado.md:204:tests/test_ingestion_vector_repair.py::TestIngestionVectorRepair::test_scen ario_i_backward_compatible
+
+--- Termo: '8%' ---
+>> git grep -n -i -F em HEAD:
+  HEAD:audits/backlog-final.md:1186:- **Ajuste Numérico de Percentual:** O percentual da severidade BAIXA no gráfico ASCII foi recalculado e ajustado de 5,8% para **5,7%** ($5 / 87 = 5{,}747\%$).
+  HEAD:audits/errata-4-2i.md:103:- **Texto anterior no relatório 4.2i [retificado na 4.2k]:** Afirmava que a inclusão da coluna `content` no FTS5 expandia a base SQLite em "apenas 2% a 8%".
+  HEAD:audits/errata-4-2i.md:106:  - Em bases reais com arquivos de código-fonte de dezenas a centenas de kilobytes, o acréscimo de `content` como coluna indexada do FTS5 duplica a presença do texto na estrutura de dados do banco (mesmo utilizando tabela externa com `content='nodes'`, o FTS5 indexa tokens de todo o corpo). Portanto, o crescimento volumétrico em repositórios com código substancial é **significativamente superior** a 8% e proporcional ao vocabulário textual total.
+  HEAD:audits/errata-4-2i.md:109:- **Status da Citação Anterior:** A frase "apenas 2% a 8%" **não existe em `audits/relatorio_4_2i.md`** (existiu apenas como estimativa informal no chat da 4.2i).
+  HEAD:audits/errata-4-2i.md:192:| **Item 6** (Tamanho Banco) | `audits/relatorio_4_2i.md:1087`: `Size delta: +249,856 bytes (+42.4%)`; citação "2% a 8%" apenas no chat | `git grep -n "Size delta" audits/relatorio_4_2i.md` | `scratch/evidencia_4_2k/item6_grep_size_delta.txt` |
+  HEAD:audits/fase4-1d-relatorio-retificado.md:197:tests/test_ingestion_vector_repair.py::TestIngestionVectorRepair::test_scenario_b_reset_collection_recomposed PASSED [ 18%]
+  HEAD:audits/fase4-2c-medicao-inicializacao.md:89:*Comprovação:* Do total de ~13.5 segundos gastos em `import storage`, **11.46 s (84.8%)** pertencem exclusivamente a `sentence_transformers` (e `transformers`), **2.58 s** a `torch` e **2.03 s** a `chromadb`.
+  HEAD:audits/fase4-achados.md:269:  - Decomposição de imports (`p1_top20_bootstrap_imports.txt`): dos 13,52 s gastos em `storage`, **11,46 s** (84,8%) eram devidos a `sentence_transformers`, **2,58 s** a `torch` e **2,03 s** a `chromadb`.
+  HEAD:audits/relatorio_4_2f.md:471:........................................................................ [ 58%]
+  HEAD:audits/relatorio_4_2f.md:472:......................................F................................. [ 78%]
+  ... e mais 130 resultados
+>> busca no transcript_full.jsonl:
+  Total de ocorrências: 65
+  - Linha 62 | Step 62 | MODEL | Snippet: a **22,47 s** (venv novo frio). 269:   - Decomposição de imports (`p1_top20_bootstrap_imports.txt`): dos 13,52 s gastos em `storage`, **11,46 s** (84,8%) eram devidos a `sentence_transformers`, **2,58 s** a `torch` e **2,03 s** a `chromadb`. 270:   - Tempo até `initialize` E2E: **13,90 s** (`scratch/e
+  - Linha 542 | Step 543 | MODEL | Snippet: a **22,47 s** (venv novo frio). 269:   - Decomposição de imports (`p1_top20_bootstrap_imports.txt`): dos 13,52 s gastos em `storage`, **11,46 s** (84,8%) eram devidos a `sentence_transformers`, **2,58 s** a `torch` e **2,03 s** a `chromadb`. 270:   - Tempo até `initialize` E2E: **13,90 s** (`scratch/e
+  - Linha 559 | Step 560 | MODEL | Snippet: 
+  - Linha 2178 | Step 2180 | MODEL | Snippet: relatorio-retificado.md:197:tests/test_ingestion_vector_repair.py::TestIngestionVectorRepair::test_scen ario_b_reset_collection_recomposed PASSED [ 18%] audits\fase4-1d-relatorio-retificado.md:198:tests/test_ingestion_vector_repair.py::TestIngestionVectorRepair::test_scen ario_c_partial_batch_failu
+  - Linha 2560 | Step 2562 | MODEL | Snippet: a **22,47 s** (venv novo frio). 269:   - Decomposição de imports (`p1_top20_bootstrap_imports.txt`): dos 13,52 s gastos em `storage`, **11,46 s** (84,8%) eram devidos a `sentence_transformers`, **2,58 s** a `torch` e **2,03 s** a `chromadb`. 270:   - Tempo até `initialize` E2E: **13,90 s** (`scratch/e
+

@@ -1,0 +1,82 @@
+=== BUSCA FRASE 2: 'todas as versões de Python suportadas (3.10 a 3.14) trazem SQLite >= 3.35' E VARIAÇÕES ===
+
+--- Termo: 'todas as versões de Python suportadas (3.10 a 3.14) trazem SQLite >= 3.35' ---
+>> git grep -n -i -F em HEAD:
+  HEAD:audits/errata-4-2i.md:79:- **Texto anterior no relatório 4.2i [retificado na 4.2k]:** Afirmava categoricamente que "todas as versões de Python suportadas (3.10 a 3.14) trazem SQLite >= 3.35".
+  Binary file HEAD:audits/relatorio_4_2k.md matches
+>> busca no transcript_full.jsonl:
+  Total de ocorrências: 9
+  - Linha 4850 | Step 4853 | MODEL | Snippet: 
+  - Linha 4919 | Step 4922 | USER_EXPLICIT | Snippet: tir, diga isso. Mantenha a retificação técnica (rebuild + integrity-check) como está, separada da citação. Item 5 (versões do SQLite). A errata cita “todas as versões de Python suportadas (3.10 a 3.14) trazem SQLite >= 3.35”. Procure essa frase. Registre o resultado da busca. Mantenha só o que foi medido: Python 3.14.3 com SQLite 3.50.4 e Python 3.11.9 com SQLite 3.45.1 
+  - Linha 5003 | Step 5006 | MODEL | Snippet: 5. Versões do SQLite no Python 3.10 a 3.14 (Hipótese vs. Medição Real) 53:  54: - **Texto anterior no relatório 4.2i:** Afirmava categoricamente que "todas as versões de Python suportadas (3.10 a 3.14) trazem SQLite >= 3.35". 55: - **Retificação Factual:** 56:   - Essa afirmação não foi diretamente aferida durante a execução dos jobs do CI Ubuntu no momento do relatório,
+  - Linha 5012 | Step 5015 | MODEL | Snippet: 
+  - Linha 5042 | Step 5045 | MODEL | Snippet: 
+
+--- Termo: 'todas as versões de Python suportadas' ---
+>> git grep -n -i -F em HEAD:
+  HEAD:audits/errata-4-2i.md:79:- **Texto anterior no relatório 4.2i [retificado na 4.2k]:** Afirmava categoricamente que "todas as versões de Python suportadas (3.10 a 3.14) trazem SQLite >= 3.35".
+  Binary file HEAD:audits/relatorio_4_2k.md matches
+>> busca no transcript_full.jsonl:
+  Total de ocorrências: 9
+  - Linha 4850 | Step 4853 | MODEL | Snippet: 
+  - Linha 4919 | Step 4922 | USER_EXPLICIT | Snippet: tir, diga isso. Mantenha a retificação técnica (rebuild + integrity-check) como está, separada da citação. Item 5 (versões do SQLite). A errata cita “todas as versões de Python suportadas (3.10 a 3.14) trazem SQLite >= 3.35”. Procure essa frase. Registre o resultado da busca. Mantenha só o que foi medido: Python 3.14.3 com SQLite 3.50.
+  - Linha 5003 | Step 5006 | MODEL | Snippet: 5. Versões do SQLite no Python 3.10 a 3.14 (Hipótese vs. Medição Real) 53:  54: - **Texto anterior no relatório 4.2i:** Afirmava categoricamente que "todas as versões de Python suportadas (3.10 a 3.14) trazem SQLite >= 3.35". 55: - **Retificação Factual:** 56:   - Essa afirmação não foi diretamente aferida durante a execução dos jobs d
+  - Linha 5012 | Step 5015 | MODEL | Snippet: 
+  - Linha 5042 | Step 5045 | MODEL | Snippet: 
+
+--- Termo: 'trazem SQLite >= 3.35' ---
+>> git grep -n -i -F em HEAD:
+  HEAD:audits/errata-4-2i.md:79:- **Texto anterior no relatório 4.2i [retificado na 4.2k]:** Afirmava categoricamente que "todas as versões de Python suportadas (3.10 a 3.14) trazem SQLite >= 3.35".
+  Binary file HEAD:audits/relatorio_4_2k.md matches
+>> busca no transcript_full.jsonl:
+  Total de ocorrências: 9
+  - Linha 4850 | Step 4853 | MODEL | Snippet: 
+  - Linha 4919 | Step 4922 | USER_EXPLICIT | Snippet: ild + integrity-check) como está, separada da citação. Item 5 (versões do SQLite). A errata cita “todas as versões de Python suportadas (3.10 a 3.14) trazem SQLite >= 3.35”. Procure essa frase. Registre o resultado da busca. Mantenha só o que foi medido: Python 3.14.3 com SQLite 3.50.4 e Python 3.11.9 com SQLite 3.45.1 
+  - Linha 5003 | Step 5006 | MODEL | Snippet:  vs. Medição Real) 53:  54: - **Texto anterior no relatório 4.2i:** Afirmava categoricamente que "todas as versões de Python suportadas (3.10 a 3.14) trazem SQLite >= 3.35". 55: - **Retificação Factual:** 56:   - Essa afirmação não foi diretamente aferida durante a execução dos jobs do CI Ubuntu no momento do relatório,
+  - Linha 5012 | Step 5015 | MODEL | Snippet: 
+  - Linha 5042 | Step 5045 | MODEL | Snippet: 
+
+--- Termo: 'SQLite >= 3.35' ---
+>> git grep -n -i -F em HEAD:
+  HEAD:audits/errata-4-2i.md:79:- **Texto anterior no relatório 4.2i [retificado na 4.2k]:** Afirmava categoricamente que "todas as versões de Python suportadas (3.10 a 3.14) trazem SQLite >= 3.35".
+  Binary file HEAD:audits/relatorio_4_2k.md matches
+>> busca no transcript_full.jsonl:
+  Total de ocorrências: 10
+  - Linha 4850 | Step 4853 | MODEL | Snippet: 
+  - Linha 4919 | Step 4922 | USER_EXPLICIT | Snippet: ntegrity-check) como está, separada da citação. Item 5 (versões do SQLite). A errata cita “todas as versões de Python suportadas (3.10 a 3.14) trazem SQLite >= 3.35”. Procure essa frase. Registre o resultado da busca. Mantenha só o que foi medido: Python 3.14.3 com SQLite 3.50.4 e Python 3.11.9 com SQLite 3.45.1 
+  - Linha 5003 | Step 5006 | MODEL | Snippet: dição Real) 53:  54: - **Texto anterior no relatório 4.2i:** Afirmava categoricamente que "todas as versões de Python suportadas (3.10 a 3.14) trazem SQLite >= 3.35". 55: - **Retificação Factual:** 56:   - Essa afirmação não foi diretamente aferida durante a execução dos jobs do CI Ubuntu no momento do relatório,
+  - Linha 5004 | Step 5007 | MODEL | Snippet: 
+  - Linha 5012 | Step 5015 | MODEL | Snippet: 
+
+--- Termo: '>= 3.35' ---
+>> git grep -n -i -F em HEAD:
+  HEAD:audits/errata-4-2i.md:79:- **Texto anterior no relatório 4.2i [retificado na 4.2k]:** Afirmava categoricamente que "todas as versões de Python suportadas (3.10 a 3.14) trazem SQLite >= 3.35".
+  Binary file HEAD:audits/relatorio_4_2k.md matches
+>> busca no transcript_full.jsonl:
+  Total de ocorrências: 10
+  - Linha 4850 | Step 4853 | MODEL | Snippet: 
+  - Linha 4919 | Step 4922 | USER_EXPLICIT | Snippet: y-check) como está, separada da citação. Item 5 (versões do SQLite). A errata cita “todas as versões de Python suportadas (3.10 a 3.14) trazem SQLite >= 3.35”. Procure essa frase. Registre o resultado da busca. Mantenha só o que foi medido: Python 3.14.3 com SQLite 3.50.4 e Python 3.11.9 com SQLite 3.45.1 
+  - Linha 5003 | Step 5006 | MODEL | Snippet: eal) 53:  54: - **Texto anterior no relatório 4.2i:** Afirmava categoricamente que "todas as versões de Python suportadas (3.10 a 3.14) trazem SQLite >= 3.35". 55: - **Retificação Factual:** 56:   - Essa afirmação não foi diretamente aferida durante a execução dos jobs do CI Ubuntu no momento do relatório,
+  - Linha 5004 | Step 5007 | MODEL | Snippet: 
+  - Linha 5012 | Step 5015 | MODEL | Snippet: 
+
+--- Termo: '3.35' ---
+>> git grep -n -i -F em HEAD:
+  HEAD:CONTRIBUTING.md:57:- **SQLite**: 3.35+ (with support for recursive CTEs and `RETURNING` clauses).
+  HEAD:audits/errata-4-2i.md:79:- **Texto anterior no relatório 4.2i [retificado na 4.2k]:** Afirmava categoricamente que "todas as versões de Python suportadas (3.10 a 3.14) trazem SQLite >= 3.35".
+  Binary file HEAD:audits/relatorio_4_2k.md matches
+  HEAD:scratch/evidencia_4_2d/antes_first_embed_rep2.txt:8:Bootstrap time (server, janitor, store)  :  13.3545 s
+  HEAD:scratch/evidencia_4_2d/tabela_comparativa.txt:16:Repetição 2 ANTES : Bootstrap=13.3545s | 1st Embed=4.5792s | 2nd Embed=0.0143s
+  HEAD:scratch/evidencia_4_2e/minimal_repro/mcp127__b_sync_st__rep3.json:1:{"classe": "ERRO", "t_init": 1.342, "error": "ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)", "total_s": 183.359}
+  HEAD:scratch/evidencia_4_2e/regress/7db9f7d__mine__rep2/result.json:9:  "t_initialize_s": 13.35,
+  HEAD:scratch/evidencia_4_2e/relatorio_4_2e_2.md:115:7db9f7d    | mine          | 2    | OK       | 13.35       | 78.18       | 94.10      | OK
+  HEAD:scratch/evidencia_4_2e/relatorio_final.txt:53:7db9f7d    | mine          | 2    | OK       | 13.35       | 78.18       | 94.10      | OK
+  HEAD:scratch/evidencia_4_2e/tabela_passo2.txt:7:7db9f7d    | mine          | 2    | OK       | 13.35       | 78.18       | 94.10      | OK
+>> busca no transcript_full.jsonl:
+  Total de ocorrências: 20
+  - Linha 477 | Step 478 | MODEL | Snippet: -------- 7db9f7d    | mine          | 1    | OK       | 12.53       | 78.65       | 93.74      | OK 7db9f7d    | mine          | 2    | OK       | 13.35       | 78.18       | 94.10      | OK 7db9f7d    | mine          | 3    | OK       | 12.73       | 78.89       | 94.27      | OK 7db9f7d    | mine 
+  - Linha 517 | Step 518 | MODEL | Snippet: ---------- 7db9f7d    | mine          | 1    | OK       | 12.53       | 78.65       | 93.74      | OK 7db9f7d    | mine          | 2    | OK       | 13.35       | 78.18       | 94.10      | OK 7db9f7d    | mine          | 3    | OK       | 12.73       | 78.89       | 94.27      | OK 7db9f7d    | mine   
+  - Linha 564 | Step 565 | MODEL | Snippet: -------- 7db9f7d    | mine          | 1    | OK       | 12.53       | 78.65       | 93.74      | OK 7db9f7d    | mine          | 2    | OK       | 13.35       | 78.18       | 94.10      | OK 7db9f7d    | mine          | 3    | OK       | 12.73       | 78.89       | 94.27      | OK 7db9f7d    | mine 
+  - Linha 590 | Step 591 | MODEL | Snippet: -------- 7db9f7d    | mine          | 1    | OK       | 12.53       | 78.65       | 93.74      | OK 7db9f7d    | mine          | 2    | OK       | 13.35       | 78.18       | 94.10      | OK 7db9f7d    | mine          | 3    | OK       | 12.73       | 78.89       | 94.27      | OK 7db9f7d    | mine 
+  - Linha 593 | Step 594 | MODEL | Snippet: ---------- 7db9f7d    | mine          | 1    | OK       | 12.53       | 78.65       | 93.74      | OK 7db9f7d    | mine          | 2    | OK       | 13.35       | 78.18       | 94.10      | OK 7db9f7d    | mine          | 3    | OK       | 12.73       | 78.89       | 94.27      | OK 7db9f7d    | mine   
+

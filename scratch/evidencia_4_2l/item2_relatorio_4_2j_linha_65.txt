@@ -1,0 +1,2 @@
+>> git grep -n foram 8 asserções audits/relatorio_4_2j.md
+audits/relatorio_4_2j.md:65:2. **Contagem de Testes:** Esclarecido que foram 8 asserções num único método de teste (`test_path_outside_monorepo_is_unsafe`) e 2 em `test_is_safe_path_security`, e não 8 novos testes avulsos.
