@@ -167,17 +167,21 @@ CREATE VIRTUAL TABLE IF NOT EXISTS nodes_fts USING fts5(
 );
 """
 
-FTS5_TRIGGERS_SQL: str = """
+TRIGGER_AI_SQL: str = """
 CREATE TRIGGER IF NOT EXISTS nodes_ai AFTER INSERT ON nodes BEGIN
   INSERT INTO nodes_fts(rowid, label, tags, summary, content)
   VALUES (new.id, new.label, new.tags, new.summary, new.content);
 END;
+"""
 
+TRIGGER_AD_SQL: str = """
 CREATE TRIGGER IF NOT EXISTS nodes_ad AFTER DELETE ON nodes BEGIN
   INSERT INTO nodes_fts(nodes_fts, rowid, label, tags, summary, content)
   VALUES('delete', old.id, old.label, old.tags, old.summary, old.content);
 END;
+"""
 
+TRIGGER_AU_SQL: str = """
 CREATE TRIGGER IF NOT EXISTS nodes_au AFTER UPDATE ON nodes BEGIN
   INSERT INTO nodes_fts(nodes_fts, rowid, label, tags, summary, content)
   VALUES('delete', old.id, old.label, old.tags, old.summary, old.content);
@@ -185,6 +189,14 @@ CREATE TRIGGER IF NOT EXISTS nodes_au AFTER UPDATE ON nodes BEGIN
   VALUES (new.id, new.label, new.tags, new.summary, new.content);
 END;
 """
+
+FTS5_TRIGGER_STATEMENTS: tuple[str, ...] = (
+    TRIGGER_AI_SQL,
+    TRIGGER_AD_SQL,
+    TRIGGER_AU_SQL,
+)
+
+FTS5_TRIGGERS_SQL: str = "\n".join(FTS5_TRIGGER_STATEMENTS)
 
 
 # ---------------------------------------------------------------------------
@@ -289,25 +301,32 @@ class SchemaManager:
                             backup_conn = sqlite3.connect(bak_path)
                             self._conn.backup(backup_conn)
                             backup_conn.close()
-                            logger.info("FTS Migration: backup created at %s", bak_path)
+                            logger.info("FTS Migration: backup created at %s (melhor esforço)", bak_path)
                     except Exception as bak_err:
-                        logger.warning("FTS Migration backup warning: %s", bak_err)
+                        logger.warning("FTS Migration backup warning (melhor esforço, prosseguindo com migração atômica): %s", bak_err)
 
-                # 2. Drop old triggers and old nodes_fts virtual table (nodes table is NEVER touched)
-                self._conn.execute("DROP TRIGGER IF EXISTS nodes_ai;")
-                self._conn.execute("DROP TRIGGER IF EXISTS nodes_ad;")
-                self._conn.execute("DROP TRIGGER IF EXISTS nodes_au;")
-                self._conn.execute("DROP TABLE IF EXISTS nodes_fts;")
+                # 2. Atomic FTS Migration: Execute DROP, CREATE, TRIGGERS, REBUILD and INTEGRITY-CHECK
+                # in a single explicit transaction using execute() (never executescript(), which commits implicitly).
+                # All-or-nothing: if an interruption occurs at any point, the entire block is rolled back.
+                self._conn.execute("BEGIN IMMEDIATE;")
+                try:
+                    self._conn.execute("DROP TRIGGER IF EXISTS nodes_ai;")
+                    self._conn.execute("DROP TRIGGER IF EXISTS nodes_ad;")
+                    self._conn.execute("DROP TRIGGER IF EXISTS nodes_au;")
+                    self._conn.execute("DROP TABLE IF EXISTS nodes_fts;")
 
-                # 3. Recreate nodes_fts with 4 columns + unicode61 remove_diacritics 2 and triggers
-                self._conn.executescript(FTS5_TABLE_SQL)
-                self._conn.executescript(FTS5_TRIGGERS_SQL)
+                    self._conn.execute(FTS5_TABLE_SQL.strip())
+                    for trig_sql in FTS5_TRIGGER_STATEMENTS:
+                        self._conn.execute(trig_sql.strip())
 
-                # 4. Rebuild and integrity-check
-                self._conn.execute("INSERT INTO nodes_fts(nodes_fts) VALUES('rebuild');")
-                self._conn.execute("INSERT INTO nodes_fts(nodes_fts) VALUES('integrity-check');")
-                self._conn.commit()
-                logger.info("FTS Migration: nodes_fts upgraded to 4 columns with unicode61 remove_diacritics 2.")
+                    self._conn.execute("INSERT INTO nodes_fts(nodes_fts) VALUES('rebuild');")
+                    self._conn.execute("INSERT INTO nodes_fts(nodes_fts) VALUES('integrity-check');")
+                    self._conn.execute("COMMIT;")
+                    logger.info("FTS Migration: nodes_fts upgraded to 4 columns with unicode61 remove_diacritics 2.")
+                except Exception as mig_err:
+                    self._conn.execute("ROLLBACK;")
+                    logger.error("FTS Migration failed and was rolled back atomically: %s", mig_err)
+                    raise
 
             # Ensure the current version is saved in DB.
             current_version = self.get_schema_version()
@@ -338,6 +357,11 @@ class SchemaManager:
                     logger.info("Migration: UNIQUE index 'uq_core_memory_scope_label' created in user_core_memory.")
                 except Exception as idx_err:
                     logger.warning("Migration UNIQUE index user_core_memory failed (may already exist): %s", idx_err)
+
+            # Independent startup consistency check for FTS5 index.
+            # Verifies that nodes table and nodes_fts_docsize are in sync;
+            # repairs any index left empty or corrupted by prior crashes.
+            self._check_and_repair_fts_consistency()
 
         except Exception as e:
             self._conn.rollback()
@@ -413,6 +437,38 @@ class SchemaManager:
             logger.debug("Schema version saved as PRAGMA user_version=%d", val)
         except Exception as e:
             logger.warning("Failed to save schema version %s: %s", version, e)
+
+    def _check_and_repair_fts_consistency(self) -> None:
+        """Verifies that nodes_fts index is consistent with nodes table on startup.
+
+        If nodes table has rows but nodes_fts_docsize has a divergent count (or 0),
+        executes an automatic rebuild to repair the index and logs a warning.
+        """
+        try:
+            cur = self._conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('nodes', 'nodes_fts')"
+            )
+            tables = {row[0] for row in cur.fetchall()}
+            if "nodes" not in tables or "nodes_fts" not in tables:
+                return
+
+            cur_cnt = self._conn.execute("SELECT COUNT(*) FROM nodes")
+            node_count = cur_cnt.fetchone()[0]
+
+            if node_count > 0:
+                cur_doc = self._conn.execute("SELECT COUNT(*) FROM nodes_fts_docsize")
+                doc_count = cur_doc.fetchone()[0]
+
+                if doc_count != node_count:
+                    logger.warning(
+                        "FTS consistency mismatch: table 'nodes' has %d rows, but 'nodes_fts_docsize' has %d indexed docs. Rebuilding FTS index...",
+                        node_count,
+                        doc_count,
+                    )
+                    self.rebuild_fts_index()
+                    logger.info("FTS consistency repair: rebuild completed successfully.")
+        except Exception as fts_chk_err:
+            logger.warning("FTS consistency check warning: %s", fts_chk_err)
 
     def rebuild_fts_index(self) -> None:
         """Rebuilds the FTS5 index from the nodes table.
