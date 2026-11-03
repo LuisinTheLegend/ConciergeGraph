@@ -1,0 +1,27 @@
+ANÁLISE DE RESOLUÇÃO DE CHAMADAS EM ingestion/orchestrator.py (RODADA 4.3 BLOCO 2)
+==================================================================================
+
+1. Como as chamadas são extraídas e resolvidas:
+   - Os parsers sintáticos (MultiLanguageParser / Tree-sitter / regex de fallback) extraem identificadores de chamadas em cada bloco de código (chunk.calls).
+   - Em ingestion/orchestrator.py:748-777 (_step_extract_edges):
+     * Monta mapas de símbolos do projeto:
+       - project_symbol_map: (source_file, symbol_name) -> node_id
+       - global_symbol_map: symbol_name -> list[node_id]
+     * Para cada chamada em chunk.calls:
+       1. Tenta resolver no mesmo arquivo: (chunk.source_file, call_name) em project_symbol_map.
+       2. Tenta resolver pelo último componente: (chunk.source_file, parts[-1]).
+       3. Tenta resolução global no projeto: call_name em global_symbol_map.
+     * Ao encontrar target_node_id != chunk_node_id, cria aresta em 'edges':
+       {
+           "source_id": chunk_node_id,
+           "target_id": target_node_id,
+           "relation_type": "calls",
+           "confidence_tag": "EXTRACTED",
+           "weight": 1.0
+       }
+
+2. Exato vs. Por Nome (Semântica e Falsos Positivos):
+   - A extração é puramente baseada em correspondência de nomes de símbolos (Name-based AST parsing).
+   - Não realiza análise estática de tipos completa (type-checking), resolução de despacho dinâmico de métodos (polimorfismo) ou fluxo de dados interprocedural.
+   - Consequência: quando múltiplos métodos ou funções possuem o mesmo nome no projeto (ex.: run(), validate(), handle()), a resolução por nome pode associar a chamada a um nó homônimo em outro arquivo.
+   - Honestidade documental: o docstring de concierge_get_call_chain deve registrar expressamente que a travessia reflete essas arestas sintáticas extraídas por nome (confidence_tag='EXTRACTED') e que colisões de nomes podem gerar falsos positivos na cadeia.

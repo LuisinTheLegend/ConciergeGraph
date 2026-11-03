@@ -1,0 +1,47 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 7 items / 6 deselected / 1 selected
+
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_historical_valid_to_commit_edges_are_ignored FAILED [100%]
+
+================================== FAILURES ===================================
+__ TestCallChainEdgesNodes.test_historical_valid_to_commit_edges_are_ignored __
+
+self = <test_call_chain_edges_nodes.TestCallChainEdgesNodes object at 0x000002171DEA4DD0>
+temp_db_env = {'path': 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmpl2dx6pii.db', 'db_mgr': <core.database.ConciergeDatabaseManager o...e.SqliteStore object at 0x000002173310DFD0>, 'graph_rag': <core.graph_rag.GraphRAGEngine object at 0x000002173310E660>}
+
+    def test_historical_valid_to_commit_edges_are_ignored(self, temp_db_env):
+        """Teste 5: arestas com valid_to_commit preenchido (históricas/apagadas) são ignoradas."""
+        store: SqliteStore = temp_db_env["store"]
+        graph_rag: GraphRAGEngine = temp_db_env["graph_rag"]
+    
+        store.create_project(uuid="proj-hist-555", folder_name="hist-project", primary_wing="core")
+        id_a = store.create_node("proj-hist-555", label="src/caller.py", node_type="FACT")
+        id_b_old = store.create_node("proj-hist-555", label="src/old_callee.py", node_type="FACT")
+        id_b_new = store.create_node("proj-hist-555", label="src/new_callee.py", node_type="FACT")
+    
+        # Aresta antiga expirada por commit (valid_to_commit não nulo)
+        store.create_edge(id_a, id_b_old, relation_type="calls", valid_to_commit="deadbeef123")
+        # Aresta atual ativa
+        store.create_edge(id_a, id_b_new, relation_type="calls", valid_to_commit=None)
+    
+        chain = graph_rag.get_call_chain_recursive("src/caller.py", depth_limit=5)
+        assert "src/new_callee.py" in chain
+>       assert "src/old_callee.py" not in chain
+E       AssertionError: assert 'src/old_callee.py' not in ['src/new_callee.py', 'src/old_callee.py']
+
+tests\test_call_chain_edges_nodes.py:173: AssertionError
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_historical_valid_to_commit_edges_are_ignored
+================= 1 failed, 6 deselected, 1 warning in 4.00s ==================
+

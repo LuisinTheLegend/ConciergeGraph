@@ -863,24 +863,29 @@ class GrafoConciergeServer:
         @self._mcp.tool(
             name="concierge_get_call_chain",
             description=(
-                "Executes recursive call chain discovery via WITH RECURSIVE queries over ast_edges "
-                "in SQLite WAL with strict cycle guards, returning a flat list of connected nodes."
+                "Resolves recursive call chains over canonical 'edges' and 'nodes' tables in SQLite WAL. "
+                "Traverses relations where relation_type = 'calls', valid_to_commit IS NULL and status = 'ACTIVE'. "
+                "Note: Call edges are extracted from AST parsers based on symbol names (confidence_tag='EXTRACTED'), "
+                "not full static type checking; name collisions between functions in different files may cause false positives. "
+                "Excludes root start node from results. Scope is confined to a single project."
             ),
         )
         def tool_concierge_get_call_chain(
             start_node: str,
             depth_limit: int = 5,
+            project_identifier: Optional[str] = None,
         ) -> list:
             """Resolves recursive call chain dependencies via GraphRAGEngine.
 
             Args:
-                start_node: Root file path or symbol identifier (e.g. core/main.py).
-                depth_limit: Maximum traversal recursion depth. Default: 5.
+                start_node: Root file path (e.g. 'src/core.py') or symbol ('src/core.py::my_func').
+                depth_limit: Maximum traversal recursion depth (1 to 10). Default: 5.
+                project_identifier: Optional project UUID or folder_name. Required if start_node exists in multiple projects.
 
             Returns:
-                Flat list of connected child file paths, excluding the root start node.
+                Flat list of connected child file paths, ordered by depth then path, excluding root.
             """
-            return concierge_get_call_chain(start_node, depth_limit)
+            return concierge_get_call_chain(start_node, depth_limit, project_identifier)
 
         # --- agent_save_checkpoint ---
         @self._mcp.tool(
@@ -1781,9 +1786,10 @@ def agent_list_checkpoints(
 def concierge_get_call_chain(
     start_node: str,
     depth_limit: int = 5,
+    project_identifier: Optional[str] = None,
 ) -> list:
     """MCP Tool: Resolves recursive call chain dependencies via GraphRAGEngine.
 
     Returns a flat list of file paths connected to the start node.
     """
-    return graph_rag.get_call_chain_recursive(start_node, depth_limit)
+    return graph_rag.get_call_chain_recursive(start_node, depth_limit, project_identifier)

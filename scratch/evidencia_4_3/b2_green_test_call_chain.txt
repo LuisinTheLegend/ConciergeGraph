@@ -1,0 +1,24 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 7 items
+
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_linear_chain_depth_limits PASSED [ 14%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_cycle_protection_prevents_infinite_loop PASSED [ 28%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_nonexistent_root_node_raises_clear_error PASSED [ 42%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_ambiguous_node_across_projects_requires_identifier PASSED [ 57%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_historical_valid_to_commit_edges_are_ignored PASSED [ 71%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_other_relation_types_are_not_followed PASSED [ 85%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_invalid_depth_limit_raises_clear_error PASSED [100%]
+
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 7 passed, 1 warning in 4.95s =========================
+

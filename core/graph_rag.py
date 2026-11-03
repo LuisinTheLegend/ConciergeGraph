@@ -14,7 +14,7 @@ Implements two zero-computational-overhead strategies for local GraphRAG:
 """
 
 import os
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, List, Optional, Set
 
 
 class GraphRAGEngine:
@@ -159,31 +159,151 @@ class GraphRAGEngine:
     # ── Multi-Hop via Recursive CTE ────────────────────────────────
 
     def get_call_chain_recursive(
-        self, start_node: str, depth_limit: int = 5
+        self,
+        start_node: str,
+        depth_limit: int = 5,
+        project_identifier: Optional[str] = None,
     ) -> List[str]:
         """
-        Executes recursive traversal across ast_edges table in SQLite WAL
-        using WITH RECURSIVE, returning all child nodes connected to root
-        up to specified depth limit.
+        Executes recursive traversal across canonical 'edges' and 'nodes' tables in SQLite WAL.
 
-        Excludes the root node from response — returns only transitive dependencies.
-        Disconnected subgraphs are automatically ignored.
+        Follows relations where relation_type = 'calls', valid_to_commit IS NULL and status = 'ACTIVE'.
+        Scope is strictly confined to a single project (no cross-project leakage).
+        Cycle-safe via visited set tracking.
+        Deterministic order: sorted by traversal depth ASC, then alphabetically by path ASC.
+        Excludes the root start node file path from the results.
+
+        Note: Call edges are extracted from AST parsers based on symbol names (confidence_tag='EXTRACTED'),
+        not full static type checking; name collisions between functions in different files may cause false positives.
+
+        Args:
+            start_node: Relative file path (e.g. 'src/core.py') or symbol ('src/core.py::my_func').
+            depth_limit: Maximum traversal recursion depth (1 to 10). Default: 5.
+            project_identifier: Optional project UUID or folder_name. Required if start_node exists in multiple projects.
+
+        Returns:
+            List of connected child file paths, ordered by depth ASC, then path ASC.
+
+        Raises:
+            ValueError: If depth_limit is out of range, if project_identifier is not found,
+                        if start_node is not found, or if start_node is ambiguous across projects.
         """
-        rows = self.db_manager.read_query(
-            "WITH RECURSIVE call_chain(node, depth, path_visited) AS ("
-            "  SELECT ? AS node, 0 AS depth, '|' || ? || '|' AS path_visited"
-            "  UNION ALL"
-            "  SELECT e.child_node AS node,"
-            "         cc.depth + 1 AS depth,"
-            "         cc.path_visited || e.child_node || '|' AS path_visited"
-            "  FROM ast_edges e"
-            "  JOIN call_chain cc ON e.parent_node = cc.node"
-            "  WHERE cc.depth < ?"
-            "    AND instr(cc.path_visited, '|' || e.child_node || '|') = 0"
-            ") SELECT DISTINCT node, depth FROM call_chain WHERE node != ?;",
-            (start_node, start_node, depth_limit, start_node),
-        )
-        return [row[0] for row in rows]
+        if not isinstance(depth_limit, int) or depth_limit < 1 or depth_limit > 10:
+            raise ValueError(f"Invalid depth_limit: {depth_limit}. Must be an integer between 1 and 10.")
+
+        norm_start = start_node.replace("\\", "/").strip()
+        if not norm_start:
+            raise ValueError("start_node cannot be empty.")
+
+        # 1. Resolve project_uuid if project_identifier is provided
+        target_project_uuid: Optional[str] = None
+        if project_identifier:
+            p_rows = self.db.read_query(
+                "SELECT uuid FROM projects WHERE uuid = ? OR folder_name = ?;",
+                (project_identifier, project_identifier),
+            )
+            if not p_rows:
+                raise ValueError(f"Project '{project_identifier}' not found.")
+            target_project_uuid = p_rows[0][0]
+
+        # 2. Locate matching active start node(s)
+        if target_project_uuid:
+            nodes_rows = self.db.read_query(
+                "SELECT id, project_uuid, label "
+                "FROM nodes "
+                "WHERE project_uuid = ? "
+                "  AND status = 'ACTIVE' "
+                "  AND valid_to_commit IS NULL "
+                "  AND (label = ? OR label LIKE ?);",
+                (target_project_uuid, norm_start, f"{norm_start}::%"),
+            )
+        else:
+            nodes_rows = self.db.read_query(
+                "SELECT n.id, n.project_uuid, n.label, p.folder_name "
+                "FROM nodes n "
+                "JOIN projects p ON n.project_uuid = p.uuid "
+                "WHERE n.status = 'ACTIVE' "
+                "  AND n.valid_to_commit IS NULL "
+                "  AND (n.label = ? OR n.label LIKE ?);",
+                (norm_start, f"{norm_start}::%"),
+            )
+
+        if not nodes_rows:
+            raise ValueError(f"Start node '{start_node}' not found.")
+
+        # 3. Handle project ambiguity if project_identifier was not passed
+        if not target_project_uuid:
+            projects_found = {}
+            for r in nodes_rows:
+                p_uuid = r[1]
+                p_folder = r[3] if len(r) > 3 else p_uuid
+                projects_found[p_uuid] = p_folder
+
+            if len(projects_found) > 1:
+                candidates_str = ", ".join(f"'{folder}' ({uuid_})" for uuid_, folder in sorted(projects_found.items()))
+                raise ValueError(
+                    f"Ambiguous start_node '{start_node}' found in multiple projects: [{candidates_str}]. "
+                    f"Please specify project_identifier."
+                )
+            target_project_uuid = list(projects_found.keys())[0]
+
+        root_node_ids = [r[0] for r in nodes_rows if r[1] == target_project_uuid]
+        root_paths = set()
+        for r in nodes_rows:
+            if r[1] == target_project_uuid:
+                p = r[2].split("::")[0] if "::" in r[2] else r[2]
+                root_paths.add(p)
+        root_paths.add(norm_start.split("::")[0])
+
+        # 4. BFS Traversal with cycle protection and active calls filter
+        visited_node_ids: Set[int] = set(root_node_ids)
+        depth_results: Dict[int, Set[str]] = {}
+        current_level_node_ids: List[int] = list(root_node_ids)
+
+        for current_depth in range(1, depth_limit + 1):
+            if not current_level_node_ids:
+                break
+
+            placeholders = ",".join("?" for _ in current_level_node_ids)
+            query = f"""
+                SELECT e.target_id, n.label
+                FROM edges e
+                JOIN nodes n ON e.target_id = n.id
+                WHERE e.source_id IN ({placeholders})
+                  AND e.relation_type = 'calls'
+                  AND e.valid_to_commit IS NULL
+                  AND n.status = 'ACTIVE'
+                  AND n.valid_to_commit IS NULL
+                  AND n.project_uuid = ?;
+            """
+            params = list(current_level_node_ids) + [target_project_uuid]
+            edge_rows = self.db.read_query(query, tuple(params))
+
+            next_level_node_ids = []
+            for target_id, label in edge_rows:
+                if target_id in visited_node_ids:
+                    continue
+                visited_node_ids.add(target_id)
+                next_level_node_ids.append(target_id)
+
+                path = label.split("::")[0] if "::" in label else label
+                if current_depth not in depth_results:
+                    depth_results[current_depth] = set()
+                depth_results[current_depth].add(path)
+
+            current_level_node_ids = next_level_node_ids
+
+        # 5. Deterministic ordering: depth ASC, then path ASC
+        result_list: List[str] = []
+        seen_paths: Set[str] = set()
+        for d in range(1, depth_limit + 1):
+            if d in depth_results:
+                for p in sorted(depth_results[d]):
+                    if p not in seen_paths:
+                        seen_paths.add(p)
+                        result_list.append(p)
+
+        return result_list
 
     # ── Community Detection with Super-Node Filtering (SDD-14) ─────
 

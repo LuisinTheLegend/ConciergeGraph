@@ -1,0 +1,55 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 7 items / 6 deselected / 1 selected
+
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_other_relation_types_are_not_followed FAILED [100%]
+
+================================== FAILURES ===================================
+_____ TestCallChainEdgesNodes.test_other_relation_types_are_not_followed ______
+
+self = <test_call_chain_edges_nodes.TestCallChainEdgesNodes object at 0x00000269398E9370>
+temp_db_env = {'path': 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmpq8mxctqe.db', 'db_mgr': <core.database.ConciergeDatabaseManager o...e.SqliteStore object at 0x000002693982DFD0>, 'graph_rag': <core.graph_rag.GraphRAGEngine object at 0x000002693982E660>}
+
+    def test_other_relation_types_are_not_followed(self, temp_db_env):
+        """Teste 6: arestas de outro relation_type (ex.: depends_on, imports) NÃO são seguidas como call_chain."""
+        store: SqliteStore = temp_db_env["store"]
+        graph_rag: GraphRAGEngine = temp_db_env["graph_rag"]
+    
+        store.create_project(uuid="proj-rel-666", folder_name="rel-project", primary_wing="core")
+        id_src = store.create_node("proj-rel-666", label="src/service.py", node_type="FACT")
+        id_dep = store.create_node("proj-rel-666", label="src/dependency.py", node_type="FACT")
+        id_imp = store.create_node("proj-rel-666", label="src/imported.py", node_type="FACT")
+        id_call = store.create_node("proj-rel-666", label="src/called.py", node_type="FACT")
+    
+        store.create_edge(id_src, id_dep, relation_type="depends_on")
+        store.create_edge(id_src, id_imp, relation_type="imports")
+        store.create_edge(id_src, id_call, relation_type="calls")
+    
+        chain = graph_rag.get_call_chain_recursive("src/service.py", depth_limit=5)
+>       assert chain == ["src/called.py"]
+E       AssertionError: assert ['src/called..../imported.py'] == ['src/called.py']
+E         
+E         Left contains 2 more items, first extra item: 'src/dependency.py'
+E         
+E         Full diff:
+E           [
+E               'src/called.py',
+E         +     'src/dependency.py',
+E         +     'src/imported.py',
+E           ]
+
+tests\test_call_chain_edges_nodes.py:191: AssertionError
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_other_relation_types_are_not_followed
+================= 1 failed, 6 deselected, 1 warning in 3.88s ==================
+

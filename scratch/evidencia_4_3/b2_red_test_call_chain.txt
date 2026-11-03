@@ -1,0 +1,330 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 7 items
+
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_linear_chain_depth_limits FAILED [ 14%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_cycle_protection_prevents_infinite_loop FAILED [ 28%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_nonexistent_root_node_raises_clear_error FAILED [ 42%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_ambiguous_node_across_projects_requires_identifier FAILED [ 57%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_historical_valid_to_commit_edges_are_ignored FAILED [ 71%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_other_relation_types_are_not_followed FAILED [ 85%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_invalid_depth_limit_raises_clear_error FAILED [100%]
+
+================================== FAILURES ===================================
+___________ TestCallChainEdgesNodes.test_linear_chain_depth_limits ____________
+
+self = <test_call_chain_edges_nodes.TestCallChainEdgesNodes object at 0x0000022749DE2D50>
+temp_db_env = {'path': 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmp56xqy8as.db', 'db_mgr': <core.database.ConciergeDatabaseManager o...e.SqliteStore object at 0x000002275D18A120>, 'graph_rag': <core.graph_rag.GraphRAGEngine object at 0x000002275D18A7B0>}
+
+    def test_linear_chain_depth_limits(self, temp_db_env):
+        """Teste 1: cadeia linear A -> B -> C com depth_limit=1, 2, 5."""
+        store: SqliteStore = temp_db_env["store"]
+        graph_rag: GraphRAGEngine = temp_db_env["graph_rag"]
+    
+        # Registra projeto
+        store.create_project(
+            uuid="proj-linear-111",
+            folder_name="linear-project",
+            primary_wing="core",
+            privacy_level="INTERNAL",
+            summary="Linear chain test",
+        )
+    
+        # Cria nós A, B, C
+        id_a = store.create_node("proj-linear-111", label="src/a.py", node_type="FACT")
+        id_b = store.create_node("proj-linear-111", label="src/b.py", node_type="FACT")
+        id_c = store.create_node("proj-linear-111", label="src/c.py", node_type="FACT")
+    
+        # Cria arestas A -> B e B -> C com relation_type='calls'
+        store.create_edge(id_a, id_b, relation_type="calls", weight=1.0)
+        store.create_edge(id_b, id_c, relation_type="calls", weight=1.0)
+    
+        # depth_limit = 1 deve retornar apenas B
+>       chain_1 = graph_rag.get_call_chain_recursive("src/a.py", depth_limit=1)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_call_chain_edges_nodes.py:81: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+core\graph_rag.py:172: in get_call_chain_recursive
+    rows = self.db_manager.read_query(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <core.database.ConciergeDatabaseManager object at 0x000002275D189FD0>
+query = "WITH RECURSIVE call_chain(node, depth, path_visited) AS (  SELECT ? AS node, 0 AS depth, '|' || ? || '|' AS path_visi...D instr(cc.path_visited, '|' || e.child_node || '|') = 0) SELECT DISTINCT node, depth FROM call_chain WHERE node != ?;"
+params = ('src/a.py', 'src/a.py', 1, 'src/a.py')
+
+    def read_query(self, query: str, params: tuple = ()):
+        """Fast concurrent read query directly from database (bypasses write queue)."""
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
+        try:
+            conn.execute("PRAGMA journal_mode=WAL;")
+            cursor = conn.cursor()
+>           cursor.execute(query, params)
+E           sqlite3.OperationalError: no such table: ast_edges
+
+core\database.py:48: OperationalError
+____ TestCallChainEdgesNodes.test_cycle_protection_prevents_infinite_loop _____
+
+self = <test_call_chain_edges_nodes.TestCallChainEdgesNodes object at 0x000002275D20D450>
+temp_db_env = {'path': 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmp10juxvgm.db', 'db_mgr': <core.database.ConciergeDatabaseManager o...e.SqliteStore object at 0x000002275D20DE50>, 'graph_rag': <core.graph_rag.GraphRAGEngine object at 0x000002275D20E5D0>}
+
+    def test_cycle_protection_prevents_infinite_loop(self, temp_db_env):
+        """Teste 2: ciclo A -> B -> A não entra em loop infinito."""
+        store: SqliteStore = temp_db_env["store"]
+        graph_rag: GraphRAGEngine = temp_db_env["graph_rag"]
+    
+        store.create_project(
+            uuid="proj-cycle-222",
+            folder_name="cycle-project",
+            primary_wing="core",
+        )
+    
+        id_a = store.create_node("proj-cycle-222", label="src/alpha.py", node_type="FACT")
+        id_b = store.create_node("proj-cycle-222", label="src/beta.py", node_type="FACT")
+    
+        # Ciclo A -> B e B -> A
+        store.create_edge(id_a, id_b, relation_type="calls")
+        store.create_edge(id_b, id_a, relation_type="calls")
+    
+        # Deve visitar beta e parar sem loop infinito, excluindo a raiz alpha
+>       chain = graph_rag.get_call_chain_recursive("src/alpha.py", depth_limit=5)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_call_chain_edges_nodes.py:111: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+core\graph_rag.py:172: in get_call_chain_recursive
+    rows = self.db_manager.read_query(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <core.database.ConciergeDatabaseManager object at 0x000002275D20DD10>
+query = "WITH RECURSIVE call_chain(node, depth, path_visited) AS (  SELECT ? AS node, 0 AS depth, '|' || ? || '|' AS path_visi...D instr(cc.path_visited, '|' || e.child_node || '|') = 0) SELECT DISTINCT node, depth FROM call_chain WHERE node != ?;"
+params = ('src/alpha.py', 'src/alpha.py', 5, 'src/alpha.py')
+
+    def read_query(self, query: str, params: tuple = ()):
+        """Fast concurrent read query directly from database (bypasses write queue)."""
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
+        try:
+            conn.execute("PRAGMA journal_mode=WAL;")
+            cursor = conn.cursor()
+>           cursor.execute(query, params)
+E           sqlite3.OperationalError: no such table: ast_edges
+
+core\database.py:48: OperationalError
+____ TestCallChainEdgesNodes.test_nonexistent_root_node_raises_clear_error ____
+
+self = <test_call_chain_edges_nodes.TestCallChainEdgesNodes object at 0x000002275D1DCE90>
+temp_db_env = {'path': 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmp5d_pr0u3.db', 'db_mgr': <core.database.ConciergeDatabaseManager o...e.SqliteStore object at 0x000002275D20F110>, 'graph_rag': <core.graph_rag.GraphRAGEngine object at 0x000002275D20F750>}
+
+    def test_nonexistent_root_node_raises_clear_error(self, temp_db_env):
+        """Teste 3: nó raiz não existente devolve erro claro (não lista vazia silenciosa)."""
+        graph_rag: GraphRAGEngine = temp_db_env["graph_rag"]
+    
+        with pytest.raises(ValueError) as excinfo:
+>           graph_rag.get_call_chain_recursive("src/ghost.py", depth_limit=5)
+
+tests\test_call_chain_edges_nodes.py:119: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+core\graph_rag.py:172: in get_call_chain_recursive
+    rows = self.db_manager.read_query(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <core.database.ConciergeDatabaseManager object at 0x000002275D20EAD0>
+query = "WITH RECURSIVE call_chain(node, depth, path_visited) AS (  SELECT ? AS node, 0 AS depth, '|' || ? || '|' AS path_visi...D instr(cc.path_visited, '|' || e.child_node || '|') = 0) SELECT DISTINCT node, depth FROM call_chain WHERE node != ?;"
+params = ('src/ghost.py', 'src/ghost.py', 5, 'src/ghost.py')
+
+    def read_query(self, query: str, params: tuple = ()):
+        """Fast concurrent read query directly from database (bypasses write queue)."""
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
+        try:
+            conn.execute("PRAGMA journal_mode=WAL;")
+            cursor = conn.cursor()
+>           cursor.execute(query, params)
+E           sqlite3.OperationalError: no such table: ast_edges
+
+core\database.py:48: OperationalError
+_ TestCallChainEdgesNodes.test_ambiguous_node_across_projects_requires_identifier _
+
+self = <test_call_chain_edges_nodes.TestCallChainEdgesNodes object at 0x000002275D1DD0F0>
+temp_db_env = {'path': 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmp8prbp0ai.db', 'db_mgr': <core.database.ConciergeDatabaseManager o...e.SqliteStore object at 0x000002275D1DE520>, 'graph_rag': <core.graph_rag.GraphRAGEngine object at 0x000002275D1DEC40>}
+
+    def test_ambiguous_node_across_projects_requires_identifier(self, temp_db_env):
+        """Teste 4: múltiplos nós com mesmo label em projetos distintos devolve erro com candidatos;
+        com project_identifier, resolve o correto."""
+        store: SqliteStore = temp_db_env["store"]
+        graph_rag: GraphRAGEngine = temp_db_env["graph_rag"]
+    
+        # Projeto 1
+        store.create_project(uuid="uuid-proj-1", folder_name="repo-one", primary_wing="wing1")
+        id_p1_main = store.create_node("uuid-proj-1", label="src/main.py", node_type="FACT")
+        id_p1_util = store.create_node("uuid-proj-1", label="src/util_one.py", node_type="FACT")
+        store.create_edge(id_p1_main, id_p1_util, relation_type="calls")
+    
+        # Projeto 2
+        store.create_project(uuid="uuid-proj-2", folder_name="repo-two", primary_wing="wing2")
+        id_p2_main = store.create_node("uuid-proj-2", label="src/main.py", node_type="FACT")
+        id_p2_util = store.create_node("uuid-proj-2", label="src/util_two.py", node_type="FACT")
+        store.create_edge(id_p2_main, id_p2_util, relation_type="calls")
+    
+        # Sem project_identifier deve recusar com erro claro listando candidatos
+        with pytest.raises(ValueError) as excinfo:
+>           graph_rag.get_call_chain_recursive("src/main.py", depth_limit=5)
+
+tests\test_call_chain_edges_nodes.py:142: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+core\graph_rag.py:172: in get_call_chain_recursive
+    rows = self.db_manager.read_query(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <core.database.ConciergeDatabaseManager object at 0x000002275D1DE3F0>
+query = "WITH RECURSIVE call_chain(node, depth, path_visited) AS (  SELECT ? AS node, 0 AS depth, '|' || ? || '|' AS path_visi...D instr(cc.path_visited, '|' || e.child_node || '|') = 0) SELECT DISTINCT node, depth FROM call_chain WHERE node != ?;"
+params = ('src/main.py', 'src/main.py', 5, 'src/main.py')
+
+    def read_query(self, query: str, params: tuple = ()):
+        """Fast concurrent read query directly from database (bypasses write queue)."""
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
+        try:
+            conn.execute("PRAGMA journal_mode=WAL;")
+            cursor = conn.cursor()
+>           cursor.execute(query, params)
+E           sqlite3.OperationalError: no such table: ast_edges
+
+core\database.py:48: OperationalError
+__ TestCallChainEdgesNodes.test_historical_valid_to_commit_edges_are_ignored __
+
+self = <test_call_chain_edges_nodes.TestCallChainEdgesNodes object at 0x0000022747F44EF0>
+temp_db_env = {'path': 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmpwofzjz76.db', 'db_mgr': <core.database.ConciergeDatabaseManager o...e.SqliteStore object at 0x000002275D1DF490>, 'graph_rag': <core.graph_rag.GraphRAGEngine object at 0x000002275D1DFA80>}
+
+    def test_historical_valid_to_commit_edges_are_ignored(self, temp_db_env):
+        """Teste 5: arestas com valid_to_commit preenchido (históricas/apagadas) são ignoradas."""
+        store: SqliteStore = temp_db_env["store"]
+        graph_rag: GraphRAGEngine = temp_db_env["graph_rag"]
+    
+        store.create_project(uuid="proj-hist-555", folder_name="hist-project", primary_wing="core")
+        id_a = store.create_node("proj-hist-555", label="src/caller.py", node_type="FACT")
+        id_b_old = store.create_node("proj-hist-555", label="src/old_callee.py", node_type="FACT")
+        id_b_new = store.create_node("proj-hist-555", label="src/new_callee.py", node_type="FACT")
+    
+        # Aresta antiga expirada por commit (valid_to_commit não nulo)
+        store.create_edge(id_a, id_b_old, relation_type="calls", valid_to_commit="deadbeef123")
+        # Aresta atual ativa
+        store.create_edge(id_a, id_b_new, relation_type="calls", valid_to_commit=None)
+    
+>       chain = graph_rag.get_call_chain_recursive("src/caller.py", depth_limit=5)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_call_chain_edges_nodes.py:171: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+core\graph_rag.py:172: in get_call_chain_recursive
+    rows = self.db_manager.read_query(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <core.database.ConciergeDatabaseManager object at 0x000002275D1DF360>
+query = "WITH RECURSIVE call_chain(node, depth, path_visited) AS (  SELECT ? AS node, 0 AS depth, '|' || ? || '|' AS path_visi...D instr(cc.path_visited, '|' || e.child_node || '|') = 0) SELECT DISTINCT node, depth FROM call_chain WHERE node != ?;"
+params = ('src/caller.py', 'src/caller.py', 5, 'src/caller.py')
+
+    def read_query(self, query: str, params: tuple = ()):
+        """Fast concurrent read query directly from database (bypasses write queue)."""
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
+        try:
+            conn.execute("PRAGMA journal_mode=WAL;")
+            cursor = conn.cursor()
+>           cursor.execute(query, params)
+E           sqlite3.OperationalError: no such table: ast_edges
+
+core\database.py:48: OperationalError
+_____ TestCallChainEdgesNodes.test_other_relation_types_are_not_followed ______
+
+self = <test_call_chain_edges_nodes.TestCallChainEdgesNodes object at 0x000002275D245370>
+temp_db_env = {'path': 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmpvl948blw.db', 'db_mgr': <core.database.ConciergeDatabaseManager o...e.SqliteStore object at 0x000002275D380CB0>, 'graph_rag': <core.graph_rag.GraphRAGEngine object at 0x000002275D381250>}
+
+    def test_other_relation_types_are_not_followed(self, temp_db_env):
+        """Teste 6: arestas de outro relation_type (ex.: depends_on, imports) NÃO são seguidas como call_chain."""
+        store: SqliteStore = temp_db_env["store"]
+        graph_rag: GraphRAGEngine = temp_db_env["graph_rag"]
+    
+        store.create_project(uuid="proj-rel-666", folder_name="rel-project", primary_wing="core")
+        id_src = store.create_node("proj-rel-666", label="src/service.py", node_type="FACT")
+        id_dep = store.create_node("proj-rel-666", label="src/dependency.py", node_type="FACT")
+        id_imp = store.create_node("proj-rel-666", label="src/imported.py", node_type="FACT")
+        id_call = store.create_node("proj-rel-666", label="src/called.py", node_type="FACT")
+    
+        store.create_edge(id_src, id_dep, relation_type="depends_on")
+        store.create_edge(id_src, id_imp, relation_type="imports")
+        store.create_edge(id_src, id_call, relation_type="calls")
+    
+>       chain = graph_rag.get_call_chain_recursive("src/service.py", depth_limit=5)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_call_chain_edges_nodes.py:190: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+core\graph_rag.py:172: in get_call_chain_recursive
+    rows = self.db_manager.read_query(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <core.database.ConciergeDatabaseManager object at 0x000002275D380B90>
+query = "WITH RECURSIVE call_chain(node, depth, path_visited) AS (  SELECT ? AS node, 0 AS depth, '|' || ? || '|' AS path_visi...D instr(cc.path_visited, '|' || e.child_node || '|') = 0) SELECT DISTINCT node, depth FROM call_chain WHERE node != ?;"
+params = ('src/service.py', 'src/service.py', 5, 'src/service.py')
+
+    def read_query(self, query: str, params: tuple = ()):
+        """Fast concurrent read query directly from database (bypasses write queue)."""
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
+        try:
+            conn.execute("PRAGMA journal_mode=WAL;")
+            cursor = conn.cursor()
+>           cursor.execute(query, params)
+E           sqlite3.OperationalError: no such table: ast_edges
+
+core\database.py:48: OperationalError
+_____ TestCallChainEdgesNodes.test_invalid_depth_limit_raises_clear_error _____
+
+self = <test_call_chain_edges_nodes.TestCallChainEdgesNodes object at 0x000002275D245590>
+temp_db_env = {'path': 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmpeahs_nf9.db', 'db_mgr': <core.database.ConciergeDatabaseManager o...e.SqliteStore object at 0x000002275D247680>, 'graph_rag': <core.graph_rag.GraphRAGEngine object at 0x000002275D247CE0>}
+
+    def test_invalid_depth_limit_raises_clear_error(self, temp_db_env):
+        """Teste 7: profundidade inválida (< 1 ou > 10) devolve erro claro."""
+        graph_rag: GraphRAGEngine = temp_db_env["graph_rag"]
+    
+        for invalid_depth in [0, -1, -5, 11, 20]:
+            with pytest.raises(ValueError) as excinfo:
+>               graph_rag.get_call_chain_recursive("src/a.py", depth_limit=invalid_depth)
+
+tests\test_call_chain_edges_nodes.py:201: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+core\graph_rag.py:172: in get_call_chain_recursive
+    rows = self.db_manager.read_query(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <core.database.ConciergeDatabaseManager object at 0x000002275D247570>
+query = "WITH RECURSIVE call_chain(node, depth, path_visited) AS (  SELECT ? AS node, 0 AS depth, '|' || ? || '|' AS path_visi...D instr(cc.path_visited, '|' || e.child_node || '|') = 0) SELECT DISTINCT node, depth FROM call_chain WHERE node != ?;"
+params = ('src/a.py', 'src/a.py', 0, 'src/a.py')
+
+    def read_query(self, query: str, params: tuple = ()):
+        """Fast concurrent read query directly from database (bypasses write queue)."""
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
+        try:
+            conn.execute("PRAGMA journal_mode=WAL;")
+            cursor = conn.cursor()
+>           cursor.execute(query, params)
+E           sqlite3.OperationalError: no such table: ast_edges
+
+core\database.py:48: OperationalError
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_linear_chain_depth_limits
+FAILED tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_cycle_protection_prevents_infinite_loop
+FAILED tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_nonexistent_root_node_raises_clear_error
+FAILED tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_ambiguous_node_across_projects_requires_identifier
+FAILED tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_historical_valid_to_commit_edges_are_ignored
+FAILED tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_other_relation_types_are_not_followed
+FAILED tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_invalid_depth_limit_raises_clear_error
+======================== 7 failed, 1 warning in 6.09s =========================
+

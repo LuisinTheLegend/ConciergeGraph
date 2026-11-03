@@ -1,0 +1,25 @@
+CONVENÇÃO DE RESOLUÇÃO DE PROJETO E PRIVACY_LEVEL (RODADA 4.3 BLOCO 2)
+=============================================================================
+
+1. Como as ferramentas em interface/mcp_server.py resolvem projeto:
+   - Método canônico: _resolve_project_identifier(project_identifier: str) -> str
+   - Funcionamento:
+     1. Tenta validar se a string é um UUID válido (uuid.UUID(project_identifier)). Se for, retorna diretamente.
+     2. Caso contrário, consulta self._gc.store.get_project(project_identifier) buscando por folder_name.
+     3. Se encontrado, retorna project["uuid"].
+     4. Se não encontrado, lança ValueError(f"Project not found: '{project_identifier}'").
+   - Exemplos de ferramentas que usam essa convenção:
+     - concierge_mine: resolve projeto ou auto-registra se ausente.
+     - concierge_search: resolve para project_uuid para Strict Scoping (salvo all_wings=True sem identifier).
+     - update_project, add_reference_wing, remove_reference_wing, find_similar, get_trajectories, count_embeddings.
+
+2. Tratamento de privacy_level:
+   - privacy_level é mantido na tabela canônica 'projects' com CHECK(privacy_level IN ('PUBLIC', 'INTERNAL', 'RESTRICTED')).
+   - Validado em storage/store.py (VALID_PRIVACY_LEVELS = frozenset({'PUBLIC', 'INTERNAL', 'RESTRICTED'})).
+   - Permite segregação cadastral e controle de visibilidade entre wings.
+
+3. Escolha de desenho para concierge_get_call_chain (Opção A):
+   - Preserva o princípio fundamental: "sem vazamento entre projetos".
+   - Parâmetros: (start_node: str, depth_limit: int = 5, project_identifier: str | None = None).
+   - Com project_identifier: resolve para project_uuid via _resolve_project_identifier() e filtra estritamente nós e arestas desse project_uuid.
+   - Sem project_identifier: busca nós candidatos por label/file_path. Se houver mais de um projeto candidato, RECUSA com erro explícito listando os candidatos (evita ambiguidade e contaminação cruzada). Se houver exatamente 1 projeto, opera no escopo desse projeto.
