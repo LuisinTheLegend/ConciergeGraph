@@ -1,0 +1,2 @@
+>> git grep -n sqlite_master WHERE type='table' AND name='nodes_fts' storage/schema.py
+storage/schema.py:267:                "SELECT sql FROM sqlite_master WHERE type='table' AND name='nodes_fts'"

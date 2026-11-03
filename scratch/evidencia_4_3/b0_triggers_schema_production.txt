@@ -1,0 +1,22 @@
+Triggers in storage/schema.py lines 170-190:
+170: TRIGGER_AI_SQL: str = """
+171: CREATE TRIGGER IF NOT EXISTS nodes_ai AFTER INSERT ON nodes BEGIN
+172:   INSERT INTO nodes_fts(rowid, label, tags, summary, content)
+173:   VALUES (new.id, new.label, new.tags, new.summary, new.content);
+174: END;
+175: """
+176: 
+177: TRIGGER_AD_SQL: str = """
+178: CREATE TRIGGER IF NOT EXISTS nodes_ad AFTER DELETE ON nodes BEGIN
+179:   INSERT INTO nodes_fts(nodes_fts, rowid, label, tags, summary, content)
+180:   VALUES('delete', old.id, old.label, old.tags, old.summary, old.content);
+181: END;
+182: """
+183: 
+184: TRIGGER_AU_SQL: str = """
+185: CREATE TRIGGER IF NOT EXISTS nodes_au AFTER UPDATE ON nodes BEGIN
+186:   INSERT INTO nodes_fts(nodes_fts, rowid, label, tags, summary, content)
+187:   VALUES('delete', old.id, old.label, old.tags, old.summary, old.content);
+188:   INSERT INTO nodes_fts(rowid, label, tags, summary, content)
+189:   VALUES (new.id, new.label, new.tags, new.summary, new.content);
+190: END;

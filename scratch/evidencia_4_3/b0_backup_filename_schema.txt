@@ -1,0 +1,2 @@
+>> git grep -n pre_fts_v2 storage/schema.py
+storage/schema.py:299:                            bak_path = f"{db_path}.pre_fts_v2.bak"

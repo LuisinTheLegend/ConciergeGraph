@@ -1,7 +1,7 @@
 # Errata Oficial — Relatório Rodada 4.2i
 
 **Data de Emissão Original:** 2026-11-02  
-**Revisão e Correção Documental:** Rodada 4.2k (2026-11-02); Rodada 4.2l (2026-11-02)  
+**Revisão e Correção Documental:** Rodada 4.2k (2026-11-02); Rodada 4.2l (2026-11-02); Rodada 4.3 (2026-11-03)  
 **Referência:** `audits/relatorio_4_2i.md`  
 **Escopo:** Retificação técnica e documental dos pontos apontados pela auditoria independente sobre a Rodada 4.2i e sobre a própria errata original.  
 **Regras do Protocolo:** Regras 2, 4, 10, 11, 12, 13 e 14 do `AUDIT_PROTOCOL.md`.
@@ -215,6 +215,8 @@
 | **Item 9** (Travamento Sandbox) | `Causa raiz identificada`: reclassificada como hipótese não demonstrada | Inspeção de `transcript_full.jsonl` para chamadas com `BypassSandbox: True` | `scratch/evidencia_4_2k/item9_bypass_commands.txt` |
 | **Item 10** (Skip Qdrant) | `tests/test_conversational_db.py:132`: `@pytest.mark.skipif(not QDRANT_AVAILABLE...)` | Comparação de `qdrant_client` em `C:\Python314\python.exe` vs `_venvs_4_2i\venv_py314_clean` | `scratch/evidencia_4_2k/item_extra_qdrant_env_comparison.txt` |
 | **Item 12** (Resíduo Relatório 4.2j) | `audits/relatorio_4_2j.md:65` cita "8 asserções" e "test_is_safe_path_security" (que não existe em `tests/` nem `core/`). Relatório 4.2j mantido como registro histórico; remete ao Item 2 | `git grep -n "foram 8 asserções" audits/relatorio_4_2j.md; git grep -n "test_is_safe_path_security"` | `scratch/evidencia_4_2l/item2_relatorio_4_2j_linha_65.txt`, `scratch/evidencia_4_2l/item2_grep_test_is_safe_path_security.txt`, `scratch/evidencia_4_2l/item2_grep_8_assercoes.txt` |
+| **Item 13** (COALESCE em `fase4-achados.md:321`) | `audits/fase4-achados.md:321` afirmava falsamente triggers com `COALESCE(new.content, new.body)`; Item 3 da errata citou sem avisar erro do achado; corrigido na 4.3 | `git grep -n "COALESCE(new.content" audits/fase4-achados.md; git grep -n "TRIGGER_AI_SQL" storage/schema.py` | `scratch/evidencia_4_3/b0_grep_achados_321.txt`, `scratch/evidencia_4_3/b0_triggers_schema_production.txt` |
+| **Item 14** (Regeneração UTF-8 `relatorio_4_2k.md`) | `audits/relatorio_4_2k.md` continha 827 bytes nulos por concatenação de UTF-16LE; regenerado em UTF-8 puro mantendo todo o conteúdo textual | `python -c "assert open('audits/relatorio_4_2k.md', 'rb').read().count(b'\x00') == 0"` | `scratch/evidencia_4_3/b0_relatorio_4_2k_null_check.txt` |
 
 ---
 
@@ -232,3 +234,30 @@
   O comando `git grep -n "8 asserções"` (evidência em `scratch/evidencia_4_2l/item2_grep_8_assercoes.txt`) confirma que essa expressão existe apenas em `audits/errata-4-2i.md:34, 43` e em `audits/relatorio_4_2j.md:65`.
 - **Remissão ao Item 2:**
   Remete-se expressamente à retificação detalhada do **Item 2** desta errata: o teste adicionado na Rodada 4.2i é exclusivamente o método [`tests/test_adaptive_gating.py::TestSecurityGuardBounds::test_cross_platform_absolute_paths_and_unc_are_unsafe`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_adaptive_gating.py#L44-L120). O método `test_path_outside_monorepo_is_unsafe` já existia previamente e não recebeu essas asserções.
+
+
+---
+
+## 13. Ocorrência Residual de `COALESCE` em `audits/fase4-achados.md:321` e Citação Não-Ressalvada no Item 3
+
+- **Citação Verbatim de `audits/fase4-achados.md:321`:**
+  Extraída via `git grep -n "COALESCE(new.content" audits/fase4-achados.md` (evidência em [`scratch/evidencia_4_3/b0_grep_achados_321.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_3/b0_grep_achados_321.txt)):
+  ```text
+  audits/fase4-achados.md:321:  2. Triggers de sincronização `nodes_ai`, `nodes_ad` e `nodes_au` em `storage/schema.py` atualizados para propagar `content` (com fallback seguro `COALESCE(new.content, new.body)` para nós legados sem coluna `content`).
+  ```
+- **Retificação Factual sob a Regra 14:**
+  A Seção 3 desta errata (redigida na Rodada 4.2l) citou `audits/fase4-achados.md:321` como evidência da ocorrência da expressão `COALESCE(new.content, new.body)` no repositório, mas **omitiu a advertência de que a própria afirmação de `fase4-achados.md:321` era incorreta**. O arquivo de produção `storage/schema.py:171-187` nunca utilizou `COALESCE` (evidência em [`scratch/evidencia_4_3/b0_triggers_schema_production.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_3/b0_triggers_schema_production.txt)), definindo os triggers diretamente como:
+  ```sql
+  INSERT INTO nodes_fts(rowid, label, tags, summary, content)
+  VALUES (new.id, new.label, new.tags, new.summary, new.content);
+  ```
+- **Correção Aplicada na Rodada 4.3:**
+  O arquivo `audits/fase4-achados.md`, na descrição da resolução de F4-018, foi corrigido para refletir o código real (triggers diretos sem `COALESCE`, backup com sufixo `.pre_fts_v2.bak` em vez de timestamp, detecção via `sqlite_master` em vez de `PRAGMA table_info` e migração atômica em transação única com checagem de consistência na inicialização da 4.2j).
+
+---
+
+## 14. Regeneração do Relatório `audits/relatorio_4_2k.md` em UTF-8 Texto Puro
+
+- **Motivação:** O arquivo `audits/relatorio_4_2k.md` continha 827 bytes nulos (`\x00`) decorrentes da interpolação direta de evidências geradas pelo PowerShell em UTF-16LE (`scratch/evidencia_4_2k/item3_grep_coalesce_codebase.txt` e `item6_grep_size_delta.txt`), fazendo com que o Git o tratasse como binário.
+- **Ação Executada:** O relatório foi regenerado em UTF-8 puro, mantendo rigorosamente idêntico todo o conteúdo textual e fatos relatados.
+- **Comprovação de 0 Bytes Nulos:** A contagem de bytes nulos (`b'\x00'`) é exatamente **0** (evidência em [`scratch/evidencia_4_3/b0_relatorio_4_2k_null_check.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_3/b0_relatorio_4_2k_null_check.txt)).

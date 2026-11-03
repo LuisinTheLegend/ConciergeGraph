@@ -1,0 +1,2 @@
+>> git grep -n COALESCE(new.content audits/fase4-achados.md
+audits/fase4-achados.md:321:  2. Triggers de sincronização `nodes_ai`, `nodes_ad` e `nodes_au` em `storage/schema.py` atualizados para propagar `content` (com fallback seguro `COALESCE(new.content, new.body)` para nós legados sem coluna `content`).
