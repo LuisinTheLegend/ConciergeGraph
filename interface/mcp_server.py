@@ -1722,6 +1722,7 @@ class GrafoConciergeServer:
 # ===================================================================
 
 import json as _json
+import re as _re
 
 
 def agent_save_checkpoint(
@@ -1737,13 +1738,20 @@ def agent_save_checkpoint(
     success = checkpointer.save_checkpoint(
         agent_id, session_id, checkpoint_id, state_dict
     )
+    if success:
+        msg = f"Checkpoint '{checkpoint_id}' saved successfully for agent '{agent_id}'"
+    else:
+        raw_err = getattr(checkpointer, "last_error", None)
+        if raw_err:
+            clean_err = _re.sub(r'[A-Za-z]:\\[^\s:;,\'"]+|/[^\s:;,\'"]+', '<path>', str(raw_err))
+            clean_err = " ".join(clean_err.strip().split())
+            msg = f"Failed to save checkpoint '{checkpoint_id}' for agent '{agent_id}': {clean_err}"
+        else:
+            msg = f"Failed to save checkpoint '{checkpoint_id}' for agent '{agent_id}'"
+
     return _json.dumps({
         "success": success,
-        "message": (
-            f"Checkpoint '{checkpoint_id}' saved successfully for agent '{agent_id}'"
-            if success
-            else f"Failed to save checkpoint '{checkpoint_id}' for agent '{agent_id}'"
-        ),
+        "message": msg,
     })
 
 

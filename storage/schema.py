@@ -142,6 +142,15 @@ CREATE TABLE IF NOT EXISTS semantic_facts (
     utility_beta   REAL NOT NULL DEFAULT 1.0,
     created_at     TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS agent_checkpoints (
+    agent_id      TEXT NOT NULL,
+    session_id    TEXT NOT NULL,
+    checkpoint_id TEXT NOT NULL,
+    state_blob    TEXT NOT NULL,
+    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (agent_id, session_id, checkpoint_id)
+);
 """
 
 INDEXES_SQL: str = """
@@ -158,6 +167,7 @@ CREATE INDEX IF NOT EXISTS idx_commitlog_date ON commit_log(created_at);
 CREATE INDEX IF NOT EXISTS idx_user_core_memory_scope ON user_core_memory(scope_type, scope_id);
 CREATE INDEX IF NOT EXISTS idx_semantic_facts_scope ON semantic_facts(scope_type, scope_id);
 CREATE INDEX IF NOT EXISTS idx_semantic_facts_temporal ON semantic_facts(t_valid, t_invalid);
+CREATE INDEX IF NOT EXISTS idx_agent_checkpoints_lookup ON agent_checkpoints(agent_id, session_id, created_at);
 """
 
 FTS5_TABLE_SQL: str = """
@@ -379,7 +389,7 @@ class SchemaManager:
         required_tables = [
             "projects", "nodes", "edges", "reference_wings", 
             "trajectories", "commit_log", "nodes_fts",
-            "user_core_memory", "semantic_facts"
+            "user_core_memory", "semantic_facts", "agent_checkpoints"
         ]
         
         cursor = self._conn.execute(
@@ -496,7 +506,8 @@ class SchemaManager:
         counts = {}
         tables = [
             "projects", "nodes", "edges", "reference_wings", 
-            "trajectories", "commit_log", "user_core_memory", "semantic_facts"
+            "trajectories", "commit_log", "user_core_memory", "semantic_facts",
+            "agent_checkpoints"
         ]
         
         for table in tables:

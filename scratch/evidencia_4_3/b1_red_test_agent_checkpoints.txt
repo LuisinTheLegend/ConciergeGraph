@@ -1,0 +1,512 @@
+============================= test session starts =============================
+
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+
+cachedir: .pytest_cache
+
+rootdir: C:\Nexus-Memory\GrafoConcierge
+
+configfile: pyproject.toml
+
+plugins: anyio-4.13.0
+
+collecting ... collected 7 items
+
+
+
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_schema_manager_creates_agent_checkpoints FAILED [ 14%]
+
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_verify_tables_exist_fails_if_agent_checkpoints_missing FAILED [ 28%]
+
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_migration_preserves_existing_data FAILED [ 42%]
+
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_e2e_checkpointer_and_mcp_tools FAILED [ 57%]
+
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_save_checkpoint_failure_message_includes_reason FAILED [ 71%]
+
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_list_checkpoints_rapid_sequence_order FAILED [ 85%]
+
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_insert_or_replace_updates_order_and_rowid FAILED [100%]
+
+
+
+================================== FAILURES ===================================
+
+_ TestAgentCheckpointsOfficialSchema.test_schema_manager_creates_agent_checkpoints _
+
+
+
+self = <test_agent_checkpoints_schema.TestAgentCheckpointsOfficialSchema object at 0x0000027F08E0ED50>
+
+temp_db_path = 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmpclet28od\\test_checkpoints.db'
+
+
+
+    def test_schema_manager_creates_agent_checkpoints(self, temp_db_path):
+
+        """Um banco criado unicamente pelo SchemaManager oficial deve conter agent_checkpoints."""
+
+        conn = sqlite3.connect(temp_db_path)
+
+        try:
+
+            mgr = SchemaManager(conn)
+
+            mgr.apply_full_schema()
+
+    
+
+            tables = mgr.verify_tables_exist()
+
+>           assert "agent_checkpoints" in tables, "agent_checkpoints deve constar nas tabelas obrigat¾rias"
+
+E           AssertionError: agent_checkpoints deve constar nas tabelas obrigat¾rias
+
+E           assert 'agent_checkpoints' in {'projects': True, 'nodes': True, 'edges': True, 'reference_wings': True, ...}
+
+
+
+tests\test_agent_checkpoints_schema.py:53: AssertionError
+
+_ TestAgentCheckpointsOfficialSchema.test_verify_tables_exist_fails_if_agent_checkpoints_missing _
+
+
+
+self = <test_agent_checkpoints_schema.TestAgentCheckpointsOfficialSchema object at 0x0000027F1C2151D0>
+
+temp_db_path = 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmpx8ge0ch5\\test_checkpoints.db'
+
+
+
+    def test_verify_tables_exist_fails_if_agent_checkpoints_missing(self, temp_db_path):
+
+        """Simular ausÛncia de agent_checkpoints deve levantar erro no boot do SchemaManager/Store."""
+
+        conn = sqlite3.connect(temp_db_path)
+
+        try:
+
+            mgr = SchemaManager(conn)
+
+            mgr.apply_full_schema()
+
+            # Drop da tabela para simular corrupþÒo/ausÛncia
+
+            conn.execute("DROP TABLE IF EXISTS agent_checkpoints;")
+
+            conn.commit()
+
+    
+
+            tables = mgr.verify_tables_exist()
+
+>           assert tables.get("agent_checkpoints") is False
+
+E           AssertionError: assert None is False
+
+E            +  where None = <built-in method get of dict object at 0x0000027F1C1D5200>('agent_checkpoints')
+
+E            +    where <built-in method get of dict object at 0x0000027F1C1D5200> = {'projects': True, 'nodes': True, 'edges': True, 'reference_wings': True, ...}.get
+
+
+
+tests\test_agent_checkpoints_schema.py:78: AssertionError
+
+__ TestAgentCheckpointsOfficialSchema.test_migration_preserves_existing_data __
+
+
+
+self = <test_agent_checkpoints_schema.TestAgentCheckpointsOfficialSchema object at 0x0000027F1C2115B0>
+
+temp_db_path = 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmp4e4vvom1\\test_checkpoints.db'
+
+
+
+    def test_migration_preserves_existing_data(self, temp_db_path):
+
+        """Banco legado (esquema 4.2j sem agent_checkpoints) ganha a tabela sem alterar dados existentes."""
+
+        conn = sqlite3.connect(temp_db_path)
+
+        try:
+
+            conn.execute("""
+
+                CREATE TABLE projects (
+
+                    uuid TEXT PRIMARY KEY,
+
+                    name TEXT NOT NULL,
+
+                    root_path TEXT NOT NULL,
+
+                    privacy_level TEXT DEFAULT 'INTERNAL',
+
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+
+                );
+
+            """)
+
+            conn.execute("""
+
+                CREATE TABLE nodes (
+
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+                    project_uuid TEXT NOT NULL,
+
+                    label TEXT NOT NULL,
+
+                    node_type TEXT NOT NULL,
+
+                    status TEXT DEFAULT 'ACTIVE',
+
+                    content TEXT
+
+                );
+
+            """)
+
+            conn.execute("""
+
+                CREATE TABLE edges (
+
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+                    project_uuid TEXT NOT NULL,
+
+                    source_id INTEGER NOT NULL,
+
+                    target_id INTEGER NOT NULL,
+
+                    relation_type TEXT NOT NULL,
+
+                    valid_to_commit TEXT
+
+                );
+
+            """)
+
+            # Inserir dados prÚ-existentes
+
+            conn.execute("INSERT INTO projects (uuid, name, root_path) VALUES ('p1', 'proj1', '/path1');")
+
+            conn.execute("INSERT INTO nodes (project_uuid, label, node_type, content) VALUES ('p1', 'mod.py', 'MODULE', 'code');")
+
+            conn.execute("INSERT INTO edges (project_uuid, source_id, target_id, relation_type) VALUES ('p1', 1, 1, 'contains');")
+
+            conn.commit()
+
+    
+
+            hash_projects_before = _hash_table(conn, "projects")
+
+            hash_nodes_before = _hash_table(conn, "nodes")
+
+            hash_edges_before = _hash_table(conn, "edges")
+
+    
+
+            # Aplicar migraþÒo oficial
+
+            mgr = SchemaManager(conn)
+
+            mgr.apply_full_schema()
+
+    
+
+            # Verificar integridade dos dados existentes
+
+            assert _hash_table(conn, "projects") == hash_projects_before
+
+            assert _hash_table(conn, "nodes") == hash_nodes_before
+
+            assert _hash_table(conn, "edges") == hash_edges_before
+
+    
+
+            # Verificar que a tabela agent_checkpoints agora existe
+
+            tbls = mgr.verify_tables_exist()
+
+>           assert tbls["agent_checkpoints"] is True
+
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+E           KeyError: 'agent_checkpoints'
+
+
+
+tests\test_agent_checkpoints_schema.py:140: KeyError
+
+------------------------------ Captured log call ------------------------------
+
+WARNING  grafo-concierge.schema:schema.py:463 FTS consistency mismatch: table 'nodes' has 1 rows, but 'nodes_fts_docsize' has 0 indexed docs. Rebuilding FTS index...
+
+ERROR    grafo-concierge.schema:schema.py:487 Failed to rebuild FTS5: no such column: T.tags
+
+WARNING  grafo-concierge.schema:schema.py:471 FTS consistency check warning: no such column: T.tags
+
+___ TestAgentCheckpointsOfficialSchema.test_e2e_checkpointer_and_mcp_tools ____
+
+
+
+self = <test_agent_checkpoints_schema.TestAgentCheckpointsOfficialSchema object at 0x0000027F1C211940>
+
+temp_db_path = 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmp4j0wi_fj\\test_checkpoints.db'
+
+
+
+    def test_e2e_checkpointer_and_mcp_tools(self, temp_db_path):
+
+        """E2E via AgnosticCheckpointer e mcp_server com isolamento por agente e sessÒo."""
+
+        # 1. Boot oficial pelo SchemaManager
+
+        conn = sqlite3.connect(temp_db_path)
+
+        try:
+
+            SchemaManager(conn).apply_full_schema()
+
+        finally:
+
+            conn.close()
+
+    
+
+        db_mgr = ConciergeDatabaseManager(temp_db_path)
+
+        checkpointer = AgnosticCheckpointer(db_mgr)
+
+    
+
+        # Salvar checkpoint para agente 1 na sessÒo A
+
+        res1 = checkpointer.save_checkpoint("agent_alpha", "session_A", "cp_1", {"step": 1, "status": "planning"})
+
+>       assert res1 is True
+
+E       assert False is True
+
+
+
+tests\test_agent_checkpoints_schema.py:158: AssertionError
+
+_ TestAgentCheckpointsOfficialSchema.test_save_checkpoint_failure_message_includes_reason _
+
+
+
+self = <test_agent_checkpoints_schema.TestAgentCheckpointsOfficialSchema object at 0x0000027F1C1A2F90>
+
+temp_db_path = 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmpqysjp9x1\\test_checkpoints.db'
+
+
+
+    def test_save_checkpoint_failure_message_includes_reason(self, temp_db_path):
+
+        """Falha no save_checkpoint deve incluir motivo sanitizado sem vazar paths ou state."""
+
+        # Boot sem criar agent_checkpoints
+
+        db_mgr = ConciergeDatabaseManager(temp_db_path)
+
+        conn = sqlite3.connect(temp_db_path)
+
+        try:
+
+            conn.execute("DROP TABLE IF EXISTS agent_checkpoints;")
+
+            conn.commit()
+
+        finally:
+
+            conn.close()
+
+    
+
+        checkpointer = AgnosticCheckpointer(db_mgr)
+
+        orig_cp = mcp_server.checkpointer
+
+        try:
+
+            mcp_server.checkpointer = checkpointer
+
+            resp_str = mcp_server.agent_save_checkpoint("agent_1", "sess_1", "cp_fail", {"secret_key": "xyz123"})
+
+            resp = json.loads(resp_str)
+
+            assert resp["success"] is False
+
+            msg = resp["message"]
+
+            assert "Failed to save checkpoint" in msg
+
+            # Motivo incluÝdo
+
+>           assert "no such table: agent_checkpoints" in msg or "agent_checkpoints" in msg
+
+E           assert ('no such table: agent_checkpoints' in "Failed to save checkpoint 'cp_fail' for agent 'agent_1'" or 'agent_checkpoints' in "Failed to save checkpoint 'cp_fail' for agent 'agent_1'")
+
+
+
+tests\test_agent_checkpoints_schema.py:214: AssertionError
+
+_ TestAgentCheckpointsOfficialSchema.test_list_checkpoints_rapid_sequence_order _
+
+
+
+self = <test_agent_checkpoints_schema.TestAgentCheckpointsOfficialSchema object at 0x0000027F1C281040>
+
+temp_db_path = 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmpui8b_2_m\\test_checkpoints.db'
+
+
+
+    def test_list_checkpoints_rapid_sequence_order(self, temp_db_path):
+
+        """20 checkpoints gravados em sequÛncia rßpida devem ser retornados na ordem exata de gravaþÒo."""
+
+        conn = sqlite3.connect(temp_db_path)
+
+        try:
+
+            SchemaManager(conn).apply_full_schema()
+
+        finally:
+
+            conn.close()
+
+    
+
+        db_mgr = ConciergeDatabaseManager(temp_db_path)
+
+        checkpointer = AgnosticCheckpointer(db_mgr)
+
+        for i in range(1, 21):
+
+            ok = checkpointer.save_checkpoint("agent_fast", "sess_seq", f"cp_{i:02d}", {"index": i})
+
+>           assert ok is True
+
+E           assert False is True
+
+
+
+tests\test_agent_checkpoints_schema.py:233: AssertionError
+
+_ TestAgentCheckpointsOfficialSchema.test_insert_or_replace_updates_order_and_rowid _
+
+
+
+self = <test_agent_checkpoints_schema.TestAgentCheckpointsOfficialSchema object at 0x0000027F1C281260>
+
+temp_db_path = 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmp8s4or0qs\\test_checkpoints.db'
+
+
+
+    def test_insert_or_replace_updates_order_and_rowid(self, temp_db_path):
+
+        """INSERT OR REPLACE sobre checkpoint existente altera rowid/created_at e move para o fim."""
+
+        conn = sqlite3.connect(temp_db_path)
+
+        try:
+
+            SchemaManager(conn).apply_full_schema()
+
+        finally:
+
+            conn.close()
+
+    
+
+        db_mgr = ConciergeDatabaseManager(temp_db_path)
+
+        checkpointer = AgnosticCheckpointer(db_mgr)
+
+        checkpointer.save_checkpoint("agent_repl", "sess_repl", "cp_a", {"v": 1})
+
+        checkpointer.save_checkpoint("agent_repl", "sess_repl", "cp_b", {"v": 2})
+
+        checkpointer.save_checkpoint("agent_repl", "sess_repl", "cp_c", {"v": 3})
+
+    
+
+>       initial_list = [c["checkpoint_id"] for c in checkpointer.list_checkpoints("agent_repl", "sess_repl")]
+
+                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+
+tests\test_agent_checkpoints_schema.py:255: 
+
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+core\checkpointer.py:246: in list_checkpoints
+
+    rows = self.db_manager.read_query(
+
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+
+
+self = <core.database.ConciergeDatabaseManager object at 0x0000027F1C2122C0>
+
+query = 'SELECT checkpoint_id, created_at FROM agent_checkpoints WHERE agent_id = ? AND session_id = ? ORDER BY created_at ASC;'
+
+params = ('agent_repl', 'sess_repl')
+
+
+
+    def read_query(self, query: str, params: tuple = ()):
+
+        """Fast concurrent read query directly from database (bypasses write queue)."""
+
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
+
+        try:
+
+            conn.execute("PRAGMA journal_mode=WAL;")
+
+            cursor = conn.cursor()
+
+>           cursor.execute(query, params)
+
+E           sqlite3.OperationalError: no such table: agent_checkpoints
+
+
+
+core\database.py:48: OperationalError
+
+============================== warnings summary ===============================
+
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+
+    if asyncio.iscoroutinefunction(f):
+
+
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+=========================== short test summary info ===========================
+
+FAILED tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_schema_manager_creates_agent_checkpoints
+
+FAILED tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_verify_tables_exist_fails_if_agent_checkpoints_missing
+
+FAILED tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_migration_preserves_existing_data
+
+FAILED tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_e2e_checkpointer_and_mcp_tools
+
+FAILED tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_save_checkpoint_failure_message_includes_reason
+
+FAILED tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_list_checkpoints_rapid_sequence_order
+
+FAILED tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_insert_or_replace_updates_order_and_rowid
+
+======================== 7 failed, 1 warning in 5.72s =========================
+

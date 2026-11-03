@@ -1,0 +1,55 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 7 items / 6 deselected / 1 selected
+
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_schema_manager_creates_agent_checkpoints FAILED [100%]
+
+================================== FAILURES ===================================
+_ TestAgentCheckpointsOfficialSchema.test_schema_manager_creates_agent_checkpoints _
+
+self = <test_agent_checkpoints_schema.TestAgentCheckpointsOfficialSchema object at 0x000001D24E156D50>
+temp_db_path = 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmpdle8etiw\\test_checkpoints.db'
+
+    def test_schema_manager_creates_agent_checkpoints(self, temp_db_path):
+        """Um banco criado unicamente pelo SchemaManager oficial deve conter agent_checkpoints."""
+        conn = sqlite3.connect(temp_db_path)
+        try:
+            mgr = SchemaManager(conn)
+>           mgr.apply_full_schema()
+
+tests\test_agent_checkpoints_schema.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <storage.schema.SchemaManager object at 0x000001D2614D9BE0>
+
+    def apply_full_schema(self) -> None:
+        """Applies the full schema (tables + indexes + FTS5 + triggers).
+    
+        Idempotent operation ù safe to call multiple times.
+        Executes within a single transaction.
+    
+        Raises:
+            sqlite3.OperationalError: If there is an unrecoverable DDL error.
+        """
+        logger.debug("Starting application of Schema v%s", self.SCHEMA_VERSION)
+        try:
+            self._conn.executescript(TABLES_SQL)
+>           self._conn.executescript(INDEXES_SQL)
+E           sqlite3.OperationalError: no such table: main.agent_checkpoints
+
+storage\schema.py:250: OperationalError
+------------------------------ Captured log call ------------------------------
+ERROR    grafo-concierge.schema:schema.py:379 Failed to apply schema: no such table: main.agent_checkpoints
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_schema_manager_creates_agent_checkpoints
+================= 1 failed, 6 deselected, 1 warning in 3.97s ==================

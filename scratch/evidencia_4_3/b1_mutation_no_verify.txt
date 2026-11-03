@@ -1,0 +1,43 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 7 items / 6 deselected / 1 selected
+
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_verify_tables_exist_fails_if_agent_checkpoints_missing FAILED [100%]
+
+================================== FAILURES ===================================
+_ TestAgentCheckpointsOfficialSchema.test_verify_tables_exist_fails_if_agent_checkpoints_missing _
+
+self = <test_agent_checkpoints_schema.TestAgentCheckpointsOfficialSchema object at 0x0000024893E791D0>
+temp_db_path = 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmpgy2tvfu5\\test_checkpoints.db'
+
+    def test_verify_tables_exist_fails_if_agent_checkpoints_missing(self, temp_db_path):
+        """Simular ausência de agent_checkpoints deve levantar erro no boot do SchemaManager/Store."""
+        conn = sqlite3.connect(temp_db_path)
+        try:
+            mgr = SchemaManager(conn)
+            mgr.apply_full_schema()
+            # Drop da tabela para simular corrupção/ausência
+            conn.execute("DROP TABLE IF EXISTS agent_checkpoints;")
+            conn.commit()
+    
+            tables = mgr.verify_tables_exist()
+>           assert tables.get("agent_checkpoints") is False
+E           AssertionError: assert None is False
+E            +  where None = <built-in method get of dict object at 0x0000024893E582C0>('agent_checkpoints')
+E            +    where <built-in method get of dict object at 0x0000024893E582C0> = {'projects': True, 'nodes': True, 'edges': True, 'reference_wings': True, ...}.get
+
+tests\test_agent_checkpoints_schema.py:78: AssertionError
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_verify_tables_exist_fails_if_agent_checkpoints_missing
+================= 1 failed, 6 deselected, 1 warning in 4.11s ==================
+

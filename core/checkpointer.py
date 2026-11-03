@@ -34,6 +34,7 @@ class AgnosticCheckpointer:
     def __init__(self, db_manager: Any):
         self.db_manager = db_manager
         self.db = db_manager
+        self.last_error: Optional[str] = None
 
     # ── Non-Serializable Object Sanitization ───────────────────────
 
@@ -110,10 +111,11 @@ class AgnosticCheckpointer:
                     task_id = excluded.task_id;
             """
             write_fn = getattr(self.db, "execute_write", getattr(self.db, "write_query", None))
-            success, _ = write_fn(
+            success, res = write_fn(
                 query,
                 (checkpoint_id, session_id, agent_id, state_name, shared_state_json, task_id),
             )
+            self.last_error = None if success else (str(res) if res is not None else "Unknown write error")
             return bool(success)
         else:
             # Legacy SDD-07 Signature
@@ -135,12 +137,13 @@ class AgnosticCheckpointer:
                 state_blob = json.dumps(cleaned, ensure_ascii=False)
 
             write_fn = getattr(self.db, "write_query", getattr(self.db, "execute_write", None))
-            success, _ = write_fn(
+            success, res = write_fn(
                 "INSERT OR REPLACE INTO agent_checkpoints "
                 "(agent_id, session_id, checkpoint_id, state_blob) "
                 "VALUES (?, ?, ?, ?);",
                 (agent_id, session_id, checkpoint_id, state_blob),
             )
+            self.last_error = None if success else (str(res) if res is not None else "Unknown write error")
             return bool(success)
 
     # ── State Retrieval (SDD-20) ───────────────────────────────────
@@ -246,7 +249,7 @@ class AgnosticCheckpointer:
         rows = self.db_manager.read_query(
             "SELECT checkpoint_id, created_at FROM agent_checkpoints "
             "WHERE agent_id = ? AND session_id = ? "
-            "ORDER BY created_at ASC;",
+            "ORDER BY created_at ASC, rowid ASC;",
             (agent_id, session_id),
         )
         return [

@@ -1,0 +1,24 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 7 items
+
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_schema_manager_creates_agent_checkpoints PASSED [ 14%]
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_verify_tables_exist_fails_if_agent_checkpoints_missing PASSED [ 28%]
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_migration_preserves_existing_data PASSED [ 42%]
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_e2e_checkpointer_and_mcp_tools PASSED [ 57%]
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_save_checkpoint_failure_message_includes_reason PASSED [ 71%]
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_list_checkpoints_rapid_sequence_order PASSED [ 85%]
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_insert_or_replace_updates_order_and_rowid PASSED [100%]
+
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 7 passed, 1 warning in 5.28s =========================
+

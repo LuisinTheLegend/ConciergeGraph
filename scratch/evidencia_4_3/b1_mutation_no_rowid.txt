@@ -1,0 +1,61 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 7 items / 6 deselected / 1 selected
+
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_list_checkpoints_rapid_sequence_order FAILED [100%]
+
+================================== FAILURES ===================================
+_ TestAgentCheckpointsOfficialSchema.test_list_checkpoints_rapid_sequence_order _
+
+self = <test_agent_checkpoints_schema.TestAgentCheckpointsOfficialSchema object at 0x0000029F6C294F30>
+temp_db_path = 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmpymgy_nn7\\test_checkpoints.db'
+
+    def test_list_checkpoints_rapid_sequence_order(self, temp_db_path):
+        """Checkpoints gravados em ordem não-alfabética devem preservar ordem cronológica por rowid ASC."""
+        conn = sqlite3.connect(temp_db_path)
+        try:
+            SchemaManager(conn).apply_full_schema()
+            # Drop do índice secundário para exercitar plano que expõe ausência de rowid ASC
+            conn.execute("DROP INDEX IF EXISTS idx_agent_checkpoints_lookup;")
+            conn.commit()
+        finally:
+            conn.close()
+    
+        db_mgr = ConciergeDatabaseManager(temp_db_path)
+        checkpointer = AgnosticCheckpointer(db_mgr)
+        ids_to_insert = [f"step_{21-i:02d}" for i in range(1, 21)]
+        for cid in ids_to_insert:
+            ok = checkpointer.save_checkpoint("agent_fast", "sess_seq", cid, {"data": cid})
+            assert ok is True
+    
+        listing = checkpointer.list_checkpoints("agent_fast", "sess_seq")
+        assert len(listing) == 20
+        returned_ids = [c["checkpoint_id"] for c in listing]
+>       assert returned_ids == ids_to_insert, f"Ordem esperada: {ids_to_insert}, obtida: {returned_ids}"
+E       AssertionError: Ordem esperada: ['step_20', 'step_19', 'step_18', 'step_17', 'step_16', 'step_15', 'step_14', 'step_13', 'step_12', 'step_11', 'step_10', 'step_09', 'step_08', 'step_07', 'step_06', 'step_05', 'step_04', 'step_03', 'step_02', 'step_01'], obtida: ['step_01', 'step_02', 'step_03', 'step_04', 'step_05', 'step_06', 'step_07', 'step_08', 'step_09', 'step_10', 'step_11', 'step_12', 'step_13', 'step_14', 'step_15', 'step_16', 'step_17', 'step_18', 'step_19', 'step_20']
+E       assert ['step_01', '...step_06', ...] == ['step_20', '...step_15', ...]
+E         
+E         At index 0 diff: 'step_01' != 'step_20'
+E         
+E         Full diff:
+E           [
+E         +     'step_01',
+E         +     'step_02',...
+E         
+E         ...Full output truncated (38 lines hidden), use '-vv' to show
+
+tests\test_agent_checkpoints_schema.py:242: AssertionError
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_list_checkpoints_rapid_sequence_order
+================= 1 failed, 6 deselected, 1 warning in 4.42s ==================
+

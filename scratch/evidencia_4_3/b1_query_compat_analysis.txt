@@ -1,0 +1,16 @@
+ANALISE DE COMPATIBILIDADE DAS CONSULTAS A agent_checkpoints:
+1. core/checkpointer.py:
+   - Line 139: INSERT OR REPLACE INTO agent_checkpoints (agent_id, session_id, checkpoint_id, state_blob) VALUES (?, ?, ?, ?);
+   - Line 227: SELECT state_blob FROM agent_checkpoints WHERE agent_id = ? AND session_id = ? AND checkpoint_id = ?;
+   - Line 247: SELECT checkpoint_id, created_at FROM agent_checkpoints WHERE agent_id = ? AND session_id = ? ORDER BY created_at ASC;
+   Compatibilidade com DDL proposto: 100% compativel.
+
+2. core/background_janitor.py:
+   - Line 143: SELECT DISTINCT session_id FROM agent_checkpoints;
+   - Line 161: SELECT checkpoint_id FROM agent_checkpoints WHERE session_id = ? ORDER BY created_at ASC;
+   - Line 194: DELETE FROM agent_checkpoints WHERE session_id = ? AND checkpoint_id IN (...);
+   Compatibilidade com DDL proposto: 100% compativel.
+
+3. interface/telemetry_api.py:
+   - Line 183: SELECT agent_id, session_id, checkpoint_id, timestamp FROM agent_checkpoints ORDER BY timestamp ASC;
+   Divergencia identificada: consulta a coluna 'timestamp' em vez de 'created_at'. Conforme instrucao da Rodada 4.3, 'timestamp' NAO deve ser adicionado ao DDL; a divergencia sera documentada no relatorio (modulo destinado a quarentena na 4.5).
