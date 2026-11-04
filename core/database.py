@@ -30,14 +30,8 @@ class ConciergeDatabaseManager:
         self._init_tables()
 
     def _init_tables(self):
-        """Creates tables via write queue or direct connection, respecting single-writer rule."""
-        self.write_query(
-            "CREATE TABLE IF NOT EXISTS test_log ("
-            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-            "thread_name TEXT, "
-            "val INTEGER"
-            ");",
-        )
+        """No-op: Schema creation is managed exclusively by SchemaManager (storage/schema.py)."""
+        pass
 
     def read_query(self, query: str, params: tuple = ()):
         """Fast concurrent read query directly from database (bypasses write queue)."""

@@ -1,0 +1,60 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 1 item
+
+tests/test_concurrency_stress.py::TestCleanDatabaseManagerSchema::test_clean_manager_does_not_leak_test_log FAILED [100%]
+
+================================== FAILURES ===================================
+__ TestCleanDatabaseManagerSchema.test_clean_manager_does_not_leak_test_log ___
+
+self = <test_concurrency_stress.TestCleanDatabaseManagerSchema testMethod=test_clean_manager_does_not_leak_test_log>
+
+    def test_clean_manager_does_not_leak_test_log(self):
+        """
+        Garante que ConciergeDatabaseManager n�o polui o banco com a tabela test_log.
+        Tabelas de produ��o criadas pelo SchemaManager oficial devem permanecer intactas.
+        """
+        from storage.schema import SchemaManager
+    
+        fd, db_path = tempfile.mkstemp(suffix=".db")
+        os.close(fd)
+        try:
+            # 1. Aplica o schema oficial v3.8.0 + tabelas relacionais oficiais
+            import sqlite3
+            conn = sqlite3.connect(db_path)
+            try:
+                sm = SchemaManager(conn)
+                sm.apply_full_schema()
+            finally:
+                conn.close()
+    
+            # 2. Instancia o ConciergeDatabaseManager de produ��o
+            db_mgr = ConciergeDatabaseManager(db_path)
+    
+            # 3. Consulta tabelas em sqlite_master
+            rows = db_mgr.read_query("SELECT name FROM sqlite_master WHERE type='table';")
+            table_names = [r[0] for r in rows]
+    
+            # 4. Asser��o principal: test_log N�O deve existir
+>           self.assertNotIn(
+                "test_log",
+                table_names,
+                "Tabela de teste 'test_log' vazou no schema de produ��o!",
+            )
+E           AssertionError: 'test_log' unexpectedly found in ['projects', 'nodes', 'sqlite_sequence', 'edges', 'reference_wings', 'trajectories', 'commit_log', 'user_core_memory', 'semantic_facts', 'agent_checkpoints', 'nodes_fts', 'nodes_fts_data', 'nodes_fts_idx', 'nodes_fts_docsize', 'nodes_fts_config', 'test_log'] : Tabela de teste 'test_log' vazou no schema de produ��o!
+
+tests\test_concurrency_stress.py:153: AssertionError
+============================== warnings summary ===============================
+tests/test_concurrency_stress.py::TestCleanDatabaseManagerSchema::test_clean_manager_does_not_leak_test_log
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_concurrency_stress.py::TestCleanDatabaseManagerSchema::test_clean_manager_does_not_leak_test_log
+======================== 1 failed, 1 warning in 3.24s =========================
+

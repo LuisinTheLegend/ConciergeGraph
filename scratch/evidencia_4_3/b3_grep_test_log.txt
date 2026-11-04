@@ -1,0 +1,35 @@
+audits/backlog-final.md:163:- **Mecanismo da Falha:** `storage/schema.py::SchemaManager.apply_full_schema()` define apenas 8 tabelas legadas (`projects`, `nodes`, `edges`, etc.). Nenhuma instrução DDL de produção cria `files`, `communities`, `ast_edges`, `agent_checkpoints` e `fsm_checkpoints`. `ConciergeDatabaseManager._init_tables()` cria apenas a tabela temporária `test_log`.
+audits/cruzamento-modulos.md:35:### 1.2 Dimensão de Schema: `_init_tables()` Cria Apenas `test_log`
+audits/cruzamento-modulos.md:39:| [`schema-oficial-incompleto.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/schema-oficial-incompleto.md) | #1, #2, #3 | O bootstrap oficial cria apenas 8 tabelas (Silo 1 / Storage v3.8.0). As 5 tabelas de `core/` (`files`, `communities`, `ast_edges`, `agent_checkpoints`, `fsm_checkpoints`) não existem. `_init_tables()` cria apenas `test_log`. |
+audits/cruzamento-modulos.md:57:│   │ → sqlite3.connect │          │   CREATE test_log │       │
+audits/cruzamento-modulos.md:76:**Veredicto:** `ConciergeDatabaseManager` é uma **fachada vazia** — nem a camada de escrita (zero fila, zero FKs, conexões efêmeras) nem a de schema (`_init_tables` cria `test_log`, nada mais) cumprem o que a documentação `01_ARCHITECTURE.md` especifica. Em produção, ele simultaneamente **corrompe** a integridade do banco (por colisão com a fila real de `storage/`) e **falha catastroficamente** (por escrever em tabelas inexistentes).
+audits/duplicacao-serialized-write-queue.md:213:  Linhas na tabela 'test_log' (DatabaseManager): 421 (vs 421 sucessos)
+audits/fase4-0b-prova-de-execucao.md:223:| `test_log` | 0 | 0 | `JanitorService` |
+audits/interface-telemetry-api.md:51:  `['projects', 'nodes', 'edges', 'reference_wings', 'trajectories', 'commit_log', 'user_core_memory', 'semantic_facts', 'test_log']`.
+audits/schema-oficial-incompleto.md:35:| **1** | [`storage/schema.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/schema.py)<br>[`storage/store.py`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py)<br>[`core/database.py`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py) | `schema.py:51–144, 285–305`<br>`store.py:91–107`<br>`database.py:32–41` | 🔴 **CRÍTICA MÁXIMA** | **Omissão Estrutural de 5 Tabelas Relacionais no Bootstrap Oficial**: O schema oficial de produção define apenas 8 tabelas legadas + 1 FTS5. As tabelas `files`, `communities`, `ast_edges`, `agent_checkpoints` e `fsm_checkpoints` não possuem DDL em nenhum arquivo de inicialização de produção. `ConciergeDatabaseManager._init_tables()` cria apenas a tabela temporária `test_log`. | **CONFIRMADO E REPRODUZIDO** |
+audits/schema-oficial-incompleto.md:76:    "CREATE TABLE IF NOT EXISTS test_log ("
+audits/schema-oficial-incompleto.md:283:     Tabelas adicionadas por ConciergeDatabaseManager._init_tables(): ['test_log']
+audits/schema-oficial-incompleto.md:345:  [core\database.py:35] "CREATE TABLE IF NOT EXISTS test_log ("
+audits/schema-oficial-incompleto.md:359:  3. core/database.py cria apenas test_log.
+core/database.py:35:            "CREATE TABLE IF NOT EXISTS test_log ("
+scratch/build_fase4_0b_doc.py:206:    p("| `test_log` | 0 | 0 | `JanitorService` |")
+scratch/evidencia_4_2/p3_matrix_run.txt:1893:Tabelas no Estado L: ['commit_log', 'edges', 'nodes', 'projects', 'reference_wings', 'semantic_facts', 'test_log', 'trajectories', 'user_core_memory']
+scratch/evidencia_4_2/p3_matrix_run.txt:2145:Tabelas existentes: ['commit_log', 'edges', 'nodes', 'projects', 'reference_wings', 'semantic_facts', 'test_log', 'trajectories', 'user_core_memory']
+scratch/evidencia_4_2i/apply_b1_changes.py:396:p_test_logic = pathlib.Path("tests/test_storage_logic.py")
+scratch/evidencia_4_2i/apply_b1_changes.py:397:tl_text = p_test_logic.read_text(encoding="utf-8")
+scratch/evidencia_4_2i/apply_b1_changes.py:448:p_test_logic.write_text(tl_text, encoding="utf-8")
+scratch/fase3_redo_inventory.json:819:   "mech": "Omissão Estrutural de 5 Tabelas Relacionais no Bootstrap Oficial: O schema oficial de produção define apenas 8 tabelas legadas + 1 FTS5. As tabelas files, communities, ast_edges, agent_checkpoints e fsm_checkpoints não possuem DDL em nenhum arquivo de inicialização de produção. ConciergeDatabaseManager._init_tables() cria apenas a tabela temporária test_log."
+scratch/fase4_0c_matrix_results.json:10:      "test_log",
+scratch/fase4_0c_matrix_results.json:36:      "test_log",
+scratch/probe_runtime_results.json:87:      "test_log",
+scratch/probe_runtime_results.json:110:      "test_log",
+scratch/reproduce_schema_incompleto.py:351:    print("  3. core/database.py cria apenas test_log.")
+scratch/test_duplicate_queue.py:190:    # Thread 2: ConciergeDatabaseManager com InterfaceWriteQueue inserindo em 'test_log'
+scratch/test_duplicate_queue.py:198:                    "INSERT INTO test_log (thread_name, val) VALUES (?, ?);",
+scratch/test_duplicate_queue.py:217:                    "INSERT INTO test_log (thread_name, val) VALUES (?, ?);",
+scratch/test_duplicate_queue.py:255:    log_count = conn_verify.execute("SELECT COUNT(*) FROM test_log;").fetchone()[0]
+scratch/test_duplicate_queue.py:285:    print(f"  Linhas na tabela 'test_log' (DatabaseManager): {log_count} (vs {expected_logs} sucessos)")
+tests/test_concurrency_stress.py:91:                    "INSERT INTO test_log (thread_name, val) VALUES (?, ?);",
+tests/test_concurrency_stress.py:115:        rows = self.db_manager.read_query("SELECT COUNT(*) FROM test_log;")
+walkthrough.md:615:| 1 | **CRÍTICA MÁXIMA** | [`storage/schema.py:51–144`](file:///c:/Nexus-Memory/GrafoConcierge/storage/schema.py#L51) e [`core/database.py:32–41`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py#L32) — **Omissão Estrutural de 5 Tabelas Relacionais no Bootstrap Oficial**: O schema oficial de produção define apenas as 8 tabelas legadas v3.8.0. As tabelas `files`, `communities`, `ast_edges`, `agent_checkpoints` e `fsm_checkpoints` não possuem DDL em nenhum arquivo de produção. `ConciergeDatabaseManager._init_tables()` cria apenas a tabela temporária `test_log`. |
+walkthrough.md:713:  2. **Camada de Schema Inexistente:** O método `_init_tables()` cria exclusivamente a tabela `test_log`, omitindo 100% das 5 tabelas operacionais exigidas pelo `core/*` (`files`, `communities`, `ast_edges`, `agent_checkpoints`, `fsm_checkpoints`).
