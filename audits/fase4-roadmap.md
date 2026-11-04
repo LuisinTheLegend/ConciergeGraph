@@ -49,7 +49,7 @@ Preferências do dono: honestidade acima de tudo, caminho mais eficiente e profi
 | 4.2j | `b360bb9` (I1), `4313351` (I2), `ca110d4` (I3/4/5) | Item 1 (F4-026): migração atômica FTS e consistência na inicialização; Item 2 (F4-027): remoção de filtro AND/OR/NOT/NEAR no builder FTS; Item 3: errata-4-2i; Item 4: prova de mutação F4-017 e scipy; Item 5: medições SQLite e ambiente | Em verificação independente | — |
 | 4.2k | `a902e78`, `3f63805` | Correção documental da errata-4-2i (citações verbatim com arquivo:linha, separação chat vs arquivo versionado, diffs reais, rastreabilidade e causa do skip Qdrant); Regra 14 no AUDIT_PROTOCOL.md | Concluída | — |
 | 4.2l | `1c81fdc` | Ajustes documentais finais da errata-4-2i sob Regra 14: retificação de frases sem comprovação ("origem não determinada"), resíduo de relatorio_4_2j.md:65, comprovação da inexistência de test_is_safe_path_security e atualização da tabela de rastreabilidade | Concluída | — |
-| 4.3 | — | DDL só de `agent_checkpoints`; reimplementar `concierge_get_call_chain` sobre `edges`/`nodes` (caminhos de arquivo, só `calls`) | PLANEJADO, NÃO AUTORIZADO | — |
+| 4.3 | `f17cc7d` (B0), `d63b638` (B1), `f25d319` (B2), `ad39881` (B3) | Bloco 0 (documental: F4-018, errata §§13-14, relatorio_4_2k UTF-8 puro); Bloco 1 (schema oficial DDL `agent_checkpoints`, índice, `verify_tables_exist`, `last_error`, ordenação determinística); Bloco 2 (reimplementação de call chain sobre `edges`/`nodes` canônicos, Opção A escopo estrito de projeto, proteção de ciclo, relation_type='calls', 1..10 profundidade); Bloco 3 (remoção de `test_log` de `core/database.py` e isolamento em teste) | Concluída pelo executor, aguardando verificação independente | — |
 | 4.4 | — | Remover `wing_keywords` de vez, com teste-guarda e regra de neutralidade no protocolo/CONTRIBUTING | PLANEJADO, NÃO AUTORIZADO | — |
 | 4.5 | — | Quarentena do código dormente em `archive/v4-experimental` (após 4.2) | PLANEJADO, NÃO AUTORIZADO | — |
 
@@ -80,6 +80,7 @@ Preferências do dono: honestidade acima de tudo, caminho mais eficiente e profi
 | F4-025 | CI vermelho em ambiente limpo (openai ausente em dev/all, is_safe_path cross-platform, BL-015 sem xfail estrito) | MÉDIA | corrigido pelo executor, aguardando verificação independente | `pyproject.toml`, `core/security_guard.py`, `tests/test_adaptive_gating.py`, `tests/test_progressive_tool_disclosure.py`, `scratch/evidencia_4_2i/` |
 | F4-026 | Migração FTS não-atômica deixava índice vazio após queda; verificação de consistência na inicialização | MÉDIA | corrigido pelo executor, aguardando verificação independente | `storage/schema.py`, `tests/test_fts_atomic_migration.py`, `scratch/evidencia_4_2j/` |
 | F4-027 | Filtro de AND/OR/NOT/NEAR no builder FTS impedia buscas com termos literais legítimos | BAIXA | corrigido pelo executor, aguardando verificação independente | `storage/logic.py`, `tests/test_fts_code_search.py`, `scratch/evidencia_4_2j/` |
+| BL-006 | Checkpoints salvos fora da fila serializada SerializedWriteQueue (risco de lock sob concorrência) | MÉDIA | ABERTO (registrado na 4.3) | `core/checkpointer.py:113-114, 139-140, 206-209`, `interface/mcp_server.py:164-166`, `audits/fase4-achados.md` |
 
 
 ## 5. Verificação independente da 4.1/E (2026-10-20)
