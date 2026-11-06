@@ -44,7 +44,7 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
   git grep -n "INSERT INTO ast_edges" -- ":!tests" ":!scratch" ":!audits"
   ```
   Saída literal: Vazia (zero resultados em produção).
-- **Status:** **CONFIRMADO**
+- **Status:** **corrigido pelo executor, aguardando verificação independente** (Reimplementação de `concierge_get_call_chain` sobre tabelas canônicas `edges` e `nodes` na Rodada 4.3/4.3b)
 
 ---
 
@@ -140,7 +140,7 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
   agent_list_checkpoints -> EXCEÇÃO (OperationalError: no such table: agent_checkpoints)
   agent_save_checkpoint -> ERRO DE NEGÓCIO (captura exceção interna e retorna success: false)
   ```
-- **Status:** **CONFIRMADO** (Correção agendada para Rodada 4.3 conforme Caminho B)
+- **Status:** **corrigido pelo executor, aguardando verificação independente** (Adicionado DDL e validações no SchemaManager na Rodada 4.3, e isolamento thread-safe na 4.3b)
 
 ---
 
