@@ -263,3 +263,105 @@ class TestAgentCheckpointsOfficialSchema:
         updated_list = [c["checkpoint_id"] for c in checkpointer.list_checkpoints("agent_repl", "sess_repl")]
         # Em SQLite, REPLACE deleta o registro antigo e reinsere com novo rowid, movendo-o para o final
         assert updated_list == ["cp_b", "cp_c", "cp_a"]
+
+    def test_concurrent_save_checkpoint_does_not_mix_errors(self, temp_db_path):
+        """Duas threads chamando save simultaneamente no mesmo checkpointer não misturam erros."""
+        import threading
+
+        conn = sqlite3.connect(temp_db_path)
+        try:
+            SchemaManager(conn).apply_full_schema()
+        finally:
+            conn.close()
+
+        db_mgr = ConciergeDatabaseManager(temp_db_path)
+        checkpointer = AgnosticCheckpointer(db_mgr)
+
+        orig_write_query = db_mgr.write_query
+
+        def mock_write_query(query, params):
+            agent_id = params[0] if params else ""
+            if agent_id == "thread_1":
+                time.sleep(0.05)
+                return False, "OperationalError: custom error for thread 1"
+            elif agent_id == "thread_2":
+                time.sleep(0.02)
+                return False, "OperationalError: custom error for thread 2"
+            return orig_write_query(query, params)
+
+        db_mgr.write_query = mock_write_query
+
+        results = {}
+
+        def worker(agent_id, res_key):
+            success, err = checkpointer.save_checkpoint_detailed(
+                agent_id, "sess_conc", f"cp_{agent_id}", {"state": 1}
+            )
+            results[res_key] = (success, err)
+
+        t1 = threading.Thread(target=worker, args=("thread_1", "t1"))
+        t2 = threading.Thread(target=worker, args=("thread_2", "t2"))
+
+        t1.start()
+        t2.start()
+        t1.join()
+        t2.join()
+
+        assert results["t1"][0] is False
+        assert "thread 1" in str(results["t1"][1])
+        assert "thread 2" not in str(results["t1"][1])
+
+        assert results["t2"][0] is False
+        assert "thread 2" in str(results["t2"][1])
+        assert "thread 1" not in str(results["t2"][1])
+
+        # Testar também através da ferramenta MCP agent_save_checkpoint
+        orig_cp = mcp_server.checkpointer
+        try:
+            mcp_server.checkpointer = checkpointer
+            mcp_results = {}
+
+            def mcp_worker(agent_id, res_key):
+                resp_str = mcp_server.agent_save_checkpoint(
+                    agent_id, "sess_conc_mcp", f"cp_{agent_id}", {"state": 2}
+                )
+                mcp_results[res_key] = json.loads(resp_str)
+
+            mt1 = threading.Thread(target=mcp_worker, args=("thread_1", "t1"))
+            mt2 = threading.Thread(target=mcp_worker, args=("thread_2", "t2"))
+
+            mt1.start()
+            mt2.start()
+            mt1.join()
+            mt2.join()
+
+            assert mcp_results["t1"]["success"] is False
+            assert "thread 1" in mcp_results["t1"]["message"]
+            assert "thread 2" not in mcp_results["t1"]["message"]
+
+            assert mcp_results["t2"]["success"] is False
+            assert "thread 2" in mcp_results["t2"]["message"]
+            assert "thread 1" not in mcp_results["t2"]["message"]
+        finally:
+            mcp_server.checkpointer = orig_cp
+
+    def test_save_checkpoint_legacy_wrapper(self, temp_db_path):
+        """Wrapper save_checkpoint mantém retrocompatibilidade de assinatura bool e last_error."""
+        conn = sqlite3.connect(temp_db_path)
+        try:
+            SchemaManager(conn).apply_full_schema()
+        finally:
+            conn.close()
+
+        db_mgr = ConciergeDatabaseManager(temp_db_path)
+        checkpointer = AgnosticCheckpointer(db_mgr)
+
+        ok = checkpointer.save_checkpoint("agent_leg", "sess_leg", "cp_leg", {"ok": True})
+        assert ok is True
+        assert checkpointer.last_error is None
+
+        # Simular falha
+        db_mgr.write_query = lambda q, p: (False, "fail simulation")
+        fail = checkpointer.save_checkpoint("agent_leg", "sess_leg", "cp_leg_fail", {"ok": False})
+        assert fail is False
+        assert checkpointer.last_error == "fail simulation"

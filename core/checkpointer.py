@@ -20,7 +20,7 @@ Design Invariants:
 import json
 import logging
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -57,19 +57,15 @@ class AgnosticCheckpointer:
 
     # ── State Recording (SDD-20 & SDD-07 Hybrid) ───────────────────
 
-    def save_checkpoint(
+    def save_checkpoint_detailed(
         self,
         *args,
         **kwargs,
-    ) -> bool:
+    ) -> Tuple[bool, Optional[str]]:
         """
         Atomically saves complete snapshot of agent variables and FSM mental state
-        into SQLite WAL.
-
-        Supports both extended FSM signature (SDD-20):
-            save_checkpoint(session_id, checkpoint_id, agent_id, state_name, shared_state, task_id=None)
-        and legacy agnostic signature (SDD-07):
-            save_checkpoint(agent_id, session_id, checkpoint_id, state_dict)
+        into SQLite WAL, returning (success, error_message) per call to eliminate
+        shared state concurrency race conditions.
         """
         is_sdd20 = (
             "state_name" in kwargs
@@ -115,8 +111,8 @@ class AgnosticCheckpointer:
                 query,
                 (checkpoint_id, session_id, agent_id, state_name, shared_state_json, task_id),
             )
-            self.last_error = None if success else (str(res) if res is not None else "Unknown write error")
-            return bool(success)
+            err = None if success else (str(res) if res is not None else "Unknown write error")
+            return bool(success), err
         else:
             # Legacy SDD-07 Signature
             if len(args) >= 4:
@@ -143,8 +139,23 @@ class AgnosticCheckpointer:
                 "VALUES (?, ?, ?, ?);",
                 (agent_id, session_id, checkpoint_id, state_blob),
             )
-            self.last_error = None if success else (str(res) if res is not None else "Unknown write error")
-            return bool(success)
+            err = None if success else (str(res) if res is not None else "Unknown write error")
+            return bool(success), err
+
+    def save_checkpoint(
+        self,
+        *args,
+        **kwargs,
+    ) -> bool:
+        """
+        Atomically saves complete snapshot of agent variables and FSM mental state
+        into SQLite WAL.
+
+        Legacy wrapper returning bool, updating self.last_error for backward compatibility.
+        """
+        success, err = self.save_checkpoint_detailed(*args, **kwargs)
+        self.last_error = err
+        return success
 
     # ── State Retrieval (SDD-20) ───────────────────────────────────
 

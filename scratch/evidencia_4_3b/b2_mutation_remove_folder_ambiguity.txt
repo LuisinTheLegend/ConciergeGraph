@@ -1,0 +1,42 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 1 item
+
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_duplicate_folder_name_raises_ambiguity_error FAILED [100%]
+
+================================== FAILURES ===================================
+__ TestCallChainEdgesNodes.test_duplicate_folder_name_raises_ambiguity_error __
+
+self = <test_call_chain_edges_nodes.TestCallChainEdgesNodes object at 0x000001AFB2728500>
+temp_db_env = {'path': 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmpp3qkzq4m.db', 'db_mgr': <core.database.ConciergeDatabaseManager o...e.SqliteStore object at 0x000001AFB25EE120>, 'graph_rag': <core.graph_rag.GraphRAGEngine object at 0x000001AFB25EE7B0>}
+
+    def test_duplicate_folder_name_raises_ambiguity_error(self, temp_db_env):
+        """Item 3.4 (2c): se múltiplos projetos compartilham folder_name, project_identifier por nome levanta ValueError."""
+        store: SqliteStore = temp_db_env["store"]
+        graph_rag: GraphRAGEngine = temp_db_env["graph_rag"]
+    
+        store.create_project(uuid="uuid-dupl-1", folder_name="common_name")
+        store.create_project(uuid="uuid-dupl-2", folder_name="common_name")
+    
+        store.create_node("uuid-dupl-1", label="src/mod.py", node_type="MODULE")
+        store.create_node("uuid-dupl-2", label="src/mod.py", node_type="MODULE")
+    
+>       with pytest.raises(ValueError) as exc:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_call_chain_edges_nodes.py:318: Failed
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_duplicate_folder_name_raises_ambiguity_error
+======================== 1 failed, 1 warning in 2.90s =========================
+

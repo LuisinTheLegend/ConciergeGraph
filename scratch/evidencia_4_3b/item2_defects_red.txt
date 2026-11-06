@@ -1,0 +1,58 @@
+
+FFFFF
+======================================================================
+FAIL: test_2a_origin_file_appears_when_start_is_symbol (__main__.TestCallChainDefectsReproduction.test_2a_origin_file_appears_when_start_is_symbol)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Nexus-Memory\GrafoConcierge\scratch\reproduce_item2_defects.py", line 48, in test_2a_origin_file_appears_when_start_is_symbol
+    self.assertNotIn("a.py", chain, f"Defect 2a reproduced: origin file 'a.py' is in result: {chain}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'a.py' unexpectedly found in ['a.py', 'b.py'] : Defect 2a reproduced: origin file 'a.py' is in result: ['a.py', 'b.py']
+
+======================================================================
+FAIL: test_2b_like_wildcard_collision (__main__.TestCallChainDefectsReproduction.test_2b_like_wildcard_collision)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Nexus-Memory\GrafoConcierge\scratch\reproduce_item2_defects.py", line 67, in test_2b_like_wildcard_collision
+    self.assertEqual(chain, [], f"Defect 2b reproduced: unescaped LIKE matched aXb.py and returned {chain}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['z.py'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'z.py'
+
+- ['z.py']
++ [] : Defect 2b reproduced: unescaped LIKE matched aXb.py and returned ['z.py']
+
+======================================================================
+FAIL: test_2c_duplicate_folder_name_must_raise_error (__main__.TestCallChainDefectsReproduction.test_2c_duplicate_folder_name_must_raise_error)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Nexus-Memory\GrafoConcierge\scratch\reproduce_item2_defects.py", line 76, in test_2c_duplicate_folder_name_must_raise_error
+    with self.assertRaises(ValueError) as ctx:
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_2d_ambiguity_message_does_not_contain_names_or_uuids (__main__.TestCallChainDefectsReproduction.test_2d_ambiguity_message_does_not_contain_names_or_uuids)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Nexus-Memory\GrafoConcierge\scratch\reproduce_item2_defects.py", line 90, in test_2d_ambiguity_message_does_not_contain_names_or_uuids
+    self.assertNotIn("folder_secret_1", msg, f"Defect 2d reproduced: leaked folder name: {msg}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'folder_secret_1' unexpectedly found in "Ambiguous start_node 'shared.py' found in multiple projects: ['folder_secret_1' (u-secret-1), 'folder_secret_2' (u-secret-2)]. Please specify project_identifier." : Defect 2d reproduced: leaked folder name: Ambiguous start_node 'shared.py' found in multiple projects: ['folder_secret_1' (u-secret-1), 'folder_secret_2' (u-secret-2)]. Please specify project_identifier.
+
+======================================================================
+FAIL: test_2e_reject_bool_depth_limit (__main__.TestCallChainDefectsReproduction.test_2e_reject_bool_depth_limit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Nexus-Memory\GrafoConcierge\scratch\reproduce_item2_defects.py", line 101, in test_2e_reject_bool_depth_limit
+    with self.assertRaises((ValueError, TypeError)):
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (<class 'ValueError'>, <class 'TypeError'>) not raised
+
+----------------------------------------------------------------------
+Ran 5 tests in 1.661s
+
+FAILED (failures=5)

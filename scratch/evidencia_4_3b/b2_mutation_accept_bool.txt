@@ -1,0 +1,41 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 1 item
+
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_invalid_depth_limit_raises_clear_error FAILED [100%]
+
+================================== FAILURES ===================================
+_____ TestCallChainEdgesNodes.test_invalid_depth_limit_raises_clear_error _____
+
+self = <test_call_chain_edges_nodes.TestCallChainEdgesNodes object at 0x000001C16D35D590>
+temp_db_env = {'path': 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmpkxxcm_mf.db', 'db_mgr': <core.database.ConciergeDatabaseManager o...e.SqliteStore object at 0x000001C16D24E120>, 'graph_rag': <core.graph_rag.GraphRAGEngine object at 0x000001C16D24E7B0>}
+
+    def test_invalid_depth_limit_raises_clear_error(self, temp_db_env):
+        """Teste 7: profundidade inválida (< 1 ou > 10, ou booleano) devolve erro claro."""
+        graph_rag: GraphRAGEngine = temp_db_env["graph_rag"]
+    
+        for invalid_depth in [0, -1, -5, 11, 20, True, False]:
+            with pytest.raises(ValueError) as excinfo:
+                graph_rag.get_call_chain_recursive("src/a.py", depth_limit=invalid_depth)
+>           assert "depth_limit" in str(excinfo.value).lower()
+E           assert 'depth_limit' in "start node 'src/a.py' not found."
+E            +  where "start node 'src/a.py' not found." = <built-in method lower of str object at 0x000001C16D394A30>()
+E            +    where <built-in method lower of str object at 0x000001C16D394A30> = "Start node 'src/a.py' not found.".lower
+E            +      where "Start node 'src/a.py' not found." = str(ValueError("Start node 'src/a.py' not found."))
+E            +        where ValueError("Start node 'src/a.py' not found.") = <ExceptionInfo ValueError("Start node 'src/a.py' not found.") tblen=2>.value
+
+tests\test_call_chain_edges_nodes.py:204: AssertionError
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_invalid_depth_limit_raises_clear_error
+======================== 1 failed, 1 warning in 2.72s =========================
+

@@ -1,0 +1,57 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 1 item
+
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_paths_with_wildcards_underscore_percent_and_backslash FAILED [100%]
+
+================================== FAILURES ===================================
+_ TestCallChainEdgesNodes.test_paths_with_wildcards_underscore_percent_and_backslash _
+
+self = <test_call_chain_edges_nodes.TestCallChainEdgesNodes object at 0x00000201945F8320>
+temp_db_env = {'path': 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmpeloey_9v.db', 'db_mgr': <core.database.ConciergeDatabaseManager o...e.SqliteStore object at 0x00000201944BE120>, 'graph_rag': <core.graph_rag.GraphRAGEngine object at 0x00000201944BE7B0>}
+
+    def test_paths_with_wildcards_underscore_percent_and_backslash(self, temp_db_env):
+        r"""Item 3.3 (2b): caminhos contendo curingas (_, %, \) não colidem e são tratados como literais exatos."""
+        store: SqliteStore = temp_db_env["store"]
+        graph_rag: GraphRAGEngine = temp_db_env["graph_rag"]
+    
+        store.create_project(uuid="proj-wildcards", folder_name="wildcards")
+    
+        # Cenário com underscore
+        id_ab = store.create_node("proj-wildcards", label="src/a_b.py", node_type="MODULE")
+        id_ab_x = store.create_node("proj-wildcards", label="src/a_b.py::x", node_type="FUNCTION")
+        id_axb = store.create_node("proj-wildcards", label="src/aXb.py", node_type="MODULE")
+        id_axb_y = store.create_node("proj-wildcards", label="src/aXb.py::y", node_type="FUNCTION")
+        id_target_z = store.create_node("proj-wildcards", label="src/z.py", node_type="MODULE")
+        id_target_zz = store.create_node("proj-wildcards", label="src/z.py::zz", node_type="FUNCTION")
+    
+        store.create_edge(id_axb_y, id_target_zz, relation_type="calls")
+    
+        # Início por a_b.py não pode colidir com aXb.py
+        chain_ab = graph_rag.get_call_chain_recursive("src/a_b.py", depth_limit=5)
+>       assert chain_ab == []
+E       AssertionError: assert ['src/z.py'] == []
+E         
+E         Left contains one more item: 'src/z.py'
+E         
+E         Full diff:
+E         - []
+E         + [
+E         +     'src/z.py',
+E         + ]
+
+tests\test_call_chain_edges_nodes.py:287: AssertionError
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_paths_with_wildcards_underscore_percent_and_backslash
+======================== 1 failed, 1 warning in 2.77s =========================
+

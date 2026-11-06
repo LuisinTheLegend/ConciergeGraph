@@ -1,0 +1,53 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 1 item
+
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_symbol_start_excludes_origin_file_but_traverses_intrafile_callees FAILED [100%]
+
+================================== FAILURES ===================================
+_ TestCallChainEdgesNodes.test_symbol_start_excludes_origin_file_but_traverses_intrafile_callees _
+
+self = <test_call_chain_edges_nodes.TestCallChainEdgesNodes object at 0x0000029D54358050>
+temp_db_env = {'path': 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmp5ngz8qpz.db', 'db_mgr': <core.database.ConciergeDatabaseManager o...e.SqliteStore object at 0x0000029D5421A120>, 'graph_rag': <core.graph_rag.GraphRAGEngine object at 0x0000029D5421A7B0>}
+
+    def test_symbol_start_excludes_origin_file_but_traverses_intrafile_callees(self, temp_db_env):
+        """Item 3.2 (2a): início por símbolo exclui o arquivo de origem do resultado, mas atravessa símbolos do mesmo arquivo."""
+        store: SqliteStore = temp_db_env["store"]
+        graph_rag: GraphRAGEngine = temp_db_env["graph_rag"]
+    
+        store.create_project(uuid="proj-symbol-2a", folder_name="symbol-2a")
+    
+        id_a = store.create_node("proj-symbol-2a", label="a.py", node_type="MODULE")
+        id_af = store.create_node("proj-symbol-2a", label="a.py::f", node_type="FUNCTION")
+        id_ah = store.create_node("proj-symbol-2a", label="a.py::h", node_type="FUNCTION")
+        id_b = store.create_node("proj-symbol-2a", label="b.py", node_type="MODULE")
+        id_bg = store.create_node("proj-symbol-2a", label="b.py::g", node_type="FUNCTION")
+        id_ak = store.create_node("proj-symbol-2a", label="a.py::k", node_type="FUNCTION")
+    
+        # a.py::f -> a.py::h (intra-arquivo)
+        # a.py::f -> b.py::g (inter-arquivo)
+        # b.py::g -> a.py::k (volta para a.py)
+        store.create_edge(id_af, id_ah, relation_type="calls")
+        store.create_edge(id_af, id_bg, relation_type="calls")
+        store.create_edge(id_bg, id_ak, relation_type="calls")
+    
+        chain = graph_rag.get_call_chain_recursive("a.py::f", depth_limit=5)
+        # O arquivo de origem 'a.py' NÃO pode estar no resultado
+>       assert "a.py" not in chain
+E       AssertionError: assert 'a.py' not in ['a.py', 'b.py']
+
+tests\test_call_chain_edges_nodes.py:265: AssertionError
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_symbol_start_excludes_origin_file_but_traverses_intrafile_callees
+======================== 1 failed, 1 warning in 2.78s =========================
+

@@ -1,0 +1,23 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 6 items
+
+tests/test_graph_rag_loops.py::TestGraphRAGLoops::test_depth_limit_enforcement PASSED [ 16%]
+tests/test_graph_rag_loops.py::TestGraphRAGLoops::test_indirect_cycle_resolution PASSED [ 33%]
+tests/test_graph_rag_loops.py::TestGraphRAGLoops::test_substring_collision_prevention PASSED [ 50%]
+tests/test_graph_rag_janitor.py::TestGraphRAGAndBackgroundJanitor::test_should_resolve_multi_hop_dependencies_via_sqlite_cte_recursive PASSED [ 66%]
+tests/test_mcp_server_extensions.py::TestMCPServerExtensions::test_mcp_tool_concierge_get_call_chain PASSED [ 83%]
+tests/test_e2e_concierge_integration.py::TestConciergeSovereignE2EAudit::test_e2e_flow_full_lifecycle_and_communication PASSED [100%]
+
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 6 passed, 1 warning in 3.77s =========================
+

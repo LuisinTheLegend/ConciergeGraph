@@ -1740,13 +1740,18 @@ def agent_save_checkpoint(
 
     Returns a JSON string with 'success' (bool) and 'message' (str).
     """
-    success = checkpointer.save_checkpoint(
-        agent_id, session_id, checkpoint_id, state_dict
-    )
+    save_fn = getattr(checkpointer, "save_checkpoint_detailed", None)
+    if callable(save_fn):
+        success, raw_err = save_fn(agent_id, session_id, checkpoint_id, state_dict)
+    else:
+        success = checkpointer.save_checkpoint(
+            agent_id, session_id, checkpoint_id, state_dict
+        )
+        raw_err = getattr(checkpointer, "last_error", None)
+
     if success:
         msg = f"Checkpoint '{checkpoint_id}' saved successfully for agent '{agent_id}'"
     else:
-        raw_err = getattr(checkpointer, "last_error", None)
         if raw_err:
             clean_err = _re.sub(r'[A-Za-z]:\\[^\s:;,\'"]+|/[^\s:;,\'"]+', '<path>', str(raw_err))
             clean_err = " ".join(clean_err.strip().split())

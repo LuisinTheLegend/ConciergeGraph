@@ -167,93 +167,122 @@ class GraphRAGEngine:
         """
         Executes recursive traversal across canonical 'edges' and 'nodes' tables in SQLite WAL.
 
-        Follows relations where relation_type = 'calls', valid_to_commit IS NULL and status = 'ACTIVE'.
-        Scope is strictly confined to a single project (no cross-project leakage).
-        Cycle-safe via visited set tracking.
-        Deterministic order: sorted by traversal depth ASC, then alphabetically by path ASC.
-        Excludes the root start node file path from the results.
+        Root selection behavior:
+          - File start (e.g. 'src/core.py'): root is the module node (label = path) plus all
+            symbol nodes prefixed with 'path::'. Exact substring comparison avoids LIKE wildcard collisions.
+          - Symbol start (e.g. 'src/core.py::my_func'): root is only the exact symbol node matching label.
 
-        Note: Call edges are extracted from AST parsers based on symbol names (confidence_tag='EXTRACTED'),
-        not full static type checking; name collisions between functions in different files may cause false positives.
+        Traversal & Filtering:
+          - Follows active relations: relation_type = 'calls', valid_to_commit IS NULL, status = 'ACTIVE'.
+          - Scope is strictly confined to a single project (no cross-project leakage).
+          - Cycle protection: tracked by visited node IDs; traversal continues through symbols of the
+            origin file, but the origin file path itself is strictly excluded from returned results.
+          - Deterministic order: sorted by traversal depth ASC, then alphabetically by path ASC.
 
         Args:
             start_node: Relative file path (e.g. 'src/core.py') or symbol ('src/core.py::my_func').
-            depth_limit: Maximum traversal recursion depth (1 to 10). Default: 5.
-            project_identifier: Optional project UUID or folder_name. Required if start_node exists in multiple projects.
+            depth_limit: Maximum traversal recursion depth (integer between 1 and 10). Rejects boolean.
+            project_identifier: Optional project UUID or unique folder_name. Required if start_node exists in multiple projects.
 
         Returns:
             List of connected child file paths, ordered by depth ASC, then path ASC.
 
         Raises:
-            ValueError: If depth_limit is out of range, if project_identifier is not found,
-                        if start_node is not found, or if start_node is ambiguous across projects.
+            ValueError: If depth_limit is invalid/boolean, if project_identifier is not found,
+                        if start_node is not found, if folder_name is ambiguous across multiple projects,
+                        or if start_node is ambiguous across projects.
         """
-        if not isinstance(depth_limit, int) or depth_limit < 1 or depth_limit > 10:
+        if isinstance(depth_limit, bool) or not isinstance(depth_limit, int) or depth_limit < 1 or depth_limit > 10:
             raise ValueError(f"Invalid depth_limit: {depth_limit}. Must be an integer between 1 and 10.")
 
         norm_start = start_node.replace("\\", "/").strip()
         if not norm_start:
             raise ValueError("start_node cannot be empty.")
 
+        is_symbol_start = "::" in norm_start
+        origin_path = norm_start.split("::")[0] if is_symbol_start else norm_start
+
         # 1. Resolve project_uuid if project_identifier is provided
         target_project_uuid: Optional[str] = None
         if project_identifier:
-            p_rows = self.db.read_query(
-                "SELECT uuid FROM projects WHERE uuid = ? OR folder_name = ?;",
-                (project_identifier, project_identifier),
+            uuid_rows = self.db.read_query(
+                "SELECT uuid FROM projects WHERE uuid = ?;",
+                (project_identifier,),
             )
-            if not p_rows:
-                raise ValueError(f"Project '{project_identifier}' not found.")
-            target_project_uuid = p_rows[0][0]
+            if uuid_rows:
+                target_project_uuid = uuid_rows[0][0]
+            else:
+                folder_rows = self.db.read_query(
+                    "SELECT uuid FROM projects WHERE folder_name = ?;",
+                    (project_identifier,),
+                )
+                if not folder_rows:
+                    raise ValueError(f"Project '{project_identifier}' not found.")
+                if len(folder_rows) > 1:
+                    raise ValueError(
+                        f"Multiple projects ({len(folder_rows)}) share folder_name '{project_identifier}'. "
+                        "Please specify the project by its unique UUID."
+                    )
+                target_project_uuid = folder_rows[0][0]
 
         # 2. Locate matching active start node(s)
         if target_project_uuid:
-            nodes_rows = self.db.read_query(
-                "SELECT id, project_uuid, label "
-                "FROM nodes "
-                "WHERE project_uuid = ? "
-                "  AND status = 'ACTIVE' "
-                "  AND valid_to_commit IS NULL "
-                "  AND (label = ? OR label LIKE ?);",
-                (target_project_uuid, norm_start, f"{norm_start}::%"),
-            )
+            if is_symbol_start:
+                nodes_rows = self.db.read_query(
+                    "SELECT id, project_uuid, label "
+                    "FROM nodes "
+                    "WHERE project_uuid = ? "
+                    "  AND status = 'ACTIVE' "
+                    "  AND valid_to_commit IS NULL "
+                    "  AND label = ?;",
+                    (target_project_uuid, norm_start),
+                )
+            else:
+                nodes_rows = self.db.read_query(
+                    "SELECT id, project_uuid, label "
+                    "FROM nodes "
+                    "WHERE project_uuid = ? "
+                    "  AND status = 'ACTIVE' "
+                    "  AND valid_to_commit IS NULL "
+                    "  AND (label = ? OR (substr(label, 1, ?) = ?));",
+                    (target_project_uuid, norm_start, len(norm_start) + 2, f"{norm_start}::"),
+                )
         else:
-            nodes_rows = self.db.read_query(
-                "SELECT n.id, n.project_uuid, n.label, p.folder_name "
-                "FROM nodes n "
-                "JOIN projects p ON n.project_uuid = p.uuid "
-                "WHERE n.status = 'ACTIVE' "
-                "  AND n.valid_to_commit IS NULL "
-                "  AND (n.label = ? OR n.label LIKE ?);",
-                (norm_start, f"{norm_start}::%"),
-            )
+            if is_symbol_start:
+                nodes_rows = self.db.read_query(
+                    "SELECT n.id, n.project_uuid, n.label "
+                    "FROM nodes n "
+                    "JOIN projects p ON n.project_uuid = p.uuid "
+                    "WHERE n.status = 'ACTIVE' "
+                    "  AND n.valid_to_commit IS NULL "
+                    "  AND n.label = ?;",
+                    (norm_start,),
+                )
+            else:
+                nodes_rows = self.db.read_query(
+                    "SELECT n.id, n.project_uuid, n.label "
+                    "FROM nodes n "
+                    "JOIN projects p ON n.project_uuid = p.uuid "
+                    "WHERE n.status = 'ACTIVE' "
+                    "  AND n.valid_to_commit IS NULL "
+                    "  AND (n.label = ? OR (substr(n.label, 1, ?) = ?));",
+                    (norm_start, len(norm_start) + 2, f"{norm_start}::"),
+                )
 
         if not nodes_rows:
             raise ValueError(f"Start node '{start_node}' not found.")
 
         # 3. Handle project ambiguity if project_identifier was not passed
         if not target_project_uuid:
-            projects_found = {}
-            for r in nodes_rows:
-                p_uuid = r[1]
-                p_folder = r[3] if len(r) > 3 else p_uuid
-                projects_found[p_uuid] = p_folder
-
+            projects_found = set(r[1] for r in nodes_rows)
             if len(projects_found) > 1:
-                candidates_str = ", ".join(f"'{folder}' ({uuid_})" for uuid_, folder in sorted(projects_found.items()))
                 raise ValueError(
-                    f"Ambiguous start_node '{start_node}' found in multiple projects: [{candidates_str}]. "
-                    f"Please specify project_identifier."
+                    f"Ambiguous start_node '{start_node}' found in {len(projects_found)} projects. "
+                    "Please specify project_identifier (use concierge_list_projects to view projects)."
                 )
-            target_project_uuid = list(projects_found.keys())[0]
+            target_project_uuid = list(projects_found)[0]
 
         root_node_ids = [r[0] for r in nodes_rows if r[1] == target_project_uuid]
-        root_paths = set()
-        for r in nodes_rows:
-            if r[1] == target_project_uuid:
-                p = r[2].split("::")[0] if "::" in r[2] else r[2]
-                root_paths.add(p)
-        root_paths.add(norm_start.split("::")[0])
 
         # 4. BFS Traversal with cycle protection and active calls filter
         visited_node_ids: Set[int] = set(root_node_ids)
@@ -287,9 +316,10 @@ class GraphRAGEngine:
                 next_level_node_ids.append(target_id)
 
                 path = label.split("::")[0] if "::" in label else label
-                if current_depth not in depth_results:
-                    depth_results[current_depth] = set()
-                depth_results[current_depth].add(path)
+                if path != origin_path:
+                    if current_depth not in depth_results:
+                        depth_results[current_depth] = set()
+                    depth_results[current_depth].add(path)
 
             current_level_node_ids = next_level_node_ids
 
@@ -299,7 +329,7 @@ class GraphRAGEngine:
         for d in range(1, depth_limit + 1):
             if d in depth_results:
                 for p in sorted(depth_results[d]):
-                    if p not in seen_paths:
+                    if p not in seen_paths and p != origin_path:
                         seen_paths.add(p)
                         result_list.append(p)
 

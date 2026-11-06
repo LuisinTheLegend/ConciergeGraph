@@ -1,0 +1,31 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 15 items
+
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_linear_chain_depth_limits PASSED [  6%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_cycle_protection_prevents_infinite_loop PASSED [ 13%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_nonexistent_root_node_raises_clear_error PASSED [ 20%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_ambiguous_node_across_projects_requires_identifier PASSED [ 26%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_historical_valid_to_commit_edges_are_ignored PASSED [ 33%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_other_relation_types_are_not_followed PASSED [ 40%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_invalid_depth_limit_raises_clear_error PASSED [ 46%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_stale_or_archived_nodes_are_ignored PASSED [ 53%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_symbol_start_excludes_origin_file_but_traverses_intrafile_callees PASSED [ 60%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_paths_with_wildcards_underscore_percent_and_backslash PASSED [ 66%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_duplicate_folder_name_raises_ambiguity_error PASSED [ 73%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_ambiguity_message_does_not_contain_names_or_uuids PASSED [ 80%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_nonexistent_project_identifier_raises_clear_error PASSED [ 86%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_repeated_symbol_name_orchestrator_behavior PASSED [ 93%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_e2e_mcp_real_server_call_chain_with_ingestion PASSED [100%]
+
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 15 passed, 1 warning in 42.98s ========================

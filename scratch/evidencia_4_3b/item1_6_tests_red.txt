@@ -1,0 +1,316 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 6 items
+
+tests/test_graph_rag_loops.py::TestGraphRAGLoops::test_depth_limit_enforcement FAILED [ 16%]
+tests/test_graph_rag_loops.py::TestGraphRAGLoops::test_indirect_cycle_resolution FAILED [ 33%]
+tests/test_graph_rag_loops.py::TestGraphRAGLoops::test_substring_collision_prevention FAILED [ 50%]
+tests/test_graph_rag_janitor.py::TestGraphRAGAndBackgroundJanitor::test_should_resolve_multi_hop_dependencies_via_sqlite_cte_recursive FAILED [ 66%]
+tests/test_mcp_server_extensions.py::TestMCPServerExtensions::test_mcp_tool_concierge_get_call_chain FAILED [ 83%]
+tests/test_e2e_concierge_integration.py::TestConciergeSovereignE2EAudit::test_e2e_flow_full_lifecycle_and_communication FAILED [100%]
+
+================================== FAILURES ===================================
+_______________ TestGraphRAGLoops.test_depth_limit_enforcement ________________
+
+self = <test_graph_rag_loops.TestGraphRAGLoops testMethod=test_depth_limit_enforcement>
+
+    def test_depth_limit_enforcement(self):
+        """Valida que a travessia obedece estritamente ao limite máximo de profundidade configurado"""
+        # Cadeia linear: A -> B -> C -> D -> E
+        self.db_manager.write_query("INSERT INTO ast_edges VALUES ('A', 'B');")
+        self.db_manager.write_query("INSERT INTO ast_edges VALUES ('B', 'C');")
+        self.db_manager.write_query("INSERT INTO ast_edges VALUES ('C', 'D');")
+        self.db_manager.write_query("INSERT INTO ast_edges VALUES ('D', 'E');")
+    
+        # Com profundidade máxima de 2 passos a partir de A: deve retornar apenas B e C
+>       chain = self.graph_rag.get_call_chain_recursive(start_node="A", depth_limit=2)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_graph_rag_loops.py:85: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+core\graph_rag.py:221: in get_call_chain_recursive
+    nodes_rows = self.db.read_query(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <core.database.ConciergeDatabaseManager object at 0x000001E2FF927E00>
+query = "SELECT n.id, n.project_uuid, n.label, p.folder_name FROM nodes n JOIN projects p ON n.project_uuid = p.uuid WHERE n.status = 'ACTIVE'   AND n.valid_to_commit IS NULL   AND (n.label = ? OR n.label LIKE ?);"
+params = ('A', 'A::%')
+
+    def read_query(self, query: str, params: tuple = ()):
+        """Fast concurrent read query directly from database (bypasses write queue)."""
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
+        try:
+            conn.execute("PRAGMA journal_mode=WAL;")
+            cursor = conn.cursor()
+>           cursor.execute(query, params)
+E           sqlite3.OperationalError: no such table: nodes
+
+core\database.py:42: OperationalError
+______________ TestGraphRAGLoops.test_indirect_cycle_resolution _______________
+
+self = <test_graph_rag_loops.TestGraphRAGLoops testMethod=test_indirect_cycle_resolution>
+
+    def test_indirect_cycle_resolution(self):
+        """Valida que o ciclo indireto A -> B -> C -> A é interrompido sem loops ou duplicações"""
+        # Insere o ciclo A -> B -> C -> A
+        self.db_manager.write_query("INSERT INTO ast_edges VALUES ('A', 'B');")
+        self.db_manager.write_query("INSERT INTO ast_edges VALUES ('B', 'C');")
+        self.db_manager.write_query("INSERT INTO ast_edges VALUES ('C', 'A');")
+    
+        # Roda a travessia a partir do nó raiz 'A' com limite de profundidade amplo (10)
+>       chain = self.graph_rag.get_call_chain_recursive(start_node="A", depth_limit=10)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_graph_rag_loops.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+core\graph_rag.py:221: in get_call_chain_recursive
+    nodes_rows = self.db.read_query(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <core.database.ConciergeDatabaseManager object at 0x000001E2FFB2C550>
+query = "SELECT n.id, n.project_uuid, n.label, p.folder_name FROM nodes n JOIN projects p ON n.project_uuid = p.uuid WHERE n.status = 'ACTIVE'   AND n.valid_to_commit IS NULL   AND (n.label = ? OR n.label LIKE ?);"
+params = ('A', 'A::%')
+
+    def read_query(self, query: str, params: tuple = ()):
+        """Fast concurrent read query directly from database (bypasses write queue)."""
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
+        try:
+            conn.execute("PRAGMA journal_mode=WAL;")
+            cursor = conn.cursor()
+>           cursor.execute(query, params)
+E           sqlite3.OperationalError: no such table: nodes
+
+core\database.py:42: OperationalError
+____________ TestGraphRAGLoops.test_substring_collision_prevention ____________
+
+self = <test_graph_rag_loops.TestGraphRAGLoops testMethod=test_substring_collision_prevention>
+
+    def test_substring_collision_prevention(self):
+        """Valida que nomes parciais parecidos (ex: auth.js vs oauth.js) não colidem na busca visitada"""
+        # Configura o fluxo linear: index.js -> oauth.js -> auth.js -> db.js
+        # Se houver busca de substring falha, 'auth.js' será bloqueado achando que já visitou 'oauth.js'
+        self.db_manager.write_query("INSERT INTO ast_edges VALUES ('index.js', 'oauth.js');")
+        self.db_manager.write_query("INSERT INTO ast_edges VALUES ('oauth.js', 'auth.js');")
+        self.db_manager.write_query("INSERT INTO ast_edges VALUES ('auth.js', 'db.js');")
+    
+>       chain = self.graph_rag.get_call_chain_recursive(start_node="index.js", depth_limit=5)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_graph_rag_loops.py:68: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+core\graph_rag.py:221: in get_call_chain_recursive
+    nodes_rows = self.db.read_query(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <core.database.ConciergeDatabaseManager object at 0x000001E2FFB2CF50>
+query = "SELECT n.id, n.project_uuid, n.label, p.folder_name FROM nodes n JOIN projects p ON n.project_uuid = p.uuid WHERE n.status = 'ACTIVE'   AND n.valid_to_commit IS NULL   AND (n.label = ? OR n.label LIKE ?);"
+params = ('index.js', 'index.js::%')
+
+    def read_query(self, query: str, params: tuple = ()):
+        """Fast concurrent read query directly from database (bypasses write queue)."""
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
+        try:
+            conn.execute("PRAGMA journal_mode=WAL;")
+            cursor = conn.cursor()
+>           cursor.execute(query, params)
+E           sqlite3.OperationalError: no such table: nodes
+
+core\database.py:42: OperationalError
+_ TestGraphRAGAndBackgroundJanitor.test_should_resolve_multi_hop_dependencies_via_sqlite_cte_recursive _
+
+self = <test_graph_rag_janitor.TestGraphRAGAndBackgroundJanitor testMethod=test_should_resolve_multi_hop_dependencies_via_sqlite_cte_recursive>
+
+    def test_should_resolve_multi_hop_dependencies_via_sqlite_cte_recursive(self):
+        """Valida que o SQLite WAL resolve conexões recursivas do grafo AST em < 10ms."""
+        # Popula arestas de chamadas AST (A -> B -> C) e (D -> E)
+        self.db_manager.write_query(
+            "INSERT INTO ast_edges VALUES ('core/main.py', 'core/utils.py');"
+        )
+        self.db_manager.write_query(
+            "INSERT INTO ast_edges VALUES ('core/utils.py', 'core/db.py');"
+        )
+        self.db_manager.write_query(
+            "INSERT INTO ast_edges VALUES ('interface/api.py', 'interface/auth.py');"
+        )
+    
+        # Dispara a travessia recursiva iniciando em 'core/main.py'
+>       call_chain = self.graph_rag.get_call_chain_recursive(
+            "core/main.py", depth_limit=3
+        )
+
+tests\test_graph_rag_janitor.py:133: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+core\graph_rag.py:221: in get_call_chain_recursive
+    nodes_rows = self.db.read_query(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <core.database.ConciergeDatabaseManager object at 0x000001E2FF925400>
+query = "SELECT n.id, n.project_uuid, n.label, p.folder_name FROM nodes n JOIN projects p ON n.project_uuid = p.uuid WHERE n.status = 'ACTIVE'   AND n.valid_to_commit IS NULL   AND (n.label = ? OR n.label LIKE ?);"
+params = ('core/main.py', 'core/main.py::%')
+
+    def read_query(self, query: str, params: tuple = ()):
+        """Fast concurrent read query directly from database (bypasses write queue)."""
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
+        try:
+            conn.execute("PRAGMA journal_mode=WAL;")
+            cursor = conn.cursor()
+>           cursor.execute(query, params)
+E           sqlite3.OperationalError: no such table: nodes
+
+core\database.py:42: OperationalError
+_______ TestMCPServerExtensions.test_mcp_tool_concierge_get_call_chain ________
+
+self = <test_mcp_server_extensions.TestMCPServerExtensions testMethod=test_mcp_tool_concierge_get_call_chain>
+
+    def test_mcp_tool_concierge_get_call_chain(self):
+        """Valida que a ferramenta MCP concierge_get_call_chain resolve dependências recursivas."""
+        # Insere arestas de dependências
+        self.db_manager.write_query(
+            "INSERT INTO ast_edges VALUES ('index.js', 'auth.js');"
+        )
+        self.db_manager.write_query(
+            "INSERT INTO ast_edges VALUES ('auth.js', 'db_local.js');"
+        )
+    
+        # Chama a ferramenta MCP
+>       call_chain = mcp_server.concierge_get_call_chain(
+            start_node="index.js", depth_limit=3
+        )
+
+tests\test_mcp_server_extensions.py:220: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+interface\mcp_server.py:1795: in concierge_get_call_chain
+    return graph_rag.get_call_chain_recursive(start_node, depth_limit, project_identifier)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+core\graph_rag.py:221: in get_call_chain_recursive
+    nodes_rows = self.db.read_query(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <core.database.ConciergeDatabaseManager object at 0x000001E2FF927B60>
+query = "SELECT n.id, n.project_uuid, n.label, p.folder_name FROM nodes n JOIN projects p ON n.project_uuid = p.uuid WHERE n.status = 'ACTIVE'   AND n.valid_to_commit IS NULL   AND (n.label = ? OR n.label LIKE ?);"
+params = ('index.js', 'index.js::%')
+
+    def read_query(self, query: str, params: tuple = ()):
+        """Fast concurrent read query directly from database (bypasses write queue)."""
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
+        try:
+            conn.execute("PRAGMA journal_mode=WAL;")
+            cursor = conn.cursor()
+>           cursor.execute(query, params)
+E           sqlite3.OperationalError: no such table: nodes
+
+core\database.py:42: OperationalError
+_ TestConciergeSovereignE2EAudit.test_e2e_flow_full_lifecycle_and_communication _
+
+self = <test_e2e_concierge_integration.TestConciergeSovereignE2EAudit testMethod=test_e2e_flow_full_lifecycle_and_communication>
+
+    def test_e2e_flow_full_lifecycle_and_communication(self):
+        """
+        END-TO-END AUDIT: Executes full cascading data flow proving that
+        DeltaManager, GraphRAG, Checkpointer, Vector Search, and public MCP tools
+        operate in complete harmony.
+        """
+        # ==========================================
+        # STEP A: Code Ingestion & Delta Sync (Phase 2 / SDD-04)
+        # ==========================================
+        community_id = "core_system"
+        file_path_1 = "core/main.py"
+        file_path_2 = "core/utils.py"
+    
+        # Create initial community records
+        self.db_manager.write_query(
+            "INSERT INTO communities (id, summary_text, is_dirty) VALUES (?, 'Old Summary', 1);",
+            (community_id,)
+        )
+    
+        code_1 = "import sys\n\ndef run():\n    return 'OK'\n"
+        code_2 = "def calculate_hash(data):\n    return hash(data)\n"
+    
+        # Process file changes via DeltaManager (generating SSH hashes)
+        struct_change_1 = self.delta_manager.process_file_change(file_path_1, code_1, community_id)
+        struct_change_2 = self.delta_manager.process_file_change(file_path_2, code_2, community_id)
+    
+        self.assertTrue(struct_change_1, "Newly created file must trigger structural change.")
+        self.assertTrue(struct_change_2, "Newly created file must trigger structural change.")
+    
+        # Verify WAL database captured dirty flags (is_dirty = 1)
+        comm_dirty = self.db_manager.read_query("SELECT is_dirty FROM communities WHERE id = ?;", (community_id,))
+        self.assertEqual(comm_dirty[0][0], 1, "Community must be flagged as DIRTY.")
+    
+        # Simulate strictly cosmetic change in file 1 (comments/whitespace — identical SSH and LBH)
+        code_1_cosmetic_only = "import sys\n\ndef run():\n    # purely cosmetic comment\n    return 'OK'\n"
+        struct_change_cosmetic = self.delta_manager.process_file_change(file_path_1, code_1_cosmetic_only, community_id)
+    
+        self.assertFalse(struct_change_cosmetic, "Cosmetic edit must not invalidate graph (identical SSH and LBH).")
+    
+        # ==========================================
+        # STEP B: Frugal Background Janitor Sweep (Phase 2 / SDD-06)
+        # ==========================================
+        # With community marked as DIRTY, background janitor runs lazy summarization
+        slm_calls = 0
+        def local_slm_mock(payload):
+            nonlocal slm_calls
+            slm_calls += 1
+            return f"Summary of {len(payload.splitlines())} lines of code structure."
+    
+        logs = self.janitor.run_idle_summarization(local_slm_mock)
+    
+        self.assertEqual(slm_calls, 1, "Local SLM must be invoked to summarize dirty community.")
+        self.assertIn(community_id, logs, "Janitor audit log must record community processing.")
+    
+        # Ensure dirty flags were properly cleared after compilation
+        comm_state = self.db_manager.read_query("SELECT is_dirty, summary_text FROM communities WHERE id = ?;", (community_id,))
+        self.assertEqual(comm_state[0][0], 0, "Community is_dirty flag must reset to 0.")
+        self.assertTrue(comm_state[0][1].startswith("Summary of"), "Conceptual summary must be stored in database.")
+    
+        # ==========================================
+        # STEP C: Recursive Topological Navigation (Phase 2 / SDD-06)
+        # ==========================================
+        # Register circular AST call dependencies
+        self.db_manager.write_query("INSERT INTO ast_edges VALUES ('core/main.py', 'core/utils.py');")
+        self.db_manager.write_query("INSERT INTO ast_edges VALUES ('core/utils.py', 'core/db_driver.py');")
+        self.db_manager.write_query("INSERT INTO ast_edges VALUES ('core/db_driver.py', 'core/main.py');")  # CYCLIC LOOP!
+    
+        # Recursively traverse from main.py (must safely handle cyclic loop via depth limit guard)
+>       call_chain = self.graph_rag.get_call_chain_recursive("core/main.py", depth_limit=4)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_e2e_concierge_integration.py:320: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+core\graph_rag.py:221: in get_call_chain_recursive
+    nodes_rows = self.db.read_query(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <core.database.ConciergeDatabaseManager object at 0x000001E2FFA3C050>
+query = "SELECT n.id, n.project_uuid, n.label, p.folder_name FROM nodes n JOIN projects p ON n.project_uuid = p.uuid WHERE n.status = 'ACTIVE'   AND n.valid_to_commit IS NULL   AND (n.label = ? OR n.label LIKE ?);"
+params = ('core/main.py', 'core/main.py::%')
+
+    def read_query(self, query: str, params: tuple = ()):
+        """Fast concurrent read query directly from database (bypasses write queue)."""
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
+        try:
+            conn.execute("PRAGMA journal_mode=WAL;")
+            cursor = conn.cursor()
+>           cursor.execute(query, params)
+E           sqlite3.OperationalError: no such table: nodes
+
+core\database.py:42: OperationalError
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_graph_rag_loops.py::TestGraphRAGLoops::test_depth_limit_enforcement
+FAILED tests/test_graph_rag_loops.py::TestGraphRAGLoops::test_indirect_cycle_resolution
+FAILED tests/test_graph_rag_loops.py::TestGraphRAGLoops::test_substring_collision_prevention
+FAILED tests/test_graph_rag_janitor.py::TestGraphRAGAndBackgroundJanitor::test_should_resolve_multi_hop_dependencies_via_sqlite_cte_recursive
+FAILED tests/test_mcp_server_extensions.py::TestMCPServerExtensions::test_mcp_tool_concierge_get_call_chain
+FAILED tests/test_e2e_concierge_integration.py::TestConciergeSovereignE2EAudit::test_e2e_flow_full_lifecycle_and_communication
+======================== 6 failed, 1 warning in 5.27s =========================
+
