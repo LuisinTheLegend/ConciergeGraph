@@ -1,0 +1,54 @@
+=== grep_relatorio_4_3_line23 ===
+$ git grep -n "project_id" audits/relatorio_4_3.md
+audits/relatorio_4_3.md:23:- **Mecanismo:** A ferramenta aceita `project_id` ou `project_name`. Se não fornecido e o identificador (`symbol_or_path`) existir em múltiplos projetos ativos, a execução **rejeita a consulta com `ValueError` descritivo**, exigindo a especificação do projeto.
+
+=== grep_relatorio_4_3_symbol_path ===
+$ git grep -n "symbol_or_path" audits/relatorio_4_3.md
+audits/relatorio_4_3.md:23:- **Mecanismo:** A ferramenta aceita `project_id` ou `project_name`. Se não fornecido e o identificador (`symbol_or_path`) existir em múltiplos projetos ativos, a execução **rejeita a consulta com `ValueError` descritivo**, exigindo a especificação do projeto.
+
+=== grep_call_chain_signature_mcp ===
+$ git grep -n -C 5 "def tool_concierge_get_call_chain" interface/mcp_server.py
+interface/mcp_server.py-868-                "Note: Call edges are extracted from AST parsers based on symbol names (confidence_tag='EXTRACTED'), "
+interface/mcp_server.py-869-                "not full static type checking; name collisions between functions in different files may cause false positives. "
+interface/mcp_server.py-870-                "Excludes root start node from results. Scope is confined to a single project."
+interface/mcp_server.py-871-            ),
+interface/mcp_server.py-872-        )
+interface/mcp_server.py:873:        def tool_concierge_get_call_chain(
+interface/mcp_server.py-874-            start_node: str,
+interface/mcp_server.py-875-            depth_limit: int = 5,
+interface/mcp_server.py-876-            project_identifier: Optional[str] = None,
+interface/mcp_server.py-877-        ) -> list:
+interface/mcp_server.py-878-            """Resolves recursive call chain dependencies via GraphRAGEngine.
+
+=== grep_call_chain_signature_core ===
+$ git grep -n -C 5 "def get_call_chain_recursive" core/graph_rag.py
+core/graph_rag.py-156-        parent = os.path.dirname(file_path.replace("\\", "/"))
+core/graph_rag.py-157-        return parent if parent else "root"
+core/graph_rag.py-158-
+core/graph_rag.py-159-    # ── Multi-Hop via Recursive CTE ────────────────────────────────
+core/graph_rag.py-160-
+core/graph_rag.py:161:    def get_call_chain_recursive(
+core/graph_rag.py-162-        self,
+core/graph_rag.py-163-        start_node: str,
+core/graph_rag.py-164-        depth_limit: int = 5,
+core/graph_rag.py-165-        project_identifier: Optional[str] = None,
+core/graph_rag.py-166-    ) -> List[str]:
+
+=== grep_privacy_level_core ===
+$ git grep -n "privacy_level" core/graph_rag.py
+
+=== grep_privacy_level_all_core ===
+$ git grep -n "privacy_level" core/
+core/middleware.py:109:        privacy_level: str = "PUBLIC",
+core/middleware.py:121:            privacy_level: Privacy level (PUBLIC, INTERNAL, RESTRICTED).
+core/middleware.py:142:            privacy_level=privacy_level,
+core/middleware.py:148:            folder_name, project_uuid, primary_wing, privacy_level,
+core/middleware.py:722:                      privacy_level, summary).
+
+=== grep_full_suite_mention_relatorio_4_3 ===
+$ git grep -n "pytest tests" audits/relatorio_4_3.md
+
+=== generator_script_check ===
+$ git status --short scratch/build_relatorio_4_3.py
+?? scratch/build_relatorio_4_3.py
+
