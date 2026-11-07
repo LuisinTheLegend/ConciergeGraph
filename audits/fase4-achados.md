@@ -519,3 +519,22 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
 - **Decisão do Auditor:**
   Registro realizado estritamente como achado / diagnóstico nesta Rodada 4.4. A correção de código de produto de `queue_writer.py` foi alocada pelo auditor para rodada própria subsequente (4.4b).
 
+---
+
+### [F4-030] Mineração Sobrescreve Silenciosamente a Ala Escolhida pelo Usuário no Cadastro via `auto_categorize_project`
+- **Status:** **corrigido pelo executor, aguardando verificação independente**
+- **Severidade Proposta:** 🟠 GRAVE / ALTA (Violação do propósito de honestidade e neutralidade: um projeto explicitamente categorizado pelo usuário ou agente tinha sua ala primária alterada em silêncio durante a mineração ordinária).
+- **Arquivos & Linhas:** [`core/middleware.py:219, 239-242`](file:///c:/Nexus-Memory/GrafoConcierge/core/middleware.py#L219), [`core/project_index.py:142-172`](file:///c:/Nexus-Memory/GrafoConcierge/core/project_index.py#L142), [`core/config.py:77-99`](file:///c:/Nexus-Memory/GrafoConcierge/core/config.py#L77)
+- **Mecanismo da Falha:**
+  O método `GrafoConcierge.mine` possuía o parâmetro `auto_categorize: bool = True` como padrão.
+  Ao término da mineração com `nodes_created > 0`, invocava incondicionalmente `self._project_index.auto_categorize_project(project_uuid)`.
+  Este método, por sua vez, analisava os labels e tags contra o dicionário fixo `wing_keywords` e executava `self.set_primary_wing(project_uuid, wing)`, sobrescrevendo no banco a `primary_wing` escolhida pelo usuário no momento do cadastro (`concierge_register`).
+- **Reprodução Real na Rodada 4.4 (Bloco 1):**
+  Provado em vermelho em `scratch/evidencia_4_4/b1_mine_overwrite_red.txt`:
+  Um projeto registrado com `wing="minha-ala"` teve sua `primary_wing` silenciosamente alterada para `"marketing/vendas"` após minerar um arquivo com termos de marketing.
+- **Correção Implementada na Rodada 4.4 (Bloco 1):**
+  1. Remoção do campo `wing_keywords` de `ConciergeConfig` (`core/config.py`).
+  2. Remoção dos métodos `categorize_project` e `auto_categorize_project` de `ProjectIndex` (`core/project_index.py`).
+  3. Remoção do parâmetro `auto_categorize`, da chave `auto_categorized_wing` e da mutação de ala em `GrafoConcierge.mine` (`core/middleware.py`).
+  4. Criação dos testes-guarda G1, G2, G3 e G4 em `tests/test_domain_neutrality_guard.py` e eliminação das mutações (a), (b) e (c).
+
