@@ -86,6 +86,7 @@ Preferências do dono: honestidade acima de tudo, caminho mais eficiente e profi
 | F4-027 | Filtro de AND/OR/NOT/NEAR no builder FTS impedia buscas com termos literais legítimos | BAIXA | corrigido pelo executor, aguardando verificação independente | `storage/logic.py`, `tests/test_fts_code_search.py`, `scratch/evidencia_4_2j/` |
 | BL-006 | Checkpoints salvos fora da fila serializada SerializedWriteQueue (risco de lock sob concorrência) | MÉDIA | ABERTO (registrado na 4.3) | `core/checkpointer.py:113-114, 139-140, 206-209`, `interface/mcp_server.py:164-166`, `audits/fase4-achados.md` |
 | F4-028 | Ordem não-determinística de varredura no ProjectCrawler.crawl afeta resolução de símbolos repetidos | MÉDIA | ABERTO (registrado na 4.3c) | `ingestion/crawler.py:501`, `ingestion/orchestrator.py:768`, `audits/fase4-achados.md` |
+| F4-029 | Bloqueio indefinido em queue_writer.py:147 (response_queue.get()) em testes de concorrência | CRÍTICA | ABERTO (reproduzido na 4.4, correção de produto alocada para 4.4b) | `interface/queue_writer.py:147`, `tests/test_graph_rag_janitor.py:84`, `audits/fase4-achados.md` |
 
 
 ## 5. Verificação independente da 4.1/E (2026-10-20)

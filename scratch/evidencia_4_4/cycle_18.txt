@@ -1,0 +1,25 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 45.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 6 items
+
+tests/test_graph_rag_janitor.py::TestGraphRAGAndBackgroundJanitor::test_background_janitor_should_summarize_dirty_communities_via_local_slm PASSED [ 16%]
+tests/test_graph_rag_janitor.py::TestGraphRAGAndBackgroundJanitor::test_should_map_natural_community_from_file_path PASSED [ 33%]
+tests/test_graph_rag_janitor.py::TestGraphRAGAndBackgroundJanitor::test_should_resolve_multi_hop_dependencies_via_sqlite_cte_recursive PASSED [ 50%]
+tests/test_graph_rag_loops.py::TestGraphRAGLoops::test_depth_limit_enforcement PASSED [ 66%]
+tests/test_graph_rag_loops.py::TestGraphRAGLoops::test_indirect_cycle_resolution PASSED [ 83%]
+tests/test_graph_rag_loops.py::TestGraphRAGLoops::test_substring_collision_prevention PASSED [100%]
+
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 6 passed, 1 warning in 3.74s =========================

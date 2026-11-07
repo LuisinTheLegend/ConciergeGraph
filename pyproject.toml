@@ -57,6 +57,7 @@ qdrant = ["qdrant-client>=1.7"]
 openai = ["openai>=1.0"]
 dev = [
     "pytest>=7.0",
+    "pytest-timeout>=2.2.0",
     "flake8>=6.0",
     "mypy>=1.0",
     "qdrant-client>=1.7",
@@ -115,3 +116,5 @@ exclude = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
+timeout = 300
+timeout_method = "thread"

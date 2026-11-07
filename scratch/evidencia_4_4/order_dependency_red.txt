@@ -1,0 +1,175 @@
+Command exited with code 1.
+
+Command output:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collected 17 items / 16 deselected / 1 selected
+
+tests\test_call_chain_edges_nodes.py F                                   [100%]
+
+================================== FAILURES ===================================
+_ TestCallChainEdgesNodes.test_e2e_mcp_real_server_call_chain_with_ingestion __
+
+self = <test_call_chain_edges_nodes.TestCallChainEdgesNodes object at 0x00000280EF208650>
+temp_db_env = {'path': 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmpx2ufr8ua.db', 'db_mgr': <core.database.ConciergeDatabaseManager o...e.SqliteStore object at 0x00000280EF201160>, 'graph_rag': <core.graph_rag.GraphRAGEngine object at 0x00000280EF2017F0>}
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000280EF23C510>
+
+    def test_e2e_mcp_real_server_call_chain_with_ingestion(self, temp_db_env, monkeypatch):
+        """Item 2b: teste E2E com servidor MCP real e mineração de 3 arquivos com chamadas recursivas.
+        Usa monkeypatch para isolar os atributos globais de mcp_server e invoca tanto a ferramenta
+        registrada no FastMCP quanto a função módulo.
+        """
+        import shutil
+        from ingestion.orchestrator import IngestionManager
+        from storage.vector_store import ChromaVectorStore, EmbeddingManager
+        from core.middleware import GrafoConcierge
+        from interface.mcp_server import GrafoConciergeServer
+    
+        db_mgr: ConciergeDatabaseManager = temp_db_env["db_mgr"]
+        store: SqliteStore = temp_db_env["store"]
+    
+        # Cria projeto de 3 arquivos em diretório temporário
+        temp_src = tempfile.mkdtemp(prefix="e2e_src_")
+        temp_chroma = tempfile.mkdtemp(prefix="e2e_chroma_")
+        p_uuid = "proj-e2e-real-mcp"
+        try:
+            with open(os.path.join(temp_src, "alpha.py"), "w", encoding="utf-8") as f:
+                f.write("def fa():\n    fb()\n")
+    
+            with open(os.path.join(temp_src, "beta.py"), "w", encoding="utf-8") as f:
+                f.write("def fb():\n    fc()\n")
+    
+            with open(os.path.join(temp_src, "gamma.py"), "w", encoding="utf-8") as f:
+                f.write("def fc():\n    pass\n")
+    
+            store.create_project(uuid=p_uuid, folder_name="e2e_real_proj")
+    
+            # Minera o projeto via IngestionManager com GRAFO_LLM_MODEL=none
+            old_llm_model = os.environ.get("GRAFO_LLM_MODEL")
+            os.environ["GRAFO_LLM_MODEL"] = "none"
+            try:
+                embedder = EmbeddingManager()
+                vector_store = ChromaVectorStore(
+                    persist_dir=temp_chroma,
+                    collection_name="e2e_call_chain_coll",
+                    embedding_manager=embedder,
+                )
+                ingestion_mgr = IngestionManager(
+                    sqlite_store=store,
+                    vector_store=vector_store,
+                    embedding_manager=embedder,
+                    summarizer=None,
+                )
+                ingestion_res = ingestion_mgr.mine(p_uuid, temp_src)
+                assert ingestion_res.files_processed == 3
+            finally:
+                if old_llm_model is not None:
+                    os.environ["GRAFO_LLM_MODEL"] = old_llm_model
+                else:
+                    os.environ.pop("GRAFO_LLM_MODEL", None)
+    
+            # Injeta db_manager e graph_rag usando monkeypatch isolado
+            monkeypatch.setattr(mcp_server, "db_manager", db_mgr)
+            monkeypatch.setattr(mcp_server, "graph_rag", GraphRAGEngine(db_mgr))
+    
+            # Executa chamada via ferramenta registrada no servidor FastMCP
+>           gc = GrafoConcierge(
+                sqlite_store=store,
+                vector_store=vector_store,
+                embedding_manager=embedder,
+                ingestion_manager=ingestion_mgr,
+            )
+E           TypeError: GrafoConcierge() takes no arguments
+
+tests\test_call_chain_edges_nodes.py:502: TypeError
+---------------------------- Captured stderr call -----------------------------
+Could not reach the Hub ([WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso). Using cached commit hash for 'sentence-transformers/all-MiniLM-L6-v2'.
+
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 103/103 [00:00<00:00, 2088.34it/s]
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+Retrying in 1s [Retry 1/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+Retrying in 2s [Retry 2/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+Retrying in 4s [Retry 3/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+Retrying in 8s [Retry 4/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+Retrying in 8s [Retry 5/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+Retrying in 1s [Retry 1/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+Retrying in 2s [Retry 2/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+Retrying in 4s [Retry 3/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+Retrying in 8s [Retry 4/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+Retrying in 8s [Retry 5/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+Retrying in 1s [Retry 1/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+Retrying in 2s [Retry 2/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+Retrying in 4s [Retry 3/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+Retrying in 8s [Retry 4/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+Retrying in 8s [Retry 5/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+------------------------------ Captured log call ------------------------------
+WARNING  grafo-concierge.parser:parser.py:244 Error loading tree-sitter parser for .py: No module named 'tree_sitter'
+WARNING  grafo-concierge.parser:parser.py:244 Error loading tree-sitter parser for .py: No module named 'tree_sitter'
+WARNING  grafo-concierge.parser:parser.py:244 Error loading tree-sitter parser for .py: No module named 'tree_sitter'
+WARNING  huggingface_hub.hf_api:hf_api.py:3662 Could not reach the Hub ([WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso). Using cached commit hash for 'sentence-transformers/all-MiniLM-L6-v2'.
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 1s [Retry 1/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 2s [Retry 2/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 4s [Retry 3/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 8s [Retry 4/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 8s [Retry 5/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 1s [Retry 1/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 2s [Retry 2/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 4s [Retry 3/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 8s [Retry 4/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 8s [Retry 5/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 1s [Retry 1/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 2s [Retry 2/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 4s [Retry 3/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 8s [Retry 4/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 8s [Retry 5/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_e2e_mcp_real_server_call_chain_with_ingestion
+=========== 1 failed, 16 deselected, 1 warning in 89.86s (0:01:29) ============

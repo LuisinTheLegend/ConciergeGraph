@@ -492,3 +492,23 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
   1. Em `ingestion/crawler.py:501`, ordenar deterministicamente `dirnames.sort()` e `filenames.sort()` antes de cada iteração.
   2. Em `ingestion/orchestrator.py:768`, considerar o caminho relativo do módulo importado ou heurística explícita de proximidade de namespace antes de recorrer ao fallback de desambiguação global.
 
+---
+
+### [F4-029] Bloqueio Indefinido e Timeout Intermitente em interface/queue_writer.py:147 (response_queue.get()) em Testes de Concorrência
+- **Status:** **ABERTO (reproduzido empiricamente na Rodada 4.4, correção de produto postergada para 4.4b por decisão do auditor)**
+- **Severidade Proposta:** 🔴 CRÍTICA / ALTA (Sob condições de concorrência ou falha silenciosa de inicialização/execução na thread worker da `SerializedWriteQueue`, o método `execute_write` bloqueia indefinidamente em `response_queue.get()` sem timeout, congelando o processo principal do executor/servidor até o estouro do watchdog).
+- **Arquivos & Linhas:** [`interface/queue_writer.py:147`](file:///c:/Nexus-Memory/GrafoConcierge/interface/queue_writer.py#L147), [`core/database.py:51, 67`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py#L51), [`tests/test_graph_rag_janitor.py:84`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_graph_rag_janitor.py#L84)
+- **Mecanismo da Falha:**
+  Em `interface/queue_writer.py:147`, o método síncrono `execute_write` submete `(query, params, response_queue)` à fila interna `self.queue` e executa:
+  `success, result = response_queue.get()`
+  sem parâmetro de `timeout` e sem verificar se o thread daemon (`SerializedWriteQueue.run`) permanece vivo (`self.is_alive()`).
+  Se a thread worker falhar, encontrar contenção extrema de arquivo SQLite no Windows ou sofrer exceção não capturada em `conn.execute(...)`, o thread encerra sem sinalizar ou nunca deposita uma tupla na `response_queue`. Como consequência, a thread requisitante entra em bloqueio eterno em `self.not_empty.wait()` (`queue.py:199` / `threading.py:369`), travando os testes (`TestGraphRAGAndBackgroundJanitor.setUp`) ou o servidor MCP.
+- **Reprodução Real na Rodada 4.4 (Bloco A2):**
+  Durante 30 execuções controladas dos testes `tests/test_graph_rag_janitor.py` e `tests/test_graph_rag_loops.py` no ambiente limpo `.venv_clean` com `pytest-timeout` configurado (45s por teste):
+  - **6 de 30 execuções travaram** e foram abortadas pelo timer de thread do `pytest-timeout` (Ciclos 01, 07, 10, 12, 21, 29).
+  - Todas as 6 ocorrências registraram despejo de pilha idêntico bloqueado em `interface/queue_writer.py:147: success, result = response_queue.get()` chamado por `test_graph_rag_janitor.py:84` dentro do `setUp()`.
+  - As 24 execuções restantes passaram em ~5.2s.
+  - Saídas brutas de cada ciclo salvas em `scratch/evidencia_4_4/cycle_01.txt` até `cycle_30.txt` e consolidado em `scratch/evidencia_4_4/investigation_30_summary.txt`.
+- **Decisão do Auditor:**
+  Registro realizado estritamente como achado / diagnóstico nesta Rodada 4.4. A correção de código de produto de `queue_writer.py` foi alocada pelo auditor para rodada própria subsequente (4.4b).
+

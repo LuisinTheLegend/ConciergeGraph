@@ -1,0 +1,77 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collected 1 item
+
+tests\test_temp_timeout_proof.py +++++++++++++++++++++++++++++++++++ Timeout +++++++++++++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~~ Stack of MainThread (18956) ~~~~~~~~~~~~~~~~~~~~~~~~~
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\pytest.exe\__main__.py", line 6, in <module>
+    sys.exit(_console_main())
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\config\__init__.py", line 286, in _console_main
+    code = _main(prog=_get_prog_name(sys.argv))
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\config\__init__.py", line 262, in _main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_caller.py", line 197, in __call__
+    return self._hookexec(
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_manager.py", line 183, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_execution.py", line 147, in _multicall
+    res = hook_impl.function(*args)
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\main.py", line 380, in pytest_cmdline_main
+    return wrap_session(config, _main)
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\main.py", line 333, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\main.py", line 387, in _main
+    config.hook.pytest_runtestloop(session=session)
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_caller.py", line 197, in __call__
+    return self._hookexec(
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_manager.py", line 183, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_execution.py", line 147, in _multicall
+    res = hook_impl.function(*args)
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\main.py", line 411, in pytest_runtestloop
+    item.config.hook.pytest_runtest_protocol(item=item, nextitem=nextitem)
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_caller.py", line 197, in __call__
+    return self._hookexec(
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_manager.py", line 183, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_execution.py", line 147, in _multicall
+    res = hook_impl.function(*args)
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\runner.py", line 118, in pytest_runtest_protocol
+    runtestprotocol(item, nextitem=nextitem)
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\runner.py", line 139, in runtestprotocol
+    reports.append(call_and_report(item, "call", log))
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\runner.py", line 249, in call_and_report
+    call = CallInfo.from_call(
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\runner.py", line 361, in from_call
+    result: TResult | None = func()
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\runner.py", line 250, in <lambda>
+    lambda: runtest_hook(item=item, **kwds),
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_caller.py", line 197, in __call__
+    return self._hookexec(
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_manager.py", line 183, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_execution.py", line 147, in _multicall
+    res = hook_impl.function(*args)
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\runner.py", line 184, in pytest_runtest_call
+    item.runtest()
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\python.py", line 1798, in runtest
+    self.ihook.pytest_pyfunc_call(pyfuncitem=self)
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_caller.py", line 197, in __call__
+    return self._hookexec(
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_manager.py", line 183, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_execution.py", line 147, in _multicall
+    res = hook_impl.function(*args)
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\python.py", line 187, in pytest_pyfunc_call
+    result = testfunction(**testargs)
+  File "C:\Nexus-Memory\GrafoConcierge\tests\test_temp_timeout_proof.py", line 6, in test_sleep_beyond_limit
+    time.sleep(10)
++++++++++++++++++++++++++++++++++++ Timeout +++++++++++++++++++++++++++++++++++
