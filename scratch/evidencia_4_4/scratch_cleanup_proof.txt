@@ -1,0 +1,258 @@
+# Prova de Verificacao de Citacao para Limpeza de scratch/ (Item 0.5)
+
+Total de scripts analisados (commitados na Rodada 4.3c): 38
+
+=== REMOVE: scratch/append_bl006.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n append_bl006.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/apply_graph_rag_fixes.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n apply_graph_rag_fixes.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/apply_test_clean_db.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n apply_test_clean_db.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/build_item1b_greps.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n build_item1b_greps.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/build_item5_greps.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n build_item5_greps.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== KEEP: scratch/build_relatorio_4_3.py ===
+Justificativa: Gerador de relatorio mantido conforme regra do pedido.
+
+=== KEEP: scratch/build_relatorio_4_3b.py ===
+Justificativa: Gerador de relatorio mantido conforme regra do pedido.
+
+=== KEEP: scratch/build_relatorio_4_3c.py ===
+Justificativa: Gerador de relatorio mantido conforme regra do pedido.
+
+=== KEEP: scratch/check_1a_diff.py ===
+Justificativa: Citado por nome em 1 local(is) de audits/ ou scratch/evidencia_*:
+  audits/relatorio_4_3c.md:115:  2. Executou-se `scratch/check_1a_diff.py`, comparando a saída gerada por `scratch/build_relatorio_4_3.py` contra `audits/relatorio_4_3.md`. O diff foi de exatamente 0 linhas (`scratch/evidencia_4_3c/item1a_diff_build_relatorio_4_3.txt`), provando que o relatório versionado foi de fato gerado pelo script.
+
+=== REMOVE: scratch/clean_test_edges.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n clean_test_edges.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/debug_2a.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n debug_2a.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/debug_2b.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n debug_2b.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/debug_2c.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n debug_2c.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/debug_2d.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n debug_2d.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/debug_2e.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n debug_2e.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/debug_mcp_save.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n debug_mcp_save.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/fix_embedder_init.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n fix_embedder_init.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/fix_import_embed.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n fix_import_embed.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/fix_mcp_ext_fd.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n fix_mcp_ext_fd.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/fix_mcp_ext_order.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n fix_mcp_ext_order.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/fix_test_call_chain_edges.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n fix_test_call_chain_edges.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/fix_test_clean_db.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n fix_test_clean_db.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== KEEP: scratch/reproduce_item2_defects.py ===
+Justificativa: Citado por nome em 8 local(is) de audits/ ou scratch/evidencia_*:
+  audits/errata-4-3b.md:25:    - `scratch/reproduce_item2_defects.py` (7.247 bytes)
+  audits/relatorio_4_3c.md:113:     - `scratch/reproduce_item2_defects.py`
+  scratch/evidencia_4_3b/item2_defects_red.txt:7:  File "C:\Nexus-Memory\GrafoConcierge\scratch\reproduce_item2_defects.py", line 48, in test_2a_origin_file_appears_when_start_is_symbol
+  scratch/evidencia_4_3b/item2_defects_red.txt:16:  File "C:\Nexus-Memory\GrafoConcierge\scratch\reproduce_item2_defects.py", line 67, in test_2b_like_wildcard_collision
+  scratch/evidencia_4_3b/item2_defects_red.txt:32:  File "C:\Nexus-Memory\GrafoConcierge\scratch\reproduce_item2_defects.py", line 76, in test_2c_duplicate_folder_name_must_raise_error
+
+=== REMOVE: scratch/run_all_item3_mutations.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n run_all_item3_mutations.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/run_b3_mutation.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n run_b3_mutation.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== KEEP: scratch/run_full_suite.py ===
+Justificativa: Citado por nome em 4 local(is) de audits/ ou scratch/evidencia_*:
+  audits/errata-4-3b.md:26:    - `scratch/run_full_suite.py` (597 bytes)
+  audits/relatorio_4_3c.md:114:     - `scratch/run_full_suite.py`
+  audits/relatorio_4_3c.md:239:| **Item 1a (Scripts geradores)** | Rastreamento dos 4 scripts geradores em `scratch/`. | Prova de diff 0 entre a execução de `scratch/build_relatorio_4_3.py` e `audits/relatorio_4_3.md`. | Não foi testada a reexecução de `run_full_suite.py` antigo (que dependia do estado do banco na 4.3). | `scratch/evidencia_4_3c/item1a_diff_build_relatorio_4_3.txt` |
+  scratch/evidencia_4_3c/item1a_disk_status.txt:4:scratch/run_full_suite.py: exists=True, size=597
+
+=== REMOVE: scratch/run_full_suite_4_3c.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n run_full_suite_4_3c.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== KEEP: scratch/run_item3_investigation.py ===
+Justificativa: Citado por nome em 5 local(is) de audits/ ou scratch/evidencia_*:
+  audits/errata-4-3c.md:138:  - **Metodologia:** Executou-se o script `scratch/run_item3_investigation.py` rodando `pytest tests/test_mcp_server_extensions.py -v --timeout=120 -o faulthandler_timeout=60` por 10 vezes consecutivas no venv limpo (`.venv_clean`).
+  audits/errata-4-3c.md:142:  O comando real montado em `scratch/run_item3_investigation.py:21` é:
+  audits/relatorio_4_3c.md:211:- **Metodologia:** Executou-se o script `scratch/run_item3_investigation.py` rodando `pytest tests/test_mcp_server_extensions.py -v --timeout=120 -o faulthandler_timeout=60` por 10 vezes consecutivas no venv limpo (`.venv_clean`).
+  scratch/evidencia_4_4/errata_4_3c_greps.txt:11:audits/relatorio_4_3c.md:211:- **Metodologia:** Executou-se o script `scratch/run_item3_investigation.py` rodando `pytest tests/test_mcp_server_extensions.py -v --timeout=120 -o faulthandler_timeout=60` por 10 vezes consecutivas no venv limpo (`.venv_clean`).
+  scratch/evidencia_4_4/errata_4_3c_greps.txt:14:scratch/run_item3_investigation.py:21:    cmd = [pytest_bin, test_file, "-v", "-o", "faulthandler_timeout=60"]
+
+=== REMOVE: scratch/run_mutations_4_3c.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n run_mutations_4_3c.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/save_item2_green.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n save_item2_green.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/scan_bom_utf.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n scan_bom_utf.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/test_2a_investigation.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n test_2a_investigation.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/update_checkpointer.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n update_checkpointer.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/update_roadmap_4_3.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n update_roadmap_4_3.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/update_stress_setup.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n update_stress_setup.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/update_test_e2e.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n update_test_e2e.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/update_test_graph_rag_janitor.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n update_test_graph_rag_janitor.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+=== REMOVE: scratch/update_test_mcp_server_extensions.py ===
+Justificativa: Nao citado por nome em nenhum relatorio de audits/ ou arquivo de scratch/evidencia_*.
+Comando de verificacao:
+  git grep -n update_test_mcp_server_extensions.py -- audits/ scratch/evidencia_*
+Resultado: 0 ocorrencias fora do diff --stat.
+
+Total de remocoes: 31
+  git rm scratch/append_bl006.py
+  git rm scratch/apply_graph_rag_fixes.py
+  git rm scratch/apply_test_clean_db.py
+  git rm scratch/build_item1b_greps.py
+  git rm scratch/build_item5_greps.py
+  git rm scratch/clean_test_edges.py
+  git rm scratch/debug_2a.py
+  git rm scratch/debug_2b.py
+  git rm scratch/debug_2c.py
+  git rm scratch/debug_2d.py
+  git rm scratch/debug_2e.py
+  git rm scratch/debug_mcp_save.py
+  git rm scratch/fix_embedder_init.py
+  git rm scratch/fix_import_embed.py
+  git rm scratch/fix_mcp_ext_fd.py
+  git rm scratch/fix_mcp_ext_order.py
+  git rm scratch/fix_test_call_chain_edges.py
+  git rm scratch/fix_test_clean_db.py
+  git rm scratch/run_all_item3_mutations.py
+  git rm scratch/run_b3_mutation.py
+  git rm scratch/run_full_suite_4_3c.py
+  git rm scratch/run_mutations_4_3c.py
+  git rm scratch/save_item2_green.py
+  git rm scratch/scan_bom_utf.py
+  git rm scratch/test_2a_investigation.py
+  git rm scratch/update_checkpointer.py
+  git rm scratch/update_roadmap_4_3.py
+  git rm scratch/update_stress_setup.py
+  git rm scratch/update_test_e2e.py
+  git rm scratch/update_test_graph_rag_janitor.py
+  git rm scratch/update_test_mcp_server_extensions.py
