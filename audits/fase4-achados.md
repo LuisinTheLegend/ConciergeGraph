@@ -471,3 +471,24 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
   Embora o SQLite WAL permita múltiplos leitores concorrentes, ele admite apenas um escritor por vez. Quando múltiplos agentes tentam salvar checkpoints simultaneamente à ingestão ou compactação do Janitor, a escrita direta contorna a política central de serialização transacional do sistema, gerando potenciais exceções e degradação de confiabilidade na retenção de memória de longo prazo dos agentes.
 - **Resolução Recomendada (Para Rodada Futura):**
   Unificar o canal de persistência do `AgnosticCheckpointer` para utilizar estritamente a fila central de escrita serializada de produção (`SerializedWriteQueue`), padronizando o timeout e o tratamento transacional assíncrono.
+
+---
+
+### [F4-028] Ordem Não-Determinística de Varredura no ProjectCrawler.crawl Afeta Resolução de Símbolos Repetidos
+- **Status:** **ABERTO (registrado na Rodada 4.3c pelo executor, aguardando priorização e planejamento)**
+- **Severidade Proposta:** 🟡 MÉDIA (Em projetos com múltiplos arquivos contendo símbolos de mesmo nome, a ordem em que os arquivos são inseridos em `global_symbol_map` depende da ordem de retorno do sistema de arquivos subjacente via `os.walk`, tornando a resolução de chamadas não-determinística entre diferentes sistemas operacionais ou instalações).
+- **Arquivos & Linhas:** [`ingestion/crawler.py:501`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/crawler.py#L501), [`ingestion/orchestrator.py:768`](file:///c:/Nexus-Memory/GrafoConcierge/ingestion/orchestrator.py#L768)
+- **Mecanismo da Falha:**
+  Em `ingestion/crawler.py:501`, o método `crawl` itera pela árvore de diretórios utilizando `os.walk(root)` sem pré-ordenação de `dirnames` ou `filenames`. No Windows NTFS, as entradas costumam ser retornadas na ordem de B-tree do sistema de arquivos; em sistemas Linux (ext4/xfs), são retornadas na ordem de hash dos diretórios.
+  Durante a mineração (`ingestion/orchestrator.py`), cada arquivo varrido tem seus símbolos extraídos e gravados na tabela `nodes` do SQLite em sequência, gerando IDs autoincrementais crescentes (`id=1, 2, 3...`). O dicionário em memória `global_symbol_map[sym]` acumula os IDs na ordem exata de inserção:
+  `global_symbol_map.setdefault(sym_name, []).append(node_id)`
+  Na resolução de chamadas AST de funções/métodos repetidos (`orchestrator.py:768`), o código seleciona:
+  `target_id = global_symbol_map[child_name][0]`
+  Ou seja, o primeiro símbolo encontrado na varredura. Como a ordem de varredura depende do sistema de arquivos e do disco, o mesmo repositório clonado em máquinas distintas ou sistemas de arquivos diferentes pode resolver a chamada para nós distintos.
+- **Justificativa da Severidade (MÉDIA):**
+  Embora funções e métodos homônimos em módulos distintos devam idealmente ser desambiguados por escopo de módulo ou namespace no AST, a dependência da ordem não-ordenada do `os.walk` introduz comportamento divergente não-reprodutível entre ambientes (ex: Windows vs Linux CI), afetando a estabilidade da topologia do grafo.
+  Descoberto e isolado na Rodada 4.3c durante a elaboração do teste com mineração real no Item 2a, que foi projetado de forma robusta para comparar dinamicamente contra a ordem real de inserção no banco de dados (`min(ids)`).
+- **Resolução Recomendada (Para Rodada Futura):**
+  1. Em `ingestion/crawler.py:501`, ordenar deterministicamente `dirnames.sort()` e `filenames.sort()` antes de cada iteração.
+  2. Em `ingestion/orchestrator.py:768`, considerar o caminho relativo do módulo importado ou heurística explícita de proximidade de namespace antes de recorrer ao fallback de desambiguação global.
+
