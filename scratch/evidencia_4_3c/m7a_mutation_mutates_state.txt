@@ -1,0 +1,61 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 1 item
+
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_save_checkpoint_detailed_does_not_mutate_instance_state FAILED [100%]
+
+================================== FAILURES ===================================
+_ TestAgentCheckpointsOfficialSchema.test_save_checkpoint_detailed_does_not_mutate_instance_state _
+
+self = <test_agent_checkpoints_schema.TestAgentCheckpointsOfficialSchema object at 0x000001F387D2C250>
+temp_db_path = 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmpbcogcjiv\\test_checkpoints.db'
+
+    def test_save_checkpoint_detailed_does_not_mutate_instance_state(self, temp_db_path):
+        """Item 2c: save_checkpoint_detailed é livre de efeitos colaterais e não muta atributos da instância."""
+        import copy
+    
+        conn = sqlite3.connect(temp_db_path)
+        try:
+            SchemaManager(conn).apply_full_schema()
+        finally:
+            conn.close()
+    
+        db_mgr = ConciergeDatabaseManager(temp_db_path)
+        checkpointer = AgnosticCheckpointer(db_mgr)
+    
+        # Simula falha na escrita
+        db_mgr.write_query = lambda q, p: (False, "simulated write failure")
+    
+        state_before = copy.copy(vars(checkpointer))
+        success, err = checkpointer.save_checkpoint_detailed("agent_x", "sess_x", "cp_x", {"a": 1})
+        state_after = copy.copy(vars(checkpointer))
+    
+        assert success is False
+        assert "simulated write failure" in str(err)
+>       assert state_before == state_after, f"save_checkpoint_detailed não deve alterar vars(): {state_before} != {state_after}"
+E       AssertionError: save_checkpoint_detailed não deve alterar vars(): {'db_manager': <core.database.ConciergeDatabaseManager object at 0x000001F387CC17F0>, 'db': <core.database.ConciergeDatabaseManager object at 0x000001F387CC17F0>, 'last_error': None} != {'db_manager': <core.database.ConciergeDatabaseManager object at 0x000001F387CC17F0>, 'db': <core.database.ConciergeDatabaseManager object at 0x000001F387CC17F0>, 'last_error': 'simulated write failure'}
+E       assert {'db_manager'..._error': None} == {'db_manager'...rite failure'}
+E         
+E         Omitting 2 identical items, use -vv to show
+E         Differing items:
+E         {'last_error': None} != {'last_error': 'simulated write failure'}
+E         
+E         Full diff:
+E           {...
+E         
+E         ...Full output truncated (5 lines hidden), use '-vv' to show
+
+tests\test_agent_checkpoints_schema.py:370: AssertionError
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_save_checkpoint_detailed_does_not_mutate_instance_state
+======================== 1 failed, 1 warning in 2.87s =========================

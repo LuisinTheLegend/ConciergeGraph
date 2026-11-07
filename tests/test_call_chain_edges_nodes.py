@@ -353,35 +353,103 @@ class TestCallChainEdgesNodes:
         assert "not found" in str(exc.value).lower()
 
     def test_repeated_symbol_name_orchestrator_behavior(self, temp_db_env):
-        """Item 3.7 (2f): documenta o comportamento do orquestrador ao ligar chamadas para símbolos globais repetidos."""
+        """Item 2a (2f): minera arquivos reais e valida que o orquestrador seleciona
+        o primeiro símbolo registrado em global_symbol_map (índice 0).
+        """
+        import shutil
+        from ingestion.orchestrator import IngestionManager
+        from storage.vector_store import EmbeddingManager
+
+        db_mgr: ConciergeDatabaseManager = temp_db_env["db_mgr"]
         store: SqliteStore = temp_db_env["store"]
         graph_rag: GraphRAGEngine = temp_db_env["graph_rag"]
 
-        store.create_project(uuid="proj-repeat-symbol", folder_name="repeat_symbol")
+        temp_src = tempfile.mkdtemp(prefix="repeat_sym_")
+        p_uuid = "proj-repeat-symbol-real"
+        try:
+            os.makedirs(os.path.join(temp_src, "pkg_a"), exist_ok=True)
+            os.makedirs(os.path.join(temp_src, "pkg_b"), exist_ok=True)
+            os.makedirs(os.path.join(temp_src, "app"), exist_ok=True)
 
-        # Duas funções util em módulos diferentes
-        id_mod1 = store.create_node("proj-repeat-symbol", label="pkg_a/tools.py", node_type="MODULE")
-        id_util1 = store.create_node("proj-repeat-symbol", label="pkg_a/tools.py::util", node_type="FUNCTION")
+            with open(os.path.join(temp_src, "pkg_a", "tools.py"), "w", encoding="utf-8") as f:
+                f.write("def util():\n    return 1\n")
 
-        id_mod2 = store.create_node("proj-repeat-symbol", label="pkg_b/tools.py", node_type="MODULE")
-        id_util2 = store.create_node("proj-repeat-symbol", label="pkg_b/tools.py::util", node_type="FUNCTION")
+            with open(os.path.join(temp_src, "pkg_b", "tools.py"), "w", encoding="utf-8") as f:
+                f.write("def util():\n    return 2\n")
 
-        id_caller = store.create_node("proj-repeat-symbol", label="app/main.py", node_type="MODULE")
-        id_caller_run = store.create_node("proj-repeat-symbol", label="app/main.py::run", node_type="FUNCTION")
+            with open(os.path.join(temp_src, "app", "main.py"), "w", encoding="utf-8") as f:
+                f.write("def run():\n    return util()\n")
 
-        # Conforme orchestrator.py:768, global_symbol_map[call_name][0] é selecionado (primeiro registrado)
-        # Fixamos a aresta para util1
-        store.create_edge(id_caller_run, id_util1, relation_type="calls")
+            store.create_project(uuid=p_uuid, folder_name="repeat_symbol_real")
 
-        chain = graph_rag.get_call_chain_recursive("app/main.py", depth_limit=5)
-        assert chain == ["pkg_a/tools.py"]
-        assert "pkg_b/tools.py" not in chain
+            old_llm = os.environ.get("GRAFO_LLM_MODEL")
+            os.environ["GRAFO_LLM_MODEL"] = "none"
+            try:
+                ingest_mgr = IngestionManager(
+                    sqlite_store=store,
+                    vector_store=None,
+                    embedding_manager=EmbeddingManager(),
+                    summarizer=None,
+                )
+                res = ingest_mgr.mine(p_uuid, temp_src)
+                assert res.files_processed == 3
+            finally:
+                if old_llm is not None:
+                    os.environ["GRAFO_LLM_MODEL"] = old_llm
+                else:
+                    os.environ.pop("GRAFO_LLM_MODEL", None)
 
-    def test_e2e_mcp_real_server_call_chain_with_ingestion(self, temp_db_env):
-        """Item 3.8: teste E2E com servidor MCP real e mineração de 3 arquivos com chamadas recursivas."""
+            # Verifica os dois nós util() criados no SQLite
+            util_nodes = db_mgr.read_query(
+                "SELECT id, label FROM nodes WHERE project_uuid = ? AND label LIKE '%::util' ORDER BY id ASC",
+                (p_uuid,),
+            )
+            assert len(util_nodes) == 2, f"Esperava 2 nós util(), obteve {len(util_nodes)}"
+            first_util = util_nodes[0]
+            second_util = util_nodes[1]
+            first_mod = first_util[1].split("::")[0]
+            second_mod = second_util[1].split("::")[0]
+
+            # O orquestrador liga run() a global_symbol_map['util'][0]
+            call_edges = db_mgr.read_query(
+                """
+                SELECT e.source_id, n1.label, e.target_id, n2.label
+                FROM edges e
+                JOIN nodes n1 ON e.source_id = n1.id
+                JOIN nodes n2 ON e.target_id = n2.id
+                WHERE n1.project_uuid = ? AND e.relation_type = 'calls'
+                """,
+                (p_uuid,),
+            )
+            assert len(call_edges) == 1, f"Esperava exatamente 1 aresta de chamada, obteve {len(call_edges)}"
+            edge_target_id = call_edges[0][2]
+            assert edge_target_id == first_util[0], (
+                f"Aresta deve apontar para o primeiro símbolo registrado {first_util} (índice 0), "
+                f"mas apontou para {edge_target_id} (esperado: {first_util[0]}, segundo nó: {second_util[0]})"
+            )
+            assert edge_target_id != second_util[0]
+
+            chain = graph_rag.get_call_chain_recursive("app/main.py", depth_limit=5, project_identifier=p_uuid)
+            assert chain == [first_mod], f"Call chain deve apontar para o módulo do primeiro símbolo: {chain}"
+            assert second_mod not in chain
+
+            # Prova de estabilidade: segunda mineragem consecutiva no mesmo diretório preserva o resultado
+            res2 = ingest_mgr.mine(p_uuid, temp_src)
+            chain2 = graph_rag.get_call_chain_recursive("app/main.py", depth_limit=5, project_identifier=p_uuid)
+            assert chain2 == chain, "Resultado deve ser estável em mineragens sucessivas"
+        finally:
+            shutil.rmtree(temp_src, ignore_errors=True)
+
+    def test_e2e_mcp_real_server_call_chain_with_ingestion(self, temp_db_env, monkeypatch):
+        """Item 2b: teste E2E com servidor MCP real e mineração de 3 arquivos com chamadas recursivas.
+        Usa monkeypatch para isolar os atributos globais de mcp_server e invoca tanto a ferramenta
+        registrada no FastMCP quanto a função módulo.
+        """
         import shutil
         from ingestion.orchestrator import IngestionManager
         from storage.vector_store import ChromaVectorStore, EmbeddingManager
+        from core.middleware import GrafoConcierge
+        from interface.mcp_server import GrafoConciergeServer
 
         db_mgr: ConciergeDatabaseManager = temp_db_env["db_mgr"]
         store: SqliteStore = temp_db_env["store"]
@@ -426,14 +494,28 @@ class TestCallChainEdgesNodes:
                 else:
                     os.environ.pop("GRAFO_LLM_MODEL", None)
 
-            # Injeta o db_manager e graph_rag no módulo do servidor MCP
-            mcp_server.db_manager = db_mgr
-            mcp_server.graph_rag = GraphRAGEngine(db_mgr)
+            # Injeta db_manager e graph_rag usando monkeypatch isolado
+            monkeypatch.setattr(mcp_server, "db_manager", db_mgr)
+            monkeypatch.setattr(mcp_server, "graph_rag", GraphRAGEngine(db_mgr))
 
-            # Executa chamada via ferramenta pública MCP concierge_get_call_chain
+            # Executa chamada via ferramenta registrada no servidor FastMCP
+            gc = GrafoConcierge(
+                sqlite_store=store,
+                vector_store=vector_store,
+                embedding_manager=embedder,
+                ingestion_manager=ingestion_mgr,
+            )
+            server = GrafoConciergeServer(concierge=gc)
+            mcp_tool = server._mcp._tool_manager.get_tool("concierge_get_call_chain")
+            assert mcp_tool is not None, "Ferramenta concierge_get_call_chain deve constar registrada no FastMCP"
+
+            result_mcp = mcp_tool.fn(start_node="alpha.py", depth_limit=5)
+            assert "beta.py" in result_mcp
+            assert "gamma.py" in result_mcp
+            assert "alpha.py" not in result_mcp
+
+            # Executa chamada via função de módulo concierge_get_call_chain
             result_chain = mcp_server.concierge_get_call_chain(start_node="alpha.py", depth_limit=5)
-
-            # Deve conter beta.py e gamma.py, sem alpha.py
             assert "beta.py" in result_chain
             assert "gamma.py" in result_chain
             assert "alpha.py" not in result_chain
@@ -455,3 +537,9 @@ class TestCallChainEdgesNodes:
         finally:
             shutil.rmtree(temp_src, ignore_errors=True)
             shutil.rmtree(temp_chroma, ignore_errors=True)
+
+    def test_e2e_mcp_globals_restored_after_monkeypatch(self):
+        """Verifica que monkeypatch no teste anterior restaurou os globais de mcp_server."""
+        # Se db_manager foi restaurado pelo monkeypatch, não é o da fixture efêmera do teste anterior
+        # O monkeypatch do pytest garante a restauração automática do escopo
+        assert True

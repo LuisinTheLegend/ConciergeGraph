@@ -1,0 +1,54 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 1 item
+
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_agent_save_checkpoint_does_not_read_last_error_poison FAILED [100%]
+
+================================== FAILURES ===================================
+_ TestAgentCheckpointsOfficialSchema.test_agent_save_checkpoint_does_not_read_last_error_poison _
+
+self = <test_agent_checkpoints_schema.TestAgentCheckpointsOfficialSchema object at 0x000001FEA9C206E0>
+temp_db_path = 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmpsbkcyiby\\test_checkpoints.db'
+
+    def test_agent_save_checkpoint_does_not_read_last_error_poison(self, temp_db_path):
+        """Item 2c: agent_save_checkpoint consome o retorno local de erro e não lê checkpointer.last_error."""
+        conn = sqlite3.connect(temp_db_path)
+        try:
+            SchemaManager(conn).apply_full_schema()
+        finally:
+            conn.close()
+    
+        db_mgr = ConciergeDatabaseManager(temp_db_path)
+        checkpointer = AgnosticCheckpointer(db_mgr)
+    
+        # Injeta veneno no estado compartilhado da instância
+        checkpointer.last_error = "POISON_ERRO_ANTIGO"
+    
+        # Simula falha atual com mensagem distinta
+        db_mgr.write_query = lambda q, p: (False, "FALHA_ATUAL_ESPECIFICA")
+    
+        orig_cp = mcp_server.checkpointer
+        try:
+            mcp_server.checkpointer = checkpointer
+            resp_str = mcp_server.agent_save_checkpoint("agent_p", "sess_p", "cp_p", {"k": "v"})
+            resp = json.loads(resp_str)
+    
+            assert resp["success"] is False
+            msg = resp["message"]
+>           assert "FALHA_ATUAL_ESPECIFICA" in msg
+E           assert 'FALHA_ATUAL_ESPECIFICA' in "Failed to save checkpoint 'cp_p' for agent 'agent_p': POISON_ERRO_ANTIGO"
+
+tests\test_agent_checkpoints_schema.py:397: AssertionError
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_agent_save_checkpoint_does_not_read_last_error_poison
+======================== 1 failed, 1 warning in 2.96s =========================

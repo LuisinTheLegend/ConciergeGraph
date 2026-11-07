@@ -1,0 +1,112 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 1 item
+
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_repeated_symbol_name_orchestrator_behavior FAILED [100%]
+
+================================== FAILURES ===================================
+___ TestCallChainEdgesNodes.test_repeated_symbol_name_orchestrator_behavior ___
+
+self = <test_call_chain_edges_nodes.TestCallChainEdgesNodes object at 0x0000022802C3F040>
+temp_db_env = {'path': 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmp512i6vq4.db', 'db_mgr': <core.database.ConciergeDatabaseManager o...e.SqliteStore object at 0x00000228160E1FD0>, 'graph_rag': <core.graph_rag.GraphRAGEngine object at 0x00000228160E2660>}
+
+    def test_repeated_symbol_name_orchestrator_behavior(self, temp_db_env):
+        """Item 2a (2f): minera arquivos reais e valida que o orquestrador seleciona
+        o primeiro símbolo registrado em global_symbol_map (índice 0).
+        """
+        import shutil
+        from ingestion.orchestrator import IngestionManager
+        from storage.vector_store import EmbeddingManager
+    
+        db_mgr: ConciergeDatabaseManager = temp_db_env["db_mgr"]
+        store: SqliteStore = temp_db_env["store"]
+        graph_rag: GraphRAGEngine = temp_db_env["graph_rag"]
+    
+        temp_src = tempfile.mkdtemp(prefix="repeat_sym_")
+        p_uuid = "proj-repeat-symbol-real"
+        try:
+            os.makedirs(os.path.join(temp_src, "pkg_a"), exist_ok=True)
+            os.makedirs(os.path.join(temp_src, "pkg_b"), exist_ok=True)
+            os.makedirs(os.path.join(temp_src, "app"), exist_ok=True)
+    
+            with open(os.path.join(temp_src, "pkg_a", "tools.py"), "w", encoding="utf-8") as f:
+                f.write("def util():\n    return 1\n")
+    
+            with open(os.path.join(temp_src, "pkg_b", "tools.py"), "w", encoding="utf-8") as f:
+                f.write("def util():\n    return 2\n")
+    
+            with open(os.path.join(temp_src, "app", "main.py"), "w", encoding="utf-8") as f:
+                f.write("def run():\n    return util()\n")
+    
+            store.create_project(uuid=p_uuid, folder_name="repeat_symbol_real")
+    
+            old_llm = os.environ.get("GRAFO_LLM_MODEL")
+            os.environ["GRAFO_LLM_MODEL"] = "none"
+            try:
+                ingest_mgr = IngestionManager(
+                    sqlite_store=store,
+                    vector_store=None,
+                    embedding_manager=EmbeddingManager(),
+                    summarizer=None,
+                )
+                res = ingest_mgr.mine(p_uuid, temp_src)
+                assert res.files_processed == 3
+            finally:
+                if old_llm is not None:
+                    os.environ["GRAFO_LLM_MODEL"] = old_llm
+                else:
+                    os.environ.pop("GRAFO_LLM_MODEL", None)
+    
+            # Verifica os dois nós util() criados no SQLite
+            util_nodes = db_mgr.read_query(
+                "SELECT id, label FROM nodes WHERE project_uuid = ? AND label LIKE '%::util' ORDER BY id ASC",
+                (p_uuid,),
+            )
+            assert len(util_nodes) == 2, f"Esperava 2 nós util(), obteve {len(util_nodes)}"
+            first_util = util_nodes[0]
+            second_util = util_nodes[1]
+            first_mod = first_util[1].split("::")[0]
+            second_mod = second_util[1].split("::")[0]
+    
+            # O orquestrador liga run() a global_symbol_map['util'][0]
+            call_edges = db_mgr.read_query(
+                """
+                SELECT e.source_id, n1.label, e.target_id, n2.label
+                FROM edges e
+                JOIN nodes n1 ON e.source_id = n1.id
+                JOIN nodes n2 ON e.target_id = n2.id
+                WHERE n1.project_uuid = ? AND e.relation_type = 'calls'
+                """,
+                (p_uuid,),
+            )
+            assert len(call_edges) == 1, f"Esperava exatamente 1 aresta de chamada, obteve {len(call_edges)}"
+            edge_target_id = call_edges[0][2]
+>           assert edge_target_id == first_util[0], (
+                f"Aresta deve apontar para o primeiro símbolo registrado {first_util} (índice 0), "
+                f"mas apontou para {edge_target_id} (esperado: {first_util[0]}, segundo nó: {second_util[0]})"
+            )
+E           AssertionError: Aresta deve apontar para o primeiro símbolo registrado (6, 'pkg_a/tools.py::util') (índice 0), mas apontou para 8 (esperado: 6, segundo nó: 8)
+E           assert 8 == 6
+
+tests\test_call_chain_edges_nodes.py:426: AssertionError
+---------------------------- Captured stderr call -----------------------------
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 103/103 [00:00<00:00, 5616.76it/s]
+------------------------------ Captured log call ------------------------------
+WARNING  huggingface_hub.utils._http:_http.py:904 Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+ERROR    grafo-concierge.orchestrator:orchestrator.py:840 Store Vector batch failed: 'NoneType' object has no attribute 'store_embeddings_batch'
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_repeated_symbol_name_orchestrator_behavior
+======================== 1 failed, 1 warning in 22.58s ========================

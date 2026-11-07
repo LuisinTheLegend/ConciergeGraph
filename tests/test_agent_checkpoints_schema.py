@@ -265,7 +265,7 @@ class TestAgentCheckpointsOfficialSchema:
         assert updated_list == ["cp_b", "cp_c", "cp_a"]
 
     def test_concurrent_save_checkpoint_does_not_mix_errors(self, temp_db_path):
-        """Duas threads chamando save simultaneamente no mesmo checkpointer não misturam erros."""
+        """Verifica que respostas de chamadas simultâneas não se misturam (resultados isolados por chamada)."""
         import threading
 
         conn = sqlite3.connect(temp_db_path)
@@ -345,8 +345,64 @@ class TestAgentCheckpointsOfficialSchema:
         finally:
             mcp_server.checkpointer = orig_cp
 
+    def test_save_checkpoint_detailed_does_not_mutate_instance_state(self, temp_db_path):
+        """Item 2c: save_checkpoint_detailed é livre de efeitos colaterais e não muta atributos da instância."""
+        import copy
+
+        conn = sqlite3.connect(temp_db_path)
+        try:
+            SchemaManager(conn).apply_full_schema()
+        finally:
+            conn.close()
+
+        db_mgr = ConciergeDatabaseManager(temp_db_path)
+        checkpointer = AgnosticCheckpointer(db_mgr)
+
+        # Simula falha na escrita
+        db_mgr.write_query = lambda q, p: (False, "simulated write failure")
+
+        state_before = copy.copy(vars(checkpointer))
+        success, err = checkpointer.save_checkpoint_detailed("agent_x", "sess_x", "cp_x", {"a": 1})
+        state_after = copy.copy(vars(checkpointer))
+
+        assert success is False
+        assert "simulated write failure" in str(err)
+        assert state_before == state_after, f"save_checkpoint_detailed não deve alterar vars(): {state_before} != {state_after}"
+
+    def test_agent_save_checkpoint_does_not_read_last_error_poison(self, temp_db_path):
+        """Item 2c: agent_save_checkpoint consome o retorno local de erro e não lê checkpointer.last_error."""
+        conn = sqlite3.connect(temp_db_path)
+        try:
+            SchemaManager(conn).apply_full_schema()
+        finally:
+            conn.close()
+
+        db_mgr = ConciergeDatabaseManager(temp_db_path)
+        checkpointer = AgnosticCheckpointer(db_mgr)
+
+        # Injeta veneno no estado compartilhado da instância
+        checkpointer.last_error = "POISON_ERRO_ANTIGO"
+
+        # Simula falha atual com mensagem distinta
+        db_mgr.write_query = lambda q, p: (False, "FALHA_ATUAL_ESPECIFICA")
+
+        orig_cp = mcp_server.checkpointer
+        try:
+            mcp_server.checkpointer = checkpointer
+            resp_str = mcp_server.agent_save_checkpoint("agent_p", "sess_p", "cp_p", {"k": "v"})
+            resp = json.loads(resp_str)
+
+            assert resp["success"] is False
+            msg = resp["message"]
+            assert "FALHA_ATUAL_ESPECIFICA" in msg
+            assert "POISON_ERRO_ANTIGO" not in msg
+        finally:
+            mcp_server.checkpointer = orig_cp
+
     def test_save_checkpoint_legacy_wrapper(self, temp_db_path):
-        """Wrapper save_checkpoint mantém retrocompatibilidade de assinatura bool e last_error."""
+        """Wrapper save_checkpoint mantém retrocompatibilidade de assinatura bool e last_error.
+        Nota: O wrapper continua gravando self.last_error por compatibilidade (ex: hsm_engine.py).
+        """
         conn = sqlite3.connect(temp_db_path)
         try:
             SchemaManager(conn).apply_full_schema()

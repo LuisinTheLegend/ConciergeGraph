@@ -1,0 +1,43 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 27 items
+
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_linear_chain_depth_limits PASSED [  3%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_cycle_protection_prevents_infinite_loop PASSED [  7%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_nonexistent_root_node_raises_clear_error PASSED [ 11%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_ambiguous_node_across_projects_requires_identifier PASSED [ 14%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_historical_valid_to_commit_edges_are_ignored PASSED [ 18%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_other_relation_types_are_not_followed PASSED [ 22%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_invalid_depth_limit_raises_clear_error PASSED [ 25%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_stale_or_archived_nodes_are_ignored PASSED [ 29%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_symbol_start_excludes_origin_file_but_traverses_intrafile_callees PASSED [ 33%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_paths_with_wildcards_underscore_percent_and_backslash PASSED [ 37%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_duplicate_folder_name_raises_ambiguity_error PASSED [ 40%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_ambiguity_message_does_not_contain_names_or_uuids PASSED [ 44%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_nonexistent_project_identifier_raises_clear_error PASSED [ 48%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_repeated_symbol_name_orchestrator_behavior PASSED [ 51%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_e2e_mcp_real_server_call_chain_with_ingestion PASSED [ 55%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_e2e_mcp_globals_restored_after_monkeypatch PASSED [ 59%]
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_schema_manager_creates_agent_checkpoints PASSED [ 62%]
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_verify_tables_exist_fails_if_agent_checkpoints_missing PASSED [ 66%]
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_migration_preserves_existing_data PASSED [ 70%]
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_e2e_checkpointer_and_mcp_tools PASSED [ 74%]
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_save_checkpoint_failure_message_includes_reason PASSED [ 77%]
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_list_checkpoints_rapid_sequence_order PASSED [ 81%]
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_insert_or_replace_updates_order_and_rowid PASSED [ 85%]
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_concurrent_save_checkpoint_does_not_mix_errors PASSED [ 88%]
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_save_checkpoint_detailed_does_not_mutate_instance_state PASSED [ 92%]
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_agent_save_checkpoint_does_not_read_last_error_poison PASSED [ 96%]
+tests/test_agent_checkpoints_schema.py::TestAgentCheckpointsOfficialSchema::test_save_checkpoint_legacy_wrapper PASSED [100%]
+
+============================== warnings summary ===============================
+..\..\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\guial\AppData\Roaming\Python\Python314\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 27 passed, 1 warning in 32.48s ========================
