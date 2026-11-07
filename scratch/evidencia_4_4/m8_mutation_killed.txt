@@ -1,0 +1,347 @@
+Command exited with code 1.
+
+Command output:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 16 items / 15 deselected / 1 selected
+
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_e2e_mcp_real_server_call_chain_with_ingestion FAILED [100%]
+
+================================== FAILURES ===================================
+_ TestCallChainEdgesNodes.test_e2e_mcp_real_server_call_chain_with_ingestion __
+
+self = <test_call_chain_edges_nodes.TestCallChainEdgesNodes object at 0x000001EBF30FD850>
+temp_db_env = {'path': 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmprk5uyp0z.db', 'db_mgr': <core.database.ConciergeDatabaseManager o...e.SqliteStore object at 0x000001EBF3110D70>, 'graph_rag': <core.graph_rag.GraphRAGEngine object at 0x000001EBF3111400>}
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001EBF30BDE00>
+
+    def test_e2e_mcp_real_server_call_chain_with_ingestion(self, temp_db_env, monkeypatch):
+        """Item 2b: teste E2E com servidor MCP real e mineração de 3 arquivos com chamadas recursivas.
+        Usa monkeypatch para isolar os atributos globais de mcp_server e invoca tanto a ferramenta
+        registrada no FastMCP (mcp_tool.fn) quanto a função módulo (concierge_get_call_chain).
+        Nota: usa a API privada _mcp._tool_manager para obter a ferramenta registrada no FastMCP.
+        """
+        import shutil
+        from ingestion.orchestrator import IngestionManager
+        from storage.vector_store import ChromaVectorStore, EmbeddingManager
+        from core.middleware import GrafoConcierge
+        from interface.mcp_server import GrafoConciergeServer
+    
+        db_mgr: ConciergeDatabaseManager = temp_db_env["db_mgr"]
+        store: SqliteStore = temp_db_env["store"]
+    
+        # Cria projeto de 3 arquivos em diretório temporário
+        temp_src = tempfile.mkdtemp(prefix="e2e_src_")
+        temp_chroma = tempfile.mkdtemp(prefix="e2e_chroma_")
+        p_uuid = "proj-e2e-real-mcp"
+        try:
+            with open(os.path.join(temp_src, "alpha.py"), "w", encoding="utf-8") as f:
+                f.write("def fa():\n    fb()\n")
+    
+            with open(os.path.join(temp_src, "beta.py"), "w", encoding="utf-8") as f:
+                f.write("def fb():\n    fc()\n")
+    
+            with open(os.path.join(temp_src, "gamma.py"), "w", encoding="utf-8") as f:
+                f.write("def fc():\n    pass\n")
+    
+            store.create_project(uuid=p_uuid, folder_name="e2e_real_proj")
+    
+            # Minera o projeto via IngestionManager com GRAFO_LLM_MODEL=none
+            old_llm_model = os.environ.get("GRAFO_LLM_MODEL")
+            os.environ["GRAFO_LLM_MODEL"] = "none"
+            try:
+                embedder = EmbeddingManager()
+                vector_store = ChromaVectorStore(
+                    persist_dir=temp_chroma,
+                    collection_name="e2e_call_chain_coll",
+                    embedding_manager=embedder,
+                )
+                ingestion_mgr = IngestionManager(
+                    sqlite_store=store,
+                    vector_store=vector_store,
+                    embedding_manager=embedder,
+                    summarizer=None,
+                )
+                ingestion_res = ingestion_mgr.mine(p_uuid, temp_src)
+                assert ingestion_res.files_processed == 3
+            finally:
+                if old_llm_model is not None:
+                    os.environ["GRAFO_LLM_MODEL"] = old_llm_model
+                else:
+                    os.environ.pop("GRAFO_LLM_MODEL", None)
+    
+            # Injeta db_manager e graph_rag usando monkeypatch isolado
+            monkeypatch.setattr(mcp_server, "db_manager", db_mgr)
+            monkeypatch.setattr(mcp_server, "graph_rag", GraphRAGEngine(db_mgr))
+    
+            # Executa chamada via ferramenta registrada no servidor FastMCP
+            gc = GrafoConcierge(
+                sqlite_store=store,
+                vector_store=vector_store,
+                embedding_manager=embedder,
+                ingestion_manager=ingestion_mgr,
+            )
+            server = GrafoConciergeServer(concierge=gc)
+            mcp_tool = server._mcp._tool_manager.get_tool("concierge_get_call_chain")
+            assert mcp_tool is not None, "Ferramenta concierge_get_call_chain deve constar registrada no FastMCP"
+    
+            result_mcp = mcp_tool.fn(start_node="alpha.py", depth_limit=5)
+            assert "beta.py" in result_mcp
+            assert "gamma.py" in result_mcp
+            assert "alpha.py" not in result_mcp
+    
+            # Executa chamada via função de módulo concierge_get_call_chain
+            result_chain = mcp_server.concierge_get_call_chain(start_node="alpha.py", depth_limit=5)
+            assert "beta.py" in result_chain
+            assert "gamma.py" in result_chain
+            assert "alpha.py" not in result_chain
+    
+            # Cria um segundo projeto que possui o mesmo arquivo 'alpha.py'
+            p2_uuid = "proj-e2e-second"
+            store.create_project(uuid=p2_uuid, folder_name="second_project")
+            store.create_node(p2_uuid, label="alpha.py", node_type="MODULE")
+    
+            # Chamada sem project_identifier agora deve falhar por ambiguidade inter-projeto
+            # (validado tanto na ferramenta registrada quanto na função de módulo)
+            with pytest.raises(ValueError) as exc_tool:
+                mcp_tool.fn(start_node="alpha.py", depth_limit=5)
+            assert "ambiguous" in str(exc_tool.value).lower()
+    
+            with pytest.raises(ValueError) as exc_mod:
+                mcp_server.concierge_get_call_chain(start_node="alpha.py", depth_limit=5)
+            assert "ambiguous" in str(exc_mod.value).lower()
+    
+            # Chamada especificando o project_identifier do primeiro projeto deve resolver com sucesso
+            # 1. Via ferramenta FastMCP registrada (mcp_tool.fn) - mata a mutação M8
+>           resolved_tool_p1 = mcp_tool.fn(start_node="alpha.py", depth_limit=5, project_identifier=p_uuid)
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_call_chain_edges_nodes.py:541: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+interface\mcp_server.py:889: in tool_concierge_get_call_chain
+    return concierge_get_call_chain(start_node, depth_limit)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+interface\mcp_server.py:1801: in concierge_get_call_chain
+    return graph_rag.get_call_chain_recursive(start_node, depth_limit, project_identifier)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <core.graph_rag.GraphRAGEngine object at 0x000001EB9728D6D0>
+start_node = 'alpha.py', depth_limit = 5, project_identifier = None
+
+    def get_call_chain_recursive(
+        self,
+        start_node: str,
+        depth_limit: int = 5,
+        project_identifier: Optional[str] = None,
+    ) -> List[str]:
+        """
+        Executes recursive traversal across canonical 'edges' and 'nodes' tables in SQLite WAL.
+    
+        Root selection behavior:
+          - File start (e.g. 'src/core.py'): root is the module node (label = path) plus all
+            symbol nodes prefixed with 'path::'. Exact substring comparison avoids LIKE wildcard collisions.
+          - Symbol start (e.g. 'src/core.py::my_func'): root is only the exact symbol node matching label.
+    
+        Traversal & Filtering:
+          - Follows active relations: relation_type = 'calls', valid_to_commit IS NULL, status = 'ACTIVE'.
+          - Scope is strictly confined to a single project (no cross-project leakage).
+          - Cycle protection: tracked by visited node IDs; traversal continues through symbols of the
+            origin file, but the origin file path itself is strictly excluded from returned results.
+          - Deterministic order: sorted by traversal depth ASC, then alphabetically by path ASC.
+    
+        Args:
+            start_node: Relative file path (e.g. 'src/core.py') or symbol ('src/core.py::my_func').
+            depth_limit: Maximum traversal recursion depth (integer between 1 and 10). Rejects boolean.
+            project_identifier: Optional project UUID or unique folder_name. Required if start_node exists in multiple projects.
+    
+        Returns:
+            List of connected child file paths, ordered by depth ASC, then path ASC.
+    
+        Raises:
+            ValueError: If depth_limit is invalid/boolean, if project_identifier is not found,
+                        if start_node is not found, if folder_name is ambiguous across multiple projects,
+                        or if start_node is ambiguous across projects.
+        """
+        if isinstance(depth_limit, bool) or not isinstance(depth_limit, int) or depth_limit < 1 or depth_limit > 10:
+            raise ValueError(f"Invalid depth_limit: {depth_limit}. Must be an integer between 1 and 10.")
+    
+        norm_start = start_node.replace("\\", "/").strip()
+        if not norm_start:
+            raise ValueError("start_node cannot be empty.")
+    
+        is_symbol_start = "::" in norm_start
+        origin_path = norm_start.split("::")[0] if is_symbol_start else norm_start
+    
+        # 1. Resolve project_uuid if project_identifier is provided
+        target_project_uuid: Optional[str] = None
+        if project_identifier:
+            uuid_rows = self.db.read_query(
+                "SELECT uuid FROM projects WHERE uuid = ?;",
+                (project_identifier,),
+            )
+            if uuid_rows:
+                target_project_uuid = uuid_rows[0][0]
+            else:
+                folder_rows = self.db.read_query(
+                    "SELECT uuid FROM projects WHERE folder_name = ?;",
+                    (project_identifier,),
+                )
+                if not folder_rows:
+                    raise ValueError(f"Project '{project_identifier}' not found.")
+                if len(folder_rows) > 1:
+                    raise ValueError(
+                        f"Multiple projects ({len(folder_rows)}) share folder_name '{project_identifier}'. "
+                        "Please specify the project by its unique UUID."
+                    )
+                target_project_uuid = folder_rows[0][0]
+    
+        # 2. Locate matching active start node(s)
+        if target_project_uuid:
+            if is_symbol_start:
+                nodes_rows = self.db.read_query(
+                    "SELECT id, project_uuid, label "
+                    "FROM nodes "
+                    "WHERE project_uuid = ? "
+                    "  AND status = 'ACTIVE' "
+                    "  AND valid_to_commit IS NULL "
+                    "  AND label = ?;",
+                    (target_project_uuid, norm_start),
+                )
+            else:
+                nodes_rows = self.db.read_query(
+                    "SELECT id, project_uuid, label "
+                    "FROM nodes "
+                    "WHERE project_uuid = ? "
+                    "  AND status = 'ACTIVE' "
+                    "  AND valid_to_commit IS NULL "
+                    "  AND (label = ? OR (substr(label, 1, ?) = ?));",
+                    (target_project_uuid, norm_start, len(norm_start) + 2, f"{norm_start}::"),
+                )
+        else:
+            if is_symbol_start:
+                nodes_rows = self.db.read_query(
+                    "SELECT n.id, n.project_uuid, n.label "
+                    "FROM nodes n "
+                    "JOIN projects p ON n.project_uuid = p.uuid "
+                    "WHERE n.status = 'ACTIVE' "
+                    "  AND n.valid_to_commit IS NULL "
+                    "  AND n.label = ?;",
+                    (norm_start,),
+                )
+            else:
+                nodes_rows = self.db.read_query(
+                    "SELECT n.id, n.project_uuid, n.label "
+                    "FROM nodes n "
+                    "JOIN projects p ON n.project_uuid = p.uuid "
+                    "WHERE n.status = 'ACTIVE' "
+                    "  AND n.valid_to_commit IS NULL "
+                    "  AND (n.label = ? OR (substr(n.label, 1, ?) = ?));",
+                    (norm_start, len(norm_start) + 2, f"{norm_start}::"),
+                )
+    
+        if not nodes_rows:
+            raise ValueError(f"Start node '{start_node}' not found.")
+    
+        # 3. Handle project ambiguity if project_identifier was not passed
+        if not target_project_uuid:
+            projects_found = set(r[1] for r in nodes_rows)
+            if len(projects_found) > 1:
+>               raise ValueError(
+                    f"Ambiguous start_node '{start_node}' found in {len(projects_found)} projects. "
+                    "Please specify project_identifier (use concierge_list_projects to view projects)."
+                )
+E               ValueError: Ambiguous start_node 'alpha.py' found in 2 projects. Please specify project_identifier (use concierge_list_projects to view projects).
+
+core\graph_rag.py:279: ValueError
+---------------------------- Captured stderr call -----------------------------
+Could not reach the Hub ([WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso). Using cached commit hash for 'sentence-transformers/all-MiniLM-L6-v2'.
+
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 103/103 [00:00<00:00, 2491.15it/s]
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+Retrying in 1s [Retry 1/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+Retrying in 2s [Retry 2/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+Retrying in 4s [Retry 3/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+Retrying in 8s [Retry 4/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+Retrying in 8s [Retry 5/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+Retrying in 1s [Retry 1/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+Retrying in 2s [Retry 2/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+Retrying in 4s [Retry 3/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+Retrying in 8s [Retry 4/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+Retrying in 8s [Retry 5/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+Retrying in 1s [Retry 1/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+Retrying in 2s [Retry 2/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+Retrying in 4s [Retry 3/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+Retrying in 8s [Retry 4/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+Retrying in 8s [Retry 5/5].
+'[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+------------------------------ Captured log call ------------------------------
+WARNING  grafo-concierge.parser:parser.py:244 Error loading tree-sitter parser for .py: No module named 'tree_sitter'
+WARNING  grafo-concierge.parser:parser.py:244 Error loading tree-sitter parser for .py: No module named 'tree_sitter'
+WARNING  grafo-concierge.parser:parser.py:244 Error loading tree-sitter parser for .py: No module named 'tree_sitter'
+WARNING  huggingface_hub.hf_api:hf_api.py:3662 Could not reach the Hub ([WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso). Using cached commit hash for 'sentence-transformers/all-MiniLM-L6-v2'.
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 1s [Retry 1/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 2s [Retry 2/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 4s [Retry 3/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 8s [Retry 4/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 8s [Retry 5/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 1s [Retry 1/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 2s [Retry 2/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 4s [Retry 3/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 8s [Retry 4/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 8s [Retry 5/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 1s [Retry 1/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 2s [Retry 2/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 4s [Retry 3/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 8s [Retry 4/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+WARNING  huggingface_hub.utils._http:_http.py:564 Retrying in 8s [Retry 5/5].
+WARNING  huggingface_hub.utils._http:_http.py:551 '[WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/2_Normalize/config.json
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_e2e_mcp_real_server_call_chain_with_ingestion
+=========== 1 failed, 15 deselected, 1 warning in 91.35s (0:01:31) ============

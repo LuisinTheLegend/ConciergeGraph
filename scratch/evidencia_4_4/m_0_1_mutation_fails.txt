@@ -1,0 +1,51 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 16 items / 15 deselected / 1 selected
+
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_e2e_mcp_globals_restored_after_monkeypatch FAILED [100%]
+
+================================== FAILURES ===================================
+___ TestCallChainEdgesNodes.test_e2e_mcp_globals_restored_after_monkeypatch ___
+
+self = <test_call_chain_edges_nodes.TestCallChainEdgesNodes object at 0x000001E05A299490>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001E05A255E00>
+
+    def test_e2e_mcp_globals_restored_after_monkeypatch(self, monkeypatch):
+        """Verifica que monkeypatch restaura estritamente db_manager e graph_rag em interface.mcp_server."""
+        import interface.mcp_server as mcp_server
+        orig_db = mcp_server.db_manager
+        orig_gr = mcp_server.graph_rag
+        dummy_db = object()
+        dummy_gr = object()
+    
+        try:
+            with monkeypatch.context() as m:
+                # Mutação deliberada: atribuição direta em vez de monkeypatch.setattr
+                mcp_server.db_manager = dummy_db
+                mcp_server.graph_rag = dummy_gr
+                assert mcp_server.db_manager is dummy_db
+                assert mcp_server.graph_rag is dummy_gr
+    
+>           assert mcp_server.db_manager is orig_db, "db_manager não foi restaurado ao valor original"
+E           AssertionError: db_manager não foi restaurado ao valor original
+E           assert <object object at 0x000001E04A02A360> is None
+E            +  where <object object at 0x000001E04A02A360> = <module 'interface.mcp_server' from 'C:\\Nexus-Memory\\GrafoConcierge\\interface\\mcp_server.py'>.db_manager
+
+tests\test_call_chain_edges_nodes.py:569: AssertionError
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_e2e_mcp_globals_restored_after_monkeypatch
+================= 1 failed, 15 deselected, 1 warning in 3.43s =================
+

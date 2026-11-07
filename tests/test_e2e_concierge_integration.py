@@ -106,52 +106,8 @@ sys.modules["core.checkpointer"] = _cp_mod
 _cp_spec.loader.exec_module(_cp_mod)
 AgnosticCheckpointer = _cp_mod.AgnosticCheckpointer
 
-# 9) interface.mcp_server (mock heavyweight dependencies)
-if "mcp.server.fastmcp" not in sys.modules:
-    _mcp_pkg = types.ModuleType("mcp")
-    _mcp_server_pkg = types.ModuleType("mcp.server")
-    _mcp_fastmcp = types.ModuleType("mcp.server.fastmcp")
-    _mcp_fastmcp.FastMCP = type("FastMCP", (), {})
-    sys.modules["mcp"] = _mcp_pkg
-    sys.modules["mcp.server"] = _mcp_server_pkg
-    sys.modules["mcp.server.fastmcp"] = _mcp_fastmcp
-
-if "core.middleware" not in sys.modules:
-    _mw_mod = types.ModuleType("core.middleware")
-    _mw_mod.GrafoConcierge = type("GrafoConcierge", (), {})
-    sys.modules["core.middleware"] = _mw_mod
-
-if "core" not in sys.modules:
-    _core_mod = types.ModuleType("core")
-    _core_mod.__path__ = [os.path.join(_project_root, "core")]
-    sys.modules["core"] = _core_mod
-elif not hasattr(sys.modules["core"], "__path__"):
-    sys.modules["core"].__path__ = [os.path.join(_project_root, "core")]
-
-if "services" not in sys.modules:
-    _svc_mod = types.ModuleType("services")
-    _svc_mod.__path__ = [os.path.join(_project_root, "services")]
-    _svc_mod.JanitorService = type("JanitorService", (), {})
-    sys.modules["services"] = _svc_mod
-elif not hasattr(sys.modules["services"], "__path__"):
-    sys.modules["services"].__path__ = [os.path.join(_project_root, "services")]
-
-_ms_spec = importlib.util.spec_from_file_location(
-    "interface.mcp_server",
-    os.path.join(_project_root, "interface", "mcp_server.py"),
-)
-_ms_mod = importlib.util.module_from_spec(_ms_spec)
-sys.modules["interface.mcp_server"] = _ms_mod
-
-if "interface" not in sys.modules:
-    _iface_mod = types.ModuleType("interface")
-    _iface_mod.__path__ = [os.path.join(_project_root, "interface")]
-    sys.modules["interface"] = _iface_mod
-elif not hasattr(sys.modules["interface"], "__path__"):
-    sys.modules["interface"].__path__ = [os.path.join(_project_root, "interface")]
-
-_ms_spec.loader.exec_module(_ms_mod)
-mcp_server = _ms_mod
+# 9) interface.mcp_server stubbing lazy-loaded in setUpClass / restored in tearDownClass
+mcp_server = None
 
 
 class MockVectorDatabase:
@@ -186,6 +142,77 @@ class TestConciergeSovereignE2EAudit(unittest.TestCase):
     Orchestrates all survival slices to verify that subsystems communicate
     seamlessly without deadlocks, memory leaks, or data inconsistencies.
     """
+    @classmethod
+    def setUpClass(cls):
+        global mcp_server
+        # Salva o estado original de sys.modules para isolamento estrito
+        cls._saved_modules = {
+            mod: sys.modules.get(mod)
+            for mod in [
+                "mcp", "mcp.server", "mcp.server.fastmcp",
+                "core.middleware", "core", "services",
+                "interface", "interface.mcp_server",
+            ]
+        }
+
+        # Aplica stubs cirúrgicos isolados durante o escopo da classe de teste
+        if "mcp.server.fastmcp" not in sys.modules:
+            _mcp_pkg = types.ModuleType("mcp")
+            _mcp_server_pkg = types.ModuleType("mcp.server")
+            _mcp_fastmcp = types.ModuleType("mcp.server.fastmcp")
+            _mcp_fastmcp.FastMCP = type("FastMCP", (), {})
+            sys.modules["mcp"] = _mcp_pkg
+            sys.modules["mcp.server"] = _mcp_server_pkg
+            sys.modules["mcp.server.fastmcp"] = _mcp_fastmcp
+
+        if "core.middleware" not in sys.modules:
+            _mw_mod = types.ModuleType("core.middleware")
+            _mw_mod.GrafoConcierge = type("GrafoConcierge", (), {})
+            sys.modules["core.middleware"] = _mw_mod
+
+        if "core" not in sys.modules:
+            _core_mod = types.ModuleType("core")
+            _core_mod.__path__ = [os.path.join(_project_root, "core")]
+            sys.modules["core"] = _core_mod
+        elif not hasattr(sys.modules["core"], "__path__"):
+            sys.modules["core"].__path__ = [os.path.join(_project_root, "core")]
+
+        if "services" not in sys.modules:
+            _svc_mod = types.ModuleType("services")
+            _svc_mod.__path__ = [os.path.join(_project_root, "services")]
+            _svc_mod.JanitorService = type("JanitorService", (), {})
+            sys.modules["services"] = _svc_mod
+        elif not hasattr(sys.modules["services"], "__path__"):
+            sys.modules["services"].__path__ = [os.path.join(_project_root, "services")]
+
+        _ms_spec = importlib.util.spec_from_file_location(
+            "interface.mcp_server",
+            os.path.join(_project_root, "interface", "mcp_server.py"),
+        )
+        _ms_mod = importlib.util.module_from_spec(_ms_spec)
+        sys.modules["interface.mcp_server"] = _ms_mod
+
+        if "interface" not in sys.modules:
+            _iface_mod = types.ModuleType("interface")
+            _iface_mod.__path__ = [os.path.join(_project_root, "interface")]
+            sys.modules["interface"] = _iface_mod
+        elif not hasattr(sys.modules["interface"], "__path__"):
+            sys.modules["interface"].__path__ = [os.path.join(_project_root, "interface")]
+
+        _ms_spec.loader.exec_module(_ms_mod)
+        mcp_server = _ms_mod
+
+    @classmethod
+    def tearDownClass(cls):
+        global mcp_server
+        # Restaura estritamente sys.modules ao estado pré-teste
+        for mod, orig in cls._saved_modules.items():
+            if orig is None:
+                sys.modules.pop(mod, None)
+            else:
+                sys.modules[mod] = orig
+        mcp_server = None
+
     def setUp(self):
         self.db_fd, self.db_path = tempfile.mkstemp(suffix=".db")
         os.close(self.db_fd)

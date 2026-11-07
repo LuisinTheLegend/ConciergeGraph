@@ -443,7 +443,8 @@ class TestCallChainEdgesNodes:
     def test_e2e_mcp_real_server_call_chain_with_ingestion(self, temp_db_env, monkeypatch):
         """Item 2b: teste E2E com servidor MCP real e mineração de 3 arquivos com chamadas recursivas.
         Usa monkeypatch para isolar os atributos globais de mcp_server e invoca tanto a ferramenta
-        registrada no FastMCP quanto a função módulo.
+        registrada no FastMCP (mcp_tool.fn) quanto a função módulo (concierge_get_call_chain).
+        Nota: usa a API privada _mcp._tool_manager para obter a ferramenta registrada no FastMCP.
         """
         import shutil
         from ingestion.orchestrator import IngestionManager
@@ -526,11 +527,22 @@ class TestCallChainEdgesNodes:
             store.create_node(p2_uuid, label="alpha.py", node_type="MODULE")
 
             # Chamada sem project_identifier agora deve falhar por ambiguidade inter-projeto
-            with pytest.raises(ValueError) as exc:
+            # (validado tanto na ferramenta registrada quanto na função de módulo)
+            with pytest.raises(ValueError) as exc_tool:
+                mcp_tool.fn(start_node="alpha.py", depth_limit=5)
+            assert "ambiguous" in str(exc_tool.value).lower()
+
+            with pytest.raises(ValueError) as exc_mod:
                 mcp_server.concierge_get_call_chain(start_node="alpha.py", depth_limit=5)
-            assert "ambiguous" in str(exc.value).lower()
+            assert "ambiguous" in str(exc_mod.value).lower()
 
             # Chamada especificando o project_identifier do primeiro projeto deve resolver com sucesso
+            # 1. Via ferramenta FastMCP registrada (mcp_tool.fn) - mata a mutação M8
+            resolved_tool_p1 = mcp_tool.fn(start_node="alpha.py", depth_limit=5, project_identifier=p_uuid)
+            assert "beta.py" in resolved_tool_p1
+            assert "gamma.py" in resolved_tool_p1
+
+            # 2. Via função de módulo concierge_get_call_chain
             resolved_p1 = mcp_server.concierge_get_call_chain(start_node="alpha.py", depth_limit=5, project_identifier=p_uuid)
             assert "beta.py" in resolved_p1
             assert "gamma.py" in resolved_p1
@@ -538,8 +550,23 @@ class TestCallChainEdgesNodes:
             shutil.rmtree(temp_src, ignore_errors=True)
             shutil.rmtree(temp_chroma, ignore_errors=True)
 
-    def test_e2e_mcp_globals_restored_after_monkeypatch(self):
-        """Verifica que monkeypatch no teste anterior restaurou os globais de mcp_server."""
-        # Se db_manager foi restaurado pelo monkeypatch, não é o da fixture efêmera do teste anterior
-        # O monkeypatch do pytest garante a restauração automática do escopo
-        assert True
+    def test_e2e_mcp_globals_restored_after_monkeypatch(self, monkeypatch):
+        """Verifica que monkeypatch restaura estritamente db_manager e graph_rag em interface.mcp_server."""
+        import interface.mcp_server as mcp_server
+        orig_db = mcp_server.db_manager
+        orig_gr = mcp_server.graph_rag
+        dummy_db = object()
+        dummy_gr = object()
+
+        try:
+            with monkeypatch.context() as m:
+                m.setattr(mcp_server, "db_manager", dummy_db)
+                m.setattr(mcp_server, "graph_rag", dummy_gr)
+                assert mcp_server.db_manager is dummy_db
+                assert mcp_server.graph_rag is dummy_gr
+
+            assert mcp_server.db_manager is orig_db, "db_manager não foi restaurado ao valor original"
+            assert mcp_server.graph_rag is orig_gr, "graph_rag não foi restaurado ao valor original"
+        finally:
+            mcp_server.db_manager = orig_db
+            mcp_server.graph_rag = orig_gr

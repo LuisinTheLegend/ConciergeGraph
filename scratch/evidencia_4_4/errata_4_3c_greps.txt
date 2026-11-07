@@ -1,0 +1,48 @@
+=== grep_relatorio_4_3c_sec5 ===
+audits/relatorio_4_3c.md-174-
+audits/relatorio_4_3c.md-175----
+audits/relatorio_4_3c.md-176-
+audits/relatorio_4_3c.md:177:## 5. Descrição Detalhada dos 6 Testes Reescritos na Rodada 4.3b
+audits/relatorio_4_3c.md-178-
+audits/relatorio_4_3c.md-179-Conforme exigido pelo protocolo, segue a descrição de cada um dos 6 testes reescritos na 4.3b (evidência do diff em `scratch/evidencia_4_3c/diff_6_tests_4_3b.txt`), comprovando que nenhum `assert` foi enfraquecido ou suprimido:
+audits/relatorio_4_3c.md-180-
+
+=== grep_relatorio_4_3c_timeout ===
+audits/relatorio_4_3c.md:211:- **Metodologia:** Executou-se o script `scratch/run_item3_investigation.py` rodando `pytest tests/test_mcp_server_extensions.py -v --timeout=120 -o faulthandler_timeout=60` por 10 vezes consecutivas no venv limpo (`.venv_clean`).
+
+=== grep_run_item3_cmd ===
+scratch/run_item3_investigation.py:21:    cmd = [pytest_bin, test_file, "-v", "-o", "faulthandler_timeout=60"]
+
+=== grep_relatorio_4_3c_c4_hash ===
+audits/relatorio_4_3c.md:20:| **Commit C4 (Fechamento Documental)** | `821113a` | `git log -1 821113a` |
+audits/relatorio_4_3c.md:21:| **HEAD final** | `821113a8a58ff08560c2c7a815711c066e50e4d9` | `git rev-parse HEAD` |
+
+=== grep_relatorio_4_3c_privacy ===
+audits/relatorio_4_3c.md:132:- **Total de ocorrências de `privacy_level` no repositório:** 28 ocorrências (`scratch/evidencia_4_3c/item1c_privacy_level_grep.txt`).
+audits/relatorio_4_3c.md:241:| **Item 1c (`privacy_level`)** | Inventário completo de 28 ocorrências e checagem de chamadores de `check_contamination`. | Prova de que `check_contamination` tem 0 chamadores de produção e que `privacy_level` nunca filtra busca ou grafo. | Não foram auditados módulos em quarentena (`archive/`). | `scratch/evidencia_4_3c/item1c_privacy_level_grep.txt`, `item1c_check_contamination_callers.txt` |
+
+=== grep_relatorio_4_3c_hipotese ===
+audits/relatorio_4_3c.md:216:  - Hipótese técnica: Possível contenção de recursos ou bloqueio de locks de subprocesso/I/O no ambiente Linux específico do runner do auditor, ou concorrência com threads em background em caso de término abrupto de sessão.
+
+=== grep_orchestrator_real_682 ===
+ingestion/orchestrator.py-682-                if sym not in global_symbol_map:
+ingestion/orchestrator.py-683-                    global_symbol_map[sym] = []
+ingestion/orchestrator.py:684:                global_symbol_map[sym].append(nid)
+ingestion/orchestrator.py-685-
+ingestion/orchestrator.py-686-        # Maps all chunks (new and cached) of the current batch
+--
+ingestion/orchestrator.py-695-                if sym not in global_symbol_map:
+ingestion/orchestrator.py-696-                    global_symbol_map[sym] = []
+ingestion/orchestrator.py:697:                global_symbol_map[sym].append(nid)
+ingestion/orchestrator.py-698-
+ingestion/orchestrator.py-699-        # 3. PREPARE EDGES FOR BULK CREATION (new + cached)
+
+=== grep_orchestrator_real_768 ===
+ingestion/orchestrator.py-766-                # Check 3: Global symbol lookup in the project
+ingestion/orchestrator.py-767-                if not target_node_id and call_name in global_symbol_map:
+ingestion/orchestrator.py:768:                    target_node_id = global_symbol_map[call_name][0]
+ingestion/orchestrator.py-769-
+ingestion/orchestrator.py-770-                if target_node_id and target_node_id != chunk_node_id:
+
+=== count_privacy_level_lines ===
+Total lines in item1c_privacy_level_grep.txt: 36

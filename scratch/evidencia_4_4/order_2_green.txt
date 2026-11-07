@@ -1,0 +1,36 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 17 items
+
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_linear_chain_depth_limits PASSED [  5%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_cycle_protection_prevents_infinite_loop PASSED [ 11%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_nonexistent_root_node_raises_clear_error PASSED [ 17%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_ambiguous_node_across_projects_requires_identifier PASSED [ 23%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_historical_valid_to_commit_edges_are_ignored PASSED [ 29%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_other_relation_types_are_not_followed PASSED [ 35%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_invalid_depth_limit_raises_clear_error PASSED [ 41%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_stale_or_archived_nodes_are_ignored PASSED [ 47%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_symbol_start_excludes_origin_file_but_traverses_intrafile_callees PASSED [ 52%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_paths_with_wildcards_underscore_percent_and_backslash PASSED [ 58%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_duplicate_folder_name_raises_ambiguity_error PASSED [ 64%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_ambiguity_message_does_not_contain_names_or_uuids PASSED [ 70%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_nonexistent_project_identifier_raises_clear_error PASSED [ 76%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_repeated_symbol_name_orchestrator_behavior PASSED [ 82%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_e2e_mcp_real_server_call_chain_with_ingestion PASSED [ 88%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_e2e_mcp_globals_restored_after_monkeypatch PASSED [ 94%]
+tests/test_e2e_concierge_integration.py::TestConciergeSovereignE2EAudit::test_e2e_flow_full_lifecycle_and_communication PASSED [100%]
+
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================== 17 passed, 1 warning in 164.79s (0:02:44) ==================
