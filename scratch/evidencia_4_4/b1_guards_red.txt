@@ -1,0 +1,188 @@
+=== PROVA EM VERMELHO DOS TESTES-GUARDA (G1, G2, G3) ===
+Comando: pytest tests/test_domain_neutrality_guard.py -v
+
+Command exited with code 1.
+
+Command output:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/test_domain_neutrality_guard.py::test_g1_concierge_config_has_no_wing_keywords FAILED [ 25%]
+tests/test_domain_neutrality_guard.py::test_g2_no_retired_domain_strings_in_product_code FAILED [ 50%]
+tests/test_domain_neutrality_guard.py::test_g3_real_mining_never_alters_primary_wing FAILED [ 75%]
+tests/test_domain_neutrality_guard.py::test_g4_free_text_wings_and_update_project PASSED [100%]
+
+================================== FAILURES ===================================
+________________ test_g1_concierge_config_has_no_wing_keywords ________________
+
+    def test_g1_concierge_config_has_no_wing_keywords():
+        """G1: Garante que ConciergeConfig não possui o campo wing_keywords."""
+        field_names = [f.name for f in dataclasses.fields(ConciergeConfig)]
+>       assert "wing_keywords" not in field_names, "ConciergeConfig não deve conter o campo wing_keywords"
+E       AssertionError: ConciergeConfig não deve conter o campo wing_keywords
+E       assert 'wing_keywords' not in ['weight_vector', 'weight_fts5', 'weight_recency_centrality', 'recency_half_life_days', 'recency_lambda', 'recency_min_score', ...]
+
+tests\test_domain_neutrality_guard.py:36: AssertionError
+______________ test_g2_no_retired_domain_strings_in_product_code ______________
+
+    def test_g2_no_retired_domain_strings_in_product_code():
+        """G2: Varredura por AST em todo código de produto (core, storage, ingestion, services, interface, agent, agents).
+    
+        Nenhuma constante de string, incluindo docstring, pode ser igual a um dos 5 nomes
+        aposentados (comparação exata, com ou sem acentos).
+        A lista proibida reside estritamente dentro deste teste.
+        """
+        forbidden_exact = {
+            "marketing/vendas",
+            "finanças/quant",
+            "financas/quant",
+            "gestão/saas",
+            "gestao/saas",
+            "automação/rh",
+            "automacao/rh",
+            "estatística",
+            "estatistica",
+        }
+    
+        # Diretórios de código de produto
+        product_dirs = ["core", "storage", "ingestion", "services", "interface", "agent", "agents"]
+        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    
+        violations = []
+    
+        for p_dir in product_dirs:
+            dir_path = os.path.join(repo_root, p_dir)
+            if not os.path.isdir(dir_path):
+                continue
+    
+            for root, dirs, files in os.walk(dir_path):
+                # Ignora caches e diretórios ocultos
+                dirs[:] = [d for d in dirs if not d.startswith(".") and d != "__pycache__"]
+                for file in files:
+                    if not file.endswith(".py"):
+                        continue
+    
+                    full_path = os.path.join(root, file)
+                    rel_path = os.path.relpath(full_path, repo_root).replace("\\", "/")
+    
+                    with open(full_path, "r", encoding="utf-8", errors="replace") as f:
+                        source = f.read()
+    
+                    try:
+                        tree = ast.parse(source, filename=rel_path)
+                    except SyntaxError as e:
+                        violations.append(f"Erro de sintaxe ao analisar {rel_path}: {e}")
+                        continue
+    
+                    for node in ast.walk(tree):
+                        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                            val_normalized = node.value.strip().lower()
+                            if val_normalized in forbidden_exact:
+                                lineno = getattr(node, "lineno", "?")
+                                violations.append(f"{rel_path}:{lineno} contém string proibida '{node.value}'")
+    
+>       assert not violations, (
+            f"Violação de Neutralidade de Domínio detectada no código de produto:\n"
+            + "\n".join(violations)
+        )
+E       AssertionError: Violação de Neutralidade de Domínio detectada no código de produto:
+E         core/config.py:78 contém string proibida 'marketing/vendas'
+E         core/config.py:82 contém string proibida 'finanças/quant'
+E         core/config.py:86 contém string proibida 'gestão/saas'
+E         core/config.py:90 contém string proibida 'automação/rh'
+E         core/config.py:94 contém string proibida 'estatística'
+E         core/config.py:95 contém string proibida 'estatística'
+E       assert not ["core/config.py:78 contém string proibida 'marketing/vendas'", "core/config.py:82 contém string proibida 'finanças/quant'", "core/config.py:86 contém string proibida 'gestão/saas'", "core/config.py:90 contém string proibida 'automação/rh'", "core/config.py:94 contém string proibida 'estatística'", "core/config.py:95 contém string proibida 'estatística'"]
+
+tests\test_domain_neutrality_guard.py:102: AssertionError
+________________ test_g3_real_mining_never_alters_primary_wing ________________
+
+    def test_g3_real_mining_never_alters_primary_wing():
+        """G3: Mineração real nunca muda primary_wing, nem com arquivos contendo marketing, trade, etc."""
+        temp_dir = tempfile.mkdtemp(prefix="g3_mining_guard_")
+        db_path = os.path.join(temp_dir, "test.db")
+        chroma_dir = os.path.join(temp_dir, "chroma")
+        src_dir = os.path.join(temp_dir, "src")
+        os.makedirs(src_dir, exist_ok=True)
+    
+        conn = sqlite3.connect(db_path)
+        try:
+            SchemaManager(conn).apply_full_schema()
+        finally:
+            conn.close()
+    
+        store = SqliteStore(db_path)
+        embedder = EmbeddingManager()
+        vector_store = ChromaVectorStore(
+            persist_dir=chroma_dir,
+            collection_name="g3_guard_coll",
+            embedding_manager=embedder,
+        )
+        ingestion_mgr = IngestionManager(
+            sqlite_store=store,
+            vector_store=vector_store,
+            embedding_manager=embedder,
+            summarizer=None,
+        )
+        gc = GrafoConcierge(
+            sqlite_store=store,
+            vector_store=vector_store,
+            embedding_manager=embedder,
+            ingestion_manager=ingestion_mgr,
+        )
+    
+        old_llm_model = os.environ.get("GRAFO_LLM_MODEL")
+        old_hf_offline = os.environ.get("HF_HUB_OFFLINE")
+        os.environ["GRAFO_LLM_MODEL"] = "none"
+        os.environ["HF_HUB_OFFLINE"] = "1"
+    
+        try:
+            # 1. Registra com ala explícita do usuário
+            p_uuid = gc.register_project(folder_name="meu-projeto", wing="infra/core", summary="Projeto com ala infra")
+            before_proj = store.get_project(p_uuid)
+            assert before_proj["primary_wing"] == "infra/core"
+    
+            # 2. Cria arquivos com termos que antes disparariam auto_categorize
+            with open(os.path.join(src_dir, "marketing_and_trade.py"), "w", encoding="utf-8") as f:
+                f.write("def run_campaign_and_trade():\n    print('venda conversao funil trade bolsa saas')\n")
+    
+            # 3. Minera
+            res = gc.mine(p_uuid, src_dir)
+            assert res.get("nodes_created", 0) > 0, "Deveria ter criado nós na mineração"
+>           assert "auto_categorized_wing" not in res, "Resultado da mineração não deve conter auto_categorized_wing"
+E           AssertionError: Resultado da mineração não deve conter auto_categorized_wing
+E           assert 'auto_categorized_wing' not in {'files_processed': 1, 'categories': {'code': 1}, 'nodes_created': 2, 'embeddings_stored': 2, ...}
+
+tests\test_domain_neutrality_guard.py:164: AssertionError
+---------------------------- Captured stderr call -----------------------------
+Could not reach the Hub (Cannot reach https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2: offline mode is enabled. To disable it, please unset the `HF_HUB_OFFLINE` environment variable.). Using cached commit hash for 'sentence-transformers/all-MiniLM-L6-v2'.
+
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 103/103 [00:00<00:00, 2822.90it/s]
+------------------------------ Captured log call ------------------------------
+WARNING  grafo-concierge.parser:parser.py:244 Error loading tree-sitter parser for .py: No module named 'tree_sitter'
+WARNING  huggingface_hub.hf_api:hf_api.py:3662 Could not reach the Hub (Cannot reach https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2: offline mode is enabled. To disable it, please unset the `HF_HUB_OFFLINE` environment variable.). Using cached commit hash for 'sentence-transformers/all-MiniLM-L6-v2'.
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+tests/test_domain_neutrality_guard.py::test_g3_real_mining_never_alters_primary_wing
+tests/test_domain_neutrality_guard.py::test_g4_free_text_wings_and_update_project
+  C:\Nexus-Memory\GrafoConcierge\storage\store.py:162: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    updates["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_domain_neutrality_guard.py::test_g1_concierge_config_has_no_wing_keywords
+FAILED tests/test_domain_neutrality_guard.py::test_g2_no_retired_domain_strings_in_product_code
+FAILED tests/test_domain_neutrality_guard.py::test_g3_real_mining_never_alters_primary_wing
+================== 3 failed, 1 passed, 3 warnings in 20.72s ===================

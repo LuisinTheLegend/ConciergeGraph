@@ -247,17 +247,17 @@ def test_dim3(store, vector, embedder, gc, uid_a, uid_b):
         frozen_ok = True
     report("Config e frozen (imutavel)", frozen_ok)
 
-    # 3.2 ProjectIndex: Auto-Categorizacao
+    # 3.2 ProjectIndex: Alas do Projeto (Manual / Cadastro)
     print("\n  [3.2] GPS de Conhecimento (ProjectIndex)")
     pi = gc.project_index
-    wing_a = pi.auto_categorize_project(uid_a)
+    wing_a = pi.get_primary_wing(uid_a)
     report("fintech-api -> financas/quant", "finan" in wing_a.lower(), f"wing='{wing_a}'")
 
-    wing_b = pi.auto_categorize_project(uid_b)
+    wing_b = pi.get_primary_wing(uid_b)
     report("obsidian-vault categorizou", wing_b != "geral", f"wing='{wing_b}'")
 
     uid_rnd = gc.register_project("random-xyz-project-12345")
-    wing_rnd = pi.auto_categorize_project(uid_rnd)
+    wing_rnd = pi.get_primary_wing(uid_rnd)
     report("random-project -> geral (fallback)", wing_rnd == "geral", f"wing='{wing_rnd}'")
 
     # 3.3 Strict Scoping

@@ -1,0 +1,37 @@
+=== MUTAÇÃO (c): INSERIR STRING DE DOMÍNIO APOSENTADO NO CÓDIGO DE PRODUTO ===
+Alvo: core/config.py
+Comando: pytest tests/test_domain_neutrality_guard.py -k test_g2 -v
+
+Saída:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items / 3 deselected / 1 selected
+
+tests/test_domain_neutrality_guard.py::test_g2_no_retired_domain_strings_in_product_code FAILED [100%]
+
+================================== FAILURES ===================================
+______________ test_g2_no_retired_domain_strings_in_product_code ______________
+
+    def test_g2_no_retired_domain_strings_in_product_code():
+...
+>       assert not violations, (
+            f"Violação de Neutralidade de Domínio detectada no código de produto:\n"
+            + "\n".join(violations)
+        )
+E       AssertionError: Violação de Neutralidade de Domínio detectada no código de produto:
+E         core/config.py:79 contém string proibida 'marketing/vendas'
+E       assert not ["core/config.py:79 contém string proibida 'marketing/vendas'"]
+
+tests\test_domain_neutrality_guard.py:102: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_domain_neutrality_guard.py::test_g2_no_retired_domain_strings_in_product_code
+================= 1 failed, 3 deselected, 1 warning in 3.38s ==================
+
+Conclusão: Mutação (c) morta com sucesso pelo teste-guarda G2.

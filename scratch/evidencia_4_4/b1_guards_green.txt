@@ -1,0 +1,30 @@
+=== PROVA EM VERDE DOS TESTES-GUARDA (G1, G2, G3, G4) ===
+Comando: pytest tests/test_domain_neutrality_guard.py -v
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/test_domain_neutrality_guard.py::test_g1_concierge_config_has_no_wing_keywords PASSED [ 25%]
+tests/test_domain_neutrality_guard.py::test_g2_no_retired_domain_strings_in_product_code PASSED [ 50%]
+tests/test_domain_neutrality_guard.py::test_g3_real_mining_never_alters_primary_wing PASSED [ 75%]
+tests/test_domain_neutrality_guard.py::test_g4_free_text_wings_and_update_project PASSED [100%]
+
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+tests/test_domain_neutrality_guard.py::test_g4_free_text_wings_and_update_project
+  C:\Nexus-Memory\GrafoConcierge\storage\store.py:162: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    updates["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 4 passed, 2 warnings in 22.69s ========================

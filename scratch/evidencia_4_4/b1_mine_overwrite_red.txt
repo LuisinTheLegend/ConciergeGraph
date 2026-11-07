@@ -1,0 +1,28 @@
+=== PROVA EM VERMELHO: SOBRESCRITA SILENCIOSA DE primary_wing NA MINERAÇÃO (F4-030) ===
+Comando: .venv_clean\Scripts\python scratch/test_mine_overwrite_red.py
+HEAD: e257119
+
+Saída:
+Error loading tree-sitter parser for .py: No module named 'tree_sitter'
+Could not reach the Hub ([WinError 10013] Foi feita uma tentativa de acesso a um soquete de uma maneira que é proibida pelas permissões de acesso). Using cached commit hash for 'sentence-transformers/all-MiniLM-L6-v2'.
+Before mine primary_wing: minha-ala
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 1856.48it/s]
+...
+Mine result nodes_created: 2
+Mine result auto_categorized_wing: marketing/vendas
+After mine primary_wing: marketing/vendas
+Traceback (most recent call last):
+  File "C:\Nexus-Memory\GrafoConcierge\scratch\test_mine_overwrite_red.py", line 84, in <module>
+    main()
+    ~~~~^^
+  File "C:\Nexus-Memory\GrafoConcierge\scratch\test_mine_overwrite_red.py", line 68, in main
+    assert after_proj["primary_wing"] == "minha-ala", (
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: FALHA: primary_wing foi sobrescrita silenciosamente de 'minha-ala' para 'marketing/vendas'!
+
+Conclusão: Hipótese plenamente comprovada em vermelho.
+A função GrafoConcierge.mine() possuía auto_categorize=True como padrão.
+Ao minerar arquivos cujos nomes e conteúdos continham termos como 'marketing',
+o ProjectIndex.auto_categorize_project() categorizava o projeto e invocava set_primary_wing(),
+sobrescrevendo silenciosamente a ala livre 'minha-ala' definida pelo usuário no cadastro.
+

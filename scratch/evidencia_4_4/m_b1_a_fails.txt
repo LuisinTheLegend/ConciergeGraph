@@ -1,0 +1,35 @@
+=== MUTAÇÃO (a): RECOLOCAR O CAMPO wing_keywords ===
+Alvo: core/config.py
+Comando: pytest tests/test_domain_neutrality_guard.py -k test_g1 -v
+
+Saída:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items / 3 deselected / 1 selected
+
+tests/test_domain_neutrality_guard.py::test_g1_concierge_config_has_no_wing_keywords FAILED [100%]
+
+================================== FAILURES ===================================
+________________ test_g1_concierge_config_has_no_wing_keywords ________________
+
+    def test_g1_concierge_config_has_no_wing_keywords():
+        """G1: Garante que ConciergeConfig não possui o campo wing_keywords."""
+        field_names = [f.name for f in dataclasses.fields(ConciergeConfig)]
+>       assert "wing_keywords" not in field_names, "ConciergeConfig não deve conter o campo wing_keywords"
+E       AssertionError: ConciergeConfig não deve conter o campo wing_keywords
+E       assert 'wing_keywords' not in ['weight_vector', 'weight_fts5', 'weight_recency_centrality', 'recency_half_life_days', 'recency_lambda', 'recency_min_score', ...]
+
+tests\test_domain_neutrality_guard.py:36: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_domain_neutrality_guard.py::test_g1_concierge_config_has_no_wing_keywords
+================= 1 failed, 3 deselected, 1 warning in 2.96s ==================
+
+Conclusão: Mutação (a) morta com sucesso pelo teste-guarda G1.
+

@@ -72,32 +72,9 @@ class ConciergeConfig:
     bm25_fields: tuple[str, ...] = ("label", "tags", "summary")
 
     # =================================================================
-    # 5. WINGS — Keywords for automatic categorization
+    # 5. WINGS — Configuration (Domain Neutrality)
     # =================================================================
-    wing_keywords: dict[str, list[str]] = field(default_factory=lambda: {
-        "marketing/vendas": [
-            "marketing", "venda", "copy", "cta", "conversão", "landing",
-            "funil", "lead", "promo", "anúncio", "tráfego",
-        ],
-        "finanças/quant": [
-            "finança", "quant", "trade", "ação", "crypto", "investimento",
-            "bolsa", "daytrade", "renda", "mercado", "carteira",
-        ],
-        "gestão/saas": [
-            "saas", "dashboard", "gestão", "erp", "admin", "painel",
-            "plataforma", "multi-tenant", "subscription",
-        ],
-        "automação/rh": [
-            "automação", "excel", "planilha", "rh", "workflow",
-            "automacao", "webhook", "pipeline", "integracao", "bot",
-        ],
-        "estatística": [
-            "estatística", "análise", "dados", "média", "probabilidade",
-            "regressão", "machine learning", "dataset",
-        ],
-    })
-
-    # Default wing when no keyword is detected.
+    # Default wing when no wing is specified by user/agent.
     default_wing: str = "geral"
 
     # Recommended limit of wings — warns user if exceeded.

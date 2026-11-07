@@ -1,0 +1,145 @@
+=== GREP FOR: wing_keywords ===
+audits/fase4-0c-prova-corrigida.md:443:## 6. Passo 5 — Inventário do Dicionário de Alas (`wing_keywords`)
+audits/fase4-0c-prova-corrigida.md:452:#### (a) `wing_keywords` e `auto_categorize_project`
+audits/fase4-0c-prova-corrigida.md:477:### Simulação com `ConciergeConfig(wing_keywords={})`
+audits/fase4-0c-prova-corrigida.md:493:Rodada a suíte afetada via monkeypatch `wing_keywords={}`:
+audits/fase4-0c-prova-corrigida.md:510:wing_keywords: dict[str, list[str]] = field(default_factory=dict)
+audits/fase4-0c-prova-corrigida.md:514:Usuários que desejarem categorização automática podem fornecer seu próprio dicionário via injeção em `ConciergeConfig(wing_keywords={...})` ou via variável de ambiente JSON `GRAFO_WING_KEYWORDS`.
+audits/fase4-0c-prova-corrigida.md:521:    self.assertEqual(config.wing_keywords, {})
+audits/fase4-0c-prova-corrigida.md:523:    self.assertTrue(forbidden.isdisjoint(config.wing_keywords.keys()))
+audits/fase4-0c-prova-corrigida.md:527:> **Regra de Neutralidade de Domínio:** O Grafo Concierge é uma infraestrutura genérica de memória e grafo para código. É estritamente vedado embutir taxonomias de domínio fechadas, dicionários fixos de negócios ou palavras-chave pré-concebidas no código de produção ou nas configurações padrão (`core/config.py`). O campo `wing_keywords` padrão deve ser sempre um dicionário vazio (`{}`).
+audits/fase4-0c-prova-corrigida.md:538:5. O inventário do dicionário `wing_keywords` foi concluído, provando a viabilidade de sua remoção definitiva e mantendo a integridade do sistema de alas.
+audits/fase4-1g-investigacao-summary.md:94: | 4.4 | — | Remover `wing_keywords` de vez, com teste-guarda e regra de neutralidade no protocolo/CONTRIBUTING | PLANEJADO, NÃO AUTORIZADO | — |
+audits/fase4-achados.md:84:  Invocação de `ProjectIndex.categorize_project(labels=['marketing_campaign.py'])` com `wing_keywords={}`:
+audits/fase4-decisoes.md:27:4. **Remoção Definitiva do Dicionário de Alas (`wing_keywords`):**
+audits/fase4-decisoes.md:28:   - O dicionário hardcoded de palavras-chave de domínio (`wing_keywords` em `core/config.py`) será removido em definitivo do sistema para garantir neutralidade de domínio, acompanhado de teste-guarda.
+audits/fase4-decisoes.md:92:   - Remoção definitiva de `wing_keywords` em `core/config.py` e adaptação do `ProjectIndex`.
+audits/fase4-roadmap.md:55:| 4.4 | — | Remover `wing_keywords` de vez, com teste-guarda e regra de neutralidade no protocolo/CONTRIBUTING | PLANEJADO, NÃO AUTORIZADO | — |
+audits/fase4-roadmap.md:106:2. `wing_keywords` removido em definitivo.
+core/config.py:77:    wing_keywords: dict[str, list[str]] = field(default_factory=lambda: {
+core/project_index.py:9:       WING_KEYWORDS dictionary of ConciergeConfig.
+core/project_index.py:18:    - Queries ConciergeConfig.wing_keywords for classification.
+core/project_index.py:62:        an optional description against the WING_KEYWORDS dictionary.
+core/project_index.py:91:        for wing, keywords in self._config.wing_keywords.items():
+scratch/evidencia_4_1_h/p0_diff_roadmap_bd821e7_4c505d1.txt:25: | 4.4 | — | Remover `wing_keywords` de vez, com teste-guarda e regra de neutralidade no protocolo/CONTRIBUTING | PLANEJADO, NÃO AUTORIZADO | — |
+scratch/fase4_0c_wings_inventory.py:25:    print("PASSO 5: INVENTÁRIO DO DICIONÁRIO DE ALAS (wing_keywords)")
+scratch/fase4_0c_wings_inventory.py:28:    # (a) wing_keywords e auto_categorize_project
+scratch/fase4_0c_wings_inventory.py:29:    print("--- (a) Ocorrências de wing_keywords e auto_categorize_project ---")
+scratch/fase4_0c_wings_inventory.py:30:    print("Comando: git grep -n \"wing_keywords\"")
+scratch/fase4_0c_wings_inventory.py:31:    out_wk = run_cmd("git grep -n \"wing_keywords\"")
+scratch/fase4_0c_wings_inventory.py:72:    print("\n--- SIMULAÇÃO: ConciergeConfig(wing_keywords={}) ---")
+scratch/fase4_0c_wings_inventory.py:80:    cfg = ConciergeConfig(wing_keywords={})
+scratch/fase4_0c_wings_inventory.py:124:    print("\n--- EXECUÇÃO DOS TESTES AFETADOS COM wing_keywords={} ---")
+scratch/fase4_0c_wings_inventory.py:125:    # Find test files mentioning wing_keywords or wings categorization
+scratch/fase4_0c_wings_inventory.py:128:    # Run test_project_index.py with monkeypatched ConciergeConfig.wing_keywords = {}
+scratch/fase4_0c_wings_inventory.py:129:    print("\nRodando tests/test_project_index.py com monkeypatch wing_keywords={}:")
+scratch/fase4_0c_wings_inventory.py:130:    cmd_t1 = 'python -c "import unittest, sys; sys.path.insert(0, \'.\'); from unittest.mock import patch; from core.config import ConciergeConfig; patch.object(ConciergeConfig, \'wing_keywords\', {}).start(); suite = unittest.defaultTestLoader.discover(\'tests\', pattern=\'test_project_index.py\'); res = unittest.TextTestRunner(verbosity=2).run(suite); sys.exit(0 if res.wasSuccessful() else 1)"'
+scratch/fase4_0c_wings_inventory.py:134:    print("\nRodando tests/stress_test_v2_parte1.py com monkeypatch wing_keywords={}:")
+scratch/fase4_0c_wings_inventory.py:135:    cmd_t2 = 'python -c "import sys; sys.path.insert(0, \'.\'); from unittest.mock import patch; from core.config import ConciergeConfig; patch.object(ConciergeConfig, \'wing_keywords\', {}).start(); import tests.stress_test_v2_parte1 as st; st.run_stress_test_parte1()"'
+tests/test_config.py:74:        self.assertIsInstance(self.config.wing_keywords, dict)
+tests/test_config.py:82:        self.assertTrue(expected_wings.issubset(self.config.wing_keywords.keys()))
+tests/test_config.py:83:        for wing_name, keywords in self.config.wing_keywords.items():
+
+=== GREP FOR: marketing/vendas ===
+audits/fase4-0c-prova-corrigida.md:448:O dicionário fixo de domínios (`marketing/vendas`, `finanças/quant`, `gestão/saas`, `automação/rh`, `estatística` em `core/config.py:77–99`) será **removido em definitivo**. O mecanismo de alas (`primary_wing` livre, `reference_wings`, `find_similar`, padrão `"geral"`) permanece plenamente ativo.
+audits/fase4-0c-prova-corrigida.md:460:- `marketing/vendas`: `core/config.py:78`, `tests/test_config.py:76`, `tests/test_project_index.py:28`, `tests/stress_test_v2_parte1.py:25, 185`, `tests/stress_test_v2_parte2.py:453`.
+audits/fase4-0c-prova-corrigida.md:496:   - `test_marketing_wing_detected`: **FALHA** (`assert 'geral' == 'marketing/vendas'`).
+audits/fase4-0c-prova-corrigida.md:522:    forbidden = {"marketing/vendas", "finanças/quant", "gestão/saas", "automação/rh", "estatística"}
+audits/fase4-achados.md:82:- **Mecanismo da Falha:** O arquivo de configuração central do motor genérico embute estaticamente uma taxonomia fixa com 5 domínios específicos de negócio (`marketing/vendas`, `finanças/quant`, `gestão/saas`, `automação/rh`, `estatística`) e listas de palavras-chave em português ("tráfego", "bolsa", "daytrade", "rh", "planilha"). O motor perde a neutralidade de domínio para monorepos de outras áreas (ex: compiladores, bioinformática, IoT, jogos), classificando-os arbitrariamente no fallback `"geral"` ou forçando categorizações espúrias.
+core/config.py:78:        "marketing/vendas": [
+scratch/fase4_0c_wings_inventory.py:39:        "marketing/vendas",
+tests/stress_test_v2_parte1.py:25:    store.create_project(uuid=uid_b, folder_name="obsidian-vault", primary_wing="marketing/vendas", privacy_level="PUBLIC", summary="Dashboard marketing")
+tests/stress_test_v2_parte1.py:185:    uid_b = gc.register_project("obsidian-vault", wing="marketing/vendas", privacy_level="PUBLIC")
+tests/stress_test_v2_parte2.py:453:        uid_b = gc.register_project("obsidian-vault", wing="marketing/vendas", privacy_level="PUBLIC")
+tests/test_config.py:76:            "marketing/vendas",
+tests/test_project_index.py:28:        assert wing == "marketing/vendas"
+
+=== GREP FOR: finanças/quant ===
+audits/fase4-0c-prova-corrigida.md:448:O dicionário fixo de domínios (`marketing/vendas`, `finanças/quant`, `gestão/saas`, `automação/rh`, `estatística` em `core/config.py:77–99`) será **removido em definitivo**. O mecanismo de alas (`primary_wing` livre, `reference_wings`, `find_similar`, padrão `"geral"`) permanece plenamente ativo.
+audits/fase4-0c-prova-corrigida.md:461:- `finanças/quant`: `core/config.py:82`, `core/project_index.py:77`, `docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md:96`, `tests/test_config.py:77`, `tests/test_project_index.py:35`.
+audits/fase4-0c-prova-corrigida.md:497:   - `test_finance_wing_detected`: **FALHA** (`assert 'geral' == 'finanças/quant'`).
+audits/fase4-0c-prova-corrigida.md:522:    forbidden = {"marketing/vendas", "finanças/quant", "gestão/saas", "automação/rh", "estatística"}
+audits/fase4-achados.md:82:- **Mecanismo da Falha:** O arquivo de configuração central do motor genérico embute estaticamente uma taxonomia fixa com 5 domínios específicos de negócio (`marketing/vendas`, `finanças/quant`, `gestão/saas`, `automação/rh`, `estatística`) e listas de palavras-chave em português ("tráfego", "bolsa", "daytrade", "rh", "planilha"). O motor perde a neutralidade de domínio para monorepos de outras áreas (ex: compiladores, bioinformática, IoT, jogos), classificando-os arbitrariamente no fallback `"geral"` ou forçando categorizações espúrias.
+core/config.py:82:        "finanças/quant": [
+core/project_index.py:77:            Wing name (e.g. "gestão/saas", "finanças/quant", "geral").
+docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md:96:  * `wing_name` (`str`, required): Name of the reference wing (e.g., `finanças/quant`).
+scratch/fase4_0c_wings_inventory.py:40:        "finanças/quant",
+tests/test_config.py:77:            "finanças/quant",
+tests/test_project_index.py:35:        assert wing == "finanças/quant"
+
+=== GREP FOR: financas/quant ===
+tests/stress_test_v2_parte1.py:24:    store.create_project(uuid=uid_a, folder_name="fintech-api", primary_wing="financas/quant", privacy_level="INTERNAL", summary="Motor de trading")
+tests/stress_test_v2_parte1.py:174:    uid_a = gc.register_project("fintech-api", wing="financas/quant", privacy_level="INTERNAL")
+tests/stress_test_v2_parte1.py:254:    report("fintech-api -> financas/quant", "finan" in wing_a.lower(), f"wing='{wing_a}'")
+tests/stress_test_v2_parte2.py:31:        "source_wing": "financas/quant",
+tests/stress_test_v2_parte2.py:451:        uid_a = gc.register_project("fintech-api", wing="financas/quant", privacy_level="INTERNAL")
+tests/stress_test_v2_parte3.py:100:        "--wing", "financas/quant", "--privacy", "RESTRICTED",
+tests/stress_test_v2_parte3.py:105:    report("wing == 'financas/quant'", args_reg.wing == "financas/quant")
+tests/stress_test_v2_parte3.py:153:    uid_a = gc.register_project("fintech-api", wing="financas/quant", privacy_level="INTERNAL")
+
+=== GREP FOR: gestão/saas ===
+audits/fase4-0c-prova-corrigida.md:448:O dicionário fixo de domínios (`marketing/vendas`, `finanças/quant`, `gestão/saas`, `automação/rh`, `estatística` em `core/config.py:77–99`) será **removido em definitivo**. O mecanismo de alas (`primary_wing` livre, `reference_wings`, `find_similar`, padrão `"geral"`) permanece plenamente ativo.
+audits/fase4-0c-prova-corrigida.md:462:- `gestão/saas`: `core/config.py:86`, `core/project_index.py:77`, `tests/test_config.py:78`.
+audits/fase4-0c-prova-corrigida.md:522:    forbidden = {"marketing/vendas", "finanças/quant", "gestão/saas", "automação/rh", "estatística"}
+audits/fase4-achados.md:82:- **Mecanismo da Falha:** O arquivo de configuração central do motor genérico embute estaticamente uma taxonomia fixa com 5 domínios específicos de negócio (`marketing/vendas`, `finanças/quant`, `gestão/saas`, `automação/rh`, `estatística`) e listas de palavras-chave em português ("tráfego", "bolsa", "daytrade", "rh", "planilha"). O motor perde a neutralidade de domínio para monorepos de outras áreas (ex: compiladores, bioinformática, IoT, jogos), classificando-os arbitrariamente no fallback `"geral"` ou forçando categorizações espúrias.
+core/config.py:86:        "gestão/saas": [
+core/project_index.py:77:            Wing name (e.g. "gestão/saas", "finanças/quant", "geral").
+scratch/fase4_0c_wings_inventory.py:41:        "gestão/saas",
+tests/test_config.py:78:            "gestão/saas",
+
+=== GREP FOR: gestao/saas ===
+tests/stress_test_v2_parte1.py:26:    store.create_project(uuid=uid_c, folder_name="personal-wiki", primary_wing="gestao/saas", privacy_level="RESTRICTED", summary="Wiki pessoal")
+tests/stress_test_v2_parte1.py:332:    uid_c = gc.register_project("personal-wiki", wing="gestao/saas", privacy_level="RESTRICTED")
+tests/stress_test_v2_parte3.py:399:    uid_b = gc.register_project("obsidian-vault", wing="gestao/saas")
+tests/test_revisor_critico.py:32:            "source_wing": "gestao/saas",
+
+=== GREP FOR: automação/rh ===
+audits/fase4-0c-prova-corrigida.md:448:O dicionário fixo de domínios (`marketing/vendas`, `finanças/quant`, `gestão/saas`, `automação/rh`, `estatística` em `core/config.py:77–99`) será **removido em definitivo**. O mecanismo de alas (`primary_wing` livre, `reference_wings`, `find_similar`, padrão `"geral"`) permanece plenamente ativo.
+audits/fase4-0c-prova-corrigida.md:463:- `automação/rh`: `core/config.py:90`, `tests/test_config.py:79`.
+audits/fase4-0c-prova-corrigida.md:522:    forbidden = {"marketing/vendas", "finanças/quant", "gestão/saas", "automação/rh", "estatística"}
+audits/fase4-achados.md:82:- **Mecanismo da Falha:** O arquivo de configuração central do motor genérico embute estaticamente uma taxonomia fixa com 5 domínios específicos de negócio (`marketing/vendas`, `finanças/quant`, `gestão/saas`, `automação/rh`, `estatística`) e listas de palavras-chave em português ("tráfego", "bolsa", "daytrade", "rh", "planilha"). O motor perde a neutralidade de domínio para monorepos de outras áreas (ex: compiladores, bioinformática, IoT, jogos), classificando-os arbitrariamente no fallback `"geral"` ou forçando categorizações espúrias.
+core/config.py:90:        "automação/rh": [
+scratch/fase4_0c_wings_inventory.py:42:        "automação/rh",
+tests/test_config.py:79:            "automação/rh",
+
+=== GREP FOR: automacao/rh ===
+(no matches)
+
+=== GREP FOR: estatística ===
+README.pt-BR.md:40:13. **Amostragem de Thompson Nativa Zero-NumPy (`core/probabilistic_retriever.py`)**: Substitui a biblioteca externa `numpy` pela função nativa `random.betavariate()` com sanitização defensiva (`max(val, 1e-5)`), economizando ~30MB sem perdas estatísticas.
+audits/fase4-0c-prova-corrigida.md:95:| `concierge_wakeup` | **ERRO DE NEGÓCIO** | `Project not found: test_proj` | **SUCESSO COM DADOS** | Retorna bússola e estatísticas |
+audits/fase4-0c-prova-corrigida.md:448:O dicionário fixo de domínios (`marketing/vendas`, `finanças/quant`, `gestão/saas`, `automação/rh`, `estatística` em `core/config.py:77–99`) será **removido em definitivo**. O mecanismo de alas (`primary_wing` livre, `reference_wings`, `find_similar`, padrão `"geral"`) permanece plenamente ativo.
+audits/fase4-0c-prova-corrigida.md:464:- `estatística`: `core/config.py:94`, `README.pt-BR.md:40`, `tests/test_config.py:80`.
+audits/fase4-0c-prova-corrigida.md:522:    forbidden = {"marketing/vendas", "finanças/quant", "gestão/saas", "automação/rh", "estatística"}
+audits/fase4-1g-investigacao-summary.md:387:2. **Impacto em Scores:** Em 6 das 8 consultas, os scores sofreram variações diretas (entre 0.008 e 0.020 pontos) devido ao recálculo da estatística de densidade de frequência BM25 do FTS5 (`nodes_fts`).
+audits/fase4-achados.md:82:- **Mecanismo da Falha:** O arquivo de configuração central do motor genérico embute estaticamente uma taxonomia fixa com 5 domínios específicos de negócio (`marketing/vendas`, `finanças/quant`, `gestão/saas`, `automação/rh`, `estatística`) e listas de palavras-chave em português ("tráfego", "bolsa", "daytrade", "rh", "planilha"). O motor perde a neutralidade de domínio para monorepos de outras áreas (ex: compiladores, bioinformática, IoT, jogos), classificando-os arbitrariamente no fallback `"geral"` ou forçando categorizações espúrias.
+core/config.py:94:        "estatística": [
+core/config.py:95:            "estatística", "análise", "dados", "média", "probabilidade",
+scratch/fase4_0c_wings_inventory.py:43:        "estatística",
+tests/test_config.py:80:            "estatística",
+
+=== GREP FOR: estatistica ===
+tests/stress_test_v2_parte1.py:153:    print("\n  [1.8] Estatisticas")
+
+=== GREP FOR: auto_categorize ===
+audits/fase4-0c-prova-corrigida.md:452:#### (a) `wing_keywords` e `auto_categorize_project`
+audits/fase4-0c-prova-corrigida.md:455:- `core/middleware.py:241`: Chamada a `auto_categorize_project()` (módulo executado em F2).
+audits/fase4-0c-prova-corrigida.md:483:Resultado de auto_categorize_project em p1 (com tags de marketing): 'geral' (fallback correto)
+core/middleware.py:219:        auto_categorize: bool = True,
+core/middleware.py:230:            auto_categorize: Re-categorize wing after ingestion.
+core/middleware.py:239:        if auto_categorize and result_dict.get("nodes_created", 0) > 0:
+core/middleware.py:241:                wing = self._project_index.auto_categorize_project(project_uuid)
+core/middleware.py:242:                result_dict["auto_categorized_wing"] = wing
+core/project_index.py:142:    def auto_categorize_project(self, project_uuid: str) -> str:
+scratch/fase4_0c_wings_inventory.py:28:    # (a) wing_keywords e auto_categorize_project
+scratch/fase4_0c_wings_inventory.py:29:    print("--- (a) Ocorrências de wing_keywords e auto_categorize_project ---")
+scratch/fase4_0c_wings_inventory.py:33:    print("\nComando: git grep -n \"auto_categorize_project\"")
+scratch/fase4_0c_wings_inventory.py:34:    out_ac = run_cmd("git grep -n \"auto_categorize_project\"")
+scratch/fase4_0c_wings_inventory.py:93:    # Add nodes to proj_default to test auto_categorize_project with empty dictionary
+scratch/fase4_0c_wings_inventory.py:106:    # Run auto_categorize_project:
+scratch/fase4_0c_wings_inventory.py:107:    cat_result = p_index.auto_categorize_project(p1["uuid"])
+scratch/fase4_0c_wings_inventory.py:108:    print(f"\nResultado de auto_categorize_project em p1 (mesmo com tags de marketing): '{cat_result}' (esperado: '{cfg.default_wing}')")
+tests/stress_test_v2_parte1.py:253:    wing_a = pi.auto_categorize_project(uid_a)
+tests/stress_test_v2_parte1.py:256:    wing_b = pi.auto_categorize_project(uid_b)
+tests/stress_test_v2_parte1.py:260:    wing_rnd = pi.auto_categorize_project(uid_rnd)
+

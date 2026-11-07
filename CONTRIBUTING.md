@@ -44,6 +44,12 @@ Concierge Graph is engineered around three foundational pillars of cognitive aut
    - **Adaptive Gating**: Three autonomy regimes (`plan-only`, `ask`, `auto-approve`) integrated with terminal CLI approval prompts.
    - **Vanguard Bounds Guard**: Strict prevention of Path Traversal outside the monorepo root.
 
+4. **Pillar 4: Domain Neutrality & Free-Form Wings**
+   - The engine is domain-agnostic memory infrastructure for AI and AI agents.
+   - **Strict Domain Neutrality Rule**: No hardcoded domain taxonomies, fixed dictionaries, or predefined business keywords may exist in product code or default configuration (`core/config.py`).
+   - Project classification into wings is free-form and comes strictly from the user or the agent via explicit actions (`register_project`, `update_project`).
+   - Mining operations (`GrafoConcierge.mine`) must never overwrite or mutate the project's primary wing.
+
 For detailed architecture specifications, consult [`docs-grafo-concierge/`](docs-grafo-concierge/).
 
 ---

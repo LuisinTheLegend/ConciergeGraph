@@ -93,7 +93,7 @@ Physically removes a project and cascades deletions across nodes, edges, commits
 Associates a recommended reference wing with a project for cross-domain search.
 * **Arguments**:
   * `project_identifier` (`str`, required): Project UUID or directory name.
-  * `wing_name` (`str`, required): Name of the reference wing (e.g., `finanças/quant`).
+  * `wing_name` (`str`, required): Name of the reference wing (e.g., `backend/auth`).
 * **Return**: `{"success": bool, "message": str}`
 
 ### `remove_reference_wing`

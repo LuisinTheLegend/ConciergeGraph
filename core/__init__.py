@@ -6,7 +6,7 @@ core/ package — Agent Brain.
 Exports the central Facade (GrafoConcierge) and intelligence submodules:
     - GrafoConcierge       → Unified facade for memory operations
     - ConciergeConfig      → Centralized constants and parameters
-    - ProjectIndex         → Knowledge GPS / Wing Categorization
+    - ProjectIndex         → Knowledge GPS / Wing & Scope Management
     - HybridSearchEngine   → Hybrid Search Engine v4
 """
 

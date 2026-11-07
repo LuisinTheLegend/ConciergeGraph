@@ -1,0 +1,36 @@
+=== MUTAÇÃO (b): RECOLOCAR A AUTO-CATEGORIZAÇÃO EM MINE ===
+Alvo: core/middleware.py
+Comando: pytest tests/test_domain_neutrality_guard.py -k test_g3 -v
+
+Saída:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items / 3 deselected / 1 selected
+
+tests/test_domain_neutrality_guard.py::test_g3_real_mining_never_alters_primary_wing FAILED [100%]
+
+================================== FAILURES ===================================
+________________ test_g3_real_mining_never_alters_primary_wing ________________
+
+    def test_g3_real_mining_never_alters_primary_wing():
+...
+        # 3. Minera
+        res = gc.mine(p_uuid, src_dir)
+        assert res.get("nodes_created", 0) > 0, "Deveria ter criado nós na mineração"
+>       assert "auto_categorized_wing" not in res, "Resultado da mineração não deve conter auto_categorized_wing"
+E       AssertionError: Resultado da mineração não deve conter auto_categorized_wing
+E       assert 'auto_categorized_wing' not in {'files_processed': 1, 'categories': {'code': 1}, 'nodes_created': 2, 'embeddings_stored': 2, ...}
+
+tests\test_domain_neutrality_guard.py:164: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_domain_neutrality_guard.py::test_g3_real_mining_never_alters_primary_wing
+================ 1 failed, 3 deselected, 2 warnings in 20.86s =================
+
+Conclusão: Mutação (b) morta com sucesso pelo teste-guarda G3.

@@ -116,8 +116,7 @@ class GrafoConcierge:
 
         Args:
             folder_name: Source directory / project identifier.
-            wing: Primary Wing (if None, it will be automatically categorized
-                  after the first ingestion).
+            wing: Primary Wing (if None, defaults to default_wing).
             privacy_level: Privacy level (PUBLIC, INTERNAL, RESTRICTED).
             summary: Initial description of the project.
 
@@ -216,34 +215,22 @@ class GrafoConcierge:
         project_uuid: str,
         source_path: str,
         auto_tag: bool = True,
-        auto_categorize: bool = True,
     ) -> dict:
         """Runs the complete ingestion pipeline (concierge mine).
 
-        Delegates to IngestionManager and optionally re-categorizes
-        the project's Primary Wing after ingestion.
+        Delegates to IngestionManager. Does not alter Primary Wing,
+        preserving domain neutrality and explicit user classification.
 
         Args:
             project_uuid: Project UUID.
             source_path: Path to the source directory.
             auto_tag: Enable automatic tag detection.
-            auto_categorize: Re-categorize wing after ingestion.
 
         Returns:
             Dict compatible with the MCP Tool concierge_mine response.
         """
         result = self._ingestion.mine(project_uuid, source_path, auto_tag)
-        result_dict = result.to_dict()
-
-        # Auto-categorization post-ingestion
-        if auto_categorize and result_dict.get("nodes_created", 0) > 0:
-            try:
-                wing = self._project_index.auto_categorize_project(project_uuid)
-                result_dict["auto_categorized_wing"] = wing
-            except Exception as e:
-                logger.warning("Auto-categorization failed: %s", e)
-
-        return result_dict
+        return result.to_dict()
 
     # ===================================================================
     # SEARCH — Hybrid Search v4

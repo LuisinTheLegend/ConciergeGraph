@@ -68,21 +68,11 @@ class TestConciergeConfigDefaults(unittest.TestCase):
         self.assertIsInstance(self.config.bm25_fields, tuple)
 
     def test_section_5_wings(self):
-        """Valida configuração de Wings e dicionário de palavras-chave."""
+        """Valida configuração de Wings garantindo neutralidade de domínio."""
         self.assertEqual(self.config.default_wing, "geral")
         self.assertEqual(self.config.max_wings, 12)
-        self.assertIsInstance(self.config.wing_keywords, dict)
-        expected_wings = {
-            "marketing/vendas",
-            "finanças/quant",
-            "gestão/saas",
-            "automação/rh",
-            "estatística",
-        }
-        self.assertTrue(expected_wings.issubset(self.config.wing_keywords.keys()))
-        for wing_name, keywords in self.config.wing_keywords.items():
-            self.assertIsInstance(keywords, list)
-            self.assertGreater(len(keywords), 0, f"Wing '{wing_name}' sem palavras-chave")
+        # G1: ConciergeConfig não tem campo wing_keywords
+        self.assertFalse(hasattr(self.config, "wing_keywords"), "ConciergeConfig não deve possuir campo wing_keywords")
 
     def test_section_6_ingestion_limits_and_filters(self):
         """Valida diretórios ignorados, extensões suportadas e limite de tamanho de arquivo."""
