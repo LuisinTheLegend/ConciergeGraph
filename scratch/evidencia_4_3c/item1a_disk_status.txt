@@ -1,0 +1,4 @@
+scratch/build_relatorio_4_3.py: exists=True, size=9599
+scratch/build_relatorio_4_3b.py: exists=True, size=14526
+scratch/reproduce_item2_defects.py: exists=True, size=7247
+scratch/run_full_suite.py: exists=True, size=597

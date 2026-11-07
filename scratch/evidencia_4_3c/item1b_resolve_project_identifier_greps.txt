@@ -1,0 +1,35 @@
+=== grep_resolve_relatorio_4_3 ===
+$ git grep -n -E "_resolve_project_identifier|ConciergeFacade" audits/relatorio_4_3.md
+
+=== grep_concierge_facade_all ===
+$ git grep -n "ConciergeFacade"
+audits/errata-4-3.md:53:  - A redação do relatório da 4.3 induzia à interpretação de que a resolução de projeto utilizava o método utilitário `_resolve_project_identifier` (pertencente à camada `ConciergeFacade` / `interface/mcp_server.py`).
+
+=== grep_resolve_project_identifier_mcp ===
+$ git grep -n -C 5 "def _resolve_project_identifier" interface/mcp_server.py
+interface/mcp_server.py-958-            Returns:
+interface/mcp_server.py-959-                List of dicts with 'checkpoint_id' and 'created_at' ordered ASC.
+interface/mcp_server.py-960-            """
+interface/mcp_server.py-961-            return agent_list_checkpoints(agent_id, session_id)
+interface/mcp_server.py-962-
+interface/mcp_server.py:963:    def _resolve_project_identifier(self, project_identifier: str) -> str:
+interface/mcp_server.py-964-        """Resolves project_identifier (UUID or folder_name) to project_uuid.
+interface/mcp_server.py-965-        
+interface/mcp_server.py-966-        Raises ValueError if the name is not found in the database.
+interface/mcp_server.py-967-        """
+interface/mcp_server.py-968-        import uuid
+
+=== grep_depth_limit_code ===
+$ git grep -n -C 5 "isinstance(depth_limit" core/graph_rag.py
+core/graph_rag.py-190-        Raises:
+core/graph_rag.py-191-            ValueError: If depth_limit is invalid/boolean, if project_identifier is not found,
+core/graph_rag.py-192-                        if start_node is not found, if folder_name is ambiguous across multiple projects,
+core/graph_rag.py-193-                        or if start_node is ambiguous across projects.
+core/graph_rag.py-194-        """
+core/graph_rag.py:195:        if isinstance(depth_limit, bool) or not isinstance(depth_limit, int) or depth_limit < 1 or depth_limit > 10:
+core/graph_rag.py-196-            raise ValueError(f"Invalid depth_limit: {depth_limit}. Must be an integer between 1 and 10.")
+core/graph_rag.py-197-
+core/graph_rag.py-198-        norm_start = start_node.replace("\\", "/").strip()
+core/graph_rag.py-199-        if not norm_start:
+core/graph_rag.py-200-            raise ValueError("start_node cannot be empty.")
+

@@ -1,0 +1,5 @@
+$ git grep -n check_contamination -- :!tests :!scratch :!audits
+AUDIT_PROTOCOL.md:157:  2 CRÍTICA CONDICIONAL (contaminação de turnos multi-sessão e reset indevido no Circuit Breaker por contador único de instância `current_substate_turn_count`; vazamento total de privacidade por fallback inseguro para nível `0` [PUBLIC] e falta de normalização `.upper()` em `check_contamination`),
+agents/revisor_critico.py:538:    def check_contamination(
+walkthrough.md:547:| 2 | **CRÍTICA CONDICIONAL** | [`agents/revisor_critico.py:555–573`](file:///c:/Nexus-Memory/GrafoConcierge/agents/revisor_critico.py#L555) — **Vazamento de Privacidade por Fallback Inseguro e Sensibilidade a Caixa (Case-Sensitivity)**: `check_contamination` usa `privacy_hierarchy.get(source_privacy, 0)` sem normalizar `.upper()`. Qualquer string em minúsculas (`"restricted"`) ou sinônimo corporativo (`"CONFIDENTIAL"`, `"SECRET"`) recebe nível `0` (`PUBLIC`), avaliando `source_level > target_level` como `False` e aprovando a transferência de dados ultra-secretos para contextos públicos (violação do princípio de *Fail-Closed*). |
+
