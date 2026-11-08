@@ -1,0 +1,77 @@
+=== PROVA DE FALHA DA MUTAÇÃO (b): EVENT DE PRONTIDÃO (self._ready) REMOVIDO ===
+Exit code: 1
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items / 3 deselected / 1 selected
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t2_connect_retry_and_eventual_success FAILED [100%]
+
+================================== FAILURES ===================================
+____ TestQueueWriterResilience.test_t2_connect_retry_and_eventual_success _____
+
+self = <test_queue_writer_resilience.TestQueueWriterResilience testMethod=test_t2_connect_retry_and_eventual_success>
+
+    def test_t2_connect_retry_and_eventual_success(self):
+        """T2: sqlite3.connect falha 2 vezes com 'database is locked' e sucede na 3ª.
+    
+        O worker deve subir com sucesso após o retry, executar uma escrita e os logs
+        devem conter os 2 avisos de retry.
+        """
+        real_connect = sqlite3.connect
+    
+        attempts = [0]
+        def _mock_connect(*args, **kwargs):
+            attempts[0] += 1
+            if attempts[0] <= 2:
+                raise sqlite3.OperationalError("database is locked")
+            return real_connect(*args, **kwargs)
+    
+        qw = SerializedWriteQueue(self.db_path)
+    
+        with patch("interface.queue_writer.sqlite3.connect", side_effect=_mock_connect):
+            with self.assertLogs("interface.queue_writer", level="WARNING") as log_capture:
+                qw.start()
+>               self.assertTrue(hasattr(qw, "_ready") and isinstance(qw._ready, threading.Event), "SerializedWriteQueue deve possuir Event _ready")
+E               AssertionError: False is not true : SerializedWriteQueue deve possuir Event _ready
+
+tests\test_queue_writer_resilience.py:100: AssertionError
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t2_connect_retry_and_eventual_success
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-2
+  
+  Traceback (most recent call last):
+    File "C:\Nexus-Memory\GrafoConcierge\interface\queue_writer.py", line 65, in run
+      conn = sqlite3.connect(self.db_path, timeout=30.0)
+  sqlite3.OperationalError: unable to open database file
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+      self._context.run(self.run)
+      ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+    File "C:\Nexus-Memory\GrafoConcierge\interface\queue_writer.py", line 96, in run
+      self._ready.set()
+      ^^^^^^^^^^^^^^^
+  AttributeError: 'NoneType' object has no attribute 'set'
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t2_connect_retry_and_eventual_success
+================= 1 failed, 3 deselected, 2 warnings in 3.79s =================

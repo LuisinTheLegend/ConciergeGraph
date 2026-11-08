@@ -1,0 +1,41 @@
+=== EXECUÇÃO EM VERMELHO DOS TESTES DE RESILIÊNCIA (T1, T2, T3) CONTRA O CÓDIGO NÃO-CORRIGIDO ===
+Comando: pytest tests/test_queue_writer_resilience.py -v
+Resultado: FALHA / TIMEOUT por bloqueio infinito em queue_writer.py:147
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collected 4 items
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t1_connect_persistent_failure_fails_fast_without_hanging FAILED [ 25%]
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t2_connect_retry_and_eventual_success +++++++++++++++++++++++++++++++++++ Timeout +++++++++++++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~ Stack of Thread-3 (_caller) (15840) ~~~~~~~~~~~~~~~~~~~~~
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Nexus-Memory\GrafoConcierge\tests\test_queue_writer_resilience.py", line 63, in _caller
+    res = qw.execute_write("CREATE TABLE t1 (id INT);")
+  File "C:\Nexus-Memory\GrafoConcierge\interface\queue_writer.py", line 147, in execute_write
+    success, result = response_queue.get()
+  File "C:\Python314\Lib\queue.py", line 199, in get
+    self.not_empty.wait()
+  File "C:\Python314\Lib\threading.py", line 369, in wait
+    waiter.acquire()
+~~~~~~~~~~~~~~~~~~~~~~~~~ Stack of MainThread (3600) ~~~~~~~~~~~~~~~~~~~~~~~~~~
+  File "C:\Nexus-Memory\GrafoConcierge\tests\test_queue_writer_resilience.py", line 102, in test_t2_connect_retry_and_eventual_success
+    success, val = qw.execute_write("CREATE TABLE t2 (id INTEGER PRIMARY KEY, v TEXT);")
+  File "C:\Nexus-Memory\GrafoConcierge\interface\queue_writer.py", line 147, in execute_write
+    success, result = response_queue.get()
+  File "C:\Python314\Lib\queue.py", line 199, in get
+    self.not_empty.wait()
+  File "C:\Python314\Lib\threading.py", line 369, in wait
+    waiter.acquire()
++++++++++++++++++++++++++++++++++++ Timeout +++++++++++++++++++++++++++++++++++

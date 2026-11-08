@@ -1,0 +1,57 @@
+=== PROVA DE FALHA DA MUTAÇÃO (a): RETRY REMOVIDO (MAX_CONNECT_RETRIES = 1) ===
+Exit code: 1
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items / 3 deselected / 1 selected
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t2_connect_retry_and_eventual_success FAILED [100%]
+
+================================== FAILURES ===================================
+____ TestQueueWriterResilience.test_t2_connect_retry_and_eventual_success _____
+
+self = <test_queue_writer_resilience.TestQueueWriterResilience testMethod=test_t2_connect_retry_and_eventual_success>
+
+    def test_t2_connect_retry_and_eventual_success(self):
+        """T2: sqlite3.connect falha 2 vezes com 'database is locked' e sucede na 3ª.
+    
+        O worker deve subir com sucesso após o retry, executar uma escrita e os logs
+        devem conter os 2 avisos de retry.
+        """
+        real_connect = sqlite3.connect
+    
+        attempts = [0]
+        def _mock_connect(*args, **kwargs):
+            attempts[0] += 1
+            if attempts[0] <= 2:
+                raise sqlite3.OperationalError("database is locked")
+            return real_connect(*args, **kwargs)
+    
+        qw = SerializedWriteQueue(self.db_path)
+    
+        with patch("interface.queue_writer.sqlite3.connect", side_effect=_mock_connect):
+            with self.assertLogs("interface.queue_writer", level="WARNING") as log_capture:
+                qw.start()
+                self.assertTrue(hasattr(qw, "_ready") and isinstance(qw._ready, threading.Event), "SerializedWriteQueue deve possuir Event _ready")
+                # Cria tabela para testar escrita
+                success, val = qw.execute_write("CREATE TABLE t2 (id INTEGER PRIMARY KEY, v TEXT);")
+>               self.assertTrue(success, f"Escrita deveria ter sucedido após retry, falhou com: {val}")
+E               AssertionError: False is not true : Escrita deveria ter sucedido após retry, falhou com: database is locked
+
+tests\test_queue_writer_resilience.py:103: AssertionError
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t2_connect_retry_and_eventual_success
+================= 1 failed, 3 deselected, 1 warning in 3.74s ==================

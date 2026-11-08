@@ -1,0 +1,67 @@
+=== PROVA DE FALHA DA MUTAÇÃO M10 (ATRIBUIÇÃO DIRETA DE mcp_server.db_manager) ===
+Comando: C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\pytest.exe tests/test_call_chain_edges_nodes.py -k test_e2e_mcp_real_server_call_chain_with_ingestion -v
+Exit code: 1
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 15 items / 14 deselected / 1 selected
+
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_e2e_mcp_real_server_call_chain_with_ingestion PASSED [100%]
+tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_e2e_mcp_real_server_call_chain_with_ingestion ERROR [100%]
+
+=================================== ERRORS ====================================
+_ ERROR at teardown of TestCallChainEdgesNodes.test_e2e_mcp_real_server_call_chain_with_ingestion _
+
+    @pytest.fixture(autouse=True)
+    def check_mcp_globals_leak():
+        """Garante que nenhum teste vaze ou altere por identidade variáveis globais em interface.mcp_server."""
+        mod = sys.modules.get("interface.mcp_server")
+        before_state = {}
+        if mod is not None:
+            for var in _MCP_TRACKED_GLOBALS:
+                before_state[var] = getattr(mod, var, _MISSING_SENTINEL)
+        else:
+            for var in _MCP_TRACKED_GLOBALS:
+                before_state[var] = None if var in ("db_manager", "graph_rag", "checkpointer", "governor") else _MISSING_SENTINEL
+    
+        yield
+    
+        mod_after = sys.modules.get("interface.mcp_server")
+        if mod_after is not None:
+            for var in _MCP_TRACKED_GLOBALS:
+                orig = before_state.get(var, _MISSING_SENTINEL)
+                curr = getattr(mod_after, var, _MISSING_SENTINEL)
+>               assert curr is orig, (
+                    f"Global variable 'mcp_server.{var}' leaked or modified by identity during test: "
+                    f"expected {orig!r} (id={id(orig)}), got {curr!r} (id={id(curr)})"
+                )
+E               AssertionError: Global variable 'mcp_server.db_manager' leaked or modified by identity during test: expected None (id=140731652942656), got <core.database.ConciergeDatabaseManager object at 0x000002D25A96CEC0> (id=3102486220480)
+E               assert <core.database.ConciergeDatabaseManager object at 0x000002D25A96CEC0> is None
+
+tests\conftest.py:74: AssertionError
+---------------------------- Captured stderr call -----------------------------
+Could not reach the Hub (Cannot reach https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2: offline mode is enabled. To disable it, please unset the `HF_HUB_OFFLINE` environment variable.). Using cached commit hash for 'sentence-transformers/all-MiniLM-L6-v2'.
+
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 103/103 [00:00<00:00, 2194.20it/s]
+------------------------------ Captured log call ------------------------------
+WARNING  grafo-concierge.parser:parser.py:244 Error loading tree-sitter parser for .py: No module named 'tree_sitter'
+WARNING  grafo-concierge.parser:parser.py:244 Error loading tree-sitter parser for .py: No module named 'tree_sitter'
+WARNING  grafo-concierge.parser:parser.py:244 Error loading tree-sitter parser for .py: No module named 'tree_sitter'
+WARNING  huggingface_hub.hf_api:hf_api.py:3662 Could not reach the Hub (Cannot reach https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2: offline mode is enabled. To disable it, please unset the `HF_HUB_OFFLINE` environment variable.). Using cached commit hash for 'sentence-transformers/all-MiniLM-L6-v2'.
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+ERROR tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_e2e_mcp_real_server_call_chain_with_ingestion
+============ 1 passed, 14 deselected, 1 warning, 1 error in 16.90s ============

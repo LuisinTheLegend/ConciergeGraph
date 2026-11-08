@@ -1,0 +1,32 @@
+$ git grep -n "core/main.py" tests/test_graph_rag_janitor.py
+tests/test_graph_rag_janitor.py:129:        for mod in ["core/main.py", "core/utils.py", "core/db.py", "interface/api.py", "interface/auth.py"]:
+tests/test_graph_rag_janitor.py:140:        id_main = get_id("core/main.py")
+tests/test_graph_rag_janitor.py:151:        # Dispara a travessia recursiva iniciando em 'core/main.py'
+tests/test_graph_rag_janitor.py:153:            "core/main.py", depth_limit=3
+tests/test_graph_rag_janitor.py:157:        # O nó raiz 'core/main.py' é excluído do resultado retornado
+tests/test_graph_rag_janitor.py:180:            "VALUES ('core/main.py', 'print(\"main\")', 1, 'core');"
+tests/test_graph_rag_janitor.py:221:            "SELECT is_dirty FROM files WHERE path = 'core/main.py';"
+
+$ git grep -n "assertNotIn" tests/test_graph_rag_janitor.py
+tests/test_graph_rag_janitor.py:165:        self.assertNotIn(
+
+$ sed -n '155,170p' tests/test_graph_rag_janitor.py (verbatim):
+        # O retorno deve listar de forma recursiva os nós conectados (core/utils.py e core/db.py)
+        # O nó raiz 'core/main.py' é excluído do resultado retornado
+        self.assertEqual(
+            len(call_chain),
+            2,
+            "Deveria ter encontrado exatamente duas dependências recursivas.",
+        )
+        self.assertIn("core/utils.py", call_chain)
+        self.assertIn("core/db.py", call_chain)
+        self.assertNotIn(
+            "interface/auth.py",
+            call_chain,
+            "Arestas de subgrafos isolados não podem vazar na busca.",
+        )
+
+Conclusão factual: Não existe 'assertNotIn("core/main.py", call_chain)' em tests/test_graph_rag_janitor.py.
+A menção no texto original da errata 4.3c decorreu de confusão com o comentário explicativo na linha 157.
+A asserção real de assertNotIn na linha 165 é contra 'interface/auth.py'.
+

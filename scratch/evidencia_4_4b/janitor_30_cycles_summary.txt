@@ -1,0 +1,35 @@
+=== INVESTIGAÇÃO DE ESTABILIDADE: 30 CICLOS (JANITOR + LOOPS COM QUEUE_WRITER CORRIGIDO) ===
+Comando: C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\pytest.exe tests/test_graph_rag_janitor.py tests/test_graph_rag_loops.py -v
+
+Ciclo 01/30: PASSED em 4.42s
+Ciclo 02/30: PASSED em 4.23s
+Ciclo 03/30: PASSED em 4.32s
+Ciclo 04/30: PASSED em 4.47s
+Ciclo 05/30: PASSED em 4.23s
+Ciclo 06/30: PASSED em 4.29s
+Ciclo 07/30: PASSED em 4.28s
+Ciclo 08/30: PASSED em 4.42s
+Ciclo 09/30: PASSED em 4.77s
+Ciclo 10/30: PASSED em 4.20s
+Ciclo 11/30: PASSED em 4.28s
+Ciclo 12/30: PASSED em 4.41s
+Ciclo 13/30: PASSED em 4.11s
+Ciclo 14/30: PASSED em 4.07s
+Ciclo 15/30: PASSED em 4.61s
+Ciclo 16/30: PASSED em 4.87s
+Ciclo 17/30: PASSED em 4.33s
+Ciclo 18/30: PASSED em 4.55s
+Ciclo 19/30: PASSED em 4.22s
+Ciclo 20/30: PASSED em 4.68s
+Ciclo 21/30: PASSED em 4.43s
+Ciclo 22/30: PASSED em 4.41s
+Ciclo 23/30: PASSED em 4.42s
+Ciclo 24/30: PASSED em 4.15s
+Ciclo 25/30: PASSED em 4.31s
+Ciclo 26/30: PASSED em 4.18s
+Ciclo 27/30: PASSED em 4.95s
+Ciclo 28/30: PASSED em 4.91s
+Ciclo 29/30: PASSED em 4.54s
+Ciclo 30/30: PASSED em 4.26s
+
+Resumo: 30 ciclos concluídos em 132.34s. Sucesso: True.

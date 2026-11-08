@@ -1,0 +1,33 @@
+Script                                        | Status             | Code  | Detail
+----------------------------------------------------------------------------------------------------
+scratch/append_bl006.py                       | OK                 | 0     | Appended BL-006 successfully.
+scratch/apply_graph_rag_fixes.py              | OK                 | 0     | Updated core/graph_rag.py successfully.
+scratch/apply_test_clean_db.py                | OK                 | 0     | Appended TestCleanDatabaseManagerSchema successfully.
+scratch/build_item1b_greps.py                 | OK                 | 0     | Saved item1b_resolve_project_identifier_greps.txt successfully
+scratch/build_item5_greps.py                  | OK                 | 0     | Saved item5_errata_greps.txt successfully
+scratch/clean_test_edges.py                   | OK                 | 0     | Cleaned tests/test_call_chain_edges_nodes.py successfully.
+scratch/debug_2a.py                           | OK                 | 0     | chain result: ['b.py']
+scratch/debug_2b.py                           | OK                 | 0     | chain result for a_b.py: []
+scratch/debug_2c.py                           | FAILED (exit 1)    | 1     | ValueError: Multiple projects (2) share folder_name 'alpha'. Please specify the project by its unique UUID.
+scratch/debug_2d.py                           | OK                 | 0     | Ambiguity error message: Ambiguous start_node 'shared.py' found in 2 projects. Please specify project_identifier (use co
+scratch/debug_2e.py                           | FAILED (exit 1)    | 1     | ValueError: Invalid depth_limit: True. Must be an integer between 1 and 10.
+scratch/debug_mcp_save.py                     | OK                 | 0     | OK
+scratch/fix_embedder_init.py                  | FAILED (exit 1)    | 1     | AssertionError: target not found
+scratch/fix_import_embed.py                   | FAILED (exit 1)    | 1     | AssertionError: target import not found
+scratch/fix_mcp_ext_fd.py                     | FAILED (exit 1)    | 1     | AssertionError: target_setup not found
+scratch/fix_mcp_ext_order.py                  | FAILED (exit 1)    | 1     | AssertionError: target_block not found
+scratch/fix_test_call_chain_edges.py          | FAILED (exit 1)    | 1     | AssertionError: target_wildcards not found
+scratch/fix_test_clean_db.py                  | OK                 | 0     | Updated test_concurrency_stress.py with sqlite3.connect.
+scratch/run_all_item3_mutations.py            | OK                 | 0     | ALL 5 MUTATIONS COMPLETED AND KILLED!
+scratch/run_b3_mutation.py                    | OK                 | 0     | Verified clean code passes.
+scratch/run_full_suite_4_3c.py                | FAILED (exit 2)    | 2     | Test suite finished with exit code 2
+scratch/run_mutations_4_3c.py                 | OK                 | 0     | All 3 mutations executed, killed, and reverted cleanly!
+scratch/save_item2_green.py                   | OK                 | 0     | Saved scratch/evidencia_4_3c/item2_tests_green.txt, returncode: 1
+scratch/scan_bom_utf.py                       | OK                 | 0     | Created clean copy: scratch/evidencia_4_3b\item4_green_checkpoints_utf8.txt (bytes: 2207)
+scratch/test_2a_investigation.py              | TIMEOUT (>10s)     | -1    | Execution timed out
+scratch/update_checkpointer.py                | FAILED (exit 1)    | 1     | AssertionError: target_block not found in core/checkpointer.py
+scratch/update_roadmap_4_3.py                 | FAILED (exit 1)    | 1     | AssertionError: Old 4.3 line not found in roadmap
+scratch/update_stress_setup.py                | OK                 | 0     | Updated setUp in test_concurrency_stress.py successfully.
+scratch/update_test_e2e.py                    | FAILED (exit 1)    | 1     | AssertionError: target_setup not found
+scratch/update_test_graph_rag_janitor.py      | FAILED (exit 1)    | 1     | AssertionError: target_setup not found
+scratch/update_test_mcp_server_extensions.py  | FAILED (exit 1)    | 1     | AssertionError: target_setup not found

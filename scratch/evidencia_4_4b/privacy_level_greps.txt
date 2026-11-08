@@ -1,0 +1,47 @@
+$ git grep -c privacy_level -- agents/revisor_critico.py core/middleware.py interface/cli.py interface/mcp_server.py storage/schema.py storage/store.py
+agents/revisor_critico.py:3
+core/middleware.py:5
+interface/cli.py:2
+interface/mcp_server.py:14
+storage/schema.py:3
+storage/store.py:9
+Total: 36
+
+$ git grep -n privacy_level -- agents/revisor_critico.py core/middleware.py interface/cli.py interface/mcp_server.py storage/schema.py storage/store.py
+agents/revisor_critico.py:28:    Validates that Reference Wings do not violate privacy_levels.
+agents/revisor_critico.py:555:        source_privacy = source_project.get("privacy_level", "PUBLIC")
+agents/revisor_critico.py:556:        target_privacy = target_project.get("privacy_level", "PUBLIC")
+core/middleware.py:109:        privacy_level: str = "PUBLIC",
+core/middleware.py:120:            privacy_level: Privacy level (PUBLIC, INTERNAL, RESTRICTED).
+core/middleware.py:141:            privacy_level=privacy_level,
+core/middleware.py:147:            folder_name, project_uuid, primary_wing, privacy_level,
+core/middleware.py:709:                      privacy_level, summary).
+interface/cli.py:141:        privacy_level=args.privacy or "PUBLIC",
+interface/cli.py:226:            f"{p.get('primary_wing', 'general'):<20} {p.get('privacy_level', 'PUBLIC'):<12}"
+interface/mcp_server.py:286:            privacy_level: str = "PUBLIC",
+interface/mcp_server.py:294:                privacy_level: Privacy level (PUBLIC, INTERNAL, RESTRICTED).
+interface/mcp_server.py:300:            return server._handle_register(project_path, wing, privacy_level, summary)
+interface/mcp_server.py:752:                "(folder_name, primary_wing, privacy_level, summary)."
+interface/mcp_server.py:759:            privacy_level: Optional[str] = None,
+interface/mcp_server.py:768:                privacy_level: Privacy level (PUBLIC, INTERNAL, RESTRICTED) (optional).
+interface/mcp_server.py:772:                project_identifier, folder_name, primary_wing, privacy_level, summary
+interface/mcp_server.py:1023:        self, project_path: str, wing: str, privacy_level: str, summary: Optional[str]
+interface/mcp_server.py:1031:            privacy_level=privacy_level,
+interface/mcp_server.py:1037:            folder_name, project_uuid, wing, privacy_level,
+interface/mcp_server.py:1045:            "privacy_level": privacy_level,
+interface/mcp_server.py:1597:        privacy_level: Optional[str] = None,
+interface/mcp_server.py:1607:        if privacy_level is not None:
+interface/mcp_server.py:1608:            fields["privacy_level"] = privacy_level
+storage/schema.py:11:        privacy_level IN ('PUBLIC','INTERNAL','RESTRICTED')
+storage/schema.py:57:    privacy_level TEXT NOT NULL DEFAULT 'PUBLIC' 
+storage/schema.py:58:        CHECK(privacy_level IN ('PUBLIC', 'INTERNAL', 'RESTRICTED')),
+storage/store.py:130:        privacy_level: str = "PUBLIC", summary: Optional[str] = None,
+storage/store.py:133:        if privacy_level not in VALID_PRIVACY_LEVELS:
+storage/store.py:134:            raise ValueError(f"Invalid privacy_level: '{privacy_level}'. Accepted: {sorted(VALID_PRIVACY_LEVELS)}")
+storage/store.py:138:                "INSERT INTO projects (uuid, folder_name, primary_wing, privacy_level, summary) VALUES (?,?,?,?,?)",
+storage/store.py:140:            return {"uuid": u, "folder_name": fn, "primary_wing": pw, "privacy_level": pl}
+storage/store.py:142:        return self._conn_mgr.write(_do, uuid, folder_name, primary_wing, privacy_level, summary)
+storage/store.py:156:        allowed = {"folder_name", "primary_wing", "privacy_level", "summary"}
+storage/store.py:160:        if "privacy_level" in updates and updates["privacy_level"] not in VALID_PRIVACY_LEVELS:
+storage/store.py:161:            raise ValueError(f"Invalid privacy_level: {updates['privacy_level']}")
+

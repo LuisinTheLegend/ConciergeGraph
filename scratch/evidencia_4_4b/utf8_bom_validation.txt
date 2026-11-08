@@ -1,0 +1,28 @@
+=== VALIDAÇÃO UTF-8 SEM BOM E SEM BYTES NULOS (RODADA 4.4b) ===
+CHANGELOG.md: size=6284, status=CLEAN_UTF8
+audits/errata-4-3c.md: size=11789, status=CLEAN_UTF8
+audits/fase4-achados.md: size=81854, status=CLEAN_UTF8
+audits/fase4-roadmap.md: size=21619, status=CLEAN_UTF8
+audits/relatorio_4_4b.md: size=27405, status=CLEAN_UTF8
+scratch/evidencia_4_4b\graph_rag_janitor_main_greps.txt: size=1866, status=CLEAN_UTF8
+scratch/evidencia_4_4b\janitor_30_cycles_summary.txt: size=1195, status=CLEAN_UTF8
+scratch/evidencia_4_4b\m10_mutation_fails.txt: size=4830, status=CLEAN_UTF8
+scratch/evidencia_4_4b\m10_without_mutation_passes.txt: size=1445, status=CLEAN_UTF8
+scratch/evidencia_4_4b\m_g2_clean_passes.txt: size=1253, status=CLEAN_UTF8
+scratch/evidencia_4_4b\m_g2_i_fails.txt: size=7243, status=CLEAN_UTF8
+scratch/evidencia_4_4b\m_g2_ii_fails.txt: size=7183, status=CLEAN_UTF8
+scratch/evidencia_4_4b\m_g2_iii_fails.txt: size=7221, status=CLEAN_UTF8
+scratch/evidencia_4_4b\m_qw_a_fails.txt: size=3257, status=CLEAN_UTF8
+scratch/evidencia_4_4b\m_qw_b_fails.txt: size=4196, status=CLEAN_UTF8
+scratch/evidencia_4_4b\m_qw_c_fails.txt: size=3383, status=CLEAN_UTF8
+scratch/evidencia_4_4b\privacy_level_greps.txt: size=3815, status=CLEAN_UTF8
+scratch/evidencia_4_4b\queue_writer_green.txt: size=1663, status=CLEAN_UTF8
+scratch/evidencia_4_4b\queue_writer_red.txt: size=2400, status=CLEAN_UTF8
+scratch/evidencia_4_4b\restored_scripts_status.txt: size=4093, status=CLEAN_UTF8
+scratch/evidencia_4_4b\scratch_diff_status.txt: size=3000, status=CLEAN_UTF8
+scratch/evidencia_4_4b\suite_reverse_order.txt: size=52290, status=CLEAN_UTF8
+scratch/evidencia_4_4b\suite_standard_order.txt: size=52271, status=CLEAN_UTF8
+scratch/evidencia_4_4b\test_collection_reconciliation.txt: size=1413, status=CLEAN_UTF8
+scratch/evidencia_4_4b\utf8_bom_validation.txt: size=1912, status=CLEAN_UTF8
+
+Total verificados: 25, Afetados com BOM/NULL: 0

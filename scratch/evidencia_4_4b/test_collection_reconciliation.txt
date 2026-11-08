@@ -1,0 +1,23 @@
+=== RECONCILIAÇÃO DA COLEÇÃO DE TESTES ENTRE ba8a6f0 E 1d375ad ===
+
+Total coletado em ba8a6f0: 454
+Total coletado em 1d375ad: 453
+Diferença líquida: -1
+
+--- TESTES ADICIONADOS EM 1d375ad (6) ---
+  + .venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  + tests/test_domain_neutrality_guard.py::test_g1_concierge_config_has_no_wing_keywords
+  + tests/test_domain_neutrality_guard.py::test_g2_no_retired_domain_strings_in_product_code
+  + tests/test_domain_neutrality_guard.py::test_g3_real_mining_never_alters_primary_wing
+  + tests/test_domain_neutrality_guard.py::test_g4_free_text_wings_and_update_project
+  + tests/test_project_index.py::test_project_index_has_no_automatic_categorization
+
+--- TESTES REMOVIDOS EM 1d375ad (7) ---
+  - ..\..\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  - tests/test_call_chain_edges_nodes.py::TestCallChainEdgesNodes::test_e2e_mcp_globals_restored_after_monkeypatch
+  - tests/test_project_index.py::TestProjectIndexCategorize::test_empty_labels_and_tags_falls_back
+  - tests/test_project_index.py::TestProjectIndexCategorize::test_fallback_to_geral
+  - tests/test_project_index.py::TestProjectIndexCategorize::test_finance_wing_detected
+  - tests/test_project_index.py::TestProjectIndexCategorize::test_marketing_wing_detected
+  - tests/test_project_index.py::TestProjectIndexCategorize::test_returns_string
+
