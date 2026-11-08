@@ -260,11 +260,17 @@ class TestConciergeSovereignE2EAudit(unittest.TestCase):
         self.reconciler = VectorReconciler(self.db_manager, self.vector_db)
 
         # 5. Inject active instances into MCP server module scope
+        self._orig_db = getattr(mcp_server, "db_manager", None)
+        self._orig_cp = getattr(mcp_server, "checkpointer", None)
+        self._orig_gr = getattr(mcp_server, "graph_rag", None)
         mcp_server.db_manager = self.db_manager
         mcp_server.checkpointer = self.checkpointer
         mcp_server.graph_rag = self.graph_rag
 
     def tearDown(self):
+        mcp_server.db_manager = self._orig_db
+        mcp_server.checkpointer = self._orig_cp
+        mcp_server.graph_rag = self._orig_gr
         # Gracefully shut down serialized write queue
         self.write_queue.queue.put(None)
         self.write_queue.join(timeout=10)

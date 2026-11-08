@@ -49,6 +49,7 @@ Concierge Graph is engineered around three foundational pillars of cognitive aut
    - **Strict Domain Neutrality Rule**: No hardcoded domain taxonomies, fixed dictionaries, or predefined business keywords may exist in product code or default configuration (`core/config.py`).
    - Project classification into wings is free-form and comes strictly from the user or the agent via explicit actions (`register_project`, `update_project`).
    - Mining operations (`GrafoConcierge.mine`) must never overwrite or mutate the project's primary wing.
+   - **AST Domain Neutrality Guard (G2)**: Enforced via `tests/test_domain_neutrality_guard.py:test_g2_no_retired_domain_strings_in_product_code`. Discovers all repository Python files dynamically via `git ls-files '*.py'` (including `main.py` and `scripts/`). Scans all AST string constants and docstrings to prevent any substring occurrence (case-insensitive, with/without accent) of the 7 retired compound taxonomy terms (`marketing/vendas`, `finanças/quant`, `financas/quant`, `gestão/saas`, `gestao/saas`, `automação/rh`, `automacao/rh`), and exact matches for isolated domain labels (`estatística`, `estatistica`).
 
 For detailed architecture specifications, consult [`docs-grafo-concierge/`](docs-grafo-concierge/).
 

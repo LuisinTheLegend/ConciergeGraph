@@ -54,8 +54,13 @@ def test_t2_mcp_server_construction_does_not_drag_telemetry_or_fastapi(tmp_path)
     assert res.returncode == 0, f"Módulos arrastados na construção de GrafoConciergeServer: {res.stdout.strip()} {res.stderr.strip()}"
 
 
-def test_t3_governor_identity_matches_telemetry_mcp_governor(tmp_path):
+def test_t3_governor_identity_matches_telemetry_mcp_governor(tmp_path, monkeypatch):
     """T3: Identidade — o governor do servidor É O MESMO objeto que interface.telemetry_api.mcp_governor quando ambos são importados."""
+    monkeypatch.setattr("interface.mcp_server.governor", None)
+    monkeypatch.setattr("interface.mcp_server.db_manager", None, raising=False)
+    monkeypatch.setattr("interface.mcp_server.checkpointer", None, raising=False)
+    monkeypatch.setattr("interface.mcp_server.graph_rag", None, raising=False)
+
     db_file = str(tmp_path / "test_t3.db")
     store = SqliteStore(db_file)
     gc = MagicMock()

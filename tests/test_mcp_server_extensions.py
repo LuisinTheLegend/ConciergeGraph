@@ -70,57 +70,77 @@ GraphRAGEngine = _gr_mod.GraphRAGEngine
 # 5) interface.mcp_server (carrega apenas o módulo, sem bootstrap do FastMCP)
 #    Precisamos mockar as dependências pesadas antes de importar
 _mcp_server_path = os.path.join(_project_root, "interface", "mcp_server.py")
-
-# Stub dos módulos pesados que o mcp_server importa no topo
 import types
-
-if "mcp.server.fastmcp" not in sys.modules:
-    _mcp_pkg = types.ModuleType("mcp")
-    _mcp_server_pkg = types.ModuleType("mcp.server")
-    _mcp_fastmcp = types.ModuleType("mcp.server.fastmcp")
-    _mcp_fastmcp.FastMCP = type("FastMCP", (), {})  # stub class
-    sys.modules["mcp"] = _mcp_pkg
-    sys.modules["mcp.server"] = _mcp_server_pkg
-    sys.modules["mcp.server.fastmcp"] = _mcp_fastmcp
-
-if "core.middleware" not in sys.modules:
-    _mw_mod = types.ModuleType("core.middleware")
-    _mw_mod.GrafoConcierge = type("GrafoConcierge", (), {})
-    sys.modules["core.middleware"] = _mw_mod
-
-if "core" not in sys.modules:
-    _core_mod = types.ModuleType("core")
-    _core_mod.__path__ = [os.path.join(_project_root, "core")]
-    sys.modules["core"] = _core_mod
-elif not hasattr(sys.modules["core"], "__path__"):
-    sys.modules["core"].__path__ = [os.path.join(_project_root, "core")]
-
-if "services" not in sys.modules:
-    _svc_mod = types.ModuleType("services")
-    _svc_mod.__path__ = [os.path.join(_project_root, "services")]
-    _svc_mod.JanitorService = type("JanitorService", (), {})
-    sys.modules["services"] = _svc_mod
-elif not hasattr(sys.modules["services"], "__path__"):
-    sys.modules["services"].__path__ = [os.path.join(_project_root, "services")]
-
-_ms_spec = importlib.util.spec_from_file_location(
-    "interface.mcp_server", _mcp_server_path,
-)
-_ms_mod = importlib.util.module_from_spec(_ms_spec)
-sys.modules["interface.mcp_server"] = _ms_mod
-
-if "interface" not in sys.modules:
-    _iface_mod = types.ModuleType("interface")
-    _iface_mod.__path__ = [os.path.join(_project_root, "interface")]
-    sys.modules["interface"] = _iface_mod
-elif not hasattr(sys.modules["interface"], "__path__"):
-    sys.modules["interface"].__path__ = [os.path.join(_project_root, "interface")]
-
-_ms_spec.loader.exec_module(_ms_mod)
-mcp_server = _ms_mod
+mcp_server = None
 
 
 class TestMCPServerExtensions(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        global mcp_server
+        cls._saved_modules = {
+            mod: sys.modules.get(mod)
+            for mod in [
+                "mcp", "mcp.server", "mcp.server.fastmcp",
+                "core.middleware", "core", "services",
+                "interface", "interface.mcp_server",
+            ]
+        }
+
+        if "mcp.server.fastmcp" not in sys.modules:
+            _mcp_pkg = types.ModuleType("mcp")
+            _mcp_server_pkg = types.ModuleType("mcp.server")
+            _mcp_fastmcp = types.ModuleType("mcp.server.fastmcp")
+            _mcp_fastmcp.FastMCP = type("FastMCP", (), {})
+            sys.modules["mcp"] = _mcp_pkg
+            sys.modules["mcp.server"] = _mcp_server_pkg
+            sys.modules["mcp.server.fastmcp"] = _mcp_fastmcp
+
+        if "core.middleware" not in sys.modules:
+            _mw_mod = types.ModuleType("core.middleware")
+            _mw_mod.GrafoConcierge = type("GrafoConcierge", (), {})
+            sys.modules["core.middleware"] = _mw_mod
+
+        if "core" not in sys.modules:
+            _core_mod = types.ModuleType("core")
+            _core_mod.__path__ = [os.path.join(_project_root, "core")]
+            sys.modules["core"] = _core_mod
+        elif not hasattr(sys.modules["core"], "__path__"):
+            sys.modules["core"].__path__ = [os.path.join(_project_root, "core")]
+
+        if "services" not in sys.modules:
+            _svc_mod = types.ModuleType("services")
+            _svc_mod.__path__ = [os.path.join(_project_root, "services")]
+            _svc_mod.JanitorService = type("JanitorService", (), {})
+            sys.modules["services"] = _svc_mod
+        elif not hasattr(sys.modules["services"], "__path__"):
+            sys.modules["services"].__path__ = [os.path.join(_project_root, "services")]
+
+        _ms_spec = importlib.util.spec_from_file_location(
+            "interface.mcp_server", _mcp_server_path,
+        )
+        _ms_mod = importlib.util.module_from_spec(_ms_spec)
+        sys.modules["interface.mcp_server"] = _ms_mod
+
+        if "interface" not in sys.modules:
+            _iface_mod = types.ModuleType("interface")
+            _iface_mod.__path__ = [os.path.join(_project_root, "interface")]
+            sys.modules["interface"] = _iface_mod
+        elif not hasattr(sys.modules["interface"], "__path__"):
+            sys.modules["interface"].__path__ = [os.path.join(_project_root, "interface")]
+
+        _ms_spec.loader.exec_module(_ms_mod)
+        mcp_server = _ms_mod
+
+    @classmethod
+    def tearDownClass(cls):
+        global mcp_server
+        for mod, prev in cls._saved_modules.items():
+            if prev is None:
+                sys.modules.pop(mod, None)
+            else:
+                sys.modules[mod] = prev
+        mcp_server = sys.modules.get("interface.mcp_server")
     def setUp(self):
         self.db_fd, self.db_path = tempfile.mkstemp(suffix=".db")
         os.close(self.db_fd)
@@ -144,11 +164,17 @@ class TestMCPServerExtensions(unittest.TestCase):
         )
 
         # Injeta os managers reais dentro do escopo do servidor MCP para rodar o teste offline
+        self._orig_db = getattr(mcp_server, "db_manager", None)
+        self._orig_cp = getattr(mcp_server, "checkpointer", None)
+        self._orig_gr = getattr(mcp_server, "graph_rag", None)
         mcp_server.db_manager = self.db_manager
         mcp_server.checkpointer = AgnosticCheckpointer(self.db_manager)
         mcp_server.graph_rag = GraphRAGEngine(self.db_manager)
 
     def tearDown(self):
+        mcp_server.db_manager = self._orig_db
+        mcp_server.checkpointer = self._orig_cp
+        mcp_server.graph_rag = self._orig_gr
         self.write_queue.queue.put(None)
         self.write_queue.join(timeout=10)
         try:

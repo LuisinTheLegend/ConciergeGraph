@@ -40,17 +40,23 @@ def test_g1_concierge_config_has_no_wing_keywords():
 
 
 # ---------------------------------------------------------------------------
-# G2: Varredura por AST em todo código de produto
+# G2: Varredura por AST em todo código de produto e scripts via git ls-files
 # ---------------------------------------------------------------------------
 
 def test_g2_no_retired_domain_strings_in_product_code():
-    """G2: Varredura por AST em todo código de produto (core, storage, ingestion, services, interface, agent, agents).
+    """G2: Varredura por AST em arquivos Python descobertos via git ls-files '*.py'.
 
-    Nenhuma constante de string, incluindo docstring, pode ser igual a um dos 5 nomes
-    aposentados (comparação exata, com ou sem acentos).
-    A lista proibida reside estritamente dentro deste teste.
+    Verifica literais de string (incluindo docstrings) contra termos de taxonomia fixa aposentados:
+    - Busca de substring (in, case-insensitive, com/sem acento) para os 7 termos compostos de domínio:
+      marketing/vendas, finanças/quant, financas/quant, gestão/saas, gestao/saas, automação/rh, automacao/rh.
+    - Igualdade exata para o domínio isolado: estatística, estatistica (para permitir uso legítimo em português).
+
+    Descoberta dinâmica via git ls-files '*.py' cobrindo main.py, scripts/, core/, storage/, etc.
+    Exclusões restritas à allowlist explícita com justificativa de uma linha por item.
     """
-    forbidden_exact = {
+    import subprocess
+
+    forbidden_substrings = [
         "marketing/vendas",
         "finanças/quant",
         "financas/quant",
@@ -58,49 +64,88 @@ def test_g2_no_retired_domain_strings_in_product_code():
         "gestao/saas",
         "automação/rh",
         "automacao/rh",
+    ]
+
+    forbidden_exact = {
         "estatística",
         "estatistica",
     }
 
-    # Diretórios de código de produto
-    product_dirs = ["core", "storage", "ingestion", "services", "interface", "agent", "agents"]
+    # Allowlist explícita com justificativa de uma linha por exclusão
+    allowlist = {
+        "tests/test_domain_neutrality_guard.py": "Arquivo da própria guarda G2 que define os termos proibidos e testa retrocompatibilidade em G4.",
+        "audits/": "Documentos e relatórios de auditoria imutáveis ou vivos que citam o histórico dos termos.",
+        "scratch/": "Scripts e artefatos de diagnóstico, investigações empíricas e benchmarks de rodadas anteriores.",
+        "tests/stress_test_v2_parte1.py": "Teste histórico de estresse da Fase 2 que usa os nomes legados como texto livre de entrada.",
+        "tests/stress_test_v2_parte2.py": "Teste histórico de estresse da Fase 2 que usa os nomes legados como texto livre de entrada.",
+        "tests/stress_test_v2_parte3.py": "Teste histórico de estresse da Fase 2 que usa os nomes legados como texto livre de entrada.",
+        "tests/test_revisor_critico.py": "Teste histórico que valida resiliência do revisor crítico a nomes arbitrários legados de alas.",
+    }
+
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+    res = subprocess.run(
+        ["git", "ls-files", "*.py"],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    tracked_files = [line.strip().replace("\\", "/") for line in res.stdout.splitlines() if line.strip()]
 
     violations = []
 
-    for p_dir in product_dirs:
-        dir_path = os.path.join(repo_root, p_dir)
-        if not os.path.isdir(dir_path):
+    for rel_path in tracked_files:
+        # Checa se o arquivo está na allowlist (por igualdade exata de caminho ou prefixo de diretório)
+        is_allowed = False
+        for allowed_target in allowlist:
+            if allowed_target.endswith("/"):
+                if rel_path.startswith(allowed_target):
+                    is_allowed = True
+                    break
+            elif rel_path == allowed_target:
+                is_allowed = True
+                break
+
+        if is_allowed:
             continue
 
-        for root, dirs, files in os.walk(dir_path):
-            # Ignora caches e diretórios ocultos
-            dirs[:] = [d for d in dirs if not d.startswith(".") and d != "__pycache__"]
-            for file in files:
-                if not file.endswith(".py"):
-                    continue
+        full_path = os.path.join(repo_root, rel_path)
+        if not os.path.isfile(full_path):
+            continue
 
-                full_path = os.path.join(root, file)
-                rel_path = os.path.relpath(full_path, repo_root).replace("\\", "/")
+        with open(full_path, "r", encoding="utf-8", errors="replace") as f:
+            source = f.read()
 
-                with open(full_path, "r", encoding="utf-8", errors="replace") as f:
-                    source = f.read()
+        try:
+            tree = ast.parse(source, filename=rel_path)
+        except SyntaxError as e:
+            violations.append(f"Erro de sintaxe ao analisar {rel_path}: {e}")
+            continue
 
-                try:
-                    tree = ast.parse(source, filename=rel_path)
-                except SyntaxError as e:
-                    violations.append(f"Erro de sintaxe ao analisar {rel_path}: {e}")
-                    continue
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                val_lower = node.value.lower()
+                val_exact = node.value.strip().lower()
 
-                for node in ast.walk(tree):
-                    if isinstance(node, ast.Constant) and isinstance(node.value, str):
-                        val_normalized = node.value.strip().lower()
-                        if val_normalized in forbidden_exact:
-                            lineno = getattr(node, "lineno", "?")
-                            violations.append(f"{rel_path}:{lineno} contém string proibida '{node.value}'")
+                # 1. Checagem de substring para termos compostos proibidos
+                for term in forbidden_substrings:
+                    if term in val_lower:
+                        lineno = getattr(node, "lineno", "?")
+                        violations.append(
+                            f"{rel_path}:{lineno} contém substring proibida '{term}' em '{node.value}'"
+                        )
+                        break
+
+                # 2. Checagem de igualdade exata para termo isolado (estatística)
+                if val_exact in forbidden_exact:
+                    lineno = getattr(node, "lineno", "?")
+                    violations.append(
+                        f"{rel_path}:{lineno} contém literal exato proibido '{node.value}'"
+                    )
 
     assert not violations, (
-        f"Violação de Neutralidade de Domínio detectada no código de produto:\n"
+        f"Violação de Neutralidade de Domínio detectada no código do repositório:\n"
         + "\n".join(violations)
     )
 

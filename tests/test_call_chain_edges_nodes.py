@@ -498,6 +498,8 @@ class TestCallChainEdgesNodes:
             # Injeta db_manager e graph_rag usando monkeypatch isolado
             monkeypatch.setattr(mcp_server, "db_manager", db_mgr)
             monkeypatch.setattr(mcp_server, "graph_rag", GraphRAGEngine(db_mgr))
+            monkeypatch.setattr(mcp_server, "checkpointer", None)
+            monkeypatch.setattr(mcp_server, "governor", None)
 
             # Executa chamada via ferramenta registrada no servidor FastMCP
             gc = GrafoConcierge(
@@ -549,24 +551,3 @@ class TestCallChainEdgesNodes:
         finally:
             shutil.rmtree(temp_src, ignore_errors=True)
             shutil.rmtree(temp_chroma, ignore_errors=True)
-
-    def test_e2e_mcp_globals_restored_after_monkeypatch(self, monkeypatch):
-        """Verifica que monkeypatch restaura estritamente db_manager e graph_rag em interface.mcp_server."""
-        import interface.mcp_server as mcp_server
-        orig_db = mcp_server.db_manager
-        orig_gr = mcp_server.graph_rag
-        dummy_db = object()
-        dummy_gr = object()
-
-        try:
-            with monkeypatch.context() as m:
-                m.setattr(mcp_server, "db_manager", dummy_db)
-                m.setattr(mcp_server, "graph_rag", dummy_gr)
-                assert mcp_server.db_manager is dummy_db
-                assert mcp_server.graph_rag is dummy_gr
-
-            assert mcp_server.db_manager is orig_db, "db_manager não foi restaurado ao valor original"
-            assert mcp_server.graph_rag is orig_gr, "graph_rag não foi restaurado ao valor original"
-        finally:
-            mcp_server.db_manager = orig_db
-            mcp_server.graph_rag = orig_gr

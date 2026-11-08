@@ -502,22 +502,21 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
 ---
 
 ### [F4-029] Bloqueio Indefinido e Timeout Intermitente em interface/queue_writer.py:147 (response_queue.get()) em Testes de Concorrência
-- **Status:** **ABERTO (reproduzido empiricamente na Rodada 4.4, correção de produto postergada para 4.4b por decisão do auditor)**
-- **Severidade Proposta:** 🔴 CRÍTICA / ALTA (Sob condições de concorrência ou falha silenciosa de inicialização/execução na thread worker da `SerializedWriteQueue`, o método `execute_write` bloqueia indefinidamente em `response_queue.get()` sem timeout, congelando o processo principal do executor/servidor até o estouro do watchdog).
-- **Arquivos & Linhas:** [`interface/queue_writer.py:147`](file:///c:/Nexus-Memory/GrafoConcierge/interface/queue_writer.py#L147), [`core/database.py:51, 67`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py#L51), [`tests/test_graph_rag_janitor.py:84`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_graph_rag_janitor.py#L84)
-- **Mecanismo da Falha:**
-  Em `interface/queue_writer.py:147`, o método síncrono `execute_write` submete `(query, params, response_queue)` à fila interna `self.queue` e executa:
-  `success, result = response_queue.get()`
-  sem parâmetro de `timeout` e sem verificar se o thread daemon (`SerializedWriteQueue.run`) permanece vivo (`self.is_alive()`).
-  Se a thread worker falhar, encontrar contenção extrema de arquivo SQLite no Windows ou sofrer exceção não capturada em `conn.execute(...)`, o thread encerra sem sinalizar ou nunca deposita uma tupla na `response_queue`. Como consequência, a thread requisitante entra em bloqueio eterno em `self.not_empty.wait()` (`queue.py:199` / `threading.py:369`), travando os testes (`TestGraphRAGAndBackgroundJanitor.setUp`) ou o servidor MCP.
-- **Reprodução Real na Rodada 4.4 (Bloco A2):**
-  Durante 30 execuções controladas dos testes `tests/test_graph_rag_janitor.py` e `tests/test_graph_rag_loops.py` no ambiente limpo `.venv_clean` com `pytest-timeout` configurado (45s por teste):
-  - **6 de 30 execuções travaram** e foram abortadas pelo timer de thread do `pytest-timeout` (Ciclos 01, 07, 10, 12, 21, 29).
-  - Todas as 6 ocorrências registraram despejo de pilha idêntico bloqueado em `interface/queue_writer.py:147: success, result = response_queue.get()` chamado por `test_graph_rag_janitor.py:84` dentro do `setUp()`.
-  - As 24 execuções restantes passaram em ~5.2s.
-  - Saídas brutas de cada ciclo salvas em `scratch/evidencia_4_4/cycle_01.txt` até `cycle_30.txt` e consolidado em `scratch/evidencia_4_4/investigation_30_summary.txt`.
-- **Decisão do Auditor:**
-  Registro realizado estritamente como achado / diagnóstico nesta Rodada 4.4. A correção de código de produto de `queue_writer.py` foi alocada pelo auditor para rodada própria subsequente (4.4b).
+- **Status:** **reproduzido pelo auditor (Linux), causa raiz localizada; correção pelo executor aguardando verificação independente**
+- **Severidade:** 🟠 GRAVE (Só vira CRÍTICA se for reproduzido no caminho de produção).
+- **Arquivos & Linhas:** [`interface/queue_writer.py:50, 147`](file:///c:/Nexus-Memory/GrafoConcierge/interface/queue_writer.py#L50), [`core/database.py:51, 67`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py#L51), [`tests/test_graph_rag_janitor.py:84`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_graph_rag_janitor.py#L84)
+- **Fato (reproduzido pelo auditor, Linux):**
+  Em `interface/queue_writer.py:50`, a instrução `conn.execute("PRAGMA journal_mode=WAL;")` fica fora de qualquer bloco `try/except`. Quando essa instrução levanta `sqlite3.OperationalError: database is locked`, a thread daemon (`SerializedWriteQueue.run`) morre prematuramente antes de entrar no loop de processamento.
+  Posteriormente, qualquer chamada a `execute_write` (linha 147) submete uma mensagem e espera indefinidamente em `response_queue.get()` sem timeout. Como a thread daemon já encerrou, a resposta nunca é postada e quem chamou trava para sempre.
+  Evidência: 14 de 14 exceções capturadas, em 14 processos no ambiente do auditor, bloquearam exatamente nessa linha.
+- **Hipóteses (não provadas):**
+  1. A causa pela qual o banco SQLite está travado na linha 50 (possível corrida na troca para WAL de um banco recém-criado com outra conexão aberta concorrentemente).
+  2. Se essa colisão de PRAGMA/lock ocorre ou pode ocorrer no caminho ordinário de produção em regime mono-servidor.
+- **Correção Implementada na Rodada 4.4b (Bloco 1):**
+  1. Loop de retry com backoff exponencial com constantes nomeadas para inicialização da conexão SQLite e execução dos PRAGMAs na thread trabalhadora, capturando `sqlite3.OperationalError` ("database is locked" / "database is busy").
+  2. Salvamento de erro em `self._startup_error` e sinalização de prontidão via `threading.Event` (`self._ready`).
+  3. Loop não-bloqueante em `execute_write` com timeout total (`EXECUTE_TIMEOUT_SECONDS`), verificando periodicamente se a thread está viva (`self.is_alive()`) e se houve erro de inicialização.
+  4. Detecção de morte tardia da thread: descarte com falha dos itens pendentes e falha rápida em chamadas subsequentes, preservando o contrato de retorno `(False, e)`.
 
 ---
 
@@ -536,5 +535,22 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
   1. Remoção do campo `wing_keywords` de `ConciergeConfig` (`core/config.py`).
   2. Remoção dos métodos `categorize_project` e `auto_categorize_project` de `ProjectIndex` (`core/project_index.py`).
   3. Remoção do parâmetro `auto_categorize`, da chave `auto_categorized_wing` e da mutação de ala em `GrafoConcierge.mine` (`core/middleware.py`).
-  4. Criação dos testes-guarda G1, G2, G3 e G4 em `tests/test_domain_neutrality_guard.py` e eliminação das mutações (a), (b) e (c).
+  4. Criação dos testes-guarda G1, G2, G3 e G4 em `tests/test_domain_neutrality_guard.py` e eliminação das mutações (a), (b) e (c). Na Rodada 4.4b, a guarda G2 foi fortalecida: varre todos os arquivos Python descobertos dinamicamente via `git ls-files '*.py'` (incluindo `main.py` e `scripts/`), aplicando busca por substring em literais AST/docstrings para os 7 termos proibidos (`marketing/vendas`, `finanças/quant`, `financas/quant`, `gestão/saas`, `gestao/saas`, `automação/rh`, `automacao/rh`) e igualdade exata para o domínio isolado `estatística` / `estatistica`. Exclusões estritas restritas à allowlist documentada. Mutações (i), (ii) e (iii) eliminadas com sucesso.
 
+
+
+---
+
+### [BL-006] Checkpoints Salvos Fora da Fila Serializada SerializedWriteQueue
+- **Status:** **ABERTO (registrado na Rodada 4.3 pelo executor, aguardando priorização e planejamento)**
+- **Severidade Proposta:** 🟡 MÉDIA (Risco de contenção transacional e falhas do tipo `database is locked` sob concorrência de múltiplos agentes ou quando o `JanitorService` / `Store` executam escritas em segundo plano via `SerializedWriteQueue`).
+- **Arquivos & Linhas:** [`core/checkpointer.py:113-114, 139-140, 206-209`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py#L113-L114), [`interface/mcp_server.py:164-166`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L164-L166)
+- **Mecanismo da Falha:**
+  Em `core/checkpointer.py`, os métodos de escrita de checkpoints (`save_checkpoint`, `restore_checkpoint`, `_cleanup_old_checkpoints`) invocam `write_fn` diretamente através de reflexão:
+  `write_fn = getattr(self.db, "execute_write", getattr(self.db, "write_query", None))`
+  e realizam chamadas diretas como `write_fn(query, params)`.
+  No MCP Server (`interface/mcp_server.py:166`), a instância de `AgnosticCheckpointer` é conectada a `db_manager` (`ConciergeDatabaseManager`). Se `db_manager` for instanciado sem fila (`write_queue=None`), as escritas abrem conexões efêmeras imediatas (`sqlite3.connect`) fora do controle do thread único de gravação. Mesmo quando há uma fila conectada, a arquitetura mantém dois subsistemas de gravação concorrentes (a fila de `core/database.py` e a fila de `storage/store.py`), violando o princípio do escritor único e criando risco real de bloqueio em cenários de alta frequência de checkpoints.
+- **Justificativa da Severidade (MÉDIA):**
+  Embora o SQLite WAL permita múltiplos leitores concorrentes, ele admite apenas um escritor por vez. Quando múltiplos agentes tentam salvar checkpoints simultaneamente à ingestão ou compactação do Janitor, a escrita direta contorna a política central de serialização transacional do sistema, gerando potenciais exceções e degradação de confiabilidade na retenção de memória de longo prazo dos agentes.
+- **Resolução Recomendada (Para Rodada Futura):**
+  Unificar o canal de persistência do `AgnosticCheckpointer` para utilizar estritamente a fila central de escrita serializada de produção (`SerializedWriteQueue`), padronizando o timeout e o tratamento transacional assíncrono.

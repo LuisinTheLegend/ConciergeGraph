@@ -43,10 +43,10 @@
      ```
      O teste não testa `depth=1` nem `depth=3`. A alegação do relatório de que testava "1 nó para depth=1, 2 nós para depth=2, 3 nós para depth=3" era infundada.
   3. **Demais 4 testes:**
-     - `test_should_resolve_multi_hop_dependencies_via_sqlite_cte_recursive`: Asserções reais: `self.assertEqual(len(call_chain), 2)`, `self.assertIn("core/utils.py", call_chain)`, `self.assertIn("core/db.py", call_chain)`, `self.assertNotIn("core/main.py", call_chain)`.
+     - `test_should_resolve_multi_hop_dependencies_via_sqlite_cte_recursive` (`tests/test_graph_rag_janitor.py:158-169`): Asserções reais: `self.assertEqual(len(call_chain), 2)`, `self.assertIn("core/utils.py", call_chain)`, `self.assertIn("core/db.py", call_chain)`, `self.assertNotIn("interface/auth.py", call_chain)`. (Nota: o nó raiz `'core/main.py'` é excluído pelo algoritmo CTE e registrado em comentário na linha 157, mas não existe `assertNotIn('core/main.py')` no teste).
      - `test_indirect_cycle_resolution`: Asserções reais: `self.assertEqual(len(chain), 2)`, `self.assertIn("mod_b.py", chain)`, `self.assertIn("mod_c.py", chain)`, `self.assertNotIn("mod_a.py", chain)`.
      - `test_mcp_tool_concierge_get_call_chain`: Asserções reais: `self.assertEqual(len(call_chain), 2)`, `self.assertIn("auth.js", call_chain)`, `self.assertIn("db_local.js", call_chain)`, `self.assertNotIn("index.js", call_chain)`.
-     - `test_e2e_flow_full_lifecycle_and_communication`: Asserções reais: `self.assertEqual(len(call_chain), 2)`, `self.assertIn("core/utils.py", call_chain)`, `self.assertIn("core/db_driver.py", call_chain)`, `self.assertNotIn("core/main.py", call_chain)`.
+     - `test_e2e_flow_full_lifecycle_and_communication` (`tests/test_e2e_concierge_integration.py:371-373`): Asserções reais: `self.assertEqual(len(call_chain), 2)`, `self.assertIn("core/utils.py", call_chain)`, `self.assertIn("core/db_driver.py", call_chain)`. (Nota: não há asserção `assertNotIn` para `call_chain` neste teste).
 
 ---
 
@@ -62,15 +62,15 @@
   | **Item 1c (`privacy_level`)** | Inventário completo de 28 ocorrências e checagem de chamadores de `check_contamination`. |
   ```
 
-- **Retificação Factual (comando mecânico sobre o arquivo de evidência):**  
-  A contagem de linhas do arquivo `scratch/evidencia_4_3c/item1c_privacy_level_grep.txt` totaliza **36 linhas** (e não 28). Distribuição real por arquivo de produção:
+- **Retificação Factual (comando mecânico `git grep -c privacy_level -- <arquivo>`):**  
+  A contagem real por comando mecânico totaliza **36 ocorrências**. Distribuição real por arquivo de produção:
   - `agents/revisor_critico.py`: 3 ocorrências (linhas 28, 555, 556)
-  - `core/middleware.py`: 5 ocorrências (linhas 109, 121, 142, 148, 722)
+  - `core/middleware.py`: 5 ocorrências (linhas 109, 120, 141, 147, 709)
   - `interface/cli.py`: 2 ocorrências (linhas 141, 226)
-  - `interface/mcp_server.py`: 13 ocorrências (linhas 286, 294, 300, 752, 759, 768, 772, 1023, 1031, 1037, 1045, 1597, 1607, 1608)
+  - `interface/mcp_server.py`: 14 ocorrências (linhas 286, 294, 300, 752, 759, 768, 772, 1023, 1031, 1037, 1045, 1597, 1607, 1608)
   - `storage/schema.py`: 3 ocorrências (linhas 11, 57, 58)
-  - `storage/store.py`: 10 ocorrências (linhas 130, 133, 134, 138, 140, 142, 156, 160, 161)
-  - **Total real:** 36 ocorrências. O número "28" no relatório decorreu de subcontagem não verificada.
+  - `storage/store.py`: 9 ocorrências (linhas 130, 133, 134, 138, 140, 142, 156, 160, 161)
+  - **Total real:** 36 ocorrências (3 + 5 + 2 + 14 + 3 + 9 = 36). O número "28" no relatório original decorreu de contagem incompleta e a distribuição 13/10 anterior decorreu de erro de agregação manual, agora retificado para 14/9 com `git grep -c`.
 
 ---
 
