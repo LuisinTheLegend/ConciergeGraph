@@ -42,19 +42,20 @@ Nesta Rodada 4.4b:
 
 Conforme exigido pela auditoria, foi realizada uma reconciliação exata entre a coleção de testes no commit base `ba8a6f0` (Rodada 4.3c) e no commit `1d375ad` (fechamento da Rodada 4.4).
 
-- **Total coletado em `ba8a6f0`:** 449 itens (448 passed, 1 xfailed [BL-015]).
-- **Total coletado em `1d375ad`:** 448 itens (447 passed, 1 xfailed [BL-015]).
-- **Variação líquida:** **-1 teste** (+6 testes adicionados, -7 testes removidos).
+- **Total coletado em `ba8a6f0`:** 454 itens coletados (448 passed, 1 xfailed [BL-015], e telemetria chromadb).
+- **Total coletado em `1d375ad`:** 453 itens coletados (447 passed, 1 xfailed [BL-015], e telemetria chromadb).
+- **Variação líquida:** **-1 item coletado** (+6 itens adicionados, -7 itens removidos).
 
-A tabela a seguir discrimina detalhadamente todas as inclusões e remoções por arquivo e método:
+A tabela a seguir discrimina detalhadamente todas as inclusões e remoções por arquivo e método (conforme registrado em `scratch/evidencia_4_4b/test_collection_reconciliation.txt`):
 
 | Arquivo | Mudança | Qtd | Testes Específicos |
 |---|---|---|---|
-| `tests/test_domain_neutrality_guard.py` | Adicionado | +4 | `test_g1_mine_does_not_mutate_primary_wing`<br>`test_g2_no_domain_specific_keywords_in_codebase`<br>`test_g3_status_truthful_without_default_domain`<br>`test_g4_no_auto_categorize_in_mine_signature` |
-| `tests/test_call_chain_edges_nodes.py` | Adicionado | +2 | `test_mcp_registered_call_chain_with_project_identifier_and_unambiguous_resolution`<br>`test_mcp_registered_call_chain_ambiguity_lists_all_matching_nodes` |
-| `tests/test_call_chain_edges_nodes.py` | Removido | -1 | `test_e2e_mcp_globals_restored_after_monkeypatch` (teste fantasma eliminado que terminava em `assert True`) |
-| `tests/test_config.py` | Removido | -3 | `test_default_wing_keywords`<br>`test_custom_wing_keywords`<br>`test_wing_keywords_none_allowed` (removidos devido à eliminação do atributo `wing_keywords` de `ConciergeConfig` no Bloco 1) |
-| `tests/test_project_index.py` | Removido | -3 | `test_categorize_project_domain_detection`<br>`test_categorize_project_unknown`<br>`test_auto_categorize_project_updates_db` (removidos devido à eliminação da autocategorização de domínio no Bloco 1) |
+| `tests/test_domain_neutrality_guard.py` | Adicionado | +4 | `test_g1_concierge_config_has_no_wing_keywords`<br>`test_g2_no_retired_domain_strings_in_product_code`<br>`test_g3_real_mining_never_alters_primary_wing`<br>`test_g4_free_text_wings_and_update_project` |
+| `tests/test_project_index.py` | Adicionado | +1 | `test_project_index_has_no_automatic_categorization` |
+| *(telemetria chromadb)* | Adicionado | +1 | `.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128` (normalização de caminho de import do pytest) |
+| `tests/test_call_chain_edges_nodes.py` | Removido | -1 | `TestCallChainEdgesNodes::test_e2e_mcp_globals_restored_after_monkeypatch` (teste fantasma eliminado que terminava em `assert True`) |
+| `tests/test_project_index.py` | Removido | -5 | `TestProjectIndexCategorize::test_empty_labels_and_tags_falls_back`<br>`TestProjectIndexCategorize::test_fallback_to_geral`<br>`TestProjectIndexCategorize::test_finance_wing_detected`<br>`TestProjectIndexCategorize::test_marketing_wing_detected`<br>`TestProjectIndexCategorize::test_returns_string` (removidos devido à eliminação da autocategorização de domínio no Bloco 1) |
+| *(telemetria chromadb)* | Removido | -1 | `..\..\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128` (caminho relativo anterior substituído na coleta) |
 
 > **Evolução na Rodada 4.4b:** Com a criação de `tests/test_queue_writer_resilience.py` contendo 4 novos testes de resiliência concorrente (T1, T2, T3 e T4), a contagem total da suíte atinge **451 testes passando e 1 xfailed ([BL-015])** (total de 452 itens selecionados executados), sem nenhum teste fantasma ou falha.
 > Evidência completa de reconciliação gerada via script: [`scratch/evidencia_4_4b/test_collection_reconciliation.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/test_collection_reconciliation.txt).
@@ -94,7 +95,7 @@ Declara-se categoricamente que o arquivo [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-
 - **Validação da Mutação M10:**
   - Script executor: `scratch/run_mutation_m10.py`.
   - Mutação aplicada: Atribuição direta global `mcp_server.db_manager = dummy_manager` em `test_call_chain_edges_nodes.py`.
-  - Resultado com mutação: Falha comprovada com `AssertionError: Global mcp_server.db_manager leaked/changed identity!` ([`scratch/evidencia_4_4b/m10_mutation_fails.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/m10_mutation_fails.txt)).
+  - Resultado com mutação: Falha comprovada com `AssertionError: Global variable 'mcp_server.db_manager' leaked or modified by identity during test: expected None (id=140731652942656), got <core.database.ConciergeDatabaseManager object ...>` ([`scratch/evidencia_4_4b/m10_mutation_fails.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/m10_mutation_fails.txt)).
   - Resultado sem mutação: Sucesso com 100% dos testes passando ([`scratch/evidencia_4_4b/m10_without_mutation_passes.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/m10_without_mutation_passes.txt)).
 - **Execução nas Duas Ordens:**
   - Ordem Padrão: 451 passed, 1 xfailed ([`scratch/evidencia_4_4b/suite_standard_order.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/suite_standard_order.txt)).
@@ -108,14 +109,18 @@ Declara-se categoricamente que o arquivo [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-
      `marketing/vendas`, `finanças/quant`, `financas/quant`, `gestão/saas`, `gestao/saas`, `automação/rh`, `automacao/rh`.
   3. **Regra Específica para "estatística":** O termo isolado `estatística` / `estatistica` é avaliado por **igualdade exata de valor de literal string**.
      - *Justificativa Formal:* Em ciência da computação e análise de grafos em português, termos como "estatística de nós", "resumo estatístico" e "módulo de estatísticas" são vocábulos legítimos de engenharia e algoritmos. Uma busca por substring bloquearia nomenclaturas técnicas legítimas sem qualquer ganho de neutralidade. A igualdade exata impede que o termo atue como rótulo ou taxonomia de domínio isolada, preservando a semântica de engenharia.
-  4. **Allowlist Estrita com Justificativa Linha a Linha:**
-     - `tests/test_domain_neutrality_guard.py`: o próprio arquivo de teste que define a lista de termos proibidos.
-     - Arquivos sob `audits/`: documentação imutável histórica e relatórios de auditoria.
-     - `scratch/`: scripts temporários de teste, benchmarks e mutação.
+  4. **Allowlist Estrita com Justificativa Linha a Linha (conforme `tests/test_domain_neutrality_guard.py:75-83`):**
+     - `tests/test_domain_neutrality_guard.py`: Arquivo da própria guarda G2 que define os termos proibidos e testa retrocompatibilidade em G4.
+     - `audits/`: Documentos e relatórios de auditoria imutáveis ou vivos que citam o histórico dos termos.
+     - `scratch/`: Scripts e artefatos de diagnóstico, investigações empíricas e benchmarks de rodadas anteriores.
+     - `tests/stress_test_v2_parte1.py`: Teste histórico de estresse da Fase 2 que usa os nomes legados como texto livre de entrada.
+     - `tests/stress_test_v2_parte2.py`: Teste histórico de estresse da Fase 2 que usa os nomes legados como texto livre de entrada.
+     - `tests/stress_test_v2_parte3.py`: Teste histórico de estresse da Fase 2 que usa os nomes legados como texto livre de entrada.
+     - `tests/test_revisor_critico.py`: Teste histórico que valida resiliência do revisor crítico a nomes arbitrários legados de alas.
 - **Mutações Obrigatórias Eliminadas (via `scratch/run_g2_mutations.py`):**
-  - Mutação (i) - termo proibido inserido em docstring de `core/middleware.py`: **FALHA COMPROVADA** ([`scratch/evidencia_4_4b/m_g2_i_fails.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/m_g2_i_fails.txt)).
+  - Mutação (i) - termo proibido inserido em docstring de `core/config.py`: **FALHA COMPROVADA** ([`scratch/evidencia_4_4b/m_g2_i_fails.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/m_g2_i_fails.txt)).
   - Mutação (ii) - termo proibido inserido em `main.py`: **FALHA COMPROVADA** ([`scratch/evidencia_4_4b/m_g2_ii_fails.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/m_g2_ii_fails.txt)).
-  - Mutação (iii) - termo proibido inserido em `scripts/seed_demo.py`: **FALHA COMPROVADA** ([`scratch/evidencia_4_4b/m_g2_iii_fails.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/m_g2_iii_fails.txt)).
+  - Mutação (iii) - termo proibido inserido em `scripts/bootstrap_core_memory.py`: **FALHA COMPROVADA** ([`scratch/evidencia_4_4b/m_g2_iii_fails.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/m_g2_iii_fails.txt)).
   - Execução Limpa: Sucesso com 0 violações em 66 arquivos auditados ([`scratch/evidencia_4_4b/m_g2_clean_passes.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/m_g2_clean_passes.txt)).
 - **Documentação Sincronizada:** Descrições de G2 devidamente atualizadas em [`CONTRIBUTING.md`](file:///c:/Nexus-Memory/GrafoConcierge/CONTRIBUTING.md) e [`audits/fase4-achados.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/fase4-achados.md).
 
@@ -124,10 +129,10 @@ Declara-se categoricamente que o arquivo [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-
 1. **Recálculo de `privacy_level` por Arquivo:**
    Executado via comando real `git grep -c privacy_level -- <arquivo>`:
    ```powershell
-   git grep -c privacy_level -- core/revisor_critico.py core/middleware.py interface/cli.py interface/mcp_server.py storage/schema.py storage/store.py
+   git grep -c privacy_level -- agents/revisor_critico.py core/middleware.py interface/cli.py interface/mcp_server.py storage/schema.py storage/store.py
    ```
    **Contagens Oficiais Confirmadas:**
-   - `core/revisor_critico.py`: **3**
+   - `agents/revisor_critico.py`: **3**
    - `core/middleware.py`: **5**
    - `interface/cli.py`: **2**
    - `interface/mcp_server.py`: **14**
@@ -137,8 +142,8 @@ Declara-se categoricamente que o arquivo [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-
    - As contagens foram devidamente retificadas em [`audits/errata-4-3c.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/errata-4-3c.md). Evidência salva em [`scratch/evidencia_4_4b/privacy_level_greps.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/privacy_level_greps.txt).
 2. **Retificação da Citação `assertNotIn('core/main.py', call_chain)`:**
    A auditoria apontou divergência na citação de asserções em `tests/test_graph_rag_janitor.py`.
-   - Executado: `git grep -n "core/main.py" tests/test_graph_rag_janitor.py` -> **0 resultados**.
-   - Executado: `git grep -n "assertNotIn" tests/test_graph_rag_janitor.py` -> 1 resultado na linha 140 (`self.assertNotIn("mock_sym", chain)`).
+   - Executado: `git grep -n "core/main.py" tests/test_graph_rag_janitor.py` -> **0 asserções de assertNotIn com 'core/main.py'** (o caminho é mencionado apenas em inserções de nós e no comentário da linha 157).
+   - Executado: `git grep -n "assertNotIn" tests/test_graph_rag_janitor.py` -> 1 resultado na **linha 165** (`self.assertNotIn("interface/auth.py", call_chain, "Arestas de subgrafos isolados não podem vazar na busca.")`).
    - A citação foi corrigida em [`audits/errata-4-3c.md`](file:///c:/Nexus-Memory/GrafoConcierge/audits/errata-4-3c.md), registrando a distinção exata entre os testes do Janitor e os testes do E2E. Evidência em [`scratch/evidencia_4_4b/graph_rag_janitor_main_greps.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/graph_rag_janitor_main_greps.txt).
 
 ### 0.4. Restauração e Auditoria dos Scripts de `scratch/`
@@ -149,7 +154,7 @@ Declara-se categoricamente que o arquivo [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-
   Cada um dos 31 scripts foi executado em ambiente isolado via script `scratch/test_restored_scripts.py`.
   - **17 scripts executaram com status OK** (código de saída 0).
   - **13 scripts falharam por motivo previsto:** tratam-se de scripts de verificação pontual da Rodada 4.3c cujas premissas de schema/código foram intencionalmente alteradas por correções posteriores (ex: remoção da tabela fantasma `ast_edges`, exigência de `privacy_level` nas chamadas ou chaves do middleware já consolidadas). Nenhum script foi modificado em silêncio; seus estados foram documentados com integridade.
-  - **1 script sofreu timeout (>30s):** `scratch/update_stress_setup.py` (executa carga volumosa de estresse).
+  - **1 script sofreu timeout (>10s):** `scratch/test_2a_investigation.py` (executa testes volumosos de investigação com timeout curto de harness). `scratch/update_stress_setup.py` executou com sucesso (código 0).
   - Relatório completo com o status de cada script salvo em [`scratch/evidencia_4_4b/restored_scripts_status.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/restored_scripts_status.txt).
   - Listagem de diff salva em [`scratch/evidencia_4_4b/scratch_diff_status.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/scratch_diff_status.txt).
 
@@ -202,7 +207,7 @@ Foi desenvolvida uma suíte de testes unitários e de concorrência contendo 4 c
   Executado antes da aplicação do patch contra o código legado. O teste T1 travou imediatamente na espera infinita de `response_queue.get()`, confirmando a reprodução da falha.
   Evidência: [`scratch/evidencia_4_4b/queue_writer_red.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/queue_writer_red.txt).
 - **Prova em Verde (Código com a Correção Ativa):**
-  Todos os 4 testes da suíte passaram com 100% de sucesso em 3.38s.
+  Todos os 4 testes da suíte passaram com 100% de sucesso em 4.12s (`4 passed, 1 warning in 4.12s`).
   Evidência: [`scratch/evidencia_4_4b/queue_writer_green.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/queue_writer_green.txt).
 - **Mutações Obrigatórias Eliminadas (via `scratch/run_queue_writer_mutations.py`):**
   - **Mutação (a) — Remoção do Retry de Inicialização (`MAX_CONNECT_RETRIES = 1`):** O teste T2 falhou imediatamente com `AssertionError: Escrita deveria ter sucedido após retry` ([`scratch/evidencia_4_4b/m_qw_a_fails.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/m_qw_a_fails.txt)).

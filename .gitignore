@@ -78,3 +78,6 @@ package-lock.json
 # 🔄 Framework Reversa (Engenharia Reversa & Resumos Físicos Locais)
 .reversa/
 _reversa_sdd/
+
+#
+.agents/

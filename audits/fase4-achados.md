@@ -502,7 +502,7 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
 ---
 
 ### [F4-029] Bloqueio Indefinido e Timeout Intermitente em interface/queue_writer.py:147 (response_queue.get()) em Testes de Concorrência
-- **Status:** **reproduzido pelo auditor (Linux), causa raiz localizada; correção pelo executor aguardando verificação independente**
+- **Status:** **corrigido pelo executor, aguardando verificação independente**.
 - **Severidade:** 🟠 GRAVE (Só vira CRÍTICA se for reproduzido no caminho de produção).
 - **Arquivos & Linhas:** [`interface/queue_writer.py:50, 147`](file:///c:/Nexus-Memory/GrafoConcierge/interface/queue_writer.py#L50), [`core/database.py:51, 67`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py#L51), [`tests/test_graph_rag_janitor.py:84`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_graph_rag_janitor.py#L84)
 - **Fato (reproduzido pelo auditor, Linux):**
