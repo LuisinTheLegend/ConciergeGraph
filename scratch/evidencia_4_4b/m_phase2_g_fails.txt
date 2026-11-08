@@ -1,0 +1,53 @@
+=== PROVA DE FALHA DA MUTAÇÃO (g): Reintrodução do PRAGMA WAL no read_query ===
+Exit code: 1
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 8 items / 7 deselected / 1 selected
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t8_reader_read_query_does_not_execute_pragma_wal FAILED [100%]
+
+================================== FAILURES ===================================
+_ TestQueueWriterResilience.test_t8_reader_read_query_does_not_execute_pragma_wal _
+
+self = <test_queue_writer_resilience.TestQueueWriterResilience testMethod=test_t8_reader_read_query_does_not_execute_pragma_wal>
+
+    def test_t8_reader_read_query_does_not_execute_pragma_wal(self):
+        """T8: ConciergeDatabaseManager.read_query não executa 'PRAGMA journal_mode=WAL' a cada leitura."""
+        from core.database import ConciergeDatabaseManager
+        db_mgr = ConciergeDatabaseManager(self.db_path)
+        conn = sqlite3.connect(self.db_path)
+        conn.execute("CREATE TABLE t8 (id INT);")
+        conn.commit()
+        conn.close()
+    
+        with patch("sqlite3.connect") as mock_connect:
+            mock_conn = MagicMock()
+            mock_connect.return_value = mock_conn
+            mock_cursor = MagicMock()
+            mock_conn.cursor.return_value = mock_cursor
+            mock_cursor.fetchall.return_value = []
+    
+            db_mgr.read_query("SELECT * FROM t8;")
+    
+            executed_sql = [call.args[0] for call in mock_conn.execute.call_args_list if call.args]
+>           self.assertNotIn("PRAGMA journal_mode=WAL;", executed_sql, "read_query não deve executar PRAGMA journal_mode=WAL a cada chamada de leitura")
+E           AssertionError: 'PRAGMA journal_mode=WAL;' unexpectedly found in ['PRAGMA journal_mode=WAL;'] : read_query não deve executar PRAGMA journal_mode=WAL a cada chamada de leitura
+
+tests\test_queue_writer_resilience.py:270: AssertionError
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t8_reader_read_query_does_not_execute_pragma_wal
+================= 1 failed, 7 deselected, 1 warning in 3.44s ==================

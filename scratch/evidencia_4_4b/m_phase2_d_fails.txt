@@ -1,0 +1,46 @@
+=== PROVA DE FALHA DA MUTAÇÃO (d): Remoção do handshake check em execute_write ===
+Exit code: 1
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 8 items / 7 deselected / 1 selected
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t5_unready_worker_handshake_timeout_fails_fast_without_enqueuing FAILED [100%]
+
+================================== FAILURES ===================================
+_ TestQueueWriterResilience.test_t5_unready_worker_handshake_timeout_fails_fast_without_enqueuing _
+
+self = <test_queue_writer_resilience.TestQueueWriterResilience testMethod=test_t5_unready_worker_handshake_timeout_fails_fast_without_enqueuing>
+
+    def test_t5_unready_worker_handshake_timeout_fails_fast_without_enqueuing(self):
+        """T5: worker ainda não sinalizou prontidão (_ready.is_set() == False) e estoura READY_TIMEOUT.
+    
+        execute_write deve retornar (False, TimeoutError) imediatamente sem empurrar a tarefa
+        na fila de um worker não inicializado (fila permanece vazia).
+        """
+        qw = SerializedWriteQueue(self.db_path)
+        with patch.object(qw, "is_alive", return_value=True):
+            with patch("interface.queue_writer.READY_TIMEOUT_SECONDS", 0.05):
+                ok, err = qw.execute_write("CREATE TABLE t5 (id INT);")
+                self.assertFalse(ok)
+                self.assertIsInstance(err, TimeoutError)
+>               self.assertIn("failed to initialize", str(err).lower())
+E               AssertionError: 'failed to initialize' not found in 'execute_write timed out after 30.0s.'
+
+tests\test_queue_writer_resilience.py:189: AssertionError
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t5_unready_worker_handshake_timeout_fails_fast_without_enqueuing
+================= 1 failed, 7 deselected, 1 warning in 33.67s =================

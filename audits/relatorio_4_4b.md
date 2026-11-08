@@ -224,6 +224,39 @@ Com a correção de [F4-029] integrada, foi executado o ciclo de validação de 
 - **Ocorrência de Travamentos:** **ZERO travamentos**, zero bloqueios e zero exceções capturadas.
 - Evidência consolidada gerada via script: [`scratch/evidencia_4_4b/janitor_30_cycles_summary.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/janitor_30_cycles_summary.txt).
 
+### 4.5. Endurecimento Arquitetural e Auditoria EGM (Fase 2)
+
+A partir da auditoria adversária conduzida pelo subagente `egm-design`, foram identificados e solucionados 4 vetores de fragilidade de concorrência:
+
+1. **Alinhamento de Orçamento de Handshake e Checagem Estrita de Prontidão:**
+   - Criação da constante `STARTUP_CONNECT_TIMEOUT_SECONDS = 1.5s` para as tentativas de conexão inicial com SQLite. Com 5 tentativas e backoff exponencial (1.55s), o tempo máximo de startup é de 9.05s, garantindo conclusão dentro de `READY_TIMEOUT_SECONDS = 10.0s`.
+   - Checagem determinística do retorno de `self._ready.wait(timeout=READY_TIMEOUT_SECONDS)` em `execute_write`: se expirar, retorna imediatamente `(False, TimeoutError)` sem enfileirar em worker não-inicializado.
+2. **Drenagem Completa de Lotes em Falhas Fatais:**
+   - Tratamento de exceção no loop de execução do worker que captura e notifica todas as tarefas que já haviam sido extraídas da fila para compor o `batch` ativo, evitando que chamadores aguardem indefinidamente.
+   - Envolvimento defensivo de `conn.rollback()` em bloco `try/except` em `_execute_single`.
+   - Drenagem de requisições pendentes na recepção do sentinela de término `None`.
+3. **Prevenção de Livelock por Descarte de Tarefas com Deadline Expirado:**
+   - Inclusão do deadline monotônico no contrato de tarefas da fila. Se o worker atingir a tarefa quando o prazo do chamador já tiver expirado, descarta a operação com `TimeoutError` sem executar gravações zumbis contra o disco.
+4. **Eliminação de Contenção por PRAGMAs nos Leitores (`core/database.py`):**
+   - Remoção de `conn.execute("PRAGMA journal_mode=WAL;")` de `ConciergeDatabaseManager.read_query()`, eliminando aquisições concorrentes de trava de esquema durante leituras ordinárias.
+
+- **Novos Testes de Resiliência Adicionados (T5–T8):**
+  - **T5 (`test_t5_unready_worker_handshake_timeout_fails_fast_without_enqueuing`):** Valida fail-fast em timeout de handshake sem enfileiramento indevido.
+  - **T6 (`test_t6_batch_fatal_error_notifies_all_batched_callers`):** Valida notificação a todos os chamadores do lote ativo em falhas de batch.
+  - **T7 (`test_t7_expired_deadline_task_skipped_without_executing`):** Valida descarte sem gravação em disco de tarefas com deadline expirado.
+  - **T8 (`test_t8_reader_read_query_does_not_execute_pragma_wal`):** Valida que `read_query()` não executa PRAGMA redundante.
+- **Provas em Vermelho e em Verde da Fase 2:**
+  - Prova em Vermelho: 4 testes falhando com comprovação salva em [`scratch/evidencia_4_4b/phase2_red_tests.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/phase2_red_tests.txt).
+  - Prova em Verde: 8 testes de resiliência passando em 3.98s em [`scratch/evidencia_4_4b/phase2_green_tests.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/phase2_green_tests.txt).
+- **Mutações Obrigatórias Eliminadas da Fase 2 (via `scratch/run_phase2_mutations.py`):**
+  - Mutação (d) — Remoção da checagem de handshake em `execute_write`: **FALHA COMPROVADA** em T5 ([`scratch/evidencia_4_4b/m_phase2_d_fails.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/m_phase2_d_fails.txt)).
+  - Mutação (e) — Remoção da notificação do batch ativo em falha fatal: **FALHA COMPROVADA** em T6 ([`scratch/evidencia_4_4b/m_phase2_e_fails.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/m_phase2_e_fails.txt)).
+  - Mutação (f) — Remoção da verificação de deadline expirado: **FALHA COMPROVADA** em T7 ([`scratch/evidencia_4_4b/m_phase2_f_fails.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/m_phase2_f_fails.txt)).
+  - Mutação (g) — Reintrodução de PRAGMA WAL em `read_query()`: **FALHA COMPROVADA** em T8 ([`scratch/evidencia_4_4b/m_phase2_g_fails.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/m_phase2_g_fails.txt)).
+- **Execução Global da Suíte Pós-Fase 2:**
+  - Ordem Padrão: **455 passed, 1 xfailed** em 194.96s ([`scratch/evidencia_4_4b/suite_standard_order.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/suite_standard_order.txt)).
+  - Ordem Reversa: **455 passed, 1 xfailed** em 186.81s ([`scratch/evidencia_4_4b/suite_reverse_order.txt`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_4b/suite_reverse_order.txt)).
+
 ---
 
 ## 6. Bloco 2 — Documentação de Incompatibilidades em `CHANGELOG.md` ([F4-030])

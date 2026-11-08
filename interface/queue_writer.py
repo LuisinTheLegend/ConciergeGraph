@@ -29,10 +29,11 @@ logger = logging.getLogger(__name__)
 
 _MAX_BATCH_SIZE = 50
 
-# Constantes nomeadas de resiliência e concorrência (F4-029)
+# Constantes nomeadas de resiliência e concorrência (F4-029 & EGM Phase 2)
 MAX_CONNECT_RETRIES = 5
 INITIAL_BACKOFF_SECONDS = 0.05
 MAX_BACKOFF_SECONDS = 1.0
+STARTUP_CONNECT_TIMEOUT_SECONDS = 1.5
 READY_TIMEOUT_SECONDS = 10.0
 EXECUTE_TIMEOUT_SECONDS = 30.0
 POLL_INTERVAL_SECONDS = 0.05
@@ -62,7 +63,7 @@ class SerializedWriteQueue(threading.Thread):
         backoff = INITIAL_BACKOFF_SECONDS
         for attempt in range(1, MAX_CONNECT_RETRIES + 1):
             try:
-                conn = sqlite3.connect(self.db_path, timeout=30.0)
+                conn = sqlite3.connect(self.db_path, timeout=STARTUP_CONNECT_TIMEOUT_SECONDS)
                 conn.execute("PRAGMA journal_mode=WAL;")
                 conn.execute("PRAGMA synchronous=NORMAL;")
                 self._ready.set()
@@ -104,6 +105,7 @@ class SerializedWriteQueue(threading.Thread):
                 return
 
         # ── Main Worker Processing Loop ───────────────────────────────────
+        batch = []
         try:
             while True:
                 # ── Step 1: Await first item (blocking) ────────────────────
@@ -111,6 +113,8 @@ class SerializedWriteQueue(threading.Thread):
                 if task is None:
                     # Graceful shutdown sentinel
                     self.queue.task_done()
+                    # Drena quaisquer tarefas pendentes postadas após None
+                    self._fail_all_pending(RuntimeError("SerializedWriteQueue is shutting down."))
                     break
 
                 # ── Step 2: Opportunistic Accumulation (non-blocking) ──────
@@ -137,8 +141,16 @@ class SerializedWriteQueue(threading.Thread):
                 # Mark all items in batch as processed
                 for _ in batch:
                     self.queue.task_done()
+                batch = []
         except Exception as loop_error:
             logger.error("SerializedWriteQueue daemon thread loop encountered fatal error: %s", loop_error, exc_info=True)
+            # Notifica tarefas do lote ativo que já haviam sido extraídas da fila
+            for b_task in batch:
+                try:
+                    resp_q = b_task[2]
+                    resp_q.put((False, loop_error))
+                except Exception:
+                    pass
             self._fail_all_pending(loop_error)
             raise
         finally:
@@ -155,7 +167,7 @@ class SerializedWriteQueue(threading.Thread):
             try:
                 task = self.queue.get_nowait()
                 if task is not None:
-                    _, _, resp_q = task
+                    resp_q = task[2]
                     resp_q.put((False, error))
                 self.queue.task_done()
             except queue.Empty:
@@ -165,14 +177,26 @@ class SerializedWriteQueue(threading.Thread):
         self, conn: sqlite3.Connection, task: Tuple
     ) -> None:
         """Executes a single write operation in its own implicit atomic transaction."""
-        query, params, response_queue = task
+        if len(task) >= 4:
+            query, params, response_queue, deadline = task[0], task[1], task[2], task[3]
+        else:
+            query, params, response_queue = task[0], task[1], task[2]
+            deadline = None
+
+        if deadline is not None and time.perf_counter() > deadline:
+            response_queue.put((False, TimeoutError("Write task deadline expired before execution.")))
+            return
+
         try:
             cursor = conn.cursor()
             cursor.execute(query, params)
             conn.commit()
             response_queue.put((True, cursor.lastrowid))
         except Exception as e:
-            conn.rollback()
+            try:
+                conn.rollback()
+            except Exception as rb_err:
+                logger.debug("Defensive rollback failed: %s", rb_err, exc_info=True)
             response_queue.put((False, e))
 
     def _execute_batch(
@@ -186,14 +210,26 @@ class SerializedWriteQueue(threading.Thread):
             conn.execute("BEGIN IMMEDIATE;")
             results = []
             for task in batch:
-                query, params, response_queue = task
+                if len(task) >= 4:
+                    query, params, response_queue, deadline = task[0], task[1], task[2], task[3]
+                else:
+                    query, params, response_queue = task[0], task[1], task[2]
+                    deadline = None
+
+                if deadline is not None and time.perf_counter() > deadline:
+                    results.append((response_queue, None, TimeoutError("Write task deadline expired before execution.")))
+                    continue
+
                 cursor = conn.cursor()
                 cursor.execute(query, params)
-                results.append((response_queue, cursor.lastrowid))
+                results.append((response_queue, cursor.lastrowid, None))
             conn.commit()
             # Batch transaction succeeded: notify all callers
-            for response_queue, lastrowid in results:
-                response_queue.put((True, lastrowid))
+            for response_queue, lastrowid, err in results:
+                if err is not None:
+                    response_queue.put((False, err))
+                else:
+                    response_queue.put((True, lastrowid))
         except Exception as batch_error:
             # ── Atomic Single-Item Fallback ────────────────────────────
             logger.warning(
@@ -222,9 +258,14 @@ class SerializedWriteQueue(threading.Thread):
         if self._startup_error is not None:
             return False, self._startup_error
 
-        # Aguarda sinalização do handshake de inicialização se a thread estiver rodando
-        if self.is_alive() and not self._ready.is_set():
-            self._ready.wait(timeout=READY_TIMEOUT_SECONDS)
+        # Aguarda sinalização do handshake de inicialização se o worker não estiver pronto
+        if not self._ready.is_set():
+            if not self._ready.wait(timeout=READY_TIMEOUT_SECONDS):
+                if self._startup_error is not None:
+                    return False, self._startup_error
+                return False, TimeoutError(
+                    f"SerializedWriteQueue worker failed to initialize within {READY_TIMEOUT_SECONDS}s."
+                )
 
         if self._startup_error is not None:
             return False, self._startup_error
@@ -233,10 +274,10 @@ class SerializedWriteQueue(threading.Thread):
             err = RuntimeError("SerializedWriteQueue worker thread is not alive.")
             return False, err
 
-        response_queue: queue.Queue = queue.Queue()
-        self.queue.put((query, params, response_queue))
-
         deadline = time.perf_counter() + EXECUTE_TIMEOUT_SECONDS
+        response_queue: queue.Queue = queue.Queue()
+        self.queue.put((query, params, response_queue, deadline))
+
         while time.perf_counter() < deadline:
             try:
                 success, result = response_queue.get(timeout=POLL_INTERVAL_SECONDS)

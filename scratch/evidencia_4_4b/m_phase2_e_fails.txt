@@ -1,0 +1,133 @@
+=== PROVA DE FALHA DA MUTAÇÃO (e): Remoção da notificação do batch ativo ===
+Exit code: 1
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 8 items / 7 deselected / 1 selected
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t6_batch_fatal_error_notifies_all_batched_callers FAILED [100%]
+
+================================== FAILURES ===================================
+_ TestQueueWriterResilience.test_t6_batch_fatal_error_notifies_all_batched_callers _
+
+self = <test_queue_writer_resilience.TestQueueWriterResilience testMethod=test_t6_batch_fatal_error_notifies_all_batched_callers>
+
+    def test_t6_batch_fatal_error_notifies_all_batched_callers(self):
+        """T6: falha catastrófica durante _execute_batch.
+    
+        Todos os itens retirados da fila para compor o batch ativo devem receber
+        (False, loop_error) em seus response_queues, sem ficar órfãos.
+        """
+        qw = SerializedWriteQueue(self.db_path)
+        qw.start()
+        try:
+            qw.execute_write("CREATE TABLE t6 (id INTEGER PRIMARY KEY, v TEXT);")
+    
+            q1 = queue.Queue()
+            q2 = queue.Queue()
+            task1 = ("INSERT INTO t6 (v) VALUES ('a');", (), q1)
+            task2 = ("INSERT INTO t6 (v) VALUES ('b');", (), q2)
+    
+            with patch.object(qw, "_execute_batch", side_effect=MemoryError("Simulated catastrophic crash")):
+                qw.queue.put(task1)
+                qw.queue.put(task2)
+    
+>               res1 = q1.get(timeout=3.0)
+                       ^^^^^^^^^^^^^^^^^^^
+
+tests\test_queue_writer_resilience.py:212: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <queue.Queue object at 0x00000228B7672E90>, block = True, timeout = 3.0
+
+    def get(self, block=True, timeout=None):
+        '''Remove and return an item from the queue.
+    
+        If optional args 'block' is true and 'timeout' is None (the default),
+        block if necessary until an item is available. If 'timeout' is
+        a non-negative number, it blocks at most 'timeout' seconds and raises
+        the Empty exception if no item was available within that time.
+        Otherwise ('block' is false), return an item if one is immediately
+        available, else raise the Empty exception ('timeout' is ignored
+        in that case).
+    
+        Raises ShutDown if the queue has been shut down and is empty,
+        or if the queue has been shut down immediately.
+        '''
+        with self.not_empty:
+            if self.is_shutdown and not self._qsize():
+                raise ShutDown
+            if not block:
+                if not self._qsize():
+                    raise Empty
+            elif timeout is None:
+                while not self._qsize():
+                    self.not_empty.wait()
+                    if self.is_shutdown and not self._qsize():
+                        raise ShutDown
+            elif timeout < 0:
+                raise ValueError("'timeout' must be a non-negative number")
+            else:
+                endtime = time() + timeout
+                while not self._qsize():
+                    remaining = endtime - time()
+                    if remaining <= 0.0:
+>                       raise Empty
+E                       _queue.Empty
+
+C:\Python314\Lib\queue.py:209: Empty
+------------------------------ Captured log call ------------------------------
+ERROR    interface.queue_writer:queue_writer.py:146 SerializedWriteQueue daemon thread loop encountered fatal error: Simulated catastrophic crash
+Traceback (most recent call last):
+  File "C:\Nexus-Memory\GrafoConcierge\interface\queue_writer.py", line 139, in run
+    self._execute_batch(conn, batch)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Python314\Lib\unittest\mock.py", line 1175, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\unittest\mock.py", line 1179, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\unittest\mock.py", line 1234, in _execute_mock_call
+    raise effect
+MemoryError: Simulated catastrophic crash
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t6_batch_fatal_error_notifies_all_batched_callers
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-2
+  
+  Traceback (most recent call last):
+    File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+      self._context.run(self.run)
+      ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+    File "C:\Nexus-Memory\GrafoConcierge\interface\queue_writer.py", line 139, in run
+      self._execute_batch(conn, batch)
+      ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1175, in __call__
+      return self._mock_call(*args, **kwargs)
+             ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1179, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+             ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1234, in _execute_mock_call
+      raise effect
+  MemoryError: Simulated catastrophic crash
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t6_batch_fatal_error_notifies_all_batched_callers
+================= 1 failed, 7 deselected, 2 warnings in 6.58s =================

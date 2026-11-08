@@ -517,6 +517,7 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
   2. Salvamento de erro em `self._startup_error` e sinalização de prontidão via `threading.Event` (`self._ready`).
   3. Loop não-bloqueante em `execute_write` com timeout total (`EXECUTE_TIMEOUT_SECONDS`), verificando periodicamente se a thread está viva (`self.is_alive()`) e se houve erro de inicialização.
   4. Detecção de morte tardia da thread: descarte com falha dos itens pendentes e falha rápida em chamadas subsequentes, preservando o contrato de retorno `(False, e)`.
+  5. Endurecimento Arquitetural da Fase 2 (EGM): Alinhamento do orçamento de handshake com `STARTUP_CONNECT_TIMEOUT_SECONDS = 1.5s`, checagem estrita de timeout no handshake de `execute_write` com `TimeoutError` descritivo, notificação do lote ativo em falhas de worker, descarte de tarefas com deadline expirado sem gravação zumbi em disco e remoção do comando `PRAGMA journal_mode=WAL;` a cada chamada de `core/database.py:read_query()`.
 
 ---
 

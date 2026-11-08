@@ -174,3 +174,99 @@ class TestQueueWriterResilience(unittest.TestCase):
             qw.queue.put(None)
             qw.join(timeout=3.0)
 
+    def test_t5_unready_worker_handshake_timeout_fails_fast_without_enqueuing(self):
+        """T5: worker ainda não sinalizou prontidão (_ready.is_set() == False) e estoura READY_TIMEOUT.
+        
+        execute_write deve retornar (False, TimeoutError) imediatamente sem empurrar a tarefa
+        na fila de um worker não inicializado (fila permanece vazia).
+        """
+        qw = SerializedWriteQueue(self.db_path)
+        with patch.object(qw, "is_alive", return_value=True):
+            with patch("interface.queue_writer.READY_TIMEOUT_SECONDS", 0.05):
+                ok, err = qw.execute_write("CREATE TABLE t5 (id INT);")
+                self.assertFalse(ok)
+                self.assertIsInstance(err, TimeoutError)
+                self.assertIn("failed to initialize", str(err).lower())
+                self.assertTrue(qw.queue.empty(), "Tarefa NÃO deve ser enfileirada se o worker não estiver pronto")
+
+    def test_t6_batch_fatal_error_notifies_all_batched_callers(self):
+        """T6: falha catastrófica durante _execute_batch.
+        
+        Todos os itens retirados da fila para compor o batch ativo devem receber
+        (False, loop_error) em seus response_queues, sem ficar órfãos.
+        """
+        qw = SerializedWriteQueue(self.db_path)
+        qw.start()
+        try:
+            qw.execute_write("CREATE TABLE t6 (id INTEGER PRIMARY KEY, v TEXT);")
+            
+            q1 = queue.Queue()
+            q2 = queue.Queue()
+            task1 = ("INSERT INTO t6 (v) VALUES ('a');", (), q1)
+            task2 = ("INSERT INTO t6 (v) VALUES ('b');", (), q2)
+            
+            with patch.object(qw, "_execute_batch", side_effect=MemoryError("Simulated catastrophic crash")):
+                qw.queue.put(task1)
+                qw.queue.put(task2)
+                
+                res1 = q1.get(timeout=3.0)
+                res2 = q2.get(timeout=3.0)
+                
+                self.assertFalse(res1[0])
+                self.assertIsInstance(res1[1], MemoryError)
+                self.assertFalse(res2[0])
+                self.assertIsInstance(res2[1], MemoryError)
+        finally:
+            if qw.is_alive():
+                qw.queue.put(None)
+                qw.join(timeout=3.0)
+
+    def test_t7_expired_deadline_task_skipped_without_executing(self):
+        """T7: tarefa cujo deadline já expirou é descartada com TimeoutError sem executar no disco."""
+        qw = SerializedWriteQueue(self.db_path)
+        qw.start()
+        try:
+            qw.execute_write("CREATE TABLE t7 (id INTEGER PRIMARY KEY, v TEXT);")
+            
+            q = queue.Queue()
+            expired_deadline = time.perf_counter() - 10.0
+            task = ("INSERT INTO t7 (v) VALUES ('stale');", (), q, expired_deadline)
+            qw.queue.put(task)
+            
+            success, err = q.get(timeout=3.0)
+            self.assertFalse(success)
+            self.assertIsInstance(err, TimeoutError)
+            
+            conn = sqlite3.connect(self.db_path)
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(*) FROM t7;")
+            count = cur.fetchone()[0]
+            conn.close()
+            self.assertEqual(count, 0, "Query com deadline expirado não deveria ter sido gravada no disco")
+        finally:
+            if qw.is_alive():
+                qw.queue.put(None)
+                qw.join(timeout=3.0)
+
+    def test_t8_reader_read_query_does_not_execute_pragma_wal(self):
+        """T8: ConciergeDatabaseManager.read_query não executa 'PRAGMA journal_mode=WAL' a cada leitura."""
+        from core.database import ConciergeDatabaseManager
+        db_mgr = ConciergeDatabaseManager(self.db_path)
+        conn = sqlite3.connect(self.db_path)
+        conn.execute("CREATE TABLE t8 (id INT);")
+        conn.commit()
+        conn.close()
+        
+        with patch("sqlite3.connect") as mock_connect:
+            mock_conn = MagicMock()
+            mock_connect.return_value = mock_conn
+            mock_cursor = MagicMock()
+            mock_conn.cursor.return_value = mock_cursor
+            mock_cursor.fetchall.return_value = []
+            
+            db_mgr.read_query("SELECT * FROM t8;")
+            
+            executed_sql = [call.args[0] for call in mock_conn.execute.call_args_list if call.args]
+            self.assertNotIn("PRAGMA journal_mode=WAL;", executed_sql, "read_query não deve executar PRAGMA journal_mode=WAL a cada chamada de leitura")
+
+

@@ -1,0 +1,47 @@
+=== PROVA DE FALHA DA MUTAÇÃO (f): Remoção da verificação de deadline expirado ===
+Exit code: 1
+
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 8 items / 7 deselected / 1 selected
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t7_expired_deadline_task_skipped_without_executing FAILED [100%]
+
+================================== FAILURES ===================================
+_ TestQueueWriterResilience.test_t7_expired_deadline_task_skipped_without_executing _
+
+self = <test_queue_writer_resilience.TestQueueWriterResilience testMethod=test_t7_expired_deadline_task_skipped_without_executing>
+
+    def test_t7_expired_deadline_task_skipped_without_executing(self):
+        """T7: tarefa cujo deadline já expirou é descartada com TimeoutError sem executar no disco."""
+        qw = SerializedWriteQueue(self.db_path)
+        qw.start()
+        try:
+            qw.execute_write("CREATE TABLE t7 (id INTEGER PRIMARY KEY, v TEXT);")
+    
+            q = queue.Queue()
+            expired_deadline = time.perf_counter() - 10.0
+            task = ("INSERT INTO t7 (v) VALUES ('stale');", (), q, expired_deadline)
+            qw.queue.put(task)
+    
+            success, err = q.get(timeout=3.0)
+>           self.assertFalse(success)
+E           AssertionError: True is not false
+
+tests\test_queue_writer_resilience.py:237: AssertionError
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t7_expired_deadline_task_skipped_without_executing
+================= 1 failed, 7 deselected, 1 warning in 3.33s ==================

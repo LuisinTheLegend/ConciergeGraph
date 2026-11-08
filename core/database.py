@@ -37,7 +37,6 @@ class ConciergeDatabaseManager:
         """Fast concurrent read query directly from database (bypasses write queue)."""
         conn = sqlite3.connect(self.db_path, timeout=30.0)
         try:
-            conn.execute("PRAGMA journal_mode=WAL;")
             cursor = conn.cursor()
             cursor.execute(query, params)
             results = cursor.fetchall()
