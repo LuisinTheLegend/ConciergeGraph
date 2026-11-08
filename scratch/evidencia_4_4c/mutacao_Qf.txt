@@ -1,0 +1,99 @@
+MUTAÇÃO Qf: Sem sinalizar prontidão na falha final (_ready.set removido na falha de startup)
+Alvo: tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t1_connect_persistent_failure_fails_fast_without_hanging
+Substituições:
+-                     if attempt == MAX_CONNECT_RETRIES:
+                        self._startup_error = e
+                        self._ready.set()
++                     if attempt == MAX_CONNECT_RETRIES:
+                        self._startup_error = e
+                        # self._ready.set() REMOVIDO
+
+--- RESULTADO COM MUTAÇÃO (esperado: FALHA/KILLED) ---
+Retcode: 1
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t1_connect_persistent_failure_fails_fast_without_hanging FAILED [100%]
+
+================================== FAILURES ===================================
+_ TestQueueWriterResilience.test_t1_connect_persistent_failure_fails_fast_without_hanging _
+
+self = <test_queue_writer_resilience.TestQueueWriterResilience testMethod=test_t1_connect_persistent_failure_fails_fast_without_hanging>
+
+    def test_t1_connect_persistent_failure_fails_fast_without_hanging(self):
+        """T1: sqlite3.connect falha persistentemente com 'database is locked'.
+    
+        execute_write deve falhar rápido (bem abaixo do timeout do teste), retornando (False, ...),
+        sem pendurar a thread requisitante.
+        """
+        qw = SerializedWriteQueue(self.db_path)
+    
+        with patch("interface.queue_writer.sqlite3.connect", side_effect=sqlite3.OperationalError("database is locked")):
+            qw.start()
+    
+            start_t = time.perf_counter()
+            # Chama execute_write em thread separada com timeout estrito de 5s para não pendurar o runner
+            result_container = []
+            def _caller():
+                res = qw.execute_write("CREATE TABLE t1 (id INT);")
+                result_container.append(res)
+    
+            th = threading.Thread(target=_caller, daemon=True)
+            th.start()
+            th.join(timeout=5.0)
+    
+            elapsed = time.perf_counter() - start_t
+    
+            # Se th ainda estiver vivo após 5s, o código antigo travou no response_queue.get()
+>           self.assertFalse(th.is_alive(), f"execute_write travou indefinidamente (esperou {elapsed:.2f}s)")
+E           AssertionError: True is not false : execute_write travou indefinidamente (esperou 5.01s)
+
+tests\test_queue_writer_resilience.py:73: AssertionError
+------------------------------ Captured log call ------------------------------
+WARNING  interface.queue_writer:queue_writer.py:77 SerializedWriteQueue startup connection attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+WARNING  interface.queue_writer:queue_writer.py:77 SerializedWriteQueue startup connection attempt 2/5 failed with 'database is locked'. Retrying in 0.100s...
+WARNING  interface.queue_writer:queue_writer.py:77 SerializedWriteQueue startup connection attempt 3/5 failed with 'database is locked'. Retrying in 0.200s...
+WARNING  interface.queue_writer:queue_writer.py:77 SerializedWriteQueue startup connection attempt 4/5 failed with 'database is locked'. Retrying in 0.400s...
+WARNING  interface.queue_writer:queue_writer.py:77 SerializedWriteQueue startup connection attempt 5/5 failed with 'database is locked'. Retrying in 0.800s...
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t1_connect_persistent_failure_fails_fast_without_hanging
+======================== 1 failed, 1 warning in 8.04s =========================
+
+
+--- RESULTADO SEM MUTAÇÃO (esperado: PASSOU) ---
+Retcode: 0
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t1_connect_persistent_failure_fails_fast_without_hanging PASSED [100%]
+
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 1 warning in 3.29s =========================
+

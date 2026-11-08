@@ -1,0 +1,85 @@
+ÿþ============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 10 items / 8 deselected / 2 selected
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_execute_write_before_start_fails_fast_without_handshake_wait FAILED [ 50%]
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t9_busy_timeout_regime_allows_lock_held_for_3s_to_succeed FAILED [100%]
+
+================================== FAILURES ===================================
+_ TestQueueWriterResilience.test_execute_write_before_start_fails_fast_without_handshake_wait _
+
+self = <test_queue_writer_resilience.TestQueueWriterResilience testMethod=test_execute_write_before_start_fails_fast_without_handshake_wait>
+
+    def test_execute_write_before_start_fails_fast_without_handshake_wait(self):
+        """1.3: execute_write chamado antes de start() deve falhar imediatamente (<0.2s) com RuntimeError.
+    
+        Não deve esperar os 10s de READY_TIMEOUT_SECONDS nem retornar TimeoutError.
+        """
+        qw = SerializedWriteQueue(self.db_path)
+        # start() NÃO é chamado
+        start_t = time.perf_counter()
+        success, err = qw.execute_write("CREATE TABLE t_pre (id INT);")
+        elapsed = time.perf_counter() - start_t
+    
+        self.assertFalse(success)
+>       self.assertIsInstance(err, RuntimeError)
+E       AssertionError: TimeoutError('SerializedWriteQueue worker failed to initialize within 10.0s.') is not an instance of <class 'RuntimeError'>
+
+tests\test_queue_writer_resilience.py:323: AssertionError
+_ TestQueueWriterResilience.test_t9_busy_timeout_regime_allows_lock_held_for_3s_to_succeed _
+
+self = <test_queue_writer_resilience.TestQueueWriterResilience testMethod=test_t9_busy_timeout_regime_allows_lock_held_for_3s_to_succeed>
+
+    def test_t9_busy_timeout_regime_allows_lock_held_for_3s_to_succeed(self):
+        """T9: regressão de busy timeout. Outra conexão segura BEGIN IMMEDIATE por ~3s.
+    
+        Com timeout de regime de 30s (restaurado após handshake), a escrita deve suceder
+        após a liberação do lock, sem falhar prematuramente em 1.5s.
+        """
+        qw = SerializedWriteQueue(self.db_path)
+        qw.start()
+        try:
+            ok, res = qw.execute_write("CREATE TABLE t9 (id INTEGER PRIMARY KEY, v TEXT);")
+            self.assertTrue(ok, f"Setup falhou: {res}")
+    
+            conn_external = sqlite3.connect(self.db_path, timeout=30.0, check_same_thread=False)
+            conn_external.execute("BEGIN IMMEDIATE;")
+    
+            lock_released_event = threading.Event()
+    
+            def _release_lock_after_delay():
+                time.sleep(3.0)
+                try:
+                    conn_external.commit()
+                    conn_external.close()
+                finally:
+                    lock_released_event.set()
+    
+            releaser = threading.Thread(target=_release_lock_after_delay, daemon=True)
+            releaser.start()
+    
+            start_t = time.perf_counter()
+            success, result = qw.execute_write("INSERT INTO t9 (v) VALUES ('held');")
+            elapsed = time.perf_counter() - start_t
+    
+>           self.assertTrue(success, f"Escrita deveria ter sucedido após lock liberado, mas falhou com: {result}")
+E           AssertionError: False is not true : Escrita deveria ter sucedido após lock liberado, mas falhou com: database is locked
+
+tests\test_queue_writer_resilience.py:304: AssertionError
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_execute_write_before_start_fails_fast_without_handshake_wait
+FAILED tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t9_busy_timeout_regime_allows_lock_held_for_3s_to_succeed
+================= 2 failed, 8 deselected, 1 warning in 15.40s =================

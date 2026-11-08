@@ -1,0 +1,68 @@
+================================================================================
+RELATÓRIO DE ESTABILIDADE: 30 CICLOS SEM INSTRUMENTAÇÃO (PEDIDO 4.4c - Bloco 1.6)
+Suítes: tests/test_graph_rag_janitor.py tests/test_graph_rag_loops.py
+================================================================================
+
+Total de ciclos executados: 30
+Todos os ciclos verdes: True
+Tempo total: 147.69s
+Tempo médio por ciclo: 4.92s (min: 4.68s, max: 5.29s)
+Total de retries de conexão registrados em 30 ciclos: 17
+
+Ciclo   Status      Duração (s)    Retries Partida   
+-------------------------------------------------------
+1       OK          4.89           0                 
+2       OK          5.16           0                 
+3       OK          5.22           0                 
+4       OK          5.21           0                 
+5       OK          4.82           0                 
+6       OK          4.93           0                 
+7       OK          4.76           0                 
+8       OK          5.29           0                 
+9       OK          5.06           1                 
+10      OK          4.82           0                 
+11      OK          4.83           0                 
+12      OK          5.04           0                 
+13      OK          4.79           0                 
+14      OK          4.78           0                 
+15      OK          4.88           2                 
+16      OK          4.69           0                 
+17      OK          4.78           0                 
+18      OK          4.69           0                 
+19      OK          4.97           3                 
+20      OK          5.02           0                 
+21      OK          5.09           3                 
+22      OK          4.88           0                 
+23      OK          4.96           0                 
+24      OK          4.72           0                 
+25      OK          4.68           0                 
+26      OK          4.76           0                 
+27      OK          5.17           3                 
+28      OK          4.79           0                 
+29      OK          5.26           5                 
+30      OK          4.74           0                 
+
+LINHAS DE LOG DE RETRY DETECTADAS:
+--- Ciclo 9 ---
+  WARNING  interface.queue_writer:queue_writer.py:77 SerializedWriteQueue startup connection attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+--- Ciclo 15 ---
+  WARNING  interface.queue_writer:queue_writer.py:77 SerializedWriteQueue startup connection attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+  WARNING  interface.queue_writer:queue_writer.py:77 SerializedWriteQueue startup connection attempt 2/5 failed with 'database is locked'. Retrying in 0.100s...
+--- Ciclo 19 ---
+  WARNING  interface.queue_writer:queue_writer.py:77 SerializedWriteQueue startup connection attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+  WARNING  interface.queue_writer:queue_writer.py:77 SerializedWriteQueue startup connection attempt 2/5 failed with 'database is locked'. Retrying in 0.100s...
+  WARNING  interface.queue_writer:queue_writer.py:77 SerializedWriteQueue startup connection attempt 3/5 failed with 'database is locked'. Retrying in 0.200s...
+--- Ciclo 21 ---
+  WARNING  interface.queue_writer:queue_writer.py:77 SerializedWriteQueue startup connection attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+  WARNING  interface.queue_writer:queue_writer.py:77 SerializedWriteQueue startup connection attempt 2/5 failed with 'database is locked'. Retrying in 0.100s...
+  WARNING  interface.queue_writer:queue_writer.py:77 SerializedWriteQueue startup connection attempt 3/5 failed with 'database is locked'. Retrying in 0.200s...
+--- Ciclo 27 ---
+  WARNING  interface.queue_writer:queue_writer.py:77 SerializedWriteQueue startup connection attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+  WARNING  interface.queue_writer:queue_writer.py:77 SerializedWriteQueue startup connection attempt 2/5 failed with 'database is locked'. Retrying in 0.100s...
+  WARNING  interface.queue_writer:queue_writer.py:77 SerializedWriteQueue startup connection attempt 3/5 failed with 'database is locked'. Retrying in 0.200s...
+--- Ciclo 29 ---
+  WARNING  interface.queue_writer:queue_writer.py:77 SerializedWriteQueue startup connection attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+  WARNING  interface.queue_writer:queue_writer.py:77 SerializedWriteQueue startup connection attempt 2/5 failed with 'database is locked'. Retrying in 0.100s...
+  WARNING  interface.queue_writer:queue_writer.py:77 SerializedWriteQueue startup connection attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+  WARNING  interface.queue_writer:queue_writer.py:77 SerializedWriteQueue startup connection attempt 2/5 failed with 'database is locked'. Retrying in 0.100s...
+  WARNING  interface.queue_writer:queue_writer.py:77 SerializedWriteQueue startup connection attempt 3/5 failed with 'database is locked'. Retrying in 0.200s...

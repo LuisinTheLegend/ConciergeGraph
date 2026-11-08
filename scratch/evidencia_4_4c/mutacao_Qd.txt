@@ -1,0 +1,98 @@
+MUTAÇÃO Qd: Sem nenhuma checagem de vida (is_alive removido totalmente)
+Alvo: tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t3_worker_thread_late_death_fails_pending_and_future_fast
+Substituições:
+-         if not self.is_alive():
+            err = RuntimeError("SerializedWriteQueue worker thread is not alive.")
+            return False, err
++         pass
+-                 if not self.is_alive():
+                    return False, RuntimeError("SerializedWriteQueue worker thread died while awaiting response.")
++                 pass
+
+--- RESULTADO COM MUTAÇÃO (esperado: FALHA/KILLED) ---
+Retcode: 1
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t3_worker_thread_late_death_fails_pending_and_future_fast FAILED [100%]
+
+================================== FAILURES ===================================
+_ TestQueueWriterResilience.test_t3_worker_thread_late_death_fails_pending_and_future_fast _
+
+self = <test_queue_writer_resilience.TestQueueWriterResilience testMethod=test_t3_worker_thread_late_death_fails_pending_and_future_fast>
+
+    def test_t3_worker_thread_late_death_fails_pending_and_future_fast(self):
+        """T3: simula a thread worker morrendo após a inicialização.
+    
+        Chamadas subsequentes e itens enfileirados devem falhar rápido sem travar.
+        """
+        qw = SerializedWriteQueue(self.db_path)
+        qw.start()
+    
+        # 1. Escrita normal de inicialização para certificar que subiu
+        ok, res = qw.execute_write("CREATE TABLE t3 (id INTEGER PRIMARY KEY, name TEXT);")
+        self.assertTrue(ok, f"Inicialização falhou: {res}")
+    
+        # 2. Força encerramento/morte da thread do worker simulando queda
+        qw.queue.put(None)
+        qw.join(timeout=3.0)
+        self.assertFalse(qw.is_alive(), "Worker deveria ter terminado")
+    
+        # 3. Chamada subsequente com worker morto deve falhar rápido sem travar
+        start_t = time.perf_counter()
+        result_container = []
+        def _caller():
+            res = qw.execute_write("INSERT INTO t3 (name) VALUES ('beta');")
+            result_container.append(res)
+    
+        th = threading.Thread(target=_caller, daemon=True)
+        th.start()
+        th.join(timeout=3.0)
+        elapsed = time.perf_counter() - start_t
+    
+>       self.assertFalse(th.is_alive(), f"Chamada com thread morta travou indefinidamente ({elapsed:.2f}s)")
+E       AssertionError: True is not false : Chamada com thread morta travou indefinidamente (3.00s)
+
+tests\test_queue_writer_resilience.py:147: AssertionError
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t3_worker_thread_late_death_fails_pending_and_future_fast
+======================== 1 failed, 1 warning in 6.16s =========================
+
+
+--- RESULTADO SEM MUTAÇÃO (esperado: PASSOU) ---
+Retcode: 0
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t3_worker_thread_late_death_fails_pending_and_future_fast PASSED [100%]
+
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 1 warning in 2.50s =========================
+

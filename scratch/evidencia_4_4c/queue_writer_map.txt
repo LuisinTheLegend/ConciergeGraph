@@ -1,0 +1,66 @@
+================================================================================
+MAPEAMENTO DE USO DO QUEUE_WRITER NO RUNTIME E EM PRODUÇÃO (PEDIDO 4.4c - Bloco 1.5)
+================================================================================
+
+1. INSTÂNCIAS CRIADAS EM RUNTIME E PONTOS DE START():
+--------------------------------------------------------------------------------
+A) interface/queue_writer.py::SerializedWriteQueue:
+   - Definição: Classe que herda de threading.Thread (daemon=True).
+   - Instanciação no código de aplicação:
+     * core/database.py: aceita write_queue opcional no __init__(self, db_path, write_queue=None).
+       Se write_queue não for fornecido, executa escrita direta efêmera via sqlite3.connect().
+     * interface/mcp_server.py: linha 162:
+       "db_manager = ConciergeDatabaseManager(resolved_db_path)"
+       NOTA CRÍTICA: Em produção no servidor MCP, ConciergeDatabaseManager é instanciado
+       SEM o parâmetro write_queue. Portanto, interface/queue_writer.py NÃO é instanciado
+       no servidor MCP em produção (write_queue=None).
+   - Instanciação e chamada de .start() nas suítes de teste:
+     * tests/test_graph_rag_janitor.py: self.write_queue = SerializedWriteQueue(self.db_path); self.write_queue.start()
+     * tests/test_graph_rag_loops.py: self.write_queue = SerializedWriteQueue(self.db_path); self.write_queue.start()
+     * tests/test_queue_writer_resilience.py: instanciado e iniciado em todos os testes T1..T11, T_char
+     * tests/test_queue_writer_batching.py: instanciado e iniciado para testar auto-batching
+     * tests/test_mcp_server_extensions.py: instanciado e iniciado nos testes de extensão
+     * tests/test_vector_reconciler.py: instanciado e iniciado nos testes de reconciliação
+     * tests/test_telemetry_api.py: instanciado e iniciado nos testes de telemetria
+     * tests/test_graph_rag_frugal.py: instanciado e iniciado nos testes de economia frugal
+
+B) storage/connection.py::SerializedWriteQueue:
+   - Definição: Outra classe SerializedWriteQueue (não herda de Thread; encapsula self._thread).
+   - Instanciação no código de aplicação:
+     * storage/connection.py: instanciada dentro de ConnectionManager.__init__:
+       "self._write_queue = SerializedWriteQueue(self._db_path)"
+     * .start() é chamado em ConnectionManager.start():
+       "self._write_queue.start()"
+     * Usada por storage/store.py::SqliteStore via ConnectionManager para persistência de entidades,
+       relações, chunks e fatos do grafo.
+
+2. TRATAMENTO DE TIMEOUTERROR E CONTRATO DE ERROS NOS CHAMADORES:
+--------------------------------------------------------------------------------
+- O contrato de interface/queue_writer.py::execute_write é retornar a tupla (bool, Any):
+  (True, lastrowid) ou (False, Exception/Error).
+- Chamadores diretos e indiretos de execute_write:
+  * core/database.py::execute_write: delega diretamente para self.write_queue.execute_write().
+    Retorna o par (success, result).
+  * core/alias_tracker.py: linhas 245-259:
+    Chama self.db.execute_write(query, params). Se success for False, levanta Exception interna,
+    que é capturada no bloco try/except abrangente (except Exception as e: logger.error(...); return False).
+    Portanto, TimeoutError NÃO sobe para a camada externa.
+  * core/checkpointer.py: linhas 110-115 e 136-143:
+    Chama write_fn(query, params), extrai success, res, e retorna (bool(success), err).
+    Portanto, TimeoutError é retornado como erro encapsulado, sem subir exceção não-tratada.
+  * storage/relational_db.py: linhas 31-35:
+    Chama write_fn(FSM_CHECKPOINTS_TABLE_SQL) e retorna bool(success). Não sobe exceção.
+  * Suítes de teste de resiliência:
+    Capturam o par (success, err) e verificam self.assertIsInstance(err, TimeoutError).
+
+3. storage/connection.py vs interface/queue_writer.py:
+--------------------------------------------------------------------------------
+- storage/connection.py NÃO utiliza interface/queue_writer.py.
+- storage/connection.py possui sua própria fila de escrita interna (SerializedWriteQueue)
+  com a assinatura submit(fn, *args, **kwargs), operando por callbacks síncronos de transação.
+- Conexões de leitura em storage/connection.py são gerenciadas por ConnectionManager via
+  thread-local storage ou conexões efêmeras configuradas com WAL e busy_timeout=30s.
+- Em contrapartida, core/database.py faz leituras e escritas diretas via sqlite3.connect()
+  quando write_queue é None, estabelecendo uma dualidade arquitetural entre a camada
+  storage/ (que usa fila real de conexão) e a camada core/ (que em produção opera sem fila).
+

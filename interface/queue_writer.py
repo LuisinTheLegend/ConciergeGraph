@@ -34,6 +34,7 @@ MAX_CONNECT_RETRIES = 5
 INITIAL_BACKOFF_SECONDS = 0.05
 MAX_BACKOFF_SECONDS = 1.0
 STARTUP_CONNECT_TIMEOUT_SECONDS = 1.5
+REGIME_BUSY_TIMEOUT_MS = 30000
 READY_TIMEOUT_SECONDS = 10.0
 EXECUTE_TIMEOUT_SECONDS = 30.0
 POLL_INTERVAL_SECONDS = 0.05
@@ -66,6 +67,8 @@ class SerializedWriteQueue(threading.Thread):
                 conn = sqlite3.connect(self.db_path, timeout=STARTUP_CONNECT_TIMEOUT_SECONDS)
                 conn.execute("PRAGMA journal_mode=WAL;")
                 conn.execute("PRAGMA synchronous=NORMAL;")
+                # Restaura timeout de regime de 30s após handshake sem overhead de reconexão
+                conn.execute(f"PRAGMA busy_timeout = {REGIME_BUSY_TIMEOUT_MS};")
                 self._ready.set()
                 break
             except sqlite3.OperationalError as e:
@@ -253,7 +256,17 @@ class SerializedWriteQueue(threading.Thread):
         """
         Synchronous entry point for external threads to enqueue writes
         and block safely until the result is delivered.
+
+        Semântica de TimeoutError:
+        Caso execute_write estoure EXECUTE_TIMEOUT_SECONDS e retorne TimeoutError,
+        o resultado da operação é DESCONHECIDO. Tarefas que já estavam em voo no
+        SQLite não podem ser canceladas e continuam sua execução podendo gravar em disco.
+        Tarefas que ainda aguardavam na fila com prazo expirado serão descartadas pelo worker.
         """
+        # Checa se a thread foi ao menos iniciada (falha rápida imediata antes do start())
+        if self.ident is None:
+            return False, RuntimeError("SerializedWriteQueue worker thread has not been started.")
+
         # Checa erro prévio de inicialização
         if self._startup_error is not None:
             return False, self._startup_error
