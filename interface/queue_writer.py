@@ -9,12 +9,12 @@ Completely eliminates "database is locked" errors in multi-subagent concurrency 
 
 Architecture (SDD-SURVIVAL-10):
   - Single persistent physical connection on writer thread (WAL + synchronous=NORMAL)
-  - External threads enqueue writes via execute_write() and block safely
-    until receiving result via response_queue
-  - Opportunistic Auto-Batching: if queue has backlog, drains up to 50 pending
-    items non-blocking (get_nowait) and executes all within a single transaction
-  - Atomic Single-Item Fallback: if batch transaction fails, rolls back and
-    executes each item individually, rescuing healthy writes
+  - Resilient startup with exponential backoff on OperationalError ("database is locked"/"busy")
+  - Readiness handshake via threading.Event
+  - Non-blocking execution loop in execute_write with liveness and startup error checks
+  - Fail-fast handling of worker thread termination
+  - Opportunistic Auto-Batching: drains up to 50 pending items non-blocking (get_nowait)
+  - Atomic Single-Item Fallback: rolls back batch and executes individually upon failure
   - Graceful shutdown signal via None sentinel in queue
 """
 
@@ -22,11 +22,20 @@ import logging
 import queue
 import sqlite3
 import threading
-from typing import Any, Tuple
+import time
+from typing import Any, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
 _MAX_BATCH_SIZE = 50
+
+# Constantes nomeadas de resiliência e concorrência (F4-029)
+MAX_CONNECT_RETRIES = 5
+INITIAL_BACKOFF_SECONDS = 0.05
+MAX_BACKOFF_SECONDS = 1.0
+READY_TIMEOUT_SECONDS = 10.0
+EXECUTE_TIMEOUT_SECONDS = 30.0
+POLL_INTERVAL_SECONDS = 0.05
 
 
 class SerializedWriteQueue(threading.Thread):
@@ -43,47 +52,114 @@ class SerializedWriteQueue(threading.Thread):
         super().__init__(daemon=True)
         self.db_path = db_path
         self.queue: queue.Queue = queue.Queue()
+        self._ready = threading.Event()
+        self._startup_error: Optional[Exception] = None
+        self._is_stopped = False
 
     def run(self):
-        # Dedicated persistent connection for writer thread
-        conn = sqlite3.connect(self.db_path, timeout=30.0)
-        conn.execute("PRAGMA journal_mode=WAL;")
-        conn.execute("PRAGMA synchronous=NORMAL;")
-
-        while True:
-            # ── Step 1: Await first item (blocking) ────────────────────
-            task = self.queue.get()
-            if task is None:
-                # Graceful shutdown sentinel
-                self.queue.task_done()
+        # ── Step 0: Resilient Connection Setup with Exponential Backoff ──
+        conn = None
+        backoff = INITIAL_BACKOFF_SECONDS
+        for attempt in range(1, MAX_CONNECT_RETRIES + 1):
+            try:
+                conn = sqlite3.connect(self.db_path, timeout=30.0)
+                conn.execute("PRAGMA journal_mode=WAL;")
+                conn.execute("PRAGMA synchronous=NORMAL;")
+                self._ready.set()
                 break
+            except sqlite3.OperationalError as e:
+                err_msg = str(e).lower()
+                if "database is locked" in err_msg or "database is busy" in err_msg or "locked" in err_msg:
+                    logger.warning(
+                        "SerializedWriteQueue startup connection attempt %d/%d failed with '%s'. Retrying in %.3fs...",
+                        attempt,
+                        MAX_CONNECT_RETRIES,
+                        e,
+                        backoff,
+                    )
+                    if conn:
+                        try:
+                            conn.close()
+                        except Exception:
+                            logger.debug("Failed closing conn after retry failure", exc_info=True)
+                        conn = None
+                    if attempt == MAX_CONNECT_RETRIES:
+                        self._startup_error = e
+                        self._ready.set()
+                        self._fail_all_pending(e)
+                        return
+                    time.sleep(backoff)
+                    backoff = min(backoff * 2, MAX_BACKOFF_SECONDS)
+                else:
+                    logger.error("SerializedWriteQueue startup failed with unexpected OperationalError: %s", e)
+                    self._startup_error = e
+                    self._ready.set()
+                    self._fail_all_pending(e)
+                    return
+            except Exception as e:
+                logger.error("SerializedWriteQueue startup failed with unexpected error: %s", e)
+                self._startup_error = e
+                self._ready.set()
+                self._fail_all_pending(e)
+                return
 
-            # ── Step 2: Opportunistic Accumulation (non-blocking) ──────
-            batch = [task]
-            while len(batch) < _MAX_BATCH_SIZE:
-                try:
-                    next_item = self.queue.get_nowait()
-                    if next_item is None:
-                        # Sentinel found during drain; re-queue for next cycle
-                        self.queue.put(None)
-                        break
-                    batch.append(next_item)
-                except queue.Empty:
+        # ── Main Worker Processing Loop ───────────────────────────────────
+        try:
+            while True:
+                # ── Step 1: Await first item (blocking) ────────────────────
+                task = self.queue.get()
+                if task is None:
+                    # Graceful shutdown sentinel
+                    self.queue.task_done()
                     break
 
-            # ── Step 3: Resilient Execution ────────────────────────────
-            if len(batch) == 1:
-                # Single item: direct execution without explicit transaction overhead
-                self._execute_single(conn, batch[0])
-            else:
-                # Batch: grouped transaction with atomic fallback
-                self._execute_batch(conn, batch)
+                # ── Step 2: Opportunistic Accumulation (non-blocking) ──────
+                batch = [task]
+                while len(batch) < _MAX_BATCH_SIZE:
+                    try:
+                        next_item = self.queue.get_nowait()
+                        if next_item is None:
+                            # Sentinel found during drain; re-queue for next cycle
+                            self.queue.put(None)
+                            break
+                        batch.append(next_item)
+                    except queue.Empty:
+                        break
 
-            # Mark all items in batch as processed
-            for _ in batch:
+                # ── Step 3: Resilient Execution ────────────────────────────
+                if len(batch) == 1:
+                    # Single item: direct execution without explicit transaction overhead
+                    self._execute_single(conn, batch[0])
+                else:
+                    # Batch: grouped transaction with atomic fallback
+                    self._execute_batch(conn, batch)
+
+                # Mark all items in batch as processed
+                for _ in batch:
+                    self.queue.task_done()
+        except Exception as loop_error:
+            logger.error("SerializedWriteQueue daemon thread loop encountered fatal error: %s", loop_error, exc_info=True)
+            self._fail_all_pending(loop_error)
+            raise
+        finally:
+            self._is_stopped = True
+            if conn:
+                try:
+                    conn.close()
+                except Exception:
+                    logger.debug("Error closing sqlite connection during worker termination", exc_info=True)
+
+    def _fail_all_pending(self, error: Exception) -> None:
+        """Drains any tasks remaining in self.queue and notifies their response_queue with (False, error)."""
+        while True:
+            try:
+                task = self.queue.get_nowait()
+                if task is not None:
+                    _, _, resp_q = task
+                    resp_q.put((False, error))
                 self.queue.task_done()
-
-        conn.close()
+            except queue.Empty:
+                break
 
     def _execute_single(
         self, conn: sqlite3.Connection, task: Tuple
@@ -129,7 +205,7 @@ class SerializedWriteQueue(threading.Thread):
             try:
                 conn.rollback()
             except Exception:
-                pass  # Defensive rollback
+                logger.debug("Defensive rollback failed", exc_info=True)
 
             # Execute each item individually
             for task in batch:
@@ -142,7 +218,33 @@ class SerializedWriteQueue(threading.Thread):
         Synchronous entry point for external threads to enqueue writes
         and block safely until the result is delivered.
         """
+        # Checa erro prévio de inicialização
+        if self._startup_error is not None:
+            return False, self._startup_error
+
+        # Aguarda sinalização do handshake de inicialização se a thread estiver rodando
+        if self.is_alive() and not self._ready.is_set():
+            self._ready.wait(timeout=READY_TIMEOUT_SECONDS)
+
+        if self._startup_error is not None:
+            return False, self._startup_error
+
+        if not self.is_alive():
+            err = RuntimeError("SerializedWriteQueue worker thread is not alive.")
+            return False, err
+
         response_queue: queue.Queue = queue.Queue()
         self.queue.put((query, params, response_queue))
-        success, result = response_queue.get()
-        return success, result
+
+        deadline = time.perf_counter() + EXECUTE_TIMEOUT_SECONDS
+        while time.perf_counter() < deadline:
+            try:
+                success, result = response_queue.get(timeout=POLL_INTERVAL_SECONDS)
+                return success, result
+            except queue.Empty:
+                if self._startup_error is not None:
+                    return False, self._startup_error
+                if not self.is_alive():
+                    return False, RuntimeError("SerializedWriteQueue worker thread died while awaiting response.")
+
+        return False, TimeoutError(f"execute_write timed out after {EXECUTE_TIMEOUT_SECONDS}s.")
