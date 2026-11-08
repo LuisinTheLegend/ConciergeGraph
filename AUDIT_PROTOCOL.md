@@ -45,6 +45,14 @@
 12. Toda evidência (código, saída de comando, diff) deve ser gerada por redirecionamento para arquivo e incluída por cópia mecânica desse arquivo. É proibido digitar, resumir ou reconstruir trechos. Trecho sem arquivo de origem é inválido.
 13. Nenhuma evidência é commitada sem passar por `scratch/tools/scan_secrets.py` (zero achados em `scratch/` e `audits/`); chaves reais nunca entram em testes.
 14. Toda errata cita o texto original verbatim com arquivo e linha, extraído por comando com saída salva; texto que só exista no chat é declarado como tal; afirmação sem fonte é hipótese.
+
+Regra 15: Uso do EGM (Elephant-Goldfish Model).
+(a) Subagentes EGM apenas propõem; não commitam, não alteram código e não decidem.
+(b) O executor só implementa o que constar em pedido aprovado pelo humano.
+(c) O relatório de cada revisor EGM é salvo em audits/egm/<rodada>-<papel>.md; o que não está em arquivo não conta como evidência (regra 12).
+(d) Todo achado do EGM que gere mudança de código exige teste vermelho antes da correção, uma lista “o que não pode mudar” (invariantes) com teste ou mutação para cada item, e uma mutação que mata a correção.
+(e) O EGM não substitui a verificação independente do auditor.
+(f) Uso indicado: decisões de desenho caras de reverter e revisão de pedidos antes da execução; não usar para correções pequenas nem para verificar código.
 ---
 
 ## Fase 0 — Baseline objetiva (sem interpretação)
