@@ -1,0 +1,125 @@
+MUTAÇÃO M10b: Classe de teste troca graph_rag no setup_class sem restaurar (nível class)
+Arquivo: tests/test_mcp_server_handlers.py
+Alvo: tests/test_mcp_server_handlers.py::TestHandleMine
+Substituição:
+- class TestHandleMine:
++ class TestHandleMine:
+    @classmethod
+    def setup_class(cls):
+        import interface.mcp_server as _mcp
+        _mcp.graph_rag = object()
+
+--- RESULTADO COM MUTAÇÃO (esperado: FALHA/KILLED) ---
+Retcode: 1
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 5 items
+
+tests/test_mcp_server_handlers.py::TestHandleMine::test_mine_success PASSED [ 20%]
+tests/test_mcp_server_handlers.py::TestHandleMine::test_mine_returns_files_processed PASSED [ 40%]
+tests/test_mcp_server_handlers.py::TestHandleMine::test_mine_signals_janitor PASSED [ 60%]
+tests/test_mcp_server_handlers.py::TestHandleMine::test_mine_graceful_error_on_failing_ingestion PASSED [ 80%]
+tests/test_mcp_server_handlers.py::TestHandleMine::test_mine_alias_resolution PASSED [100%]
+tests/test_mcp_server_handlers.py::TestHandleMine::test_mine_alias_resolution ERROR [100%]
+
+=================================== ERRORS ====================================
+_______ ERROR at teardown of TestHandleMine.test_mine_alias_resolution ________
+
+    @pytest.fixture(autouse=True, scope="class")
+    def check_mcp_globals_leak_class():
+        """Garante que nenhuma classe de teste vaze ou altere por identidade globais em mcp_server."""
+        before = _capture_mcp_snapshot()
+        yield
+>       _verify_mcp_globals(before, "class")
+
+tests\conftest.py:149: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+before_snapshot = {'logger': (2115938205936, '<Logger grafo-concierge.mcp (WARNING)>'), 'db_manager': (2115938178720, '<core.database.Co...000001ECA7BE57F0>'), 'graph_rag': (2115938180064, '<core.graph_rag.GraphRAGEngine object at 0x000001ECA7BE5BE0>'), ...}
+scope_level = 'class'
+
+    def _verify_mcp_globals(before_snapshot: dict, scope_level: str):
+        mod = _get_mcp_module()
+        if mod is None:
+            return
+        current_vars = vars(mod)
+        current_mutable_keys = {
+            k for k, v in current_vars.items()
+            if _is_mutable_candidate(k, v) and k not in _MCP_GLOBALS_ALLOWLIST
+        }
+    
+        # 1. Checa variáveis removidas (M10e)
+        for k in before_snapshot:
+            if k not in current_vars:
+                prev_id, prev_repr = before_snapshot[k]
+                assert False, (
+                    f"[{scope_level}] Global variable 'mcp_server.{k}' was deleted during test execution: "
+                    f"was {prev_repr} (id={prev_id})"
+                )
+    
+        # 2. Checa variáveis adicionadas (M10d)
+        for k in current_mutable_keys:
+            if k not in before_snapshot:
+                curr_val = current_vars[k]
+                assert False, (
+                    f"[{scope_level}] New global variable 'mcp_server.{k}' was added during test execution: "
+                    f"value {curr_val!r} (id={id(curr_val)})"
+                )
+    
+        # 3. Checa mutação de identidade / vazamento (M10a, M10b, M10c)
+        for k, (orig_id, orig_repr) in before_snapshot.items():
+            curr_val = current_vars[k]
+            curr_id = id(curr_val)
+>           assert curr_id == orig_id, (
+                f"[{scope_level}] Global variable 'mcp_server.{k}' leaked or modified by identity during test: "
+                f"expected {orig_repr} (id={orig_id}), got {curr_val!r} (id={curr_id})"
+            )
+E           AssertionError: [class] Global variable 'mcp_server.graph_rag' leaked or modified by identity during test: expected <core.graph_rag.GraphRAGEngine object at 0x000001ECA7BE5BE0> (id=2115938180064), got <object object at 0x000001EC979A64F0> (id=2115667387632)
+E           assert 2115667387632 == 2115938180064
+
+tests\conftest.py:130: AssertionError
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+ERROR tests/test_mcp_server_handlers.py::TestHandleMine::test_mine_alias_resolution
+==================== 5 passed, 1 warning, 1 error in 3.50s ====================
+
+
+--- RESULTADO SEM MUTAÇÃO (esperado: PASSOU) ---
+Retcode: 0
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 5 items
+
+tests/test_mcp_server_handlers.py::TestHandleMine::test_mine_success PASSED [ 20%]
+tests/test_mcp_server_handlers.py::TestHandleMine::test_mine_returns_files_processed PASSED [ 40%]
+tests/test_mcp_server_handlers.py::TestHandleMine::test_mine_signals_janitor PASSED [ 60%]
+tests/test_mcp_server_handlers.py::TestHandleMine::test_mine_graceful_error_on_failing_ingestion PASSED [ 80%]
+tests/test_mcp_server_handlers.py::TestHandleMine::test_mine_alias_resolution PASSED [100%]
+
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 5 passed, 1 warning in 3.16s =========================
+

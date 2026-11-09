@@ -158,6 +158,13 @@ def store_and_project(tmp_path_factory):
 @pytest.fixture(scope="module")
 def server(store_and_project):
     """Full GrafoConciergeServer backed by real SQLite + mocked vector/ingestion."""
+    import interface.mcp_server as _mcp_mod
+    orig_db = getattr(_mcp_mod, "db_manager", None)
+    orig_cp = getattr(_mcp_mod, "checkpointer", None)
+    orig_gr = getattr(_mcp_mod, "graph_rag", None)
+    orig_gc = getattr(_mcp_mod, "_gc", None)
+    orig_gov = getattr(_mcp_mod, "governor", None)
+
     store, project_uuid, nid1, nid2 = store_and_project
     mock_vector = MockVectorStore(node_ids_for_search=[nid1, nid2])
     mock_ingestion = MockIngestionManager()
@@ -169,7 +176,14 @@ def server(store_and_project):
         embedding_manager=MockEmbeddingManager(),
         ingestion_manager=mock_ingestion,
     )
-    return GrafoConciergeServer(concierge=gc, janitor=mock_janitor)
+    srv = GrafoConciergeServer(concierge=gc, janitor=mock_janitor)
+    yield srv
+
+    _mcp_mod.db_manager = orig_db
+    _mcp_mod.checkpointer = orig_cp
+    _mcp_mod.graph_rag = orig_gr
+    _mcp_mod._gc = orig_gc
+    _mcp_mod.governor = orig_gov
 
 
 @pytest.fixture(scope="module")

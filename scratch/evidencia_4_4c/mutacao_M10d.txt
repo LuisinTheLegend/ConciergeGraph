@@ -1,0 +1,112 @@
+MUTAÇÃO M10d: Adiciona global novo em mcp_server durante teste
+Arquivo: tests/test_e2e_concierge_integration.py
+Alvo: tests/test_e2e_concierge_integration.py::TestConciergeSovereignE2EAudit::test_e2e_flow_full_lifecycle_and_communication
+Substituição:
+- def test_e2e_flow_full_lifecycle_and_communication(self):
++ def test_e2e_flow_full_lifecycle_and_communication(self):
+        import interface.mcp_server as _mcp
+        _mcp.novo_objeto = object()
+
+--- RESULTADO COM MUTAÇÃO (esperado: FALHA/KILLED) ---
+Retcode: 1
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_e2e_concierge_integration.py::TestConciergeSovereignE2EAudit::test_e2e_flow_full_lifecycle_and_communication PASSED [100%]
+tests/test_e2e_concierge_integration.py::TestConciergeSovereignE2EAudit::test_e2e_flow_full_lifecycle_and_communication ERROR [100%]
+
+=================================== ERRORS ====================================
+_ ERROR at teardown of TestConciergeSovereignE2EAudit.test_e2e_flow_full_lifecycle_and_communication _
+  + Exception Group Traceback (most recent call last):
+  |   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\runner.py", line 361, in from_call
+  |     result: TResult | None = func()
+  |                              ~~~~^^
+  |   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\runner.py", line 250, in <lambda>
+  |     lambda: runtest_hook(item=item, **kwds),
+  |             ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_caller.py", line 197, in __call__
+  |     return self._hookexec(
+  |            ~~~~~~~~~~~~~~^
+  |         self.name, self._hookimpls.copy(), call_kwargs, firstresult
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |     )
+  |     ^
+  |   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_manager.py", line 183, in _hookexec
+  |     return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  |            ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\logging.py", line 886, in pytest_runtest_teardown
+  |     yield
+  |   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\capture.py", line 911, in pytest_runtest_teardown
+  |     return (yield)
+  |             ^^^^^
+  |   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\runner.py", line 199, in pytest_runtest_teardown
+  |     item.session._setupstate.teardown_exact(nextitem)
+  |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  |   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\runner.py", line 581, in teardown_exact
+  |     raise BaseExceptionGroup("errors during test teardown", exceptions[::-1])
+  | ExceptionGroup: errors during test teardown (2 sub-exceptions)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "C:\Nexus-Memory\GrafoConcierge\tests\conftest.py", line 157, in check_mcp_globals_leak_module
+    |     _verify_mcp_globals(before, "module")
+    |     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+    |   File "C:\Nexus-Memory\GrafoConcierge\tests\conftest.py", line 121, in _verify_mcp_globals
+    |     assert False, (
+    |     ...<2 lines>...
+    |     )
+    | AssertionError: [module] New global variable 'mcp_server.novo_objeto' was added during test execution: value <object object at 0x000001AA68E4A2D0> (id=1831415882448)
+    | assert False
+    +---------------- 2 ----------------
+    | Traceback (most recent call last):
+    |   File "C:\Nexus-Memory\GrafoConcierge\tests\conftest.py", line 149, in check_mcp_globals_leak_class
+    |     _verify_mcp_globals(before, "class")
+    |     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+    |   File "C:\Nexus-Memory\GrafoConcierge\tests\conftest.py", line 121, in _verify_mcp_globals
+    |     assert False, (
+    |     ...<2 lines>...
+    |     )
+    | AssertionError: [class] New global variable 'mcp_server.novo_objeto' was added during test execution: value <object object at 0x000001AA68E4A2D0> (id=1831415882448)
+    | assert False
+    +------------------------------------
+============================== warnings summary ===============================
+tests/test_e2e_concierge_integration.py::TestConciergeSovereignE2EAudit::test_e2e_flow_full_lifecycle_and_communication
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+ERROR tests/test_e2e_concierge_integration.py::TestConciergeSovereignE2EAudit::test_e2e_flow_full_lifecycle_and_communication
+==================== 1 passed, 1 warning, 1 error in 2.67s ====================
+
+
+--- RESULTADO SEM MUTAÇÃO (esperado: PASSOU) ---
+Retcode: 0
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_e2e_concierge_integration.py::TestConciergeSovereignE2EAudit::test_e2e_flow_full_lifecycle_and_communication PASSED [100%]
+
+============================== warnings summary ===============================
+tests/test_e2e_concierge_integration.py::TestConciergeSovereignE2EAudit::test_e2e_flow_full_lifecycle_and_communication
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 1 warning in 2.72s =========================
+

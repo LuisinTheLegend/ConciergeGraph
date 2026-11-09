@@ -75,6 +75,13 @@ class _MockIngestionManager:
 @pytest.fixture(scope="module")
 def server(tmp_path_factory):
     """GrafoConciergeServer backed by an in-memory-like temp SQLite store."""
+    import interface.mcp_server as _mcp_mod
+    orig_db = getattr(_mcp_mod, "db_manager", None)
+    orig_cp = getattr(_mcp_mod, "checkpointer", None)
+    orig_gr = getattr(_mcp_mod, "graph_rag", None)
+    orig_gc = getattr(_mcp_mod, "_gc", None)
+    orig_gov = getattr(_mcp_mod, "governor", None)
+
     tmp = tmp_path_factory.mktemp("interface_contracts")
     store = SqliteStore(str(tmp / "contract.db"))
     project_uuid = str(uuid.uuid4())
@@ -90,6 +97,11 @@ def server(tmp_path_factory):
     yield srv
 
     store.close()
+    _mcp_mod.db_manager = orig_db
+    _mcp_mod.checkpointer = orig_cp
+    _mcp_mod.graph_rag = orig_gr
+    _mcp_mod._gc = orig_gc
+    _mcp_mod.governor = orig_gov
 
 
 # ---------------------------------------------------------------------------

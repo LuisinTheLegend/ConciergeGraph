@@ -60,6 +60,7 @@ db_manager = None        # type: ignore[assignment]
 checkpointer = None      # type: ignore[assignment]
 graph_rag = None         # type: ignore[assignment]
 governor = None          # type: ignore[assignment]
+_gc = None               # type: ignore[assignment]
 
 
 # ---------------------------------------------------------------------------

@@ -1,0 +1,33 @@
+================================================================================
+EVIDÊNCIA M10f: EXECUÇÃO DA SUÍTE COMPLETA NAS DUAS ORDENS (PADRÃO E INVERTIDA)
+Comprova ausência de falsos positivos e ausência de vazamento de estado.
+================================================================================
+
+Total de arquivos testados: 57
+Ordem padrão retcode: 0 (PASSOU) em 172.36s
+Ordem invertida retcode: 0 (PASSOU) em 174.66s
+
+--- RESUMO ORDEM PADRÃO ---
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_storage_logic.py: 14 warnings
+  C:\Nexus-Memory\GrafoConcierge\storage\logic.py:342: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+457 passed, 1 xfailed, 21 warnings in 167.90s (0:02:47)
+
+--- RESUMO ORDEM INVERTIDA ---
+tests/test_domain_neutrality_guard.py::test_g4_free_text_wings_and_update_project
+  C:\Nexus-Memory\GrafoConcierge\storage\store.py:162: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    updates["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+tests/test_concurrency_stress.py::TestCleanDatabaseManagerSchema::test_clean_manager_does_not_leak_test_log
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\qdrant_client\qdrant_remote.py:295: UserWarning: Failed to obtain server version. Unable to check client-server compatibility. Set check_compatibility=False to skip version check.
+    show_warning(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+457 passed, 1 xfailed, 21 warnings in 170.77s (0:02:50)
+

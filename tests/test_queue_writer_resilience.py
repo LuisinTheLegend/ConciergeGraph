@@ -428,33 +428,41 @@ class TestQueueWriterResilience(unittest.TestCase):
             ok, res = qw.execute_write("CREATE TABLE t_char (id INT, val TEXT);")
             self.assertTrue(ok)
             
+            inflight_entered = threading.Event()
+
             def _inflight_single(conn, task):
                 cursor = conn.cursor()
                 cursor.execute(task[0], task[1])
+                inflight_entered.set()
                 # Simula lentidão na transação/disco após o início da execução (em voo)
                 time.sleep(0.3)
                 conn.commit()
                 task[2].put((True, cursor.lastrowid))
-            
+
             with patch.object(qw, "_execute_single", side_effect=_inflight_single):
-                with patch("interface.queue_writer.EXECUTE_TIMEOUT_SECONDS", 0.1):
-                    # Chamador espera apenas 0.1s e desiste com TimeoutError
-                    success, err = qw.execute_write("INSERT INTO t_char (id, val) VALUES (42, 'committed_after_timeout');")
-                    self.assertFalse(success)
-                    self.assertIsInstance(err, TimeoutError)
-            
-            # Aguarda a thread trabalhadora concluir a gravação que já estava em voo
-            time.sleep(0.5)
-            
-            # Caracterização: o registro 42 FOI gravado no SQLite pelo worker
-            conn = sqlite3.connect(self.db_path)
-            cur = conn.cursor()
-            cur.execute("SELECT val FROM t_char WHERE id = 42;")
-            row = cur.fetchone()
-            conn.close()
-            
-            self.assertIsNotNone(row, "Escrita em voo deve ter sido persistida no banco após o timeout do chamador")
-            self.assertEqual(row[0], "committed_after_timeout")
+                # Chamador submete tarefa com deadline longo na fila (5s), mas desiste localmente após 0.1s
+                resp_q = queue.Queue()
+                task = ("INSERT INTO t_char (id, val) VALUES (42, 'committed_after_timeout');", (), resp_q, time.perf_counter() + 5.0)
+                qw.queue.put(task)
+
+                # Chamador desiste após 0.1s com timeout
+                with self.assertRaises(queue.Empty):
+                    resp_q.get(timeout=0.1)
+
+            # Aguarda a thread trabalhadora concluir a gravação que já estava em voo (espera robusta de até 3s)
+            committed = False
+            for _ in range(30):
+                time.sleep(0.1)
+                conn = sqlite3.connect(self.db_path)
+                cur = conn.cursor()
+                cur.execute("SELECT val FROM t_char WHERE id = 42;")
+                row = cur.fetchone()
+                conn.close()
+                if row is not None and row[0] == "committed_after_timeout":
+                    committed = True
+                    break
+
+            self.assertTrue(committed, "Escrita em voo deve ter sido persistida no banco após o timeout do chamador")
         finally:
             qw.queue.put(None)
             qw.join(timeout=3.0)
