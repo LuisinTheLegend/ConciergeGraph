@@ -501,16 +501,16 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
 
 ---
 
-### [F4-029] Bloqueio Indefinido e Timeout Intermitente em interface/queue_writer.py:147 (response_queue.get()) em Testes de Concorrência
-- **Status:** **corrigido pelo executor, aguardando verificação independente**.
+### [F4-029] Travamento Indefinido no Handshake e Espera em response_queue.get() por Morte Silenciosa da Thread Daemon em interface/queue_writer.py
+- **Status:** **corrigido pelo executor, aguardando verificação independente**
 - **Severidade:** 🟠 GRAVE (Só vira CRÍTICA se for reproduzido no caminho de produção).
-- **Arquivos & Linhas:** [`interface/queue_writer.py:50, 147`](file:///c:/Nexus-Memory/GrafoConcierge/interface/queue_writer.py#L50), [`core/database.py:51, 67`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py#L51), [`tests/test_graph_rag_janitor.py:84`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_graph_rag_janitor.py#L84)
+- **Arquivos & Linhas:** [`interface/queue_writer.py:33-40, 65-73, 267-268, 294-304`](file:///c:/Nexus-Memory/GrafoConcierge/interface/queue_writer.py#L33), [`core/database.py:51, 67`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py#L51), [`tests/test_graph_rag_janitor.py:84`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_graph_rag_janitor.py#L84)
 - **Fato (reproduzido pelo auditor, Linux):**
-  Em `interface/queue_writer.py:50`, a instrução `conn.execute("PRAGMA journal_mode=WAL;")` fica fora de qualquer bloco `try/except`. Quando essa instrução levanta `sqlite3.OperationalError: database is locked`, a thread daemon (`SerializedWriteQueue.run`) morre prematuramente antes de entrar no loop de processamento.
-  Posteriormente, qualquer chamada a `execute_write` (linha 147) submete uma mensagem e espera indefinidamente em `response_queue.get()` sem timeout. Como a thread daemon já encerrou, a resposta nunca é postada e quem chamou trava para sempre.
+  Em `interface/queue_writer.py:50`, a instrução `conn.execute("PRAGMA journal_mode=WAL;")` ficava fora de qualquer bloco `try/except`. Quando essa instrução levantava `sqlite3.OperationalError: database is locked`, a thread daemon (`SerializedWriteQueue.run`) morria prematuramente antes de entrar no loop de processamento.
+  Posteriormente, qualquer chamada a `execute_write` (linha 147) submetia uma mensagem e esperava indefinidamente em `response_queue.get()` sem timeout. Como a thread daemon já havia encerrado, a resposta nunca era postada e quem chamou travava para sempre.
   Evidência: 14 de 14 exceções capturadas, em 14 processos no ambiente do auditor, bloquearam exatamente nessa linha.
 - **Hipóteses (não provadas):**
-  1. A causa pela qual o banco SQLite está travado na linha 50 (possível corrida na troca para WAL de um banco recém-criado com outra conexão aberta concorrentemente).
+  1. A causa pela qual o banco SQLite está travado na linha 50 (corrida na troca para WAL de um banco recém-criado com outra conexão aberta concorrentemente).
   2. Se essa colisão de PRAGMA/lock ocorre ou pode ocorrer no caminho ordinário de produção em regime mono-servidor.
 - **Correção Implementada na Rodada 4.4b (Bloco 1):**
   1. Loop de retry com backoff exponencial com constantes nomeadas para inicialização da conexão SQLite e execução dos PRAGMAs na thread trabalhadora, capturando `sqlite3.OperationalError` ("database is locked" / "database is busy").
@@ -518,6 +518,15 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
   3. Loop não-bloqueante em `execute_write` com timeout total (`EXECUTE_TIMEOUT_SECONDS`), verificando periodicamente se a thread está viva (`self.is_alive()`) e se houve erro de inicialização.
   4. Detecção de morte tardia da thread: descarte com falha dos itens pendentes e falha rápida em chamadas subsequentes, preservando o contrato de retorno `(False, e)`.
   5. Endurecimento Arquitetural da Fase 2 (EGM): Alinhamento do orçamento de handshake com `STARTUP_CONNECT_TIMEOUT_SECONDS = 1.5s`, checagem estrita de timeout no handshake de `execute_write` com `TimeoutError` descritivo, notificação do lote ativo em falhas de worker, descarte de tarefas com deadline expirado sem gravação zumbi em disco e remoção do comando `PRAGMA journal_mode=WAL;` a cada chamada de `core/database.py:read_query()`.
+- **Regressão Identificada no Commit 5abba37 e Correção Definitiva na Rodada 4.4c:**
+  1. *Regressão comprovada pela auditoria independente no 5abba37:* A introdução de `sqlite3.connect(..., timeout=STARTUP_CONNECT_TIMEOUT_SECONDS)` (1.5s) restringiu permanentemente o busy handler da conexão persistente do worker SQLite para 1.5s durante todo o regime de operação. Quando outra conexão externa segurava o lock por 3.0s, o worker no commit `8659813` aguardava os 30s de regime e obtinha sucesso, mas no `5abba37` falhava prematuramente após 1.5s com `database is locked`.
+  2. *Correção na Rodada 4.4c (Bloco 1):*
+     - Constantes nomeadas de resiliência: `STARTUP_CONNECT_TIMEOUT_SECONDS = 1.5` (curto, exclusivo para a janela de conexão e PRAGMAs do handshake) e `REGIME_BUSY_TIMEOUT_MS = 30000` (30s de regime padrão).
+     - Imediatamente após a conclusão bem-sucedida do handshake WAL e synchronous, o worker executa `conn.execute(f"PRAGMA busy_timeout = {REGIME_BUSY_TIMEOUT_MS};")`, restaurando a espera de regime de 30s sem o overhead ou risco de reconexão física.
+     - Teste T9 (`test_t9_busy_timeout_regime_allows_lock_held_for_3s_to_succeed`): demonstrou em vermelho a regressão no código `5abba37` (falha após 1.5s) e verde no código corrigido (sucesso em ~3.0s). Mutação Qh aplicada e morta.
+     - Cobertura de morte no laço e espera limitada: Testes T10 e T11 adicionados, matando as mutações Qb e Qg que sobreviviam na 4.4b.
+     - Pré-start e caracterização: `execute_write` falha imediatamente (<0.2s com `RuntimeError`) se a thread sequer foi iniciada (`self.ident is None`), e teste determinístico de caracterização comprova que tarefas já em voo no SQLite completam seu ciclo de escrita mesmo após o chamador sofrer timeout local.
+     - Todas as 8 mutações (Qa a Qh) mortas por testes automatizados com relatórios individuais em `scratch/evidencia_4_4c/`.
 
 ---
 
