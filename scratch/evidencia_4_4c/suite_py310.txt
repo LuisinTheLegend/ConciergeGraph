@@ -1,0 +1,167 @@
+================================================================================
+EVIDENCIA SUITE COMPLETA - PYTHON 310
+Interpretador: .venv_310/Scripts/python.exe
+Versao detalhada: 3.10.22 (main, Oct  9 2026, 15:18:58) [MSC v.1944 64 bit (AMD64)]
+================================================================================
+
+--- 1. ORDEM PADRAO ---
+Comando: .venv_310/Scripts/pytest.exe tests/ -q
+Retcode: 0 (PASSOU)
+Duracao: 128.45s
+--- SAIDA (stdout) ---
+........................................................................ [ 15%]
+........................................................................ [ 31%]
+........................................................................ [ 46%]
+........................................................................ [ 62%]
+.............................x.......................................... [ 77%]
+........................................................................ [ 93%]
+..............................                                           [100%]
+============================== warnings summary ===============================
+tests/test_conversational_db.py::test_qdrant_vector_store_payload_validation
+  C:\Nexus-Memory\GrafoConcierge\.venv_310\lib\site-packages\qdrant_client\qdrant_remote.py:295: UserWarning: Failed to obtain server version. Unable to check client-server compatibility. Set check_compatibility=False to skip version check.
+    show_warning(
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t11_multiple_queued_items_fail_fast_when_loop_dies
+  C:\Nexus-Memory\GrafoConcierge\.venv_310\lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-441
+  
+  Traceback (most recent call last):
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\threading.py", line 1016, in _bootstrap_inner
+      self.run()
+    File "C:\Nexus-Memory\GrafoConcierge\interface\queue_writer.py", line 139, in run
+      self._execute_single(conn, batch[0])
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1114, in __call__
+      return self._mock_call(*args, **kwargs)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1118, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1173, in _execute_mock_call
+      raise effect
+  SystemError: Simulated loop crash
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t11_multiple_queued_items_fail_fast_when_loop_dies
+  C:\Nexus-Memory\GrafoConcierge\.venv_310\lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-439
+  
+  Traceback (most recent call last):
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\threading.py", line 1016, in _bootstrap_inner
+      self.run()
+    File "C:\Nexus-Memory\GrafoConcierge\interface\queue_writer.py", line 139, in run
+      self._execute_single(conn, batch[0])
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1114, in __call__
+      return self._mock_call(*args, **kwargs)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1118, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1173, in _execute_mock_call
+      raise effect
+  SystemError: Fatal worker loop crash
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t6_batch_fatal_error_notifies_all_batched_callers
+  C:\Nexus-Memory\GrafoConcierge\.venv_310\lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-458
+  
+  Traceback (most recent call last):
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\threading.py", line 1016, in _bootstrap_inner
+      self.run()
+    File "C:\Nexus-Memory\GrafoConcierge\interface\queue_writer.py", line 142, in run
+      self._execute_batch(conn, batch)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1114, in __call__
+      return self._mock_call(*args, **kwargs)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1118, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1173, in _execute_mock_call
+      raise effect
+  MemoryError: Simulated catastrophic crash
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+461 passed, 1 xfailed, 4 warnings in 125.29s (0:02:05)
+
+
+--- 2. ORDEM INVERTIDA (--reverse) ---
+Comando: .venv_310/Scripts/pytest.exe tests/ --reverse -q
+Retcode: 0 (PASSOU)
+Duracao: 119.60s
+--- SAIDA (stdout) ---
+........................................................................ [ 15%]
+........................................................................ [ 31%]
+x....................................................................... [ 46%]
+........................................................................ [ 62%]
+........................................................................ [ 77%]
+........................................................................ [ 93%]
+..............................                                           [100%]
+============================== warnings summary ===============================
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t5_unready_worker_handshake_timeout_fails_fast_without_enqueuing
+  C:\Nexus-Memory\GrafoConcierge\.venv_310\lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-162
+  
+  Traceback (most recent call last):
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\threading.py", line 1016, in _bootstrap_inner
+      self.run()
+    File "C:\Nexus-Memory\GrafoConcierge\interface\queue_writer.py", line 142, in run
+      self._execute_batch(conn, batch)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1114, in __call__
+      return self._mock_call(*args, **kwargs)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1118, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1173, in _execute_mock_call
+      raise effect
+  MemoryError: Simulated catastrophic crash
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t11_multiple_queued_items_fail_fast_when_loop_dies
+  C:\Nexus-Memory\GrafoConcierge\.venv_310\lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-176
+  
+  Traceback (most recent call last):
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\threading.py", line 1016, in _bootstrap_inner
+      self.run()
+    File "C:\Nexus-Memory\GrafoConcierge\interface\queue_writer.py", line 142, in run
+      self._execute_batch(conn, batch)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1114, in __call__
+      return self._mock_call(*args, **kwargs)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1118, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1173, in _execute_mock_call
+      raise effect
+  SystemError: Simulated loop crash
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t10_worker_death_in_loop_fails_waiting_and_subsequent_callers_fast
+  C:\Nexus-Memory\GrafoConcierge\.venv_310\lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-181
+  
+  Traceback (most recent call last):
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\threading.py", line 1016, in _bootstrap_inner
+      self.run()
+    File "C:\Nexus-Memory\GrafoConcierge\interface\queue_writer.py", line 139, in run
+      self._execute_single(conn, batch[0])
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1114, in __call__
+      return self._mock_call(*args, **kwargs)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1118, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1173, in _execute_mock_call
+      raise effect
+  SystemError: Fatal worker loop crash
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_conversational_db.py::test_qdrant_vector_store_payload_validation
+  C:\Nexus-Memory\GrafoConcierge\.venv_310\lib\site-packages\qdrant_client\qdrant_remote.py:295: UserWarning: Failed to obtain server version. Unable to check client-server compatibility. Set check_compatibility=False to skip version check.
+    show_warning(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+461 passed, 1 xfailed, 4 warnings in 116.57s (0:01:56)
+

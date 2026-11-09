@@ -53,7 +53,7 @@ class TestQueueWriterResilience(unittest.TestCase):
         """
         qw = SerializedWriteQueue(self.db_path)
 
-        with patch("interface.queue_writer.sqlite3.connect", side_effect=sqlite3.OperationalError("database is locked")):
+        with patch.object(qw_module.sqlite3, "connect", side_effect=sqlite3.OperationalError("database is locked")):
             qw.start()
 
             start_t = time.perf_counter()
@@ -94,7 +94,7 @@ class TestQueueWriterResilience(unittest.TestCase):
 
         qw = SerializedWriteQueue(self.db_path)
 
-        with patch("interface.queue_writer.sqlite3.connect", side_effect=_mock_connect):
+        with patch.object(qw_module.sqlite3, "connect", side_effect=_mock_connect):
             with self.assertLogs("interface.queue_writer", level="WARNING") as log_capture:
                 qw.start()
                 self.assertTrue(hasattr(qw, "_ready") and isinstance(qw._ready, threading.Event), "SerializedWriteQueue deve possuir Event _ready")
@@ -184,7 +184,7 @@ class TestQueueWriterResilience(unittest.TestCase):
         qw = SerializedWriteQueue(self.db_path)
         with patch.object(SerializedWriteQueue, "ident", new_callable=PropertyMock(return_value=99999)):
             with patch.object(qw, "is_alive", return_value=True):
-                with patch("interface.queue_writer.READY_TIMEOUT_SECONDS", 0.05):
+                with patch.object(qw_module, "READY_TIMEOUT_SECONDS", 0.05):
                     ok, err = qw.execute_write("CREATE TABLE t5 (id INT);")
                     self.assertFalse(ok)
                     self.assertIsInstance(err, TimeoutError)
@@ -259,7 +259,7 @@ class TestQueueWriterResilience(unittest.TestCase):
         conn.commit()
         conn.close()
         
-        with patch("sqlite3.connect") as mock_connect:
+        with patch.object(sqlite3, "connect") as mock_connect:
             mock_conn = MagicMock()
             mock_connect.return_value = mock_conn
             mock_cursor = MagicMock()

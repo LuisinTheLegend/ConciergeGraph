@@ -34,6 +34,9 @@ _qw_spec = importlib.util.spec_from_file_location(
 _qw_mod = importlib.util.module_from_spec(_qw_spec)
 sys.modules["interface.queue_writer"] = _qw_mod
 _qw_spec.loader.exec_module(_qw_mod)
+if "interface" not in sys.modules:
+    import interface
+setattr(sys.modules["interface"], "queue_writer", _qw_mod)
 SerializedWriteQueue = _qw_mod.SerializedWriteQueue
 
 # 2) core.database
@@ -193,13 +196,11 @@ class TestConciergeSovereignE2EAudit(unittest.TestCase):
         sys.modules["interface.mcp_server"] = _ms_mod
 
         if "interface" not in sys.modules:
-            _iface_mod = types.ModuleType("interface")
-            _iface_mod.__path__ = [os.path.join(_project_root, "interface")]
-            sys.modules["interface"] = _iface_mod
-        elif not hasattr(sys.modules["interface"], "__path__"):
-            sys.modules["interface"].__path__ = [os.path.join(_project_root, "interface")]
-
+            import interface
         _ms_spec.loader.exec_module(_ms_mod)
+        if "interface.queue_writer" in sys.modules:
+            setattr(sys.modules["interface"], "queue_writer", sys.modules["interface.queue_writer"])
+        setattr(sys.modules["interface"], "mcp_server", _ms_mod)
         mcp_server = _ms_mod
 
     @classmethod
@@ -211,6 +212,14 @@ class TestConciergeSovereignE2EAudit(unittest.TestCase):
                 sys.modules.pop(mod, None)
             else:
                 sys.modules[mod] = orig
+        # Sincroniza atributos do pacote interface com sys.modules
+        if "interface" in sys.modules:
+            if "interface.mcp_server" in sys.modules:
+                setattr(sys.modules["interface"], "mcp_server", sys.modules["interface.mcp_server"])
+            elif hasattr(sys.modules["interface"], "mcp_server"):
+                delattr(sys.modules["interface"], "mcp_server")
+            if "interface.queue_writer" in sys.modules:
+                setattr(sys.modules["interface"], "queue_writer", sys.modules["interface.queue_writer"])
         mcp_server = None
 
     def setUp(self):

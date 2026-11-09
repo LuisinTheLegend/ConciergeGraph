@@ -1,0 +1,93 @@
+================================================================================
+MUTAÇÃO M10g: Poluição de pacote pai/submódulo em sys.modules
+Arquivo mutado: tests/test_queue_writer_resilience.py
+Alvo: tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t4_normal_path_unaltered_throughput
+Descrição: O teste remove o atributo queue_writer de sys.modules['interface'],
+           deixando interface.queue_writer órfão em sys.modules.
+           A fixture de integridade em conftest.py deve capturar e falhar com AssertionError.
+================================================================================
+
+--- RESULTADO COM MUTAÇÃO (esperado: FALHA/KILLED) ---
+Retcode: 1
+============================= test session starts =============================
+platform win32 -- Python 3.10.22, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_310\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t4_normal_path_unaltered_throughput PASSED [100%]
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t4_normal_path_unaltered_throughput ERROR [100%]
+
+=================================== ERRORS ====================================
+_ ERROR at teardown of TestQueueWriterResilience.test_t4_normal_path_unaltered_throughput _
+  + Exception Group Traceback (most recent call last):
+  |   File "C:\Nexus-Memory\GrafoConcierge\.venv_310\lib\site-packages\_pytest\runner.py", line 361, in from_call
+  |     result: TResult | None = func()
+  |   File "C:\Nexus-Memory\GrafoConcierge\.venv_310\lib\site-packages\_pytest\runner.py", line 250, in <lambda>
+  |     lambda: runtest_hook(item=item, **kwds),
+  |   File "C:\Nexus-Memory\GrafoConcierge\.venv_310\lib\site-packages\pluggy\_caller.py", line 197, in __call__
+  |     return self._hookexec(
+  |   File "C:\Nexus-Memory\GrafoConcierge\.venv_310\lib\site-packages\pluggy\_manager.py", line 183, in _hookexec
+  |     return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  |   File "C:\Nexus-Memory\GrafoConcierge\.venv_310\lib\site-packages\_pytest\logging.py", line 886, in pytest_runtest_teardown
+  |     yield
+  |   File "C:\Nexus-Memory\GrafoConcierge\.venv_310\lib\site-packages\_pytest\capture.py", line 911, in pytest_runtest_teardown
+  |     return (yield)
+  |   File "C:\Nexus-Memory\GrafoConcierge\.venv_310\lib\site-packages\_pytest\runner.py", line 199, in pytest_runtest_teardown
+  |     item.session._setupstate.teardown_exact(nextitem)
+  |   File "C:\Nexus-Memory\GrafoConcierge\.venv_310\lib\site-packages\_pytest\runner.py", line 581, in teardown_exact
+  |     raise BaseExceptionGroup("errors during test teardown", exceptions[::-1])
+  | exceptiongroup.ExceptionGroup: errors during test teardown (3 sub-exceptions)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "C:\Nexus-Memory\GrafoConcierge\tests\conftest.py", line 215, in check_mcp_globals_leak_module
+    |     _verify_package_integrity(before_pkg, "module")
+    |   File "C:\Nexus-Memory\GrafoConcierge\tests\conftest.py", line 163, in _verify_package_integrity
+    |     assert sub_name in pkg_dict, (
+    | AssertionError: [module] Package attribute leak: parent package 'interface' has no attribute 'queue_writer' in __dict__ while 'interface.queue_writer' exists in sys.modules.
+    | assert 'queue_writer' in {'__name__': 'interface', '__doc__': '\ninterface/ - External Interface of Grafo Concierge v3.8.0\n\nModules:\n    mcp_server.py    -> FastMCP server with 7 tools (mine, search, commit, wakeup, resume, load, status)\n    action_hooks.py  -> Reactive lifecycle triggers (on_planning, on_execution, on_done)\n    cli.py           -> Terminal interface (argparse) with 9 commands\n', '__package__': 'interface', '__loader__': <_frozen_importlib_external.SourceFileLoader object at 0x000001AB2C7AC8E0>, ...}
+    +---------------- 2 ----------------
+    | Traceback (most recent call last):
+    |   File "C:\Nexus-Memory\GrafoConcierge\tests\conftest.py", line 205, in check_mcp_globals_leak_class
+    |     _verify_package_integrity(before_pkg, "class")
+    |   File "C:\Nexus-Memory\GrafoConcierge\tests\conftest.py", line 163, in _verify_package_integrity
+    |     assert sub_name in pkg_dict, (
+    | AssertionError: [class] Package attribute leak: parent package 'interface' has no attribute 'queue_writer' in __dict__ while 'interface.queue_writer' exists in sys.modules.
+    | assert 'queue_writer' in {'__name__': 'interface', '__doc__': '\ninterface/ - External Interface of Grafo Concierge v3.8.0\n\nModules:\n    mcp_server.py    -> FastMCP server with 7 tools (mine, search, commit, wakeup, resume, load, status)\n    action_hooks.py  -> Reactive lifecycle triggers (on_planning, on_execution, on_done)\n    cli.py           -> Terminal interface (argparse) with 9 commands\n', '__package__': 'interface', '__loader__': <_frozen_importlib_external.SourceFileLoader object at 0x000001AB2C7AC8E0>, ...}
+    +---------------- 3 ----------------
+    | Traceback (most recent call last):
+    |   File "C:\Nexus-Memory\GrafoConcierge\tests\conftest.py", line 195, in check_mcp_globals_leak_function
+    |     _verify_package_integrity(before_pkg, "function")
+    |   File "C:\Nexus-Memory\GrafoConcierge\tests\conftest.py", line 163, in _verify_package_integrity
+    |     assert sub_name in pkg_dict, (
+    | AssertionError: [function] Package attribute leak: parent package 'interface' has no attribute 'queue_writer' in __dict__ while 'interface.queue_writer' exists in sys.modules.
+    | assert 'queue_writer' in {'__name__': 'interface', '__doc__': '\ninterface/ - External Interface of Grafo Concierge v3.8.0\n\nModules:\n    mcp_server.py    -> FastMCP server with 7 tools (mine, search, commit, wakeup, resume, load, status)\n    action_hooks.py  -> Reactive lifecycle triggers (on_planning, on_execution, on_done)\n    cli.py           -> Terminal interface (argparse) with 9 commands\n', '__package__': 'interface', '__loader__': <_frozen_importlib_external.SourceFileLoader object at 0x000001AB2C7AC8E0>, ...}
+    +------------------------------------
+=========================== short test summary info ===========================
+ERROR tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t4_normal_path_unaltered_throughput
+========================= 1 passed, 1 error in 2.18s ==========================
+
+
+
+--- RESULTADO SEM MUTAÇÃO (esperado: VERDE/PASSOU) ---
+Retcode: 0
+============================= test session starts =============================
+platform win32 -- Python 3.10.22, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_310\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t4_normal_path_unaltered_throughput PASSED [100%]
+
+============================== 1 passed in 1.95s ==============================
+

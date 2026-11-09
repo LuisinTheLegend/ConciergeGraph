@@ -33,6 +33,9 @@ _qw_spec = importlib.util.spec_from_file_location(
 _qw_mod = importlib.util.module_from_spec(_qw_spec)
 sys.modules["interface.queue_writer"] = _qw_mod
 _qw_spec.loader.exec_module(_qw_mod)
+if "interface" not in sys.modules:
+    import interface
+setattr(sys.modules["interface"], "queue_writer", _qw_mod)
 SerializedWriteQueue = _qw_mod.SerializedWriteQueue
 
 # 2) core.database

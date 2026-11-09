@@ -1,0 +1,294 @@
+============================= test session starts =============================
+platform win32 -- Python 3.10.22, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_310\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 15 items
+
+tests/test_e2e_concierge_integration.py::TestConciergeSovereignE2EAudit::test_e2e_flow_full_lifecycle_and_communication PASSED [  6%]
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_characterization_inflight_write_may_apply_after_timeout PASSED [ 13%]
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_execute_write_before_start_fails_fast_without_handshake_wait PASSED [ 20%]
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_startup_budget_strictly_less_than_ready_timeout PASSED [ 26%]
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t10_worker_death_in_loop_fails_waiting_and_subsequent_callers_fast PASSED [ 33%]
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t11_multiple_queued_items_fail_fast_when_loop_dies PASSED [ 40%]
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t1_connect_persistent_failure_fails_fast_without_hanging FAILED [ 46%]
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t2_connect_retry_and_eventual_success FAILED [ 53%]
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t3_worker_thread_late_death_fails_pending_and_future_fast PASSED [ 60%]
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t4_normal_path_unaltered_throughput PASSED [ 66%]
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t5_unready_worker_handshake_timeout_fails_fast_without_enqueuing FAILED [ 73%]
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t6_batch_fatal_error_notifies_all_batched_callers PASSED [ 80%]
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t7_expired_deadline_task_skipped_without_executing PASSED [ 86%]
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t8_reader_read_query_does_not_execute_pragma_wal PASSED [ 93%]
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t9_busy_timeout_regime_allows_lock_held_for_3s_to_succeed PASSED [100%]
+
+================================== FAILURES ===================================
+_ TestQueueWriterResilience.test_t1_connect_persistent_failure_fails_fast_without_hanging _
+
+thing = <module 'interface' from 'C:\\Nexus-Memory\\GrafoConcierge\\interface\\__init__.py'>
+comp = 'queue_writer', import_path = 'interface.queue_writer'
+
+    def _dot_lookup(thing, comp, import_path):
+        try:
+>           return getattr(thing, comp)
+
+C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py:1248: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'queue_writer'
+
+    def __getattr__(name: str) -> Any:
+        """Exportação preguiçosa (PEP 562) para cortar a cadeia de importação de agents.revisor_critico."""
+        if name == "ActionHooks":
+            from interface.action_hooks import ActionHooks
+            return ActionHooks
+>       raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+E       AttributeError: module 'interface' has no attribute 'queue_writer'
+
+interface\__init__.py:25: AttributeError
+
+During handling of the above exception, another exception occurred:
+
+self = <test_queue_writer_resilience.TestQueueWriterResilience testMethod=test_t1_connect_persistent_failure_fails_fast_without_hanging>
+
+    def test_t1_connect_persistent_failure_fails_fast_without_hanging(self):
+        """T1: sqlite3.connect falha persistentemente com 'database is locked'.
+    
+        execute_write deve falhar rápido (bem abaixo do timeout do teste), retornando (False, ...),
+        sem pendurar a thread requisitante.
+        """
+        qw = SerializedWriteQueue(self.db_path)
+    
+>       with patch("interface.queue_writer.sqlite3.connect", side_effect=sqlite3.OperationalError("database is locked")):
+
+tests\test_queue_writer_resilience.py:56: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py:1431: in __enter__
+    self.target = self.getter()
+C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py:1618: in <lambda>
+    getter = lambda: _importer(target)
+C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py:1261: in _importer
+    thing = _dot_lookup(thing, comp, import_path)
+C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py:1251: in _dot_lookup
+    return getattr(thing, comp)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'queue_writer'
+
+    def __getattr__(name: str) -> Any:
+        """Exportação preguiçosa (PEP 562) para cortar a cadeia de importação de agents.revisor_critico."""
+        if name == "ActionHooks":
+            from interface.action_hooks import ActionHooks
+            return ActionHooks
+>       raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+E       AttributeError: module 'interface' has no attribute 'queue_writer'
+
+interface\__init__.py:25: AttributeError
+____ TestQueueWriterResilience.test_t2_connect_retry_and_eventual_success _____
+
+thing = <module 'interface' from 'C:\\Nexus-Memory\\GrafoConcierge\\interface\\__init__.py'>
+comp = 'queue_writer', import_path = 'interface.queue_writer'
+
+    def _dot_lookup(thing, comp, import_path):
+        try:
+>           return getattr(thing, comp)
+
+C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py:1248: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'queue_writer'
+
+    def __getattr__(name: str) -> Any:
+        """Exportação preguiçosa (PEP 562) para cortar a cadeia de importação de agents.revisor_critico."""
+        if name == "ActionHooks":
+            from interface.action_hooks import ActionHooks
+            return ActionHooks
+>       raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+E       AttributeError: module 'interface' has no attribute 'queue_writer'
+
+interface\__init__.py:25: AttributeError
+
+During handling of the above exception, another exception occurred:
+
+self = <test_queue_writer_resilience.TestQueueWriterResilience testMethod=test_t2_connect_retry_and_eventual_success>
+
+    def test_t2_connect_retry_and_eventual_success(self):
+        """T2: sqlite3.connect falha 2 vezes com 'database is locked' e sucede na 3ª.
+    
+        O worker deve subir com sucesso após o retry, executar uma escrita e os logs
+        devem conter os 2 avisos de retry.
+        """
+        real_connect = sqlite3.connect
+    
+        attempts = [0]
+        def _mock_connect(*args, **kwargs):
+            attempts[0] += 1
+            if attempts[0] <= 2:
+                raise sqlite3.OperationalError("database is locked")
+            return real_connect(*args, **kwargs)
+    
+        qw = SerializedWriteQueue(self.db_path)
+    
+>       with patch("interface.queue_writer.sqlite3.connect", side_effect=_mock_connect):
+
+tests\test_queue_writer_resilience.py:97: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py:1431: in __enter__
+    self.target = self.getter()
+C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py:1618: in <lambda>
+    getter = lambda: _importer(target)
+C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py:1261: in _importer
+    thing = _dot_lookup(thing, comp, import_path)
+C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py:1251: in _dot_lookup
+    return getattr(thing, comp)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'queue_writer'
+
+    def __getattr__(name: str) -> Any:
+        """Exportação preguiçosa (PEP 562) para cortar a cadeia de importação de agents.revisor_critico."""
+        if name == "ActionHooks":
+            from interface.action_hooks import ActionHooks
+            return ActionHooks
+>       raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+E       AttributeError: module 'interface' has no attribute 'queue_writer'
+
+interface\__init__.py:25: AttributeError
+_ TestQueueWriterResilience.test_t5_unready_worker_handshake_timeout_fails_fast_without_enqueuing _
+
+thing = <module 'interface' from 'C:\\Nexus-Memory\\GrafoConcierge\\interface\\__init__.py'>
+comp = 'queue_writer', import_path = 'interface.queue_writer'
+
+    def _dot_lookup(thing, comp, import_path):
+        try:
+>           return getattr(thing, comp)
+
+C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py:1248: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'queue_writer'
+
+    def __getattr__(name: str) -> Any:
+        """Exportação preguiçosa (PEP 562) para cortar a cadeia de importação de agents.revisor_critico."""
+        if name == "ActionHooks":
+            from interface.action_hooks import ActionHooks
+            return ActionHooks
+>       raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+E       AttributeError: module 'interface' has no attribute 'queue_writer'
+
+interface\__init__.py:25: AttributeError
+
+During handling of the above exception, another exception occurred:
+
+self = <test_queue_writer_resilience.TestQueueWriterResilience testMethod=test_t5_unready_worker_handshake_timeout_fails_fast_without_enqueuing>
+
+    def test_t5_unready_worker_handshake_timeout_fails_fast_without_enqueuing(self):
+        """T5: worker ainda não sinalizou prontidão (_ready.is_set() == False) e estoura READY_TIMEOUT.
+    
+        execute_write deve retornar (False, TimeoutError) imediatamente sem empurrar a tarefa
+        na fila de um worker não inicializado (fila permanece vazia).
+        """
+        from unittest.mock import PropertyMock
+        qw = SerializedWriteQueue(self.db_path)
+        with patch.object(SerializedWriteQueue, "ident", new_callable=PropertyMock(return_value=99999)):
+            with patch.object(qw, "is_alive", return_value=True):
+>               with patch("interface.queue_writer.READY_TIMEOUT_SECONDS", 0.05):
+
+tests\test_queue_writer_resilience.py:187: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py:1431: in __enter__
+    self.target = self.getter()
+C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py:1618: in <lambda>
+    getter = lambda: _importer(target)
+C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py:1261: in _importer
+    thing = _dot_lookup(thing, comp, import_path)
+C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py:1251: in _dot_lookup
+    return getattr(thing, comp)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'queue_writer'
+
+    def __getattr__(name: str) -> Any:
+        """Exportação preguiçosa (PEP 562) para cortar a cadeia de importação de agents.revisor_critico."""
+        if name == "ActionHooks":
+            from interface.action_hooks import ActionHooks
+            return ActionHooks
+>       raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+E       AttributeError: module 'interface' has no attribute 'queue_writer'
+
+interface\__init__.py:25: AttributeError
+============================== warnings summary ===============================
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t11_multiple_queued_items_fail_fast_when_loop_dies
+  C:\Nexus-Memory\GrafoConcierge\.venv_310\lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-11
+  
+  Traceback (most recent call last):
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\threading.py", line 1016, in _bootstrap_inner
+      self.run()
+    File "C:\Nexus-Memory\GrafoConcierge\interface\queue_writer.py", line 142, in run
+      self._execute_batch(conn, batch)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1114, in __call__
+      return self._mock_call(*args, **kwargs)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1118, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1173, in _execute_mock_call
+      raise effect
+  SystemError: Simulated loop crash
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t11_multiple_queued_items_fail_fast_when_loop_dies
+  C:\Nexus-Memory\GrafoConcierge\.venv_310\lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-9
+  
+  Traceback (most recent call last):
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\threading.py", line 1016, in _bootstrap_inner
+      self.run()
+    File "C:\Nexus-Memory\GrafoConcierge\interface\queue_writer.py", line 139, in run
+      self._execute_single(conn, batch[0])
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1114, in __call__
+      return self._mock_call(*args, **kwargs)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1118, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1173, in _execute_mock_call
+      raise effect
+  SystemError: Fatal worker loop crash
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t6_batch_fatal_error_notifies_all_batched_callers
+  C:\Nexus-Memory\GrafoConcierge\.venv_310\lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-27
+  
+  Traceback (most recent call last):
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\threading.py", line 1016, in _bootstrap_inner
+      self.run()
+    File "C:\Nexus-Memory\GrafoConcierge\interface\queue_writer.py", line 142, in run
+      self._execute_batch(conn, batch)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1114, in __call__
+      return self._mock_call(*args, **kwargs)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1118, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+    File "C:\Users\guial\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\unittest\mock.py", line 1173, in _execute_mock_call
+      raise effect
+  MemoryError: Simulated catastrophic crash
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t1_connect_persistent_failure_fails_fast_without_hanging
+FAILED tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t2_connect_retry_and_eventual_success
+FAILED tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t5_unready_worker_handshake_timeout_fails_fast_without_enqueuing
+================== 3 failed, 12 passed, 3 warnings in 18.30s ==================
+
+Exception ignored in: <function Console.__del__ at 0x000001A6B73CD750>
+Traceback (most recent call last):
+  File "C:\Nexus-Memory\GrafoConcierge\.venv_310\lib\site-packages\pyreadline3\console\console.py", line 256, in __del__
+OSError: [WinError -1073741816] Windows Error 0xc0000008

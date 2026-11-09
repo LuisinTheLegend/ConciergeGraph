@@ -155,7 +155,7 @@ def store_and_project(tmp_path_factory):
     store.close()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="module", autouse=True)
 def server(store_and_project):
     """Full GrafoConciergeServer backed by real SQLite + mocked vector/ingestion."""
     import interface.mcp_server as _mcp_mod
@@ -387,19 +387,33 @@ class TestHandleRegisterAndList:
 class TestHandleUpdateProject:
     def test_update_project_fields(self, server, project_uuid, store_and_project):
         store, _, _, _ = store_and_project
-        result = server._handle_update_project(
-            project_identifier=project_uuid,
-            folder_name="mcp-test-updated",
-            primary_wing="frontend",
-            privacy_level="RESTRICTED",
-            summary="Updated description",
-        )
-        assert result["success"] is True
-        stored = store.get_project(project_uuid)
-        assert stored["folder_name"] == "mcp-test-updated"
-        assert stored["primary_wing"] == "frontend"
-        assert stored["privacy_level"] == "RESTRICTED"
-        assert stored["summary"] == "Updated description"
+        orig = store.get_project(project_uuid)
+        orig_name = orig["folder_name"]
+        orig_wing = orig["primary_wing"]
+        orig_priv = orig["privacy_level"]
+        orig_sum = orig["summary"]
+        try:
+            result = server._handle_update_project(
+                project_identifier=project_uuid,
+                folder_name="mcp-test-updated",
+                primary_wing="frontend",
+                privacy_level="RESTRICTED",
+                summary="Updated description",
+            )
+            assert result["success"] is True
+            stored = store.get_project(project_uuid)
+            assert stored["folder_name"] == "mcp-test-updated"
+            assert stored["primary_wing"] == "frontend"
+            assert stored["privacy_level"] == "RESTRICTED"
+            assert stored["summary"] == "Updated description"
+        finally:
+            store.update_project(
+                project_uuid,
+                folder_name=orig_name,
+                primary_wing=orig_wing,
+                privacy_level=orig_priv,
+                summary=orig_sum,
+            )
 
     def test_get_trajectories_success(self, server, project_uuid):
         result = server._handle_get_trajectories(project_uuid)
@@ -456,6 +470,13 @@ class TestHandleMiscHandlers:
 class TestHandleDeleteProject:
     def test_delete_project_removes_from_store(self, store_and_project, tmp_path_factory):
         """Uses a fresh isolated project to avoid contaminating other tests."""
+        import interface.mcp_server as _mcp_mod
+        orig_db = getattr(_mcp_mod, "db_manager", None)
+        orig_cp = getattr(_mcp_mod, "checkpointer", None)
+        orig_gr = getattr(_mcp_mod, "graph_rag", None)
+        orig_gc = getattr(_mcp_mod, "_gc", None)
+        orig_gov = getattr(_mcp_mod, "governor", None)
+
         store, _, _, _ = store_and_project
         tmp = tmp_path_factory.mktemp("delete_proj")
 
@@ -465,13 +486,20 @@ class TestHandleDeleteProject:
             embedding_manager=MockEmbeddingManager(),
             ingestion_manager=MockIngestionManager(),
         )
-        srv = GrafoConciergeServer(concierge=gc, janitor=None)
+        try:
+            srv = GrafoConciergeServer(concierge=gc, janitor=None)
 
-        reg = srv._handle_register("to-be-deleted", "geral", "PUBLIC", None)
-        del_uuid = reg["project_uuid"]
+            reg = srv._handle_register("to-be-deleted", "geral", "PUBLIC", None)
+            del_uuid = reg["project_uuid"]
 
-        result = srv._handle_delete_project(del_uuid)
-        assert result["success"] is True
+            result = srv._handle_delete_project(del_uuid)
+            assert result["success"] is True
 
-        with pytest.raises(Exception):
-            store.get_project(del_uuid)
+            with pytest.raises(Exception):
+                store.get_project(del_uuid)
+        finally:
+            _mcp_mod.db_manager = orig_db
+            _mcp_mod.checkpointer = orig_cp
+            _mcp_mod.graph_rag = orig_gr
+            _mcp_mod._gc = orig_gc
+            _mcp_mod.governor = orig_gov

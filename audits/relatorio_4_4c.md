@@ -173,6 +173,7 @@ Todos os arquivos de evidência foram gravados sob `scratch/evidencia_4_4c/`, em
 | `mutacao_M10d.txt` | 6770 | False | False |
 | `mutacao_M10e.txt` | 6677 | False | False |
 | `mutacao_M10f.txt` | 2122 | False | False |
+| `mutacao_M10g.txt` | 7489 | False | False |
 | `mutacao_Qa.txt` | 4625 | False | False |
 | `mutacao_Qb.txt` | 3370 | False | False |
 | `mutacao_Qc.txt` | 1889 | False | False |
@@ -181,9 +182,57 @@ Todos os arquivos de evidência foram gravados sob `scratch/evidencia_4_4c/`, em
 | `mutacao_Qf.txt` | 5848 | False | False |
 | `mutacao_Qg.txt` | 3277 | False | False |
 | `mutacao_Qh.txt` | 4991 | False | False |
+| `python310_reproduce_red.txt` | 17356 | False | False |
 | `queue_writer_green.txt` | 7065 | False | False |
 | `queue_writer_map.txt` | 4661 | False | False |
+| `suite_py310.txt` | 11471 | False | False |
+| `suite_py311.txt` | 12086 | False | False |
+| `suite_py312.txt` | 14758 | False | False |
+| `suite_py314.txt` | 13885 | False | False |
 | `t9_and_prestart_red.txt` | 4833 | False | False |
+
+---
+
+## Seção 6: Bloco 0b — Resolução da Suíte no Python 3.10 (Falha de CI Ubuntu 3.10) e Suíte Multi-Versão
+
+### 6.1 Reprodução do Teste Vermelho (0b.1)
+- **Fato Apurado:** No Python 3.10 (Ubuntu CI e localmente em Windows via CPython 3.10.22), a execução de `test_queue_writer_resilience.py` após qualquer um dos 8 arquivos geradores de poluição falhava com:
+  `AttributeError: module 'interface' has no attribute 'queue_writer'`
+- **Reprodução:** Evidenciada em `scratch/evidencia_4_4c/python310_reproduce_red.txt`. Três testes (`test_t1`, `test_t2`, `test_t5`) falharam imediatamente com o `AttributeError`.
+
+### 6.2 Correção dos Testes Novos (0b.2)
+Em `tests/test_queue_writer_resilience.py`, todas as ocorrências de `unittest.mock.patch("interface.queue_writer...")` por string foram substituídas por patches diretos no objeto importado (`patch.object(qw_module.sqlite3, "connect", ...)`, `patch.object(qw_module, "READY_TIMEOUT_SECONDS", 0.05)`, etc.), desacoplando os testes da navegação de pacotes via `getattr` no Python 3.10.
+
+### 6.3 Diagnóstico e Tratamento da Poluição do Namespace `interface` (0b.3)
+1. **Causa Raiz:**
+   - **Mecanismo Python 3.10 vs 3.11+:** No Python 3.10, `unittest.mock.patch("a.b.c")` navega recursivamente atributo a atributo a partir do pacote pai com `getattr(a, "b")`. A partir do Python 3.11+, o mock tenta consultar `sys.modules.get("a.b")` diretamente antes de recorrer ao `getattr`.
+   - **Poluição por Carga Cirúrgica Órfã:** 8 arquivos de teste (`test_agent_checkpointer.py`, `test_checkpoint_pruning.py`, `test_concurrency_stress.py`, `test_delta_sync.py`, `test_e2e_concierge_integration.py`, `test_graph_rag_janitor.py`, `test_mcp_server_extensions.py`, `test_vector_reconciler.py`) e `test_watcher_ignore.py` utilizavam `importlib.util.spec_from_file_location` registrando submódulos em `sys.modules` (`sys.modules["interface.queue_writer"]`, `sys.modules["interface.watcher"]`) sem importar o pacote pai `interface` nem vincular o atributo correspondente no pacote pai.
+   - **Stubs Desalinhados:** Testes criavam módulos stub genéricos `types.ModuleType("interface")` sem os atributos dos submódulos e sem o `__getattr__` dinâmico do pacote real, e o `tearDownClass` removia `interface` via `sys.modules.pop("interface")`, deixando os submódulos órfãos em `sys.modules`.
+   - **PEP 562 em `interface/__init__.py`:** A função `__getattr__` original só tratava `ActionHooks` e levantava `AttributeError` para qualquer outro nome, tornando invisíveis submódulos já carregados em `sys.modules`.
+2. **Correção do Padrão Comum:**
+   - Em `interface/__init__.py`, `__getattr__` foi atualizado para verificar se `f"interface.{name}"` já existe em `sys.modules` ou é importável, registrando no `globals()` antes de retornar o módulo.
+   - Nos 8 arquivos de teste e em `test_watcher_ignore.py`, a criação de stubs foi eliminada em favor de `import interface` e vinculação explícita de `setattr(sys.modules["interface"], "<submod>", _mod)`.
+   - Em `test_e2e_concierge_integration.py` e `test_mcp_server_extensions.py`, o `tearDownClass` restaura e sincroniza `interface.mcp_server` e `interface.queue_writer` com `sys.modules`.
+   - Em `test_mcp_server_handlers.py`, restauração segura de globais no `finally` de `TestHandleDeleteProject` e dos campos de projeto em `TestHandleUpdateProject`.
+3. **Fixture de Integridade em Três Níveis e Mutação M10g:**
+   - A fixture autouse de `tests/conftest.py` foi estendida com `_verify_package_integrity` nos escopos `function`, `class` e `module`. Para qualquer submódulo `interface.<submod>` em `sys.modules`, a fixture valida que `sys.modules.get("interface")` existe, `submod in vars(interface)` é verdadeiro e o objeto é idêntico por `is`.
+   - **Mutação M10g:** Executada externamente via `scratch/run_bloco0b_mutation.py`, desvincula `queue_writer` de `sys.modules["interface"]`. A fixture capturou a mutação nos três níveis (`[function]`, `[class]`, `[module]`) com retcode 1, e sem a mutação a suíte passou limpa com retcode 0 (`scratch/evidencia_4_4c/mutacao_M10g.txt`).
+
+### 6.4 Critério de Aceite: Suíte Completa Multi-Versão (0b.4)
+A suíte completa de 462 testes foi executada em **quatro versões do interpretador CPython**, nas ordens padrão e invertida (`--reverse`), alcançando **100% de aprovação**:
+
+| Versão CPython | Ambiente | Ordem Padrão | Ordem Invertida (`--reverse`) | Testes Totais | Status |
+|---|---|---|---|---|---|
+| **Python 3.10.22** | `.venv_310` | 461 passed, 1 xfailed (128.45s) | 461 passed, 1 xfailed (119.60s) | 462 | **PASSOU (0 falhas, 0 erros)** |
+| **Python 3.11.18** | `.venv_311` | 461 passed, 1 xfailed (117.21s) | 461 passed, 1 xfailed (117.96s) | 462 | **PASSOU (0 falhas, 0 erros)** |
+| **Python 3.12.16** | `.venv_312` | 461 passed, 1 xfailed (226.02s) | 461 passed, 1 xfailed (117.04s) | 462 | **PASSOU (0 falhas, 0 erros)** |
+| **Python 3.14.3** | `.venv_clean` | 461 passed, 1 xfailed (220.99s) | 461 passed, 1 xfailed (192.65s) | 462 | **PASSOU (0 falhas, 0 erros)** |
+
+Evidências completas registradas em:
+- `scratch/evidencia_4_4c/suite_py310.txt`
+- `scratch/evidencia_4_4c/suite_py311.txt`
+- `scratch/evidencia_4_4c/suite_py312.txt`
+- `scratch/evidencia_4_4c/suite_py314.txt`
 
 ---
 

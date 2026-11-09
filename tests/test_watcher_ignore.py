@@ -25,6 +25,9 @@ _spec = importlib.util.spec_from_file_location(
 _watcher_mod = importlib.util.module_from_spec(_spec)
 sys.modules["interface.watcher"] = _watcher_mod
 _spec.loader.exec_module(_watcher_mod)
+if "interface" not in sys.modules:
+    import interface
+setattr(sys.modules["interface"], "watcher", _watcher_mod)
 ConciergeFileSystemHandler = _watcher_mod.ConciergeFileSystemHandler
 
 

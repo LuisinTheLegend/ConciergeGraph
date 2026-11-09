@@ -1,0 +1,219 @@
+================================================================================
+EVIDENCIA SUITE COMPLETA - PYTHON 314
+Interpretador: .venv_clean/Scripts/python.exe
+Versao detalhada: 3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]
+================================================================================
+
+--- 1. ORDEM PADRAO ---
+Comando: .venv_clean/Scripts/pytest.exe tests/ -q
+Retcode: 0 (PASSOU)
+Duracao: 220.99s
+--- SAIDA (stdout) ---
+........................................................................ [ 15%]
+........................................................................ [ 31%]
+........................................................................ [ 46%]
+........................................................................ [ 62%]
+.............................x.......................................... [ 77%]
+........................................................................ [ 93%]
+..............................                                           [100%]
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+tests/test_delta_sync_drift.py::TestDeltaSyncDrift::test_detect_internal_logic_drift
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\qdrant_client\qdrant_remote.py:295: UserWarning: Failed to obtain server version. Unable to check client-server compatibility. Set check_compatibility=False to skip version check.
+    show_warning(
+
+tests/test_domain_neutrality_guard.py::test_g4_free_text_wings_and_update_project
+tests/test_mcp_server_handlers.py::TestHandleUpdateProject::test_update_project_fields
+tests/test_mcp_server_handlers.py::TestHandleUpdateProject::test_update_project_fields
+  C:\Nexus-Memory\GrafoConcierge\storage\store.py:162: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    updates["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t10_worker_death_in_loop_fails_waiting_and_subsequent_callers_fast
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-439
+  
+  Traceback (most recent call last):
+    File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+      self._context.run(self.run)
+      ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+    File "C:\Nexus-Memory\GrafoConcierge\interface\queue_writer.py", line 139, in run
+      self._execute_single(conn, batch[0])
+      ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1175, in __call__
+      return self._mock_call(*args, **kwargs)
+             ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1179, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+             ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1234, in _execute_mock_call
+      raise effect
+  SystemError: Fatal worker loop crash
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t11_multiple_queued_items_fail_fast_when_loop_dies
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-441
+  
+  Traceback (most recent call last):
+    File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+      self._context.run(self.run)
+      ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+    File "C:\Nexus-Memory\GrafoConcierge\interface\queue_writer.py", line 139, in run
+      self._execute_single(conn, batch[0])
+      ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1175, in __call__
+      return self._mock_call(*args, **kwargs)
+             ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1179, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+             ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1234, in _execute_mock_call
+      raise effect
+  SystemError: Simulated loop crash
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t6_batch_fatal_error_notifies_all_batched_callers
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-458
+  
+  Traceback (most recent call last):
+    File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+      self._context.run(self.run)
+      ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+    File "C:\Nexus-Memory\GrafoConcierge\interface\queue_writer.py", line 142, in run
+      self._execute_batch(conn, batch)
+      ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1175, in __call__
+      return self._mock_call(*args, **kwargs)
+             ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1179, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+             ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1234, in _execute_mock_call
+      raise effect
+  MemoryError: Simulated catastrophic crash
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_storage_logic.py: 14 warnings
+  C:\Nexus-Memory\GrafoConcierge\storage\logic.py:342: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+461 passed, 1 xfailed, 22 warnings in 215.99s (0:03:35)
+
+
+--- 2. ORDEM INVERTIDA (--reverse) ---
+Comando: .venv_clean/Scripts/pytest.exe tests/ --reverse -q
+Retcode: 0 (PASSOU)
+Duracao: 192.65s
+--- SAIDA (stdout) ---
+........................................................................ [ 15%]
+........................................................................ [ 31%]
+x....................................................................... [ 46%]
+........................................................................ [ 62%]
+........................................................................ [ 77%]
+........................................................................ [ 93%]
+..............................                                           [100%]
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+tests/test_storage_logic.py: 14 warnings
+  C:\Nexus-Memory\GrafoConcierge\storage\logic.py:342: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t6_batch_fatal_error_notifies_all_batched_callers
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-162
+  
+  Traceback (most recent call last):
+    File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+      self._context.run(self.run)
+      ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+    File "C:\Nexus-Memory\GrafoConcierge\interface\queue_writer.py", line 142, in run
+      self._execute_batch(conn, batch)
+      ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1175, in __call__
+      return self._mock_call(*args, **kwargs)
+             ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1179, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+             ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1234, in _execute_mock_call
+      raise effect
+  MemoryError: Simulated catastrophic crash
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t11_multiple_queued_items_fail_fast_when_loop_dies
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-176
+  
+  Traceback (most recent call last):
+    File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+      self._context.run(self.run)
+      ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+    File "C:\Nexus-Memory\GrafoConcierge\interface\queue_writer.py", line 142, in run
+      self._execute_batch(conn, batch)
+      ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1175, in __call__
+      return self._mock_call(*args, **kwargs)
+             ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1179, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+             ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1234, in _execute_mock_call
+      raise effect
+  SystemError: Simulated loop crash
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t10_worker_death_in_loop_fails_waiting_and_subsequent_callers_fast
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-181
+  
+  Traceback (most recent call last):
+    File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+      self._context.run(self.run)
+      ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+    File "C:\Nexus-Memory\GrafoConcierge\interface\queue_writer.py", line 139, in run
+      self._execute_single(conn, batch[0])
+      ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1175, in __call__
+      return self._mock_call(*args, **kwargs)
+             ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1179, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+             ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1234, in _execute_mock_call
+      raise effect
+  SystemError: Fatal worker loop crash
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_mcp_server_handlers.py::TestHandleUpdateProject::test_update_project_fields
+tests/test_mcp_server_handlers.py::TestHandleUpdateProject::test_update_project_fields
+tests/test_domain_neutrality_guard.py::test_g4_free_text_wings_and_update_project
+  C:\Nexus-Memory\GrafoConcierge\storage\store.py:162: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    updates["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+tests/test_concurrency_stress.py::TestConcurrencyAndDelta::test_massive_concurrent_writes_should_never_lock_db
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\qdrant_client\qdrant_remote.py:295: UserWarning: Failed to obtain server version. Unable to check client-server compatibility. Set check_compatibility=False to skip version check.
+    show_warning(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+461 passed, 1 xfailed, 22 warnings in 188.71s (0:03:08)
+
