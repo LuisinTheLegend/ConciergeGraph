@@ -1,0 +1,223 @@
+=== MUTAÇÃO M10d (NÍVEL DE IMPORTAÇÃO DE MÓDULO) — BLOCO 2 (RODADA 4.4d) ===
+Arquivo alvo mutado: tests/test_interface_contracts.py
+Variante 1 (novo global no topo do módulo durante import): returncode=3 (esperado != 0)
+Variante 2 (mutação de db_manager no topo do módulo durante import): returncode=3 (esperado != 0)
+Controle SEM mutação: returncode=0 (esperado == 0)
+Status Global: MORTA (OK)
+
+--- [1] COM MUTAÇÃO M10d (NOVO GLOBAL NA IMPORTAÇÃO DO MÓDULO) ---
+STDOUT:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 22 items
+INTERNALERROR> Traceback (most recent call last):
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\main.py", line 333, in wrap_session
+INTERNALERROR>     session.exitstatus = doit(config, session) or 0
+INTERNALERROR>                          ~~~~^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\main.py", line 386, in _main
+INTERNALERROR>     config.hook.pytest_collection(session=session)
+INTERNALERROR>     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_caller.py", line 197, in __call__
+INTERNALERROR>     return self._hookexec(
+INTERNALERROR>            ~~~~~~~~~~~~~~^
+INTERNALERROR>         self.name, self._hookimpls.copy(), call_kwargs, firstresult
+INTERNALERROR>         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>     )
+INTERNALERROR>     ^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_manager.py", line 183, in _hookexec
+INTERNALERROR>     return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+INTERNALERROR>            ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_execution.py", line 195, in _multicall
+INTERNALERROR>     raise exception
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_execution.py", line 167, in _multicall
+INTERNALERROR>     teardown.throw(exception)
+INTERNALERROR>     ~~~~~~~~~~~~~~^^^^^^^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\logging.py", line 816, in pytest_collection
+INTERNALERROR>     return (yield)
+INTERNALERROR>             ^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_execution.py", line 167, in _multicall
+INTERNALERROR>     teardown.throw(exception)
+INTERNALERROR>     ~~~~~~~~~~~~~~^^^^^^^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\warnings.py", line 84, in pytest_collection
+INTERNALERROR>     return (yield)
+INTERNALERROR>             ^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_execution.py", line 167, in _multicall
+INTERNALERROR>     teardown.throw(exception)
+INTERNALERROR>     ~~~~~~~~~~~~~~^^^^^^^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\config\__init__.py", line 1617, in pytest_collection
+INTERNALERROR>     return (yield)
+INTERNALERROR>             ^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_execution.py", line 147, in _multicall
+INTERNALERROR>     res = hook_impl.function(*args)
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\main.py", line 397, in pytest_collection
+INTERNALERROR>     session.perform_collect()
+INTERNALERROR>     ~~~~~~~~~~~~~~~~~~~~~~~^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\main.py", line 882, in perform_collect
+INTERNALERROR>     hook.pytest_collection_finish(session=self)
+INTERNALERROR>     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_caller.py", line 197, in __call__
+INTERNALERROR>     return self._hookexec(
+INTERNALERROR>            ~~~~~~~~~~~~~~^
+INTERNALERROR>         self.name, self._hookimpls.copy(), call_kwargs, firstresult
+INTERNALERROR>         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>     )
+INTERNALERROR>     ^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_manager.py", line 183, in _hookexec
+INTERNALERROR>     return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+INTERNALERROR>            ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_execution.py", line 195, in _multicall
+INTERNALERROR>     raise exception
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_execution.py", line 147, in _multicall
+INTERNALERROR>     res = hook_impl.function(*args)
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\tests\conftest.py", line 197, in pytest_collection_finish
+INTERNALERROR>     _verify_mcp_globals(_COLLECTION_BASELINE_MCP_SNAPSHOT, "collection_import")
+INTERNALERROR>     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\tests\conftest.py", line 121, in _verify_mcp_globals
+INTERNALERROR>     assert False, (
+INTERNALERROR>     ...<2 lines>...
+INTERNALERROR>     )
+INTERNALERROR> AssertionError: [collection_import] New global variable 'mcp_server._leaked_at_module_import_m10d' was added during test execution: value 'POLLUTED_AT_IMPORT' (id=1382401362672)
+INTERNALERROR> assert False
+
+============================= 1 warning in 0.73s ==============================
+
+STDERR:
+
+--- [2] COM MUTAÇÃO M10d (MUTAÇÃO DE GLOBAL EXISTENTE NA IMPORTAÇÃO DO MÓDULO) ---
+STDOUT:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 22 items
+INTERNALERROR> Traceback (most recent call last):
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\main.py", line 333, in wrap_session
+INTERNALERROR>     session.exitstatus = doit(config, session) or 0
+INTERNALERROR>                          ~~~~^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\main.py", line 386, in _main
+INTERNALERROR>     config.hook.pytest_collection(session=session)
+INTERNALERROR>     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_caller.py", line 197, in __call__
+INTERNALERROR>     return self._hookexec(
+INTERNALERROR>            ~~~~~~~~~~~~~~^
+INTERNALERROR>         self.name, self._hookimpls.copy(), call_kwargs, firstresult
+INTERNALERROR>         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>     )
+INTERNALERROR>     ^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_manager.py", line 183, in _hookexec
+INTERNALERROR>     return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+INTERNALERROR>            ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_execution.py", line 195, in _multicall
+INTERNALERROR>     raise exception
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_execution.py", line 167, in _multicall
+INTERNALERROR>     teardown.throw(exception)
+INTERNALERROR>     ~~~~~~~~~~~~~~^^^^^^^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\logging.py", line 816, in pytest_collection
+INTERNALERROR>     return (yield)
+INTERNALERROR>             ^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_execution.py", line 167, in _multicall
+INTERNALERROR>     teardown.throw(exception)
+INTERNALERROR>     ~~~~~~~~~~~~~~^^^^^^^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\warnings.py", line 84, in pytest_collection
+INTERNALERROR>     return (yield)
+INTERNALERROR>             ^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_execution.py", line 167, in _multicall
+INTERNALERROR>     teardown.throw(exception)
+INTERNALERROR>     ~~~~~~~~~~~~~~^^^^^^^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\config\__init__.py", line 1617, in pytest_collection
+INTERNALERROR>     return (yield)
+INTERNALERROR>             ^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_execution.py", line 147, in _multicall
+INTERNALERROR>     res = hook_impl.function(*args)
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\main.py", line 397, in pytest_collection
+INTERNALERROR>     session.perform_collect()
+INTERNALERROR>     ~~~~~~~~~~~~~~~~~~~~~~~^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\main.py", line 882, in perform_collect
+INTERNALERROR>     hook.pytest_collection_finish(session=self)
+INTERNALERROR>     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_caller.py", line 197, in __call__
+INTERNALERROR>     return self._hookexec(
+INTERNALERROR>            ~~~~~~~~~~~~~~^
+INTERNALERROR>         self.name, self._hookimpls.copy(), call_kwargs, firstresult
+INTERNALERROR>         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>     )
+INTERNALERROR>     ^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_manager.py", line 183, in _hookexec
+INTERNALERROR>     return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+INTERNALERROR>            ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_execution.py", line 195, in _multicall
+INTERNALERROR>     raise exception
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\pluggy\_execution.py", line 147, in _multicall
+INTERNALERROR>     res = hook_impl.function(*args)
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\tests\conftest.py", line 197, in pytest_collection_finish
+INTERNALERROR>     _verify_mcp_globals(_COLLECTION_BASELINE_MCP_SNAPSHOT, "collection_import")
+INTERNALERROR>     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "C:\Nexus-Memory\GrafoConcierge\tests\conftest.py", line 130, in _verify_mcp_globals
+INTERNALERROR>     assert curr_id == orig_id, (
+INTERNALERROR>     ...<2 lines>...
+INTERNALERROR>     )
+INTERNALERROR> AssertionError: [collection_import] Global variable 'mcp_server.db_manager' leaked or modified by identity during test: expected None (id=140709063207744), got 'POLLUTED_DB_MANAGER_AT_IMPORT' (id=2165611588672)
+INTERNALERROR> assert 2165611588672 == 140709063207744
+
+============================= 1 warning in 0.48s ==============================
+
+STDERR:
+
+--- [3] SEM MUTAÇÃO (VERDE) ---
+STDOUT:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 22 items
+
+tests/test_interface_contracts.py::TestInterfaceImports::test_mcp_server_importable PASSED [  4%]
+tests/test_interface_contracts.py::TestInterfaceImports::test_action_hooks_importable PASSED [  9%]
+tests/test_interface_contracts.py::TestInterfaceImports::test_interface_package_exports PASSED [ 13%]
+tests/test_interface_contracts.py::TestGrafoConciergeServerSignature::test_accepts_concierge_param PASSED [ 18%]
+tests/test_interface_contracts.py::TestGrafoConciergeServerSignature::test_accepts_janitor_param PASSED [ 22%]
+tests/test_interface_contracts.py::TestGrafoConciergeServerSignature::test_no_legacy_sqlite_store_param PASSED [ 27%]
+tests/test_interface_contracts.py::TestGrafoConciergeServerSignature::test_no_legacy_vector_store_param PASSED [ 31%]
+tests/test_interface_contracts.py::TestGrafoConciergeServerSignature::test_no_legacy_embedding_manager_param PASSED [ 36%]
+tests/test_interface_contracts.py::TestActionHooksSignature::test_accepts_concierge_param PASSED [ 40%]
+tests/test_interface_contracts.py::TestActionHooksSignature::test_accepts_revisor_param PASSED [ 45%]
+tests/test_interface_contracts.py::TestActionHooksSignature::test_has_on_planning_method PASSED [ 50%]
+tests/test_interface_contracts.py::TestActionHooksSignature::test_has_on_execution_method PASSED [ 54%]
+tests/test_interface_contracts.py::TestActionHooksSignature::test_has_on_done_method PASSED [ 59%]
+tests/test_interface_contracts.py::TestCLIParser::test_all_subcommands_present PASSED [ 63%]
+tests/test_interface_contracts.py::TestCLIParser::test_command_count PASSED [ 68%]
+tests/test_interface_contracts.py::TestCLIParser::test_search_args_parsed PASSED [ 72%]
+tests/test_interface_contracts.py::TestCLIParser::test_mine_args_parsed PASSED [ 77%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_all_required_tools_registered PASSED [ 81%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_server_name_is_grafo_concierge PASSED [ 86%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_status_has_no_chromadb_component PASSED [ 90%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_status_has_no_embedding_component PASSED [ 95%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_status_has_sqlite_component PASSED [100%]
+
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 22 passed, 1 warning in 1.34s ========================
+
+STDERR:
+

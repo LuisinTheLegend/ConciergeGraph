@@ -186,6 +186,17 @@ def _verify_package_integrity(before_snapshot: dict, scope_level: str):
                 )
 
 
+# Snapshot inicial capturado na importação do conftest.py (antes da importação dos módulos de teste na coleta)
+_COLLECTION_BASELINE_MCP_SNAPSHOT = _capture_mcp_snapshot()
+_COLLECTION_BASELINE_PKG_SNAPSHOT = _capture_package_integrity_snapshot()
+
+
+def pytest_collection_finish(session):
+    """Verifica no fim da coleta se a importação de algum módulo de teste vazou globais ou corrompeu o pacote."""
+    _verify_package_integrity(_COLLECTION_BASELINE_PKG_SNAPSHOT, "collection_import")
+    _verify_mcp_globals(_COLLECTION_BASELINE_MCP_SNAPSHOT, "collection_import")
+
+
 @pytest.fixture(autouse=True, scope="function")
 def check_mcp_globals_leak_function():
     """Garante que nenhum teste de função vaze ou altere por identidade globais em mcp_server ou desvincule pacotes."""
@@ -214,3 +225,4 @@ def check_mcp_globals_leak_module():
     yield
     _verify_package_integrity(before_pkg, "module")
     _verify_mcp_globals(before_mcp, "module")
+    _verify_mcp_globals(_COLLECTION_BASELINE_MCP_SNAPSHOT, "module_baseline")
