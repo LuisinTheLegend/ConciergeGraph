@@ -1,0 +1,70 @@
+=== MUTAÇÃO Rg: Prazo total adicionado ao job em execução (levanta TimeoutError após 0.5s em submit, morta por P5) ===
+Alvo: storage/connection.py
+Teste: tests/test_connection_queue_resilience.py::test_p5_long_running_job_2s_succeeds_without_total_timeout
+Resultado COM mutação: returncode=1 (esperado != 0)
+Resultado SEM mutação: returncode=0 (esperado == 0)
+Status: MORTA (OK)
+
+--- [1] EXECUÇÃO COM MUTAÇÃO Rg (VERMELHO) ---
+STDOUT:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_connection_queue_resilience.py::test_p5_long_running_job_2s_succeeds_without_total_timeout FAILED [100%]
+
+================================== FAILURES ===================================
+_________ test_p5_long_running_job_2s_succeeds_without_total_timeout __________
+tests\test_connection_queue_resilience.py:273: in test_p5_long_running_job_2s_succeeds_without_total_timeout
+    res = cm.write(_long_write)
+          ^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:468: in write
+    return self._write_queue.submit(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:223: in submit
+    raise TimeoutError('Mutacao Rg: total execution timeout exceeded')
+E   TimeoutError: Mutacao Rg: total execution timeout exceeded
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_connection_queue_resilience.py::test_p5_long_running_job_2s_succeeds_without_total_timeout
+======================== 1 failed, 1 warning in 8.17s =========================
+
+STDERR:
+
+--- [2] EXECUÇÃO SEM MUTAÇÃO Rg (VERDE) ---
+STDOUT:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_connection_queue_resilience.py::test_p5_long_running_job_2s_succeeds_without_total_timeout PASSED [100%]
+
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 1 warning in 6.04s =========================
+
+STDERR:
+

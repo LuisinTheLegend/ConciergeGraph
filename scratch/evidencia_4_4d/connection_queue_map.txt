@@ -1,0 +1,57 @@
+# Mapa Completo de Chamadores de ConnectionManager.write e SerializedWriteQueue.submit (1.0 - Rodada 4.4d)
+
+Comando de varredura:
+git grep -n "_conn_mgr\.write\|_conn\.write\|_write_queue\.submit\|write_callback" -- storage/ ingestion/ core/ interface/ main.py tests/
+
+================================================================================
+1. CHAMADORES DIRETOS DE SerializedWriteQueue.submit
+================================================================================
+- storage/connection.py:295 — `ConnectionManager.write(self, fn: Callable, *args: Any, **kwargs: Any) -> Any`:
+  Único chamador direto de `self._write_queue.submit(fn, *args, **kwargs)` no código de produto.
+
+================================================================================
+2. CHAMADORES DE ConnectionManager.write (`self._conn_mgr.write` / `self._conn.write`)
+================================================================================
+
+A) Em `storage/store.py` (`self._conn_mgr.write`):
+- storage/store.py:122 — `SqliteStore.write_callback(self, fn, *args, **kwargs)` [DELEGADOR GENÉRICO — PODE EXECUTAR TRABALHO LONGO]
+  Chamado por:
+  - core/middleware.py:546 — `GrafoConcierge.store_fact` (`_do_direct_store`: inserção direta de fato semântico) [CURTO]
+  - core/middleware.py:558 — `GrafoConcierge.store_fact` (`_do_store`: `self._semantic_extractor.evaluate_and_store_facts(...)`, avalia fatos existentes e pode realizar processamento pesado dentro do callback) [TRABALHO LONGO]
+  - core/middleware.py:693 — `GrafoConcierge.feedback_fact` (`_do_update`: atualização de utility score / Thompson sampling em `semantic_facts`) [CURTO]
+- storage/store.py:142 — `SqliteStore.create_project` (`INSERT INTO projects ...`) [CURTO]
+- storage/store.py:168 — `SqliteStore.update_project` (`UPDATE projects SET ...`) [CURTO]
+- storage/store.py:174 — `SqliteStore.delete_project` (`DELETE FROM projects WHERE uuid = ?` com `ON DELETE CASCADE` em `nodes`, `edges`, `trajectories`, `commits`, `project_wings` e triggers FTS5) [TRABALHO LONGO em projetos com milhares de nós]
+- storage/store.py:215 — `SqliteStore.create_node` (`INSERT INTO nodes ...`) [CURTO]
+- storage/store.py:375 — `SqliteStore.update_node` (`UPDATE nodes SET ...`) [CURTO]
+- storage/store.py:381 — `SqliteStore.delete_node` (`DELETE FROM nodes WHERE id = ?`) [CURTO]
+- storage/store.py:417 — `SqliteStore.update_nodes_file_hash_bulk` (loop `UPDATE nodes SET file_hash = ? WHERE id = ?` para lote de nós em cache durante `IngestionManager.mine` em `ingestion/orchestrator.py:393`) [TRABALHO LONGO — LOTE DE MINERAÇÃO/INGESTÃO]
+- storage/store.py:433 — `SqliteStore.cleanup_obsolete_nodes` (`DELETE FROM nodes WHERE project_uuid = ? AND ...` chamado por arquivo modificado em `ingestion/orchestrator.py:243`) [MÉDIO / LOTE POR ARQUIVO]
+- storage/store.py:491 — `SqliteStore.create_nodes_and_edges_bulk` (insere centenas/milhares de nós e arestas em uma única transação com triggers FTS5 ativos; chamado em `ingestion/orchestrator.py:650` e `ingestion/orchestrator.py:781`) [TRABALHO LONGO — LOTE GRANDE DE MINERAÇÃO/INGESTÃO]
+- storage/store.py:518 — `SqliteStore.create_edge` (`INSERT OR REPLACE INTO edges ...`) [CURTO]
+- storage/store.py:545 — `SqliteStore.delete_edge` (`DELETE FROM edges ...`) [CURTO]
+- storage/store.py:567 — `SqliteStore.create_trajectory` (`INSERT INTO trajectories ...`) [CURTO]
+- storage/store.py:612 — `SqliteStore.create_commit` (`INSERT INTO commits ...`) [CURTO]
+- storage/store.py:640 — `SqliteStore.add_reference_wing` (`INSERT OR IGNORE INTO project_wings ...`) [CURTO]
+- storage/store.py:652 — `SqliteStore.remove_reference_wing` (`DELETE FROM project_wings ...`) [CURTO]
+- storage/store.py:803 — `SqliteStore.set_core_memory` (`INSERT OR REPLACE INTO user_core_memory ...`) [CURTO]
+
+B) Em `storage/logic.py` (`self._conn.write`):
+- storage/logic.py:156 — `GraphLogic.transition_trajectory_status` (`UPDATE trajectories SET status = ? WHERE id = ?`) [CURTO]
+- storage/logic.py:187 — `GraphLogic.bulk_decay_stale_trajectories` (`UPDATE trajectories SET status = 'STALE' WHERE ...`) [MÉDIO — LOTE EM JANITOR]
+- storage/logic.py:484 — `GraphLogic.fts_rebuild` (`INSERT INTO nodes_fts(nodes_fts) VALUES('rebuild');` + `'integrity-check'`, reconstrução completa e verificação de integridade de todo o índice FTS5) [TRABALHO LONGO — LOTE GRANDE PÓS-INGESTÃO]
+
+C) Em `tests/` e `scratch/`:
+- tests/test_fts_code_search.py:66 — `self.store._conn_mgr.write(_write)` (inserção direta para teste de busca FTS5)
+- scratch/compare_repair_query_old_vs_new.py:35 — `store._conn_mgr.write(insert_batch)` (inserção de lote de benchmark 1.000/10.000 nós) [TRABALHO LONGO]
+
+================================================================================
+3. CONCLUSÃO DE ENGENHARIA PARA O DESENHO (INVARIANTE 5)
+================================================================================
+Como `create_nodes_and_edges_bulk` (storage/store.py:491), `update_nodes_file_hash_bulk` (storage/store.py:417),
+`delete_project` (storage/store.py:174), `fts_rebuild` (storage/logic.py:484) e `write_callback` em `store_fact`
+(core/middleware.py:558) executam operações em lote ou reconstruções de índice que podem durar vários segundos
+em repositórios reais, `SerializedWriteQueue.submit` NÃO PODE impor um timeout total de execução ao job em andamento.
+A espera em `submit()` deve monitorar exclusivamente a vivacidade (liveness) da thread `sqlite-writer` em ciclos curtos
+(`POLL_INTERVAL_SECONDS = 0.05`), garantindo que qualquer job vivo conclua sem `TimeoutError` artificial (provado por P5 e Rg).
+

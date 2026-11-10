@@ -1,0 +1,440 @@
+Command: pytest tests/test_connection_queue_resilience.py -v (against unmodified storage/connection.py at 9519e16)
+Return Code: 1
+
+STDOUT:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 9 items
+
+tests/test_connection_queue_resilience.py::test_p1_connect_persistent_locked_fails_fast FAILED [ 11%]
+tests/test_connection_queue_resilience.py::test_p2_startup_retries_twice_on_locked_then_succeeds FAILED [ 22%]
+tests/test_connection_queue_resilience.py::test_p3_non_lock_operational_error_fails_immediately_and_closes_conn FAILED [ 33%]
+tests/test_connection_queue_resilience.py::test_p4_worker_late_death_in_loop_notifies_active_pending_and_subsequent FAILED [ 44%]
+tests/test_connection_queue_resilience.py::test_p5_long_running_job_2s_succeeds_without_total_timeout PASSED [ 55%]
+tests/test_connection_queue_resilience.py::test_p6_submit_before_start_raises_runtime_error_immediately PASSED [ 66%]
+tests/test_connection_queue_resilience.py::test_p7_regime_pragmas_and_row_factory PASSED [ 77%]
+tests/test_connection_queue_resilience.py::test_p8_start_idempotent_and_stop_terminates_thread PASSED [ 88%]
+tests/test_connection_queue_resilience.py::test_p9_sqlitestore_startup_failure_does_not_hang FAILED [100%]
+
+================================== FAILURES ===================================
+________________ test_p1_connect_persistent_locked_fails_fast _________________
+
+tmp_db_path = 'C:\\Users\\guial\\AppData\\Local\\Temp\\pytest-of-guial\\pytest-173\\test_p1_connect_persistent_loc0\\test_conn_resilience.db'
+
+    @pytest.mark.timeout(30)
+    def test_p1_connect_persistent_locked_fails_fast(tmp_db_path):
+        """P1: Se sqlite3.connect levantar 'database is locked' em todas as tentativas,
+        a partida falha rápido (< 10 s) levantando RuntimeError com causa encadeada, sem travar.
+        """
+        attempts = {"count": 0}
+    
+        def _always_locked(*args, **kwargs):
+            attempts["count"] += 1
+            raise sqlite3.OperationalError("database is locked")
+    
+        q = SerializedWriteQueue(tmp_db_path)
+        t0 = time.monotonic()
+        with patch.object(conn_module.sqlite3, "connect", side_effect=_always_locked), \
+             patch.object(conn_module, "INITIAL_BACKOFF_SECONDS", 0.01, create=True), \
+             patch.object(conn_module, "MAX_BACKOFF_SECONDS", 0.05, create=True):
+    
+            def _start_and_submit():
+                q.start()
+                q.submit(lambda conn: conn.execute("SELECT 1"))
+    
+            with pytest.raises(RuntimeError) as exc_info:
+>               _run_with_deadlock_guard(4.0, _start_and_submit)
+
+tests\test_connection_queue_resilience.py:86: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+timeout_s = 4.0
+fn = <function test_p1_connect_persistent_locked_fails_fast.<locals>._start_and_submit at 0x0000016C14173320>
+args = (), kwargs = {}
+
+    def _run_with_deadlock_guard(timeout_s: float, fn: Callable, *args: Any, **kwargs: Any) -> Any:
+        """Executa `fn` em uma thread auxiliar daemon para detectar travamento (deadlock) rápido."""
+        outcome: dict[str, Any] = {"done": False, "result": None, "error": None}
+    
+        def _target() -> None:
+            try:
+                outcome["result"] = fn(*args, **kwargs)
+            except BaseException as exc:
+                outcome["error"] = exc
+            finally:
+                outcome["done"] = True
+    
+        t = threading.Thread(target=_target, daemon=True)
+        t.start()
+        t.join(timeout=timeout_s)
+        if not outcome["done"]:
+>           pytest.fail(f"DEADLOCK DETECTADO: chamada bloqueou por mais de {timeout_s}s sem retornar.")
+E           Failed: DEADLOCK DETECTADO: chamada bloqueou por mais de 4.0s sem retornar.
+
+tests\test_connection_queue_resilience.py:50: Failed
+____________ test_p2_startup_retries_twice_on_locked_then_succeeds ____________
+
+tmp_db_path = 'C:\\Users\\guial\\AppData\\Local\\Temp\\pytest-of-guial\\pytest-173\\test_p2_startup_retries_twice_0\\test_conn_resilience.db'
+
+    @pytest.mark.timeout(30)
+    def test_p2_startup_retries_twice_on_locked_then_succeeds(tmp_db_path):
+        """P2: Se sqlite3.connect falhar 2 vezes com 'database is locked' e funcionar na 3ª,
+        o handshake conclui com sucesso e a escrita funciona normalmente.
+        """
+        real_connect = sqlite3.connect
+        attempts = {"count": 0}
+    
+        def _flaky_connect(*args, **kwargs):
+            attempts["count"] += 1
+            if attempts["count"] <= 2:
+                raise sqlite3.OperationalError("database is locked")
+            return real_connect(*args, **kwargs)
+    
+        q = SerializedWriteQueue(tmp_db_path)
+        try:
+            with patch.object(conn_module.sqlite3, "connect", side_effect=_flaky_connect), \
+                 patch.object(conn_module, "INITIAL_BACKOFF_SECONDS", 0.01, create=True):
+                _run_with_deadlock_guard(4.0, q.start)
+    
+>           assert attempts["count"] == 3, f"Esperadas exatas 3 tentativas (2 falhas + 1 sucesso), obteve {attempts['count']}"
+E           AssertionError: Esperadas exatas 3 tentativas (2 falhas + 1 sucesso), obteve 1
+E           assert 1 == 3
+
+tests\test_connection_queue_resilience.py:118: AssertionError
+____ test_p3_non_lock_operational_error_fails_immediately_and_closes_conn _____
+
+tmp_db_path = 'C:\\Users\\guial\\AppData\\Local\\Temp\\pytest-of-guial\\pytest-173\\test_p3_non_lock_operational_e0\\test_conn_resilience.db'
+
+    @pytest.mark.timeout(30)
+    def test_p3_non_lock_operational_error_fails_immediately_and_closes_conn(tmp_db_path):
+        """P3: Um sqlite3.OperationalError('disk I/O error') durante os PRAGMAs de partida
+        não faz retry (1 única tentativa), fecha a conexão aberta e falha imediatamente.
+        """
+        real_connect = sqlite3.connect
+        stats = {"connect_calls": 0, "close_calls": 0}
+    
+        class _InstrumentedConn:
+            def __init__(self, raw_conn):
+                self._raw = raw_conn
+                self.row_factory = None
+    
+            def execute(self, sql, *args, **kwargs):
+                if "journal_mode" in sql.lower():
+                    raise sqlite3.OperationalError("disk I/O error")
+                return self._raw.execute(sql, *args, **kwargs)
+    
+            def close(self):
+                stats["close_calls"] += 1
+                return self._raw.close()
+    
+        def _connect_failing_pragma(*args, **kwargs):
+            stats["connect_calls"] += 1
+            raw = real_connect(*args, **kwargs)
+            return _InstrumentedConn(raw)
+    
+        q = SerializedWriteQueue(tmp_db_path)
+        with patch.object(conn_module.sqlite3, "connect", side_effect=_connect_failing_pragma):
+            def _start_and_submit():
+                q.start()
+                q.submit(lambda conn: None)
+    
+            with pytest.raises(RuntimeError) as exc_info:
+>               _run_with_deadlock_guard(3.0, _start_and_submit)
+
+tests\test_connection_queue_resilience.py:169: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+timeout_s = 3.0
+fn = <function test_p3_non_lock_operational_error_fails_immediately_and_closes_conn.<locals>._start_and_submit at 0x0000016C1426E350>
+args = (), kwargs = {}
+
+    def _run_with_deadlock_guard(timeout_s: float, fn: Callable, *args: Any, **kwargs: Any) -> Any:
+        """Executa `fn` em uma thread auxiliar daemon para detectar travamento (deadlock) rápido."""
+        outcome: dict[str, Any] = {"done": False, "result": None, "error": None}
+    
+        def _target() -> None:
+            try:
+                outcome["result"] = fn(*args, **kwargs)
+            except BaseException as exc:
+                outcome["error"] = exc
+            finally:
+                outcome["done"] = True
+    
+        t = threading.Thread(target=_target, daemon=True)
+        t.start()
+        t.join(timeout=timeout_s)
+        if not outcome["done"]:
+>           pytest.fail(f"DEADLOCK DETECTADO: chamada bloqueou por mais de {timeout_s}s sem retornar.")
+E           Failed: DEADLOCK DETECTADO: chamada bloqueou por mais de 3.0s sem retornar.
+
+tests\test_connection_queue_resilience.py:50: Failed
+__ test_p4_worker_late_death_in_loop_notifies_active_pending_and_subsequent ___
+
+tmp_db_path = 'C:\\Users\\guial\\AppData\\Local\\Temp\\pytest-of-guial\\pytest-173\\test_p4_worker_late_death_in_l0\\test_conn_resilience.db'
+
+    @pytest.mark.timeout(30)
+    def test_p4_worker_late_death_in_loop_notifies_active_pending_and_subsequent(tmp_db_path):
+        """P4: Se a thread sqlite-writer morrer depois da partida (ex.: BaseException fatal ou
+        exceção no rollback fora do except do job), o job em execução, múltiplos jobs pendentes
+        na fila e chamadas seguintes a submit() falham em poucos segundos com RuntimeError
+        ('write worker died'), sem deixar nenhum chamador pendurado e drenando a fila.
+        """
+        q = SerializedWriteQueue(tmp_db_path)
+        q.start()
+    
+        job1_entered = threading.Event()
+        release_job1 = threading.Event()
+    
+        def _crashing_job(conn):
+            job1_entered.set()
+            release_job1.wait(timeout=5.0)
+            # Levanta BaseException para simular morte inesperada do laço do worker
+            # fora do `except Exception` normal do job (sem sinalizar job.result_event no bloco do job)
+            raise BaseException("fatal loop crash in sqlite-writer")
+    
+        errors: list[BaseException] = []
+        errors_lock = threading.Lock()
+    
+        def _caller(fn):
+            try:
+                q.submit(fn)
+            except BaseException as exc:
+                with errors_lock:
+                    errors.append(exc)
+    
+        t_active = threading.Thread(target=_caller, args=(_crashing_job,), daemon=True)
+        t_active.start()
+        assert job1_entered.wait(timeout=3.0), "Job ativo não iniciou no worker"
+    
+        # Enfileira 3 jobs pendentes enquanto o job ativo está segurando o worker
+        pending_threads = [
+            threading.Thread(target=_caller, args=(lambda conn, i=i: conn.execute("SELECT ?", (i,)),), daemon=True)
+            for i in range(3)
+        ]
+        for pt in pending_threads:
+            pt.start()
+    
+        # Garante que os jobs pendentes entraram na fila antes da morte do worker
+        deadline = time.monotonic() + 2.0
+        while q._queue.qsize() < 3 and time.monotonic() < deadline:
+            time.sleep(0.01)
+        assert q._queue.qsize() == 3, f"Esperados 3 jobs pendentes na fila, encontrou {q._queue.qsize()}"
+    
+        # Libera o job ativo para matar a thread do worker
+        release_job1.set()
+    
+        t_active.join(timeout=3.0)
+        for pt in pending_threads:
+            pt.join(timeout=3.0)
+    
+        assert not t_active.is_alive(), "Chamador do job ativo ficou pendurado após morte do worker!"
+        for idx, pt in enumerate(pending_threads):
+>           assert not pt.is_alive(), f"Chamador pendente {idx} ficou pendurado após morte do worker!"
+E           AssertionError: Chamador pendente 0 ficou pendurado após morte do worker!
+E           assert not True
+E            +  where True = is_alive()
+E            +    where is_alive = <Thread(Thread-9 (_caller), started daemon 20188)>.is_alive
+
+tests\test_connection_queue_resilience.py:237: AssertionError
+______________ test_p9_sqlitestore_startup_failure_does_not_hang ______________
+
+tmp_db_path = 'C:\\Users\\guial\\AppData\\Local\\Temp\\pytest-of-guial\\pytest-173\\test_p9_sqlitestore_startup_fa0\\test_conn_resilience.db'
+
+    @pytest.mark.timeout(30)
+    def test_p9_sqlitestore_startup_failure_does_not_hang(tmp_db_path):
+        """P9: Ao nível do SqliteStore, se a partida da SerializedWriteQueue falhar
+        (ex.: sqlite3.connect do worker levantando OperationalError), a construção do
+        SqliteStore (ou o primeiro write) falha rápido com RuntimeError sem travar.
+        """
+        real_connect = sqlite3.connect
+    
+        def _connect_fail_on_worker(*args, **kwargs):
+            if threading.current_thread().name == "sqlite-writer":
+                raise sqlite3.OperationalError("database is locked")
+            return real_connect(*args, **kwargs)
+    
+        with patch.object(conn_module.sqlite3, "connect", side_effect=_connect_fail_on_worker), \
+             patch.object(conn_module, "INITIAL_BACKOFF_SECONDS", 0.01, create=True), \
+             patch.object(conn_module, "MAX_BACKOFF_SECONDS", 0.05, create=True):
+    
+            def _boot_store_and_write():
+                store = SqliteStore(tmp_db_path)
+                store.create_project("p9-uuid", "p9-folder")
+    
+            with pytest.raises(RuntimeError) as exc_info:
+>               _run_with_deadlock_guard(4.0, _boot_store_and_write)
+
+tests\test_connection_queue_resilience.py:368: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+timeout_s = 4.0
+fn = <function test_p9_sqlitestore_startup_failure_does_not_hang.<locals>._boot_store_and_write at 0x0000016C14290B40>
+args = (), kwargs = {}
+
+    def _run_with_deadlock_guard(timeout_s: float, fn: Callable, *args: Any, **kwargs: Any) -> Any:
+        """Executa `fn` em uma thread auxiliar daemon para detectar travamento (deadlock) rápido."""
+        outcome: dict[str, Any] = {"done": False, "result": None, "error": None}
+    
+        def _target() -> None:
+            try:
+                outcome["result"] = fn(*args, **kwargs)
+            except BaseException as exc:
+                outcome["error"] = exc
+            finally:
+                outcome["done"] = True
+    
+        t = threading.Thread(target=_target, daemon=True)
+        t.start()
+        t.join(timeout=timeout_s)
+        if not outcome["done"]:
+>           pytest.fail(f"DEADLOCK DETECTADO: chamada bloqueou por mais de {timeout_s}s sem retornar.")
+E           Failed: DEADLOCK DETECTADO: chamada bloqueou por mais de 4.0s sem retornar.
+
+tests\test_connection_queue_resilience.py:50: Failed
+============================== warnings summary ===============================
+tests/test_connection_queue_resilience.py::test_p1_connect_persistent_locked_fails_fast
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread sqlite-writer
+  
+  Traceback (most recent call last):
+    File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+      self._context.run(self.run)
+      ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+    File "C:\Python314\Lib\threading.py", line 1024, in run
+      self._target(*self._args, **self._kwargs)
+      ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\Nexus-Memory\GrafoConcierge\storage\connection.py", line 149, in _worker
+      self._conn = sqlite3.connect(self._db_path)
+                   ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1175, in __call__
+      return self._mock_call(*args, **kwargs)
+             ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1179, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+             ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1240, in _execute_mock_call
+      result = effect(*args, **kwargs)
+    File "C:\Nexus-Memory\GrafoConcierge\tests\test_connection_queue_resilience.py", line 73, in _always_locked
+      raise sqlite3.OperationalError("database is locked")
+  sqlite3.OperationalError: database is locked
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_connection_queue_resilience.py::test_p2_startup_retries_twice_on_locked_then_succeeds
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread sqlite-writer
+  
+  Traceback (most recent call last):
+    File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+      self._context.run(self.run)
+      ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+    File "C:\Python314\Lib\threading.py", line 1024, in run
+      self._target(*self._args, **self._kwargs)
+      ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\Nexus-Memory\GrafoConcierge\storage\connection.py", line 149, in _worker
+      self._conn = sqlite3.connect(self._db_path)
+                   ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1175, in __call__
+      return self._mock_call(*args, **kwargs)
+             ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1179, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+             ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1240, in _execute_mock_call
+      result = effect(*args, **kwargs)
+    File "C:\Nexus-Memory\GrafoConcierge\tests\test_connection_queue_resilience.py", line 109, in _flaky_connect
+      raise sqlite3.OperationalError("database is locked")
+  sqlite3.OperationalError: database is locked
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_connection_queue_resilience.py::test_p3_non_lock_operational_error_fails_immediately_and_closes_conn
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread sqlite-writer
+  
+  Traceback (most recent call last):
+    File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+      self._context.run(self.run)
+      ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+    File "C:\Python314\Lib\threading.py", line 1024, in run
+      self._target(*self._args, **self._kwargs)
+      ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\Nexus-Memory\GrafoConcierge\storage\connection.py", line 153, in _worker
+      self._conn.execute("PRAGMA journal_mode=WAL;")
+      ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\Nexus-Memory\GrafoConcierge\tests\test_connection_queue_resilience.py", line 150, in execute
+      raise sqlite3.OperationalError("disk I/O error")
+  sqlite3.OperationalError: disk I/O error
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_connection_queue_resilience.py::test_p4_worker_late_death_in_loop_notifies_active_pending_and_subsequent
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread sqlite-writer
+  
+  Traceback (most recent call last):
+    File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+      self._context.run(self.run)
+      ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+    File "C:\Python314\Lib\threading.py", line 1024, in run
+      self._target(*self._args, **self._kwargs)
+      ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\Nexus-Memory\GrafoConcierge\storage\connection.py", line 175, in _worker
+      job.result = job.fn(self._conn, *job.args, **job.kwargs)
+                   ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\Nexus-Memory\GrafoConcierge\tests\test_connection_queue_resilience.py", line 198, in _crashing_job
+      raise BaseException("fatal loop crash in sqlite-writer")
+  BaseException: fatal loop crash in sqlite-writer
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_connection_queue_resilience.py::test_p9_sqlitestore_startup_failure_does_not_hang
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread sqlite-writer
+  
+  Traceback (most recent call last):
+    File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+      self._context.run(self.run)
+      ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+    File "C:\Python314\Lib\threading.py", line 1024, in run
+      self._target(*self._args, **self._kwargs)
+      ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\Nexus-Memory\GrafoConcierge\storage\connection.py", line 149, in _worker
+      self._conn = sqlite3.connect(self._db_path)
+                   ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1175, in __call__
+      return self._mock_call(*args, **kwargs)
+             ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1179, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+             ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+    File "C:\Python314\Lib\unittest\mock.py", line 1240, in _execute_mock_call
+      result = effect(*args, **kwargs)
+    File "C:\Nexus-Memory\GrafoConcierge\tests\test_connection_queue_resilience.py", line 356, in _connect_fail_on_worker
+      raise sqlite3.OperationalError("database is locked")
+  sqlite3.OperationalError: database is locked
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_connection_queue_resilience.py::test_p1_connect_persistent_locked_fails_fast
+FAILED tests/test_connection_queue_resilience.py::test_p2_startup_retries_twice_on_locked_then_succeeds
+FAILED tests/test_connection_queue_resilience.py::test_p3_non_lock_operational_error_fails_immediately_and_closes_conn
+FAILED tests/test_connection_queue_resilience.py::test_p4_worker_late_death_in_loop_notifies_active_pending_and_subsequent
+FAILED tests/test_connection_queue_resilience.py::test_p9_sqlitestore_startup_failure_does_not_hang
+================== 5 failed, 4 passed, 5 warnings in 32.39s ===================
+
+STDERR:

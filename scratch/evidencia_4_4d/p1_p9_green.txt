@@ -1,0 +1,34 @@
+Command: pytest tests/test_connection_queue_resilience.py -v (with hardened storage/connection.py)
+Return Code: 0
+
+STDOUT:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 9 items
+
+tests/test_connection_queue_resilience.py::test_p1_connect_persistent_locked_fails_fast PASSED [ 11%]
+tests/test_connection_queue_resilience.py::test_p2_startup_retries_twice_on_locked_then_succeeds PASSED [ 22%]
+tests/test_connection_queue_resilience.py::test_p3_non_lock_operational_error_fails_immediately_and_closes_conn PASSED [ 33%]
+tests/test_connection_queue_resilience.py::test_p4_worker_late_death_in_loop_notifies_active_pending_and_subsequent PASSED [ 44%]
+tests/test_connection_queue_resilience.py::test_p5_long_running_job_2s_succeeds_without_total_timeout PASSED [ 55%]
+tests/test_connection_queue_resilience.py::test_p6_submit_before_start_raises_runtime_error_immediately PASSED [ 66%]
+tests/test_connection_queue_resilience.py::test_p7_regime_pragmas_and_row_factory PASSED [ 77%]
+tests/test_connection_queue_resilience.py::test_p8_start_idempotent_and_stop_terminates_thread PASSED [ 88%]
+tests/test_connection_queue_resilience.py::test_p9_sqlitestore_startup_failure_does_not_hang PASSED [100%]
+
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 9 passed, 1 warning in 6.65s =========================
+
+STDERR:

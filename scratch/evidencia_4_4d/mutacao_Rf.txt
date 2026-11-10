@@ -1,0 +1,65 @@
+=== MUTAÇÃO Rf: Regime de busy_timeout alterado (REGIME_BUSY_TIMEOUT_MS: int = 1500 em vez de 5000) ===
+Alvo: storage/connection.py
+Teste: tests/test_connection_queue_resilience.py::test_p7_regime_pragmas_and_row_factory
+Resultado COM mutação: returncode=1 (esperado != 0)
+Resultado SEM mutação: returncode=0 (esperado == 0)
+Status: MORTA (OK)
+
+--- [1] EXECUÇÃO COM MUTAÇÃO Rf (VERMELHO) ---
+STDOUT:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_connection_queue_resilience.py::test_p7_regime_pragmas_and_row_factory FAILED [100%]
+
+================================== FAILURES ===================================
+___________________ test_p7_regime_pragmas_and_row_factory ____________________
+tests\test_connection_queue_resilience.py:314: in test_p7_regime_pragmas_and_row_factory
+    assert busy_timeout == 5000, f"Invariante violado: busy_timeout de regime deve ser 5000, obteve {busy_timeout}"
+E   AssertionError: Invariante violado: busy_timeout de regime deve ser 5000, obteve 1500
+E   assert 1500 == 5000
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_connection_queue_resilience.py::test_p7_regime_pragmas_and_row_factory
+======================== 1 failed, 1 warning in 4.80s =========================
+
+STDERR:
+
+--- [2] EXECUÇÃO SEM MUTAÇÃO Rf (VERDE) ---
+STDOUT:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_connection_queue_resilience.py::test_p7_regime_pragmas_and_row_factory PASSED [100%]
+
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 1 warning in 5.99s =========================
+
+STDERR:
+

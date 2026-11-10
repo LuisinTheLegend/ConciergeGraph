@@ -1,0 +1,71 @@
+=== MUTAÇÃO Rd: Sem propagar o erro de partida (_startup_error nao armazenado/propagado para start/submit) ===
+Alvo: storage/connection.py
+Teste: tests/test_connection_queue_resilience.py::test_p1_connect_persistent_locked_fails_fast
+Resultado COM mutação: returncode=1 (esperado != 0)
+Resultado SEM mutação: returncode=0 (esperado == 0)
+Status: MORTA (OK)
+
+--- [1] EXECUÇÃO COM MUTAÇÃO Rd (VERMELHO) ---
+STDOUT:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_connection_queue_resilience.py::test_p1_connect_persistent_locked_fails_fast FAILED [100%]
+
+================================== FAILURES ===================================
+________________ test_p1_connect_persistent_locked_fails_fast _________________
+tests\test_connection_queue_resilience.py:81: in test_p1_connect_persistent_locked_fails_fast
+    with pytest.raises(RuntimeError) as exc_info:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE RuntimeError
+------------------------------ Captured log call ------------------------------
+WARNING  grafo-concierge.connection:connection.py:271 SerializedWriteQueue startup attempt 1/5 failed with 'database is locked'. Retrying in 0.010s...
+WARNING  grafo-concierge.connection:connection.py:271 SerializedWriteQueue startup attempt 2/5 failed with 'database is locked'. Retrying in 0.020s...
+WARNING  grafo-concierge.connection:connection.py:271 SerializedWriteQueue startup attempt 3/5 failed with 'database is locked'. Retrying in 0.040s...
+WARNING  grafo-concierge.connection:connection.py:271 SerializedWriteQueue startup attempt 4/5 failed with 'database is locked'. Retrying in 0.050s...
+ERROR    grafo-concierge.connection:connection.py:281 SerializedWriteQueue startup failed on attempt 5/5: database is locked
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_connection_queue_resilience.py::test_p1_connect_persistent_locked_fails_fast
+======================== 1 failed, 1 warning in 5.02s =========================
+
+STDERR:
+
+--- [2] EXECUÇÃO SEM MUTAÇÃO Rd (VERDE) ---
+STDOUT:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_connection_queue_resilience.py::test_p1_connect_persistent_locked_fails_fast PASSED [100%]
+
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 1 warning in 3.90s =========================
+
+STDERR:
+

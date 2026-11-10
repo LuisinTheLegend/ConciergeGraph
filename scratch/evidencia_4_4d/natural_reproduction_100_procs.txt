@@ -1,0 +1,248 @@
+=== TENTATIVA DE REPRODUÇÃO NATURAL (BLOCO 1, ITEM 1.4 — RODADA 4.4d) ===
+Sistema Operacional: Windows (win32)
+Python: 3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]
+Limite por processo: 30.0s
+
+--------------------------------------------------------------------------------
+1. EXPERIMENTO A: 100 processos independentes (1 banco novo por processo,
+   3 threads leitoras via get_read_connection() + ConnectionManager.start() + 1 write)
+--------------------------------------------------------------------------------
+- Total de processos executados: 100
+- Tempo total decorrido: 115.93s
+- Hangs (timeouts > 30s): 0 / 100
+- Exceções não-tratadas (returncode != 0): 0 / 100
+- Processos com retries de partida do worker: 21 / 100 (total de linhas de retry: 21)
+- Processos com erros nas threads leitoras: 97 / 100
+
+Detalhes do Experimento A:
+[ExpA proc #0] read_error: READ_ERRORS:OperationalError('database is locked')
+OK:1
+[ExpA proc #1] read_error: READ_ERRORS:OperationalError('database is locked')
+OK:1
+[ExpA proc #2] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #3] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #4] read_error: READ_ERRORS:OperationalError('database is locked')
+OK:1
+[ExpA proc #5] read_error: READ_ERRORS:OperationalError('database is locked')
+OK:1
+[ExpA proc #6] read_error: READ_ERRORS:OperationalError('database is locked')
+OK:1
+[ExpA proc #7] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #8] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #9] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #10] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #11] read_error: READ_ERRORS:OperationalError('database is locked')
+OK:1
+[ExpA proc #12] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #13] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #14] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #15] 1 retry(s): WARNING:grafo-concierge.connection:SerializedWriteQueue startup attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+[ExpA proc #15] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #16] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #17] 1 retry(s): WARNING:grafo-concierge.connection:SerializedWriteQueue startup attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+[ExpA proc #17] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #18] 1 retry(s): WARNING:grafo-concierge.connection:SerializedWriteQueue startup attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+[ExpA proc #18] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #19] read_error: READ_ERRORS:OperationalError('database is locked')
+OK:1
+[ExpA proc #20] 1 retry(s): WARNING:grafo-concierge.connection:SerializedWriteQueue startup attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+[ExpA proc #20] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #21] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #22] read_error: READ_ERRORS:OperationalError('database is locked')
+OK:1
+[ExpA proc #23] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #24] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #25] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #26] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #28] 1 retry(s): WARNING:grafo-concierge.connection:SerializedWriteQueue startup attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+[ExpA proc #28] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #29] 1 retry(s): WARNING:grafo-concierge.connection:SerializedWriteQueue startup attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+[ExpA proc #29] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #30] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #31] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #32] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #33] 1 retry(s): WARNING:grafo-concierge.connection:SerializedWriteQueue startup attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+[ExpA proc #33] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #34] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #35] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #36] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #37] 1 retry(s): WARNING:grafo-concierge.connection:SerializedWriteQueue startup attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+[ExpA proc #37] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #38] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #39] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #40] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #41] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #42] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #43] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #44] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #45] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #46] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #47] 1 retry(s): WARNING:grafo-concierge.connection:SerializedWriteQueue startup attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+[ExpA proc #47] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #48] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #49] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #50] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #51] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #52] 1 retry(s): WARNING:grafo-concierge.connection:SerializedWriteQueue startup attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+[ExpA proc #52] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #53] 1 retry(s): WARNING:grafo-concierge.connection:SerializedWriteQueue startup attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+[ExpA proc #53] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #54] read_error: READ_ERRORS:OperationalError('database is locked')
+OK:1
+[ExpA proc #55] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #56] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #57] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #58] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #59] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #60] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #61] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #62] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #63] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #64] 1 retry(s): WARNING:grafo-concierge.connection:SerializedWriteQueue startup attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+[ExpA proc #64] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #65] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #66] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #67] 1 retry(s): WARNING:grafo-concierge.connection:SerializedWriteQueue startup attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+[ExpA proc #67] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #68] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #69] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #70] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #71] 1 retry(s): WARNING:grafo-concierge.connection:SerializedWriteQueue startup attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+[ExpA proc #71] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #72] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #73] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #74] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #76] 1 retry(s): WARNING:grafo-concierge.connection:SerializedWriteQueue startup attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+[ExpA proc #76] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #77] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #78] 1 retry(s): WARNING:grafo-concierge.connection:SerializedWriteQueue startup attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+[ExpA proc #78] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #79] 1 retry(s): WARNING:grafo-concierge.connection:SerializedWriteQueue startup attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+[ExpA proc #79] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #80] read_error: READ_ERRORS:OperationalError('database is locked')
+OK:1
+[ExpA proc #81] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #82] read_error: READ_ERRORS:OperationalError('database is locked')
+OK:1
+[ExpA proc #83] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #84] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #85] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #86] 1 retry(s): WARNING:grafo-concierge.connection:SerializedWriteQueue startup attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+[ExpA proc #86] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #87] 1 retry(s): WARNING:grafo-concierge.connection:SerializedWriteQueue startup attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+[ExpA proc #87] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #88] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #89] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #90] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #91] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #93] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #94] 1 retry(s): WARNING:grafo-concierge.connection:SerializedWriteQueue startup attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+[ExpA proc #94] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #95] 1 retry(s): WARNING:grafo-concierge.connection:SerializedWriteQueue startup attempt 1/5 failed with 'database is locked'. Retrying in 0.050s...
+[ExpA proc #95] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #96] read_error: READ_ERRORS:OperationalError('database is locked')
+OK:1
+[ExpA proc #97] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+[ExpA proc #98] read_error: READ_ERRORS:OperationalError('database is locked')
+OK:1
+[ExpA proc #99] read_error: READ_ERRORS:OperationalError('database is locked');OperationalError('database is locked')
+OK:1
+
+--------------------------------------------------------------------------------
+2. EXPERIMENTO B: 50 pares (100 processos) — 2 processos iniciando o MESMO banco
+   novo simultaneamente (duas instâncias de SqliteStore + 3 threads leitoras + create_project)
+--------------------------------------------------------------------------------
+- Total de pares (bancos compartilhados): 50 (100 processos)
+- Tempo total decorrido: 89.00s
+- Hangs (timeouts > 30s): 0 / 100
+- Exceções de processo (returncode != 0): 0 / 100
+- Processos com retries de partida do worker: 0 / 100 (total de linhas de retry: 0)
+- Processos com erros nas threads leitoras: 0 / 100
+
+Detalhes do Experimento B:
+  (Nenhuma falha, hang ou retry registrado nos 100 processos)
+
+Nota Metodológica: Números reportados de forma estritamente observacional, sem concluir causa.

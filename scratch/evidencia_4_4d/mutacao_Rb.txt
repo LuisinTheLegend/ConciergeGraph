@@ -1,0 +1,72 @@
+=== MUTAÇÃO Rb: Sem checagem de vida no laço do submit (is_alive removido do while) ===
+Alvo: storage/connection.py
+Teste: tests/test_connection_queue_resilience.py::test_p4_worker_late_death_in_loop_notifies_active_pending_and_subsequent
+Resultado COM mutação: returncode=1 (esperado != 0)
+Resultado SEM mutação: returncode=0 (esperado == 0)
+Status: MORTA (OK)
+
+--- [1] EXECUÇÃO COM MUTAÇÃO Rb (VERMELHO) ---
+STDOUT:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_connection_queue_resilience.py::test_p4_worker_late_death_in_loop_notifies_active_pending_and_subsequent FAILED [100%]
+
+================================== FAILURES ===================================
+__ test_p4_worker_late_death_in_loop_notifies_active_pending_and_subsequent ___
+tests\test_connection_queue_resilience.py:236: in test_p4_worker_late_death_in_loop_notifies_active_pending_and_subsequent
+    assert not t_active.is_alive(), "Chamador do job ativo ficou pendurado após morte do worker!"
+E   AssertionError: Chamador do job ativo ficou pendurado após morte do worker!
+E   assert not True
+E    +  where True = is_alive()
+E    +    where is_alive = <Thread(Thread-2 (_caller), started daemon 14376)>.is_alive
+------------------------------ Captured log call ------------------------------
+ERROR    grafo-concierge.connection:connection.py:341 Fatal error in sqlite-writer loop: fatal loop crash in sqlite-writer
+ERROR    grafo-concierge.connection:connection.py:224 Job execution failed: write worker died: fatal loop crash in sqlite-writer
+ERROR    grafo-concierge.connection:connection.py:224 Job execution failed: write worker died: fatal loop crash in sqlite-writer
+ERROR    grafo-concierge.connection:connection.py:224 Job execution failed: write worker died: fatal loop crash in sqlite-writer
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_connection_queue_resilience.py::test_p4_worker_late_death_in_loop_notifies_active_pending_and_subsequent
+======================== 1 failed, 1 warning in 10.91s ========================
+
+STDERR:
+
+--- [2] EXECUÇÃO SEM MUTAÇÃO Rb (VERDE) ---
+STDOUT:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_connection_queue_resilience.py::test_p4_worker_late_death_in_loop_notifies_active_pending_and_subsequent PASSED [100%]
+
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 1 warning in 4.02s =========================
+
+STDERR:
+

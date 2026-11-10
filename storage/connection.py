@@ -53,6 +53,19 @@ class _WriteJob:
 
 
 # ---------------------------------------------------------------------------
+# SerializedWriteQueue — Resilience & Regime Constants (SDD / F4-031)
+# ---------------------------------------------------------------------------
+
+MAX_CONNECT_RETRIES: int = 5
+STARTUP_CONNECT_TIMEOUT_SECONDS: float = 1.5
+INITIAL_BACKOFF_SECONDS: float = 0.05
+MAX_BACKOFF_SECONDS: float = 1.0
+READY_TIMEOUT_SECONDS: float = 10.0
+POLL_INTERVAL_SECONDS: float = 0.05
+REGIME_BUSY_TIMEOUT_MS: int = 5000
+
+
+# ---------------------------------------------------------------------------
 # SerializedWriteQueue — dedicated write thread
 # ---------------------------------------------------------------------------
 
@@ -61,9 +74,13 @@ class SerializedWriteQueue:
 
     Architecture:
         - A daemon thread ('sqlite-writer') consumes _WriteJobs from the queue.
+        - Startup handshake retries transient 'database is locked'/'database is busy'
+          errors with bounded exponential backoff, then restores regime
+          PRAGMA busy_timeout=5000.
         - Each job is executed inside an implicit transaction.
         - In case of error, it rolls back and propagates the exception to the caller.
-        - The caller blocks on job.result_event.wait() until completion.
+        - The caller waits in a short liveness-polling loop (no total execution
+          timeout for running jobs) until completion or worker death.
 
     Lifecycle:
         start() → submit() → ... → stop()
@@ -75,17 +92,51 @@ class SerializedWriteQueue:
         self._thread = threading.Thread(
             target=self._worker, daemon=True, name="sqlite-writer"
         )
+        self._started = False
+        self._stopped = False
         self._running = False
+        self._ready = threading.Event()
+        self._startup_error: Optional[BaseException] = None
+        self._fatal_error: Optional[BaseException] = None
         self._conn: Optional[sqlite3.Connection] = None
 
     def start(self) -> None:
-        """Starts the worker thread. Idempotent (duplicate calls are no-op)."""
-        if self._running:
+        """Starts the worker thread and waits for the startup handshake.
+
+        Idempotent: duplicate calls while running are no-op.
+
+        Raises:
+            RuntimeError: If the startup handshake fails or times out, chained
+                with the underlying startup error.
+        """
+        if (
+            self._started
+            and self._thread.is_alive()
+            and self._startup_error is None
+            and self._fatal_error is None
+        ):
             logger.debug("SerializedWriteQueue is already running for %s", self._db_path)
             return
-        
-        self._running = True
-        self._thread.start()
+
+        if not self._started:
+            self._started = True
+            self._running = True
+            self._thread.start()
+
+        ready_ok = self._ready.wait(timeout=READY_TIMEOUT_SECONDS)
+        if not ready_ok:
+            timeout_err = RuntimeError(
+                f"SerializedWriteQueue failed to complete startup handshake within {READY_TIMEOUT_SECONDS}s"
+            )
+            self._startup_error = timeout_err
+            self._running = False
+            raise timeout_err
+
+        if self._startup_error is not None:
+            raise RuntimeError(
+                f"SerializedWriteQueue startup failed: {self._startup_error}"
+            ) from self._startup_error
+
         logger.info("SerializedWriteQueue started successfully (db: %s)", self._db_path)
 
     def is_empty(self) -> bool:
@@ -98,18 +149,46 @@ class SerializedWriteQueue:
         Args:
             timeout: Maximum seconds to wait for thread join.
         """
-        if not self._running:
+        if not self._started or self._stopped:
             logger.debug("SerializedWriteQueue was already stopped.")
             return
-        
+
         logger.info("Requesting stop of SerializedWriteQueue...")
+        self._stopped = True
         self._running = False
         self._queue.put(None)  # sentinel value to break the loop
-        self._thread.join(timeout=timeout)
+        if self._thread.is_alive():
+            self._thread.join(timeout=timeout)
         logger.info("SerializedWriteQueue finished.")
 
+    def _build_worker_dead_error(self) -> RuntimeError:
+        """Builds a RuntimeError chained with the underlying startup or fatal cause."""
+        cause = (
+            self._fatal_error
+            or self._startup_error
+            or RuntimeError("sqlite-writer thread terminated unexpectedly")
+        )
+        err = RuntimeError(f"write worker died: {cause}")
+        err.__cause__ = cause
+        return err
+
+    def _drain_pending_with_error(self, cause: BaseException) -> None:
+        """Drains all pending jobs from the queue and notifies their callers with error."""
+        while True:
+            try:
+                pending = self._queue.get_nowait()
+            except queue.Empty:
+                break
+            if pending is None:
+                continue
+            if not pending.result_event.is_set():
+                err = RuntimeError(f"write worker died: {cause}")
+                err.__cause__ = cause
+                pending.error = err
+                pending.result_event.set()
+
     def submit(self, fn: Callable, *args: Any, **kwargs: Any) -> Any:
-        """Queues a _WriteJob and blocks until execution completes.
+        """Queues a _WriteJob and blocks until execution completes or worker dies.
 
         Args:
             fn: Callable(conn, *args, **kwargs) to be executed on the writer thread.
@@ -120,73 +199,164 @@ class SerializedWriteQueue:
             The return value of fn.
 
         Raises:
-            RuntimeError: If the queue is not running.
+            RuntimeError: If the queue was not started, was stopped, or if the
+                worker thread died during startup or execution.
             Any exception thrown by fn is re-raised in the calling thread.
         """
-        if not self._running:
+        if not self._started or self._stopped:
             raise RuntimeError("SerializedWriteQueue is not running. Call start() first.")
+
+        if (
+            self._startup_error is not None
+            or self._fatal_error is not None
+            or not self._thread.is_alive()
+        ):
+            raise self._build_worker_dead_error()
 
         job = _WriteJob(fn=fn, args=args, kwargs=kwargs)
         self._queue.put(job)
-        
-        # Blocks until worker thread finishes the job
-        job.result_event.wait()
-        
+
+        # Wait in short liveness-polling increments without imposing a total job timeout
+        while not job.result_event.wait(timeout=POLL_INTERVAL_SECONDS):
+            if not self._thread.is_alive() and not job.result_event.is_set():
+                raise self._build_worker_dead_error()
+
         if job.error is not None:
             logger.error("Job execution failed: %s", job.error)
             raise job.error
-        
+
         return job.result
 
     def _worker(self) -> None:
         """Main loop of the writer thread.
 
-        Opens the write connection with WAL+busy_timeout+foreign_keys,
-        consumes jobs until receiving sentinel (None), and closes the connection
-        in the finally block.
+        Opens the write connection with bounded startup retry on lock contention,
+        restores regime PRAGMAs (WAL, busy_timeout=5000, foreign_keys=ON),
+        consumes jobs until receiving sentinel (None), and drains pending jobs
+        if an unexpected fatal error terminates the loop.
         """
         logger.debug("Worker thread (sqlite-writer) started. Connecting to database...")
-        self._conn = sqlite3.connect(self._db_path)
-        self._conn.row_factory = sqlite3.Row
-        
-        # Performance and robustness settings (Absolute Solidity)
-        self._conn.execute("PRAGMA journal_mode=WAL;")
-        self._conn.execute("PRAGMA busy_timeout=5000;")
-        self._conn.execute("PRAGMA foreign_keys=ON;")
-        
+        conn: Optional[sqlite3.Connection] = None
+
+        for attempt in range(1, MAX_CONNECT_RETRIES + 1):
+            try:
+                conn = sqlite3.connect(
+                    self._db_path, timeout=STARTUP_CONNECT_TIMEOUT_SECONDS
+                )
+                conn.row_factory = sqlite3.Row
+
+                # Handshake PRAGMAs + restore regime busy_timeout=5000ms (Invariant 1)
+                conn.execute("PRAGMA journal_mode=WAL;")
+                conn.execute(f"PRAGMA busy_timeout={REGIME_BUSY_TIMEOUT_MS};")
+                conn.execute("PRAGMA foreign_keys=ON;")
+                self._conn = conn
+                break
+            except sqlite3.OperationalError as exc:
+                if conn is not None:
+                    try:
+                        conn.close()
+                    except Exception as close_exc:
+                        logger.debug("Error closing failed startup connection: %s", close_exc)
+                    conn = None
+
+                msg_lower = str(exc).lower()
+                is_lock_err = (
+                    "database is locked" in msg_lower or "database is busy" in msg_lower
+                )
+                if is_lock_err and attempt < MAX_CONNECT_RETRIES:
+                    backoff = min(
+                        INITIAL_BACKOFF_SECONDS * (2 ** (attempt - 1)),
+                        MAX_BACKOFF_SECONDS,
+                    )
+                    logger.warning(
+                        "SerializedWriteQueue startup attempt %d/%d failed with '%s'. Retrying in %.3fs...",
+                        attempt,
+                        MAX_CONNECT_RETRIES,
+                        exc,
+                        backoff,
+                    )
+                    time.sleep(backoff)
+                    continue
+
+                logger.error(
+                    "SerializedWriteQueue startup failed on attempt %d/%d: %s",
+                    attempt,
+                    MAX_CONNECT_RETRIES,
+                    exc,
+                )
+                self._startup_error = exc
+                self._running = False
+                self._drain_pending_with_error(exc)
+                self._ready.set()
+                return
+            except BaseException as exc:
+                if conn is not None:
+                    try:
+                        conn.close()
+                    except Exception as close_exc:
+                        logger.debug("Error closing failed startup connection: %s", close_exc)
+                    conn = None
+
+                logger.error("SerializedWriteQueue unexpected startup failure: %s", exc)
+                self._startup_error = exc
+                self._running = False
+                self._drain_pending_with_error(exc)
+                self._ready.set()
+                return
+
         logger.debug("Worker thread configured WAL and busy_timeout successfully.")
-        
+        self._ready.set()
+
         try:
             while self._running:
                 try:
-                    # Timeout curto permite verificar self._running periodicamente
                     job = self._queue.get(timeout=0.5)
                 except queue.Empty:
                     continue
-                
+
                 if job is None:
-                    # Sentinel received to stop
                     logger.debug("Worker thread received stop sentinel.")
                     break
-                
+
                 start_time = time.time()
                 try:
-                    # Execute the operation
                     job.result = job.fn(self._conn, *job.args, **job.kwargs)
                     self._conn.commit()
                     duration = (time.time() - start_time) * 1000
                     logger.debug("Job executed successfully in %.2fms", duration)
                 except Exception as exc:
-                    self._conn.rollback()
+                    try:
+                        self._conn.rollback()
+                    except BaseException as rb_exc:
+                        logger.error(
+                            "Fatal error rolling back transaction in sqlite-writer: %s",
+                            rb_exc,
+                        )
+                        raise rb_exc from exc
                     job.error = exc
                     logger.error("Error in write thread (transaction rolled back): %s", exc)
-                finally:
-                    # Signals the calling thread that we finished
                     job.result_event.set()
+                else:
+                    job.result_event.set()
+        except BaseException as fatal_exc:
+            logger.error("Fatal error in sqlite-writer loop: %s", fatal_exc)
+            self._fatal_error = fatal_exc
+            self._running = False
         finally:
-            if self._conn:
+            self._running = False
+            if self._fatal_error is not None:
+                self._drain_pending_with_error(self._fatal_error)
+            elif not self._stopped:
+                self._drain_pending_with_error(
+                    RuntimeError("sqlite-writer terminated unexpectedly")
+                )
+            if self._conn is not None:
                 logger.debug("Closing connection of the worker thread.")
-                self._conn.close()
+                try:
+                    self._conn.close()
+                except Exception as close_exc:
+                    logger.debug("Error closing worker connection: %s", close_exc)
+                self._conn = None
 
 
 # ---------------------------------------------------------------------------
