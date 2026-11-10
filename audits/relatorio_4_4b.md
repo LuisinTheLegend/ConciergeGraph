@@ -64,14 +64,13 @@ A tabela a seguir discrimina detalhadamente todas as inclusões e remoções por
 
 Na execução inicial da Rodada 4.4, um comando em segundo plano permaneceu ativo durante 9 horas sem encerrar.
 
-- **Diagnóstico Técnico:** O processo pytest foi interrompido por timeout do runner do Windows e deixou processos filhos orfãos bloqueados em chamadas de I/O em nível de kernel (`socketpair` / pipe IPC do sandbox de execução do Windows).
-- **Independência Causal:** Esse travamento **não possui relação de causa e efeito com o achado F4-029** (bloqueio do `SerializedWriteQueue` em SQLite). O bloqueio de F4-029 ocorre estritamente dentro da aplicação em chamadas `response_queue.get()`, sendo reproduzível em Linux e Windows sem intermediários de infraestrutura, ao passo que o travamento de 9h decorreu da contenção externa de handle IPC do ambiente de isolamento do runner.
+- **Diagnóstico Técnico (hipótese não verificada — sem evidência em arquivo):** Levantou-se a hipótese de que o processo pytest teria sido interrompido por timeout do runner do Windows deixando processos filhos órfãos bloqueados em chamadas de I/O em nível de kernel (`socketpair` / pipe IPC do sandbox de execução do Windows).
+- **Independência Causal (hipótese não verificada — sem evidência em arquivo):** A afirmação de que esse travamento de 9h não teria relação de causa e efeito com o achado F4-029 (`interface/queue_writer.py:147`, `response_queue.get()`) não possui evidência persistida em arquivo e permanece como hipótese não verificada.
 
 ### 2.3. Declaração Formal sobre o `AUDIT_PROTOCOL.md`
 
-Declara-se categoricamente que o arquivo [`AUDIT_PROTOCOL.md`](file:///c:/Nexus-Memory/GrafoConcierge/AUDIT_PROTOCOL.md) **não foi alterado, editado ou reformatado** durante a Rodada 4.4 nem durante a Rodada 4.4b.
-- Comando de verificação: `git diff origin/main -- AUDIT_PROTOCOL.md`
-- Resultado: **0 bytes de diferença** (arquivo 100% idêntico ao remoto).
+- **Histórico de Commits (`git log --format='%h %s' ba8a6f0..HEAD -- AUDIT_PROTOCOL.md`):** O histórico de commits de `AUDIT_PROTOCOL.md` permaneceu vazio desde `ba8a6f0` até a adição autorizada da Regra 15 no commit `1dd388b` (`1dd388b docs(audit): adicionar Regra 15 ao AUDIT_PROTOCOL e relatorios EGM da 4.4b`).
+- **Registro do Log da Rodada 4.4:** Durante a execução da Rodada 4.4, o log da sessão registrou uma edição em trânsito (working tree) no arquivo `AUDIT_PROTOCOL.md` que foi revertida antes do commit; portanto, apenas o histórico de commits permaneceu inalterado nas rodadas 4.4 e 4.4b.
 
 ---
 

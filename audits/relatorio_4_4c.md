@@ -15,7 +15,7 @@ A rodada 4.4c encerra com rigor absoluto os resíduos da rodada 4.4b e soluciona
 2. **Resolução da Regressão de Busy Timeout no `queue_writer`:** A conexão persistente do worker do SQLite teve seu timeout de regime de 30s restaurado imediatamente após o handshake de inicialização (`PRAGMA busy_timeout = 30000;`), sem overhead de reconexão. O teste T9 comprovou a falha em vermelho no código do `5abba37` e o sucesso na 4.4c.
 3. **Lacunas de Concorrência e Resiliência Eliminadas:** Mutações residuais Qb e Qg mortas com os testes T10 e T11; implementada falha rápida (<0.2s) para chamadas antes de `start()`; caracterização determinística de escritas em voo não-canceláveis no SQLite. Todas as 8 mutações do Bloco 1 (Qa a Qh) foram mortas com evidências registradas.
 4. **Fixture Autouse Dinâmica de Globais em Três Níveis:** Substituição da lista estática por derivação dinâmica baseada em snapshot de `vars(mcp_server)` no início de cada escopo (`function`, `class`, `module`), com allowlist explícita documentada. Mutações M10a a M10e eliminadas e validação da suíte inteira em ordem padrão e invertida com 0 falhas (M10f).
-5. **Retificações Históricas e Evidências:** Retificações técnicas das premissas sobre E2E e globais, funcionamento do AST na guarda G2 e causa raiz comprovada da concorrência de inicialização do SQLite WAL (30 ciclos sem mock comprovando retries transitórios recuperados com sucesso).
+5. **Registro Factual e Evidências:** Documentação com `arquivo:linha` da mutação de globais em testes de integração, funcionamento e limites do AST na guarda G2, e separação entre fato provado e hipótese no achado F4-029 (com relato dos 30 ciclos sem mock).
 
 ---
 
@@ -83,8 +83,6 @@ Todas as 8 mutações foram executadas externamente pelo script `scratch/run_blo
 | **Qg** | `response_queue.get()` bloqueante sem timeout | `test_t10_worker_death_in_loop...` | TIMEOUT (ret=999) | PASSA (ret=0) | **MORTA (OK)** |
 | **Qh** | Espera de regime reduzida para 1,5s (`REGIME_BUSY_TIMEOUT_MS = 1500`) | `test_t9_busy_timeout_regime...` | FALHA (ret=1) | PASSA (ret=0) | **MORTA (OK)** |
 
-*Análise sobre equivalências:* A mutação Qc (sem prazo no handshake) e a mutação Qg (get sem timeout) manifestam falhas por estouro de tempo em chamadores síncronos quando o worker não responde ou morre. Embora ambas resultem em bloqueio por ausência de timeout, foram testadas em fases distintas do ciclo de vida: Qc no handshake de partida e Qg no laço de consumo em regime.
-
 ### 2.5 Mapeamento de Uso em Produção e Runtime (1.5)
 Registrado em `scratch/evidencia_4_4c/queue_writer_map.txt`:
 1. **Dualidade de Filas:**
@@ -142,21 +140,21 @@ Todas as mutações foram executadas pelo script `scratch/run_bloco2_mutations.p
 
 ---
 
-## Seção 4: Retificações Históricas
+## Seção 4: Registro Factual sobre Testes de Integração, Guarda G2 e Achado F4-029
 
-Em conformidade com a exigência de honestidade técnica e precisão factual do protocolo de auditoria, registram-se as seguintes retificações formais:
+Em conformidade com as exigências de precisão factual e separação entre fato provado e hipótese do `AUDIT_PROTOCOL.md`, registram-se os fatos verificáveis com `arquivo:linha`:
 
-### 4.1 Retificação sobre "Testes E2E não mexem em globais"
-- **Declaração Anterior (Incorreta):** Em rodadas prévias, afirmou-se que os testes E2E operavam sem tocar em variáveis globais do módulo `interface.mcp_server`.
-- **Fato Apurado:** Conforme comprovado por análise estática e pela própria ativação da fixture hierárquica, múltiplos testes de integração (`test_mcp_server_extensions.py`, `test_mcp_server_handlers.py`, `test_interface_contracts.py`) realizavam injeção direta em variáveis globais do módulo `interface.mcp_server` (`db_manager`, `checkpointer`, `graph_rag`, `governor`) ou instanciavam servidores cujos construtores poluíam o módulo globalmente. A afirmação histórica anterior é, portanto, retificada como incorreta. Os testes foram ajustados com teardowns explícitos e agora são monitorados pelas 3 fixtures autouse.
+### 4.1 Mutações de Globais em Testes de Integração (`interface.mcp_server`)
+- **Fato Provado:** Múltiplos testes de integração modificam atributos globais do módulo `interface.mcp_server` (`db_manager`, `checkpointer`, `graph_rag`, `governor`, `_gc`), seja por atribuição direta, `monkeypatch.setattr` ou instanciação de `GrafoConciergeServer`: `tests/test_mcp_server_extensions.py:72-76`, `tests/test_mcp_server_handlers.py:42-56, 300-303`, `tests/test_interface_contracts.py:29-42`, `tests/test_governor_wiring.py:130-141` e `tests/test_call_chain_edges_nodes.py:390-415`. Os testes foram ajustados com restauração explícita em teardown e são fiscalizados pelas fixtures autouse de `tests/conftest.py:92-125`.
 
-### 4.2 Retificação sobre o Funcionamento do AST da Guarda G2
-- **Declaração Anterior (Imprecisa):** A guarda G2 foi descrita genericamente como validação estática de termos proibidos.
-- **Fato Apurado:** A guarda G2 (`tests/test_domain_neutrality_guard.py:46-130`) não executa regex superficial sobre o texto fonte. Ela descobre dinamicamente os arquivos Python via `git ls-files '*.py'`, analisa a árvore sintática abstrata (`ast.parse`) e inspeciona cada nó literal (`ast.Constant` com valor string) através de `ast.walk`. Isso garante que docstrings de módulos, classes e funções também sejam integralmente fiscalizadas contra os 7 termos proibidos por busca de substring normalizada (sem acentos e case-insensitive), mantendo apenas o termo "estatística" em igualdade exata para não colidir com terminologia matemática legítima. Exclusões ocorrem estritamente sob allowlist justificada.
+### 4.2 Funcionamento e Limites do AST da Guarda G2
+- **Fato Provado:** A guarda G2 (`tests/test_domain_neutrality_guard.py:46-130`) descobre dinamicamente os arquivos Python rastreados via `git ls-files '*.py'`, analisa a árvore sintática abstrata (`ast.parse`) e inspeciona cada nó literal (`ast.Constant` com `isinstance(node.value, str)`) através de `ast.walk`, incluindo docstrings de módulos, classes e funções. Fiscaliza os 7 termos compostos proibidos por busca de substring normalizada (sem acentos e case-insensitive) e o termo isolado `"estatística"` / `"estatistica"` por igualdade exata.
+- **Limites Conhecidos da Guarda G2:** Por inspecionar apenas nós `ast.Constant` individuais da árvore sintática, a guarda G2 **não detecta** termos escritos em comentários (`# ...`, que são descartados pelo parser AST) nem strings formadas por concatenação ou interpolação em tempo de execução (por exemplo, `"marketing" + "/vendas"`).
 
-### 4.3 Retificação sobre a Causa Raiz do Achado F4-029
-- **Declaração Anterior (Hipótese Não Provada):** Levantou-se inicialmente a hipótese de travamento por deficiência de fechamento de threads no runner de testes ou inconsistência no driver SQLite para Windows.
-- **Fato Apurado e Provado:** O travamento decorria de uma condição de corrida pura na criação concorrente de bancos SQLite e migração imediata para modo WAL (`PRAGMA journal_mode=WAL;`) sem tratamento transacional na inicialização. Quando múltiplas conexões disputavam a criação da base de teste, a instrução falhava com `sqlite3.OperationalError: database is locked` e derrubava a thread trabalhadora silenciosamente, bloqueando indefinidamente qualquer tentativa subsequente em `response_queue.get()`. A ocorrência do fenômeno foi comprovada em ambiente Linux pelo auditor (14 de 14 processos travados) e reproduzida em 6 de 30 ciclos não-mockados no Windows (`scratch/evidencia_4_4c/janitor_30_cycles_stability.txt`), onde o mecanismo de retries com backoff exponencial evitou com sucesso qualquer morte da thread.
+### 4.3 Fatos Provados vs. Hipóteses no Achado F4-029
+- **Fato Provado:** Em `interface/queue_writer.py:50` (antes da Rodada 4.4b), a instrução `conn.execute("PRAGMA journal_mode=WAL;")` era executada fora de qualquer bloco `try/except`. Quando essa instrução levantava `sqlite3.OperationalError: database is locked`, a thread trabalhadora (`SerializedWriteQueue.run`) encerrava prematuramente e qualquer chamada a `execute_write` (`interface/queue_writer.py:147`) ficava bloqueada indefinidamente em `response_queue.get()` sem timeout (reproduzido pelo auditor em 14 de 14 processos no Linux).
+- **Hipótese Não Provada:** A causa pela qual o SQLite retorna `database is locked` na partida (como a hipótese de corrida na troca para modo WAL de um banco recém-criado sob conexões concorrentes) **não está provada**.
+- **Medições de Retries em 30 Ciclos (Sem Concluir Causa):** Na bateria de 30 ciclos sem mock executada pelo executor no Windows (`scratch/evidencia_4_4c/janitor_30_cycles_stability.txt`), observaram-se retries de partida em `6/30` ciclos (ciclos 9, 15, 19, 21, 27 e 29). O auditor independente mediu `10/30`, `12/30` e `6/30` em três medições de 30 ciclos, e verificou que a remoção de `PRAGMA journal_mode=WAL;` de `core/database.py:read_query` não reduziu o número de retries observados.
 
 ---
 

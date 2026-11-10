@@ -502,8 +502,9 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
 ---
 
 ### [F4-029] Travamento Indefinido no Handshake e Espera em response_queue.get() por Morte Silenciosa da Thread Daemon em interface/queue_writer.py
-- **Status:** **corrigido pelo executor, aguardando verificação independente**
-- **Severidade:** 🟠 GRAVE (Só vira CRÍTICA se for reproduzido no caminho de produção).
+- **Status:** **corrigido pelo executor, verificado pelo auditor (Linux, 3.10–3.13)**
+- **Escopo:** Explicitamente restrito a `interface/queue_writer.py`, **sem uso no caminho de produção do servidor (provado por `git grep`)** — o servidor MCP em produção utiliza `main.py` → `SqliteStore` → `ConnectionManager` → `storage/connection.py::SerializedWriteQueue` (tratado em `F4-031`).
+- **Severidade:** 🟠 GRAVE (Restrito a `interface/queue_writer.py`, utilizado em suítes de teste e `ConciergeDatabaseManager` quando instanciado com `write_queue`).
 - **Arquivos & Linhas:** [`interface/queue_writer.py:33-40, 65-73, 267-268, 294-304`](file:///c:/Nexus-Memory/GrafoConcierge/interface/queue_writer.py#L33), [`core/database.py:51, 67`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py#L51), [`tests/test_graph_rag_janitor.py:84`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_graph_rag_janitor.py#L84)
 - **Fato (reproduzido pelo auditor, Linux):**
   Em `interface/queue_writer.py:50`, a instrução `conn.execute("PRAGMA journal_mode=WAL;")` ficava fora de qualquer bloco `try/except`. Quando essa instrução levantava `sqlite3.OperationalError: database is locked`, a thread daemon (`SerializedWriteQueue.run`) morria prematuramente antes de entrar no loop de processamento.
@@ -517,16 +518,16 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
   2. Salvamento de erro em `self._startup_error` e sinalização de prontidão via `threading.Event` (`self._ready`).
   3. Loop não-bloqueante em `execute_write` com timeout total (`EXECUTE_TIMEOUT_SECONDS`), verificando periodicamente se a thread está viva (`self.is_alive()`) e se houve erro de inicialização.
   4. Detecção de morte tardia da thread: descarte com falha dos itens pendentes e falha rápida em chamadas subsequentes, preservando o contrato de retorno `(False, e)`.
-  5. Endurecimento Arquitetural da Fase 2 (EGM): Alinhamento do orçamento de handshake com `STARTUP_CONNECT_TIMEOUT_SECONDS = 1.5s`, checagem estrita de timeout no handshake de `execute_write` com `TimeoutError` descritivo, notificação do lote ativo em falhas de worker, descarte de tarefas com deadline expirado sem gravação zumbi em disco e remoção do comando `PRAGMA journal_mode=WAL;` a cada chamada de `core/database.py:read_query()`.
+  5. Ajustes adicionais no `5abba37`: Alinhamento do orçamento de handshake com `STARTUP_CONNECT_TIMEOUT_SECONDS = 1.5s`, checagem estrita de timeout no handshake de `execute_write` com `TimeoutError` descritivo, notificação do lote ativo em falhas de worker, descarte de tarefas ainda na fila cujo deadline já expirou (nota: uma escrita já em execução no SQLite não é interrompida e continua sendo gravada) e remoção do comando `PRAGMA journal_mode=WAL;` em `core/database.py:read_query()` (nota: a remoção do PRAGMA não reduziu os retries medidos e a causa do lock segue desconhecida).
 - **Regressão Identificada no Commit 5abba37 e Correção Definitiva na Rodada 4.4c:**
   1. *Regressão comprovada pela auditoria independente no 5abba37:* A introdução de `sqlite3.connect(..., timeout=STARTUP_CONNECT_TIMEOUT_SECONDS)` (1.5s) restringiu permanentemente o busy handler da conexão persistente do worker SQLite para 1.5s durante todo o regime de operação. Quando outra conexão externa segurava o lock por 3.0s, o worker no commit `8659813` aguardava os 30s de regime e obtinha sucesso, mas no `5abba37` falhava prematuramente após 1.5s com `database is locked`.
-  2. *Correção na Rodada 4.4c (Bloco 1):*
+  2. *Correção na Rodada 4.4c (Bloco 1 e Bloco 0b):*
      - Constantes nomeadas de resiliência: `STARTUP_CONNECT_TIMEOUT_SECONDS = 1.5` (curto, exclusivo para a janela de conexão e PRAGMAs do handshake) e `REGIME_BUSY_TIMEOUT_MS = 30000` (30s de regime padrão).
      - Imediatamente após a conclusão bem-sucedida do handshake WAL e synchronous, o worker executa `conn.execute(f"PRAGMA busy_timeout = {REGIME_BUSY_TIMEOUT_MS};")`, restaurando a espera de regime de 30s sem o overhead ou risco de reconexão física.
      - Teste T9 (`test_t9_busy_timeout_regime_allows_lock_held_for_3s_to_succeed`): demonstrou em vermelho a regressão no código `5abba37` (falha após 1.5s) e verde no código corrigido (sucesso em ~3.0s). Mutação Qh aplicada e morta.
      - Cobertura de morte no laço e espera limitada: Testes T10 e T11 adicionados, matando as mutações Qb e Qg que sobreviviam na 4.4b.
      - Pré-start e caracterização: `execute_write` falha imediatamente (<0.2s com `RuntimeError`) se a thread sequer foi iniciada (`self.ident is None`), e teste determinístico de caracterização comprova que tarefas já em voo no SQLite completam seu ciclo de escrita mesmo após o chamador sofrer timeout local.
-     - Todas as 8 mutações (Qa a Qh) mortas por testes automatizados com relatórios individuais em `scratch/evidencia_4_4c/`.
+     - Verificado pelo auditor independente em Linux nos Python 3.10–3.13 (após o Bloco 0b no commit `9519e16`).
 
 ---
 
@@ -551,16 +552,19 @@ Em cumprimento à **Regra 2** ("NUNCA reporte um achado sem: (a) arquivo e linha
 
 ---
 
-### [BL-006] Checkpoints Salvos Fora da Fila Serializada SerializedWriteQueue
-- **Status:** **ABERTO (registrado na Rodada 4.3 pelo executor, aguardando priorização e planejamento)**
-- **Severidade Proposta:** 🟡 MÉDIA (Risco de contenção transacional e falhas do tipo `database is locked` sob concorrência de múltiplos agentes ou quando o `JanitorService` / `Store` executam escritas em segundo plano via `SerializedWriteQueue`).
-- **Arquivos & Linhas:** [`core/checkpointer.py:113-114, 139-140, 206-209`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py#L113-L114), [`interface/mcp_server.py:164-166`](file:///c:/Nexus-Memory/GrafoConcierge/interface/mcp_server.py#L164-L166)
-- **Mecanismo da Falha:**
-  Em `core/checkpointer.py`, os métodos de escrita de checkpoints (`save_checkpoint`, `restore_checkpoint`, `_cleanup_old_checkpoints`) invocam `write_fn` diretamente através de reflexão:
-  `write_fn = getattr(self.db, "execute_write", getattr(self.db, "write_query", None))`
-  e realizam chamadas diretas como `write_fn(query, params)`.
-  No MCP Server (`interface/mcp_server.py:166`), a instância de `AgnosticCheckpointer` é conectada a `db_manager` (`ConciergeDatabaseManager`). Se `db_manager` for instanciado sem fila (`write_queue=None`), as escritas abrem conexões efêmeras imediatas (`sqlite3.connect`) fora do controle do thread único de gravação. Mesmo quando há uma fila conectada, a arquitetura mantém dois subsistemas de gravação concorrentes (a fila de `core/database.py` e a fila de `storage/store.py`), violando o princípio do escritor único e criando risco real de bloqueio em cenários de alta frequência de checkpoints.
-- **Justificativa da Severidade (MÉDIA):**
-  Embora o SQLite WAL permita múltiplos leitores concorrentes, ele admite apenas um escritor por vez. Quando múltiplos agentes tentam salvar checkpoints simultaneamente à ingestão ou compactação do Janitor, a escrita direta contorna a política central de serialização transacional do sistema, gerando potenciais exceções e degradação de confiabilidade na retenção de memória de longo prazo dos agentes.
-- **Resolução Recomendada (Para Rodada Futura):**
-  Unificar o canal de persistência do `AgnosticCheckpointer` para utilizar estritamente a fila central de escrita serializada de produção (`SerializedWriteQueue`), padronizando o timeout e o tratamento transacional assíncrono.
+### [F4-031] Fila de Escrita de Produção (`storage/connection.py::SerializedWriteQueue`) Pode Travar Indefinidamente na Partida ou em Morte da Thread Worker
+- **Status:** **corrigido pelo executor, aguardando verificação independente**
+- **Severidade:** 🟠 GRAVE (Aprovada pelo usuário na Rodada 4.4d; afeta o caminho real de produção do servidor MCP: `main.py` → `SqliteStore` → `ConnectionManager` → `storage/connection.py::SerializedWriteQueue`).
+- **Arquivos & Linhas:** [`storage/connection.py:59-190`](file:///c:/Nexus-Memory/GrafoConcierge/storage/connection.py#L59), [`storage/store.py:72-76`](file:///c:/Nexus-Memory/GrafoConcierge/storage/store.py#L72), [`tests/test_connection_queue_resilience.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_connection_queue_resilience.py)
+- **Fato Provado (reproduzido por injeção pelo auditor independente):**
+  1. Em `storage/connection.py` (no commit `9519e16`), o método `_worker` executava `sqlite3.connect(self._db_path)` e os comandos `PRAGMA journal_mode=WAL;`, `PRAGMA busy_timeout=5000;` e `PRAGMA foreign_keys=ON;` fora de qualquer bloco `try/except`. Se `sqlite3.connect` ou qualquer PRAGMA levantasse `sqlite3.OperationalError: database is locked`, a thread `sqlite-writer` morria em silêncio antes de entrar no laço de consumo.
+  2. O método `submit` aguardava em `job.result_event.wait()` sem prazo e sem checar `self._thread.is_alive()`, fazendo `ConnectionManager.write` travar para sempre.
+  3. Caso a thread morresse após a partida (ex.: exceção fora do `except Exception` do job, falha em `rollback()` ou `BaseException`), os jobs pendentes na fila e chamadas subsequentes ficavam sem resposta.
+- **Hipótese Não Provada:**
+  - O gatilho natural de `database is locked` na partida da fila de produção **não foi reproduzido** (0 de 40 processos no Linux pelo auditor; medido também em 100 processos no Windows na Rodada 4.4d sem concluir causa).
+- **Correção Implementada na Rodada 4.4d (Bloco 1):**
+  1. **Partida robusta com handshake sincronizado (`start()`):** `_worker` envolve `sqlite3.connect(..., timeout=STARTUP_CONNECT_TIMEOUT_SECONDS)` e os PRAGMAs em `try/except`, aplicando retry com backoff exponencial limitado (`MAX_CONNECT_RETRIES = 5`, `STARTUP_CONNECT_TIMEOUT_SECONDS = 1.5`, `INITIAL_BACKOFF_SECONDS = 0.05`, `MAX_BACKOFF_SECONDS = 1.0`) exclusivamente para `database is locked` e `database is busy`. Outros erros de `OperationalError` (como `disk I/O error`) falham imediatamente sem retry, fechando a conexão parcial. Em falha definitiva, armazena `self._startup_error`, fecha a conexão, drena jobs pendentes, sinaliza `self._ready.set()` e encerra a thread. `start()` aguarda `self._ready.wait(timeout=READY_TIMEOUT_SECONDS)` (< 10 s) e levanta `RuntimeError` com causa encadeada (`raise RuntimeError(...) from self._startup_error`).
+  2. **Preservação estrita do regime de produção (`PRAGMA busy_timeout=5000`):** Imediatamente após o handshake com timeout curto (1.5 s), o worker aplica `PRAGMA busy_timeout=5000;`, `PRAGMA journal_mode=WAL;` e `PRAGMA foreign_keys=ON;`, mantendo `row_factory = sqlite3.Row` (provado pelo teste P7 e mutação Rf).
+  3. **`submit` sem espera infinita e sem prazo total para jobs em execução:** Substituído `job.result_event.wait()` sem argumentos por espera em laço curto (`POLL_INTERVAL_SECONDS = 0.05`), checando a cada volta se `self._thread.is_alive()` e se houve erro fatal ou de partida. Se o worker morrer sem sinalizar o job, levanta `RuntimeError("write worker died: ...")` com causa encadeada. Jobs longos em execução não sofrem `TimeoutError` artificial (invariante 5, provado por P5 e mutação Rg).
+  4. **Tratamento de morte tardia:** Qualquer falha fatal fora do `except` normal do job (incluindo falha em `rollback()` ou `BaseException`) registra `self._fatal_error`, notifica o job em voo e drena todos os jobs pendentes em `self._queue` no bloco `finally`, fazendo chamadas seguintes a `submit` falharem imediatamente.
+  5. **Validação:** Testes P1 a P9 (nascidos em vermelho contra `9519e16`) e mutações Ra a Rh mortas por script externo, com evidências em `scratch/evidencia_4_4d/`.

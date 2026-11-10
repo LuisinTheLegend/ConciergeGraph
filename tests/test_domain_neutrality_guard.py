@@ -53,6 +53,11 @@ def test_g2_no_retired_domain_strings_in_product_code():
 
     Descoberta dinâmica via git ls-files '*.py' cobrindo main.py, scripts/, core/, storage/, etc.
     Exclusões restritas à allowlist explícita com justificativa de uma linha por item.
+
+    Limites conhecidos da guarda G2:
+    - Comentários Python (# ...) não fazem parte da AST e não são detectados.
+    - Concatenação ou interpolação em tempo de execução (ex.: "marketing" + "/vendas") gera nós
+      separados em ast.Constant e não é detectada pela inspeção estática de literais individuais.
     """
     import subprocess
 
