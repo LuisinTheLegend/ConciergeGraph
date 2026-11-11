@@ -1,8 +1,8 @@
 === VERIFICAÇÃO UTF-8 SEM BOM E SEM BYTES NULOS (RODADA 4.4e) ===
 audits/design_4_4d_connection_queue.md: size=14999 bytes | UTF-8=OK | BOM=False | NULL_BYTES=False
 audits/fase4-achados.md: size=91706 bytes | UTF-8=OK | BOM=False | NULL_BYTES=False
-audits/fase4-roadmap.md: size=25305 bytes | UTF-8=OK | BOM=False | NULL_BYTES=False
-audits/relatorio_4_4e.md: size=56313 bytes | UTF-8=OK | BOM=False | NULL_BYTES=False
+audits/fase4-roadmap.md: size=25292 bytes | UTF-8=OK | BOM=False | NULL_BYTES=False
+audits/relatorio_4_4e.md: size=56314 bytes | UTF-8=OK | BOM=False | NULL_BYTES=False
 scratch/evidencia_4_4e/a1_a3_ts1_ts2_green.txt: size=2836 bytes | UTF-8=OK | BOM=False | NULL_BYTES=False
 scratch/evidencia_4_4e/chromadb_30_runs_investigation.txt: size=436019 bytes | UTF-8=OK | BOM=False | NULL_BYTES=False
 scratch/evidencia_4_4e/ci_status.txt: size=5371 bytes | UTF-8=OK | BOM=False | NULL_BYTES=False
@@ -12,6 +12,7 @@ scratch/evidencia_4_4e/mutacao_So.txt: size=4067 bytes | UTF-8=OK | BOM=False | 
 scratch/evidencia_4_4e/mutacao_Sp.txt: size=3733 bytes | UTF-8=OK | BOM=False | NULL_BYTES=False
 scratch/evidencia_4_4e/mutacao_Sq.txt: size=3785 bytes | UTF-8=OK | BOM=False | NULL_BYTES=False
 scratch/evidencia_4_4e/scan_secrets.txt: size=146 bytes | UTF-8=OK | BOM=False | NULL_BYTES=False
+scratch/evidencia_4_4e/utf8_check.txt: size=1562 bytes | UTF-8=OK | BOM=False | NULL_BYTES=False
 tests/test_connection_queue_resilience.py: size=25554 bytes | UTF-8=OK | BOM=False | NULL_BYTES=False
 
 git diff --name-only a565c4e -- storage/ core/ ingestion/ interface/ services/ main.py:
