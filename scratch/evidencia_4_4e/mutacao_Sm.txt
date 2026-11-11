@@ -1,0 +1,73 @@
+=== MUTAÇÃO Sm: Remover self._conn.commit() no _worker (storage/connection.py:324); A1 deve falhar ===
+Alvo: storage/connection.py
+Teste: tests/test_connection_queue_resilience.py::test_a1_commit_visible_to_external_connection
+Resultado COM mutação (VERMELHO): returncode=1 (esperado != 0)
+Resultado SEM mutação (VERDE): returncode=0 (esperado == 0)
+Status: MORTA (OK)
+
+--- [1] EXECUÇÃO COM MUTAÇÃO Sm (VERMELHO) ---
+STDOUT:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_connection_queue_resilience.py::test_a1_commit_visible_to_external_connection FAILED [100%]
+
+================================== FAILURES ===================================
+________________ test_a1_commit_visible_to_external_connection ________________
+tests\test_connection_queue_resilience.py:398: in test_a1_commit_visible_to_external_connection
+    assert rows == ["visivel_externo"], (
+E   AssertionError: A1 falhou: escrita confirmada deveria estar visível para conexão externa; obteve []
+E   assert [] == ['visivel_externo']
+E     
+E     Right contains one more item: 'visivel_externo'
+E     
+E     Full diff: (-: missing in left side, +: extra in left side)
+E     + []
+E     - [
+E     -     'visivel_externo',
+E     - ]
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_connection_queue_resilience.py::test_a1_commit_visible_to_external_connection
+======================== 1 failed, 1 warning in 0.97s =========================
+
+STDERR:
+
+--- [2] EXECUÇÃO SEM MUTAÇÃO Sm (VERDE) ---
+STDOUT:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_connection_queue_resilience.py::test_a1_commit_visible_to_external_connection PASSED [100%]
+
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 1 warning in 0.23s =========================
+
+STDERR:
+

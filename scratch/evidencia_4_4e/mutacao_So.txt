@@ -1,0 +1,73 @@
+=== MUTAÇÃO So: Interromper laço do worker após falha de um job (storage/connection.py:338); A3 deve falhar ===
+Alvo: storage/connection.py
+Teste: tests/test_connection_queue_resilience.py::test_a3_failed_job_does_not_block_subsequent_jobs
+Resultado COM mutação (VERMELHO): returncode=1 (esperado != 0)
+Resultado SEM mutação (VERDE): returncode=0 (esperado == 0)
+Status: MORTA (OK)
+
+--- [1] EXECUÇÃO COM MUTAÇÃO So (VERMELHO) ---
+STDOUT:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_connection_queue_resilience.py::test_a3_failed_job_does_not_block_subsequent_jobs FAILED [100%]
+
+================================== FAILURES ===================================
+______________ test_a3_failed_job_does_not_block_subsequent_jobs ______________
+RuntimeError: sqlite-writer thread terminated unexpectedly
+
+The above exception was the direct cause of the following exception:
+tests\test_connection_queue_resilience.py:453: in test_a3_failed_job_does_not_block_subsequent_jobs
+    res = q.submit(lambda conn: conn.execute("SELECT 42 AS answer").fetchone()["answer"])
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:222: in submit
+    raise self._build_worker_dead_error()
+E   RuntimeError: write worker died: sqlite-writer thread terminated unexpectedly
+------------------------------ Captured log call ------------------------------
+ERROR    grafo-concierge.connection:connection.py:337 Error in write thread (transaction rolled back): 'erro isolado no job 1'
+ERROR    grafo-concierge.connection:connection.py:225 Job execution failed: 'erro isolado no job 1'
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_connection_queue_resilience.py::test_a3_failed_job_does_not_block_subsequent_jobs
+======================== 1 failed, 1 warning in 1.03s =========================
+
+STDERR:
+
+--- [2] EXECUÇÃO SEM MUTAÇÃO So (VERDE) ---
+STDOUT:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_connection_queue_resilience.py::test_a3_failed_job_does_not_block_subsequent_jobs PASSED [100%]
+
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 1 warning in 0.21s =========================
+
+STDERR:
+

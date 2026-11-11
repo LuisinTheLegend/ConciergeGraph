@@ -370,3 +370,203 @@ def test_p9_sqlitestore_startup_failure_does_not_hang(tmp_db_path):
 
     assert "database is locked" in str(exc_info.value).lower()
 
+
+# ---------------------------------------------------------------------------
+# Bloco 1 (4.4e) — Testes da invariante commit/rollback (A1, A2, A3; mutações Sm e Sn)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.timeout(30)
+def test_a1_commit_visible_to_external_connection(tmp_db_path):
+    """A1 (commit visível): Um job de escrita bem-sucedido em SerializedWriteQueue
+    (storage/connection.py) deve ficar imediatamente visível para OUTRA conexão sqlite3,
+    aberta separadamente, logo após o submit() retornar. Sem self._conn.commit() no worker
+    (mutação Sm), a leitura externa não enxerga a linha inserida.
+    """
+    q = SerializedWriteQueue(tmp_db_path)
+    q.start()
+    try:
+        q.submit(lambda conn: conn.execute("CREATE TABLE t_a1 (id INTEGER PRIMARY KEY, val TEXT)"))
+        q.submit(lambda conn: conn.execute("INSERT INTO t_a1 (val) VALUES ('visivel_externo')"))
+
+        # Abre outra conexão independente enquanto a fila ainda está viva e aberta
+        ext_conn = sqlite3.connect(tmp_db_path)
+        try:
+            rows = [r[0] for r in ext_conn.execute("SELECT val FROM t_a1 ORDER BY id").fetchall()]
+        finally:
+            ext_conn.close()
+
+        assert rows == ["visivel_externo"], (
+            f"A1 falhou: escrita confirmada deveria estar visível para conexão externa; obteve {rows}"
+        )
+    finally:
+        q.stop()
+
+
+@pytest.mark.timeout(30)
+def test_a2_rollback_on_error_prevents_partial_write_leak(tmp_db_path):
+    """A2 (rollback no erro): Um primeiro job insere 'PARCIAL' e levanta ValueError;
+    em seguida, um segundo job insere 'ok' e comita. A tabela deve conter somente ['ok'].
+    Sem self._conn.rollback() no worker (mutação Sn), 'PARCIAL' vaza junto com o commit seguinte.
+    """
+    q = SerializedWriteQueue(tmp_db_path)
+    q.start()
+    try:
+        q.submit(lambda conn: conn.execute("CREATE TABLE t_a2 (id INTEGER PRIMARY KEY AUTOINCREMENT, val TEXT)"))
+
+        def _failing_partial_job(conn):
+            conn.execute("INSERT INTO t_a2 (val) VALUES ('PARCIAL')")
+            raise ValueError("falha intencional apos insercao parcial")
+
+        with pytest.raises(ValueError, match="falha intencional apos insercao parcial"):
+            q.submit(_failing_partial_job)
+
+        # Segundo job insere 'ok' e comita normalmente
+        q.submit(lambda conn: conn.execute("INSERT INTO t_a2 (val) VALUES ('ok')"))
+
+        ext_conn = sqlite3.connect(tmp_db_path)
+        try:
+            rows = [r[0] for r in ext_conn.execute("SELECT val FROM t_a2 ORDER BY id").fetchall()]
+        finally:
+            ext_conn.close()
+
+        assert rows == ["ok"], (
+            f"A2 falhou: linha 'PARCIAL' do job com erro não deveria ter sido comitada; obteve {rows}"
+        )
+    finally:
+        q.stop()
+
+
+@pytest.mark.timeout(30)
+def test_a3_failed_job_does_not_block_subsequent_jobs(tmp_db_path):
+    """A3: A falha de um job (re-levantada no chamador) não impede que o job seguinte
+    seja executado e retorne seu resultado normalmente na mesma fila.
+    """
+    q = SerializedWriteQueue(tmp_db_path)
+    q.start()
+    try:
+        def _bad_job(conn):
+            raise KeyError("erro isolado no job 1")
+
+        with pytest.raises(KeyError, match="erro isolado no job 1"):
+            q.submit(_bad_job)
+
+        res = q.submit(lambda conn: conn.execute("SELECT 42 AS answer").fetchone()["answer"])
+        assert res == 42
+    finally:
+        q.stop()
+
+
+# ---------------------------------------------------------------------------
+# Bloco 4 (4.4e) — Caracterização de start-após-stop e jobs na fila durante stop() (T-S1 e T-S2)
+# ---------------------------------------------------------------------------
+
+class TestStopAndRestartCharacterization:
+    """Caracterização formal da semântica atual de parada (stop) e pós-parada de
+    storage.connection.SerializedWriteQueue (Pedido 4.4e - Bloco 4):
+
+    1. Single-use lifecycle (T-S1 — start() após stop()):
+       Uma instância de SerializedWriteQueue possui ciclo de vida único (`start() -> submit() -> stop()`).
+       Como `start()` verifica `if not self._started:` (`storage/connection.py:121`) e aguarda
+       `self._ready.wait()` (`storage/connection.py:126`, que já permanece sinalizado desde a primeira
+       partida), chamar `start()` novamente após `stop()` retorna silenciosamente sem criar nem iniciar
+       nova thread, e qualquer chamada subsequente a `submit()` levanta imediatamente
+       `RuntimeError("SerializedWriteQueue is not running. Call start() first.")` porque
+       `self._stopped` permanece `True` (`storage/connection.py:157, 204`).
+
+    2. Descarte de jobs enfileirados antes do sentinela de parada (T-S2):
+       Como `stop()` define `self._stopped = True` e `self._running = False` antes de enfileirar o
+       sentinela `None` (`storage/connection.py:157-159`), assim que o job atualmente em execução no
+       `_worker` termina, a condição do laço `while self._running:` (`storage/connection.py:311`)
+       avalia `False` imediatamente, encerrando a thread `sqlite-writer` sem consumir os jobs que
+       aguardavam na fila antes do sentinela. Os chamadores desses jobs pendentes detectam no laço de
+       polling de `submit()` (`storage/connection.py:218-220`) que `not self._thread.is_alive()` e
+       recebem `RuntimeError("write worker died: sqlite-writer thread terminated unexpectedly")`.
+    """
+
+    @pytest.mark.timeout(30)
+    def test_ts1_start_after_stop_returns_silently_and_submit_raises_not_running(self, tmp_db_path):
+        """T-S1: start() chamado depois de stop() retorna silenciosamente (sem reviver a thread),
+        e o submit() seguinte levanta RuntimeError contendo 'not running'.
+        """
+        q = SerializedWriteQueue(tmp_db_path)
+        q.start()
+        assert q._thread.is_alive()
+
+        q.stop()
+        assert not q._thread.is_alive()
+        assert q._stopped is True
+
+        # Chamada a start() após stop() retorna silenciosamente
+        ret = q.start()
+        assert ret is None
+        assert not q._thread.is_alive()
+
+        # O submit() seguinte levanta RuntimeError("SerializedWriteQueue is not running. Call start() first.")
+        with pytest.raises(RuntimeError, match="not running"):
+            q.submit(lambda conn: conn.execute("SELECT 1"))
+
+    @pytest.mark.timeout(30)
+    def test_ts2_jobs_queued_before_stop_sentinel_fail_with_write_worker_died(self, tmp_db_path):
+        """T-S2: Jobs que estavam aguardando na fila antes do sentinela de stop() não são
+        executados quando o laço while self._running encerra após o job ativo, e seus
+        chamadores recebem RuntimeError('write worker died').
+        """
+        q = SerializedWriteQueue(tmp_db_path)
+        q.start()
+
+        job1_started = threading.Event()
+        release_job1 = threading.Event()
+
+        def _active_job(conn):
+            job1_started.set()
+            release_job1.wait(timeout=5.0)
+            return "job1_done"
+
+        active_result: dict[str, Any] = {}
+        t1 = threading.Thread(
+            target=lambda: active_result.setdefault("val", q.submit(_active_job)),
+            daemon=True,
+        )
+        t1.start()
+        assert job1_started.wait(timeout=3.0), "Job 1 deveria ter iniciado no worker"
+
+        # Enfileira job 2 enquanto job 1 ocupa o worker
+        queued_Outcome: dict[str, Any] = {}
+
+        def _queued_caller():
+            try:
+                queued_Outcome["val"] = q.submit(lambda conn: conn.execute("SELECT 2").fetchone()[0])
+            except BaseException as exc:
+                queued_Outcome["err"] = exc
+
+        t2 = threading.Thread(target=_queued_caller, daemon=True)
+        t2.start()
+
+        deadline = time.monotonic() + 2.0
+        while q._queue.qsize() < 1 and time.monotonic() < deadline:
+            time.sleep(0.01)
+        assert q._queue.qsize() == 1, "Job 2 deve estar aguardando na fila antes de stop()"
+
+        # Dispara stop() em thread auxiliar (pois stop() faz join até job 1 liberar)
+        t_stop = threading.Thread(target=q.stop, kwargs={"timeout": 5.0}, daemon=True)
+        t_stop.start()
+
+        # Aguarda stop() marcar _stopped=True e _running=False e enfileirar o sentinela
+        deadline = time.monotonic() + 2.0
+        while not q._stopped and time.monotonic() < deadline:
+            time.sleep(0.01)
+        assert q._stopped is True
+
+        # Libera o job 1 em execução
+        release_job1.set()
+
+        t1.join(timeout=3.0)
+        t2.join(timeout=3.0)
+        t_stop.join(timeout=3.0)
+
+        assert active_result.get("val") == "job1_done"
+        assert "err" in queued_Outcome, "Job 2 enfileirado antes do sentinela deveria falhar ao parar"
+        assert isinstance(queued_Outcome["err"], RuntimeError)
+        assert "write worker died" in str(queued_Outcome["err"]).lower()
+
+

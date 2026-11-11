@@ -1,0 +1,65 @@
+=== MUTAÇÃO Sp: Não marcar self._stopped = True em stop() (storage/connection.py:157); T-S1 deve falhar ===
+Alvo: storage/connection.py
+Teste: tests/test_connection_queue_resilience.py::TestStopAndRestartCharacterization::test_ts1_start_after_stop_returns_silently_and_submit_raises_not_running
+Resultado COM mutação (VERMELHO): returncode=1 (esperado != 0)
+Resultado SEM mutação (VERDE): returncode=0 (esperado == 0)
+Status: MORTA (OK)
+
+--- [1] EXECUÇÃO COM MUTAÇÃO Sp (VERMELHO) ---
+STDOUT:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_connection_queue_resilience.py::TestStopAndRestartCharacterization::test_ts1_start_after_stop_returns_silently_and_submit_raises_not_running FAILED [100%]
+
+================================== FAILURES ===================================
+_ TestStopAndRestartCharacterization.test_ts1_start_after_stop_returns_silently_and_submit_raises_not_running _
+tests\test_connection_queue_resilience.py:497: in test_ts1_start_after_stop_returns_silently_and_submit_raises_not_running
+    assert q._stopped is True
+E   assert False is True
+E    +  where False = <storage.connection.SerializedWriteQueue object at 0x00000238F5131BE0>._stopped
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_connection_queue_resilience.py::TestStopAndRestartCharacterization::test_ts1_start_after_stop_returns_silently_and_submit_raises_not_running
+======================== 1 failed, 1 warning in 0.88s =========================
+
+STDERR:
+
+--- [2] EXECUÇÃO SEM MUTAÇÃO Sp (VERDE) ---
+STDOUT:
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_clean\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_connection_queue_resilience.py::TestStopAndRestartCharacterization::test_ts1_start_after_stop_returns_silently_and_submit_raises_not_running PASSED [100%]
+
+============================== warnings summary ===============================
+.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Nexus-Memory\GrafoConcierge\.venv_clean\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 1 warning in 0.22s =========================
+
+STDERR:
+
