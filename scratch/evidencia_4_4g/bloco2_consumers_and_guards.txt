@@ -1,0 +1,128 @@
+=== BLOCO 2/3 (RODADA 4.4g): CONSUMIDORES DE stress_components E GUARDAS ===
+
+--- py310 (normal) | RC=0 ---
+============================= test session starts =============================
+platform win32 -- Python 3.10.22, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_310\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 13 items
+
+tests/memory_stress_test.py::test_dimension_1 PASSED                     [  7%]
+tests/memory_stress_test.py::test_dimension_2 PASSED                     [ 15%]
+tests/memory_stress_test.py::test_dimension_3 PASSED                     [ 23%]
+tests/memory_stress_test.py::test_dimension_4 PASSED                     [ 30%]
+tests/test_chunk_cache.py::test_chunk_cache_behavior PASSED              [ 38%]
+tests/test_ignore.py::test_safe_ignore_behavior PASSED                   [ 46%]
+tests/test_lightweight.py::test_lightweight_mode_behavior PASSED         [ 53%]
+tests/test_stress_components_reuse.py::test_stress_components_reuse_cycle_characterization PASSED [ 61%]
+tests/test_stress_components_reuse.py::test_bootstrap_uses_distinct_chroma_subdir_per_call PASSED [ 69%]
+tests/test_domain_neutrality_guard.py::test_g1_concierge_config_has_no_wing_keywords PASSED [ 76%]
+tests/test_domain_neutrality_guard.py::test_g2_no_retired_domain_strings_in_product_code PASSED [ 84%]
+tests/test_domain_neutrality_guard.py::test_g3_real_mining_never_alters_primary_wing PASSED [ 92%]
+tests/test_domain_neutrality_guard.py::test_g4_free_text_wings_and_update_project PASSED [100%]
+
+============================= 13 passed in 28.97s =============================
+
+--- py310 (reverse) | RC=0 ---
+============================= test session starts =============================
+platform win32 -- Python 3.10.22, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_310\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 13 items
+
+tests/test_domain_neutrality_guard.py::test_g4_free_text_wings_and_update_project PASSED [  7%]
+tests/test_domain_neutrality_guard.py::test_g3_real_mining_never_alters_primary_wing PASSED [ 15%]
+tests/test_domain_neutrality_guard.py::test_g2_no_retired_domain_strings_in_product_code PASSED [ 23%]
+tests/test_domain_neutrality_guard.py::test_g1_concierge_config_has_no_wing_keywords PASSED [ 30%]
+tests/test_stress_components_reuse.py::test_bootstrap_uses_distinct_chroma_subdir_per_call PASSED [ 38%]
+tests/test_stress_components_reuse.py::test_stress_components_reuse_cycle_characterization PASSED [ 46%]
+tests/test_lightweight.py::test_lightweight_mode_behavior PASSED         [ 53%]
+tests/test_ignore.py::test_safe_ignore_behavior PASSED                   [ 61%]
+tests/test_chunk_cache.py::test_chunk_cache_behavior PASSED              [ 69%]
+tests/memory_stress_test.py::test_dimension_4 PASSED                     [ 76%]
+tests/memory_stress_test.py::test_dimension_3 PASSED                     [ 84%]
+tests/memory_stress_test.py::test_dimension_2 PASSED                     [ 92%]
+tests/memory_stress_test.py::test_dimension_1 PASSED                     [100%]
+
+============================= 13 passed in 25.20s =============================
+
+--- py312 (normal) | RC=0 ---
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 13 items
+
+tests/memory_stress_test.py::test_dimension_1 PASSED                     [  7%]
+tests/memory_stress_test.py::test_dimension_2 PASSED                     [ 15%]
+tests/memory_stress_test.py::test_dimension_3 PASSED                     [ 23%]
+tests/memory_stress_test.py::test_dimension_4 PASSED                     [ 30%]
+tests/test_chunk_cache.py::test_chunk_cache_behavior PASSED              [ 38%]
+tests/test_ignore.py::test_safe_ignore_behavior PASSED                   [ 46%]
+tests/test_lightweight.py::test_lightweight_mode_behavior PASSED         [ 53%]
+tests/test_stress_components_reuse.py::test_stress_components_reuse_cycle_characterization PASSED [ 61%]
+tests/test_stress_components_reuse.py::test_bootstrap_uses_distinct_chroma_subdir_per_call PASSED [ 69%]
+tests/test_domain_neutrality_guard.py::test_g1_concierge_config_has_no_wing_keywords PASSED [ 76%]
+tests/test_domain_neutrality_guard.py::test_g2_no_retired_domain_strings_in_product_code PASSED [ 84%]
+tests/test_domain_neutrality_guard.py::test_g3_real_mining_never_alters_primary_wing PASSED [ 92%]
+tests/test_domain_neutrality_guard.py::test_g4_free_text_wings_and_update_project PASSED [100%]
+
+============================== warnings summary ===============================
+tests/test_domain_neutrality_guard.py::test_g4_free_text_wings_and_update_project
+  C:\Nexus-Memory\GrafoConcierge\storage\store.py:162: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    updates["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 13 passed, 1 warning in 29.12s ========================
+
+--- py312 (reverse) | RC=0 ---
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 13 items
+
+tests/test_domain_neutrality_guard.py::test_g4_free_text_wings_and_update_project PASSED [  7%]
+tests/test_domain_neutrality_guard.py::test_g3_real_mining_never_alters_primary_wing PASSED [ 15%]
+tests/test_domain_neutrality_guard.py::test_g2_no_retired_domain_strings_in_product_code PASSED [ 23%]
+tests/test_domain_neutrality_guard.py::test_g1_concierge_config_has_no_wing_keywords PASSED [ 30%]
+tests/test_stress_components_reuse.py::test_bootstrap_uses_distinct_chroma_subdir_per_call PASSED [ 38%]
+tests/test_stress_components_reuse.py::test_stress_components_reuse_cycle_characterization PASSED [ 46%]
+tests/test_lightweight.py::test_lightweight_mode_behavior PASSED         [ 53%]
+tests/test_ignore.py::test_safe_ignore_behavior PASSED                   [ 61%]
+tests/test_chunk_cache.py::test_chunk_cache_behavior PASSED              [ 69%]
+tests/memory_stress_test.py::test_dimension_4 PASSED                     [ 76%]
+tests/memory_stress_test.py::test_dimension_3 PASSED                     [ 84%]
+tests/memory_stress_test.py::test_dimension_2 PASSED                     [ 92%]
+tests/memory_stress_test.py::test_dimension_1 PASSED                     [100%]
+
+============================== warnings summary ===============================
+tests/test_domain_neutrality_guard.py::test_g4_free_text_wings_and_update_project
+  C:\Nexus-Memory\GrafoConcierge\storage\store.py:162: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    updates["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 13 passed, 1 warning in 27.56s ========================
+
+--- Guarda M10d / check_mcp_globals_leak (Py3.12) | RC=0 ---
+M10d_import: mut1=3, mut2=3, clean=0 -> MORTA (OK)

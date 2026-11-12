@@ -1,0 +1,20 @@
+=== GITHUB ACTIONS CI STATUS (RODADA 4.4g) ===
+
+Referência de falha histórica no 3dccf68 (run 43075938190):
+  Job 130715647420 (Test (Python 3.10)) | status=completed | conclusion=failure | completed_at=2026-11-11T18:18:17Z
+    - Step 7: Run tests with pytest | conclusion=failure | completed_at=2026-11-11T18:18:15Z
+    - Step 13: Post Set up Python 3.10 | conclusion=skipped | completed_at=2026-11-11T18:18:15Z
+  Endpoint logs públicos: HTTP 403 (HTTP Error 403: Forbidden)
+
+Commit 26a43e2 (26a43e2723488f5206c12f639c0a94a7ba3c483d):
+  Workflow: CI (run_id=43134755874, status=completed, conclusion=success)
+    - Job: Test (Python 3.11) (id=130907309022) | status=completed | conclusion=success
+    - Job: Test (Python 3.10) (id=130907309047) | status=completed | conclusion=success
+    - Job: Test (Python 3.12) (id=130907309265) | status=completed | conclusion=success
+  Workflow: Windows Stdin Decouple & Lazy ML Imports (run_id=43134755757, status=completed, conclusion=success)
+    - Job: Windows (3.10) (id=130907310662) | status=completed | conclusion=success
+    - Job: Windows (3.12) (id=130907310839) | status=completed | conclusion=success
+    - Job: Windows (3.14) (id=130907310931) | status=completed | conclusion=success
+  => Resumo 26a43e2: 6/6 jobs verdes (success)
+
+all_completed=True, any_failed=False

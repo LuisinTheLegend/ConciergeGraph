@@ -763,3 +763,8 @@ Consultado via API do GitHub Actions (`scratch/check_ci_status_4_4e.py` -> `scra
 - O erro reproduzido pela colisão de caminhos fixos em execuções paralelas (`sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid` na Sonda 3c do executor em Windows; e `sqlite3.OperationalError: unable to open database file`, `ProjectNotFoundError` e `ValueError: Project not found` na reprodução de 3/4 pares pelo auditor independente em Linux, registrado como `F4-033`) **é diferente** do erro interno intermitente do `chromadb` (`InternalError` / `PanicException` / `sqlite3.OperationalError: no such table: collections`) observado na 1ª tentativa da Rodada 4.4d.
 - A ligação entre os dois permanece estritamente como **hipótese** e não deve ser afirmada como causa: **o `chromadb` intermitente segue aberto, com causa não provada**.
 
+## Adendo (2026-11-11 — Rodada 4.4g, Bloco 4): Falha Sequencial no CI (`F4-034`) Não Explicada por `F4-033`
+
+- No CI do commit `3dccf68` (run `43075938190`, job `Test (Python 3.10)`), ocorreu novamente `ERROR at setup of test_lightweight_mode_behavior` com a pilha `tests/conftest.py:14` (`stress_components`) → `tests/memory_stress_test.py:265` (`bootstrap`) → `storage/vector_store.py:321` (`get_or_create_collection`) → `chromadb.errors.InternalError: ... (code: 1) no such table: acquire_write` (`473 passed, 1 skipped, 1 xfailed, 1 error`).
+- Essa execução ocorreu em **um único processo sequencial**, portanto **não** decorre da colisão paralela entre processos em caminhos fixos tratada em `F4-033`. O erro intermitente do `chromadb` em `stress_components` (`F4-034`) permanece **aberto, com causa não provada**.
+

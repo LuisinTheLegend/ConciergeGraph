@@ -1,0 +1,219 @@
+=== BLOCO 1 (PARTE 1): VERSÕES LOCAIS, CONSUMIDORES DE stress_components E ORDEM DE COLETA ===
+
+--- [1] VERSÕES LOCAIS (Python, chromadb, pytest, SharedSystemClient) ---
+  [py310] Python=3.10.22 (main, Oct  9 2026, 15:18:58) [MSC v.1944 64 bit (AMD64)] | chromadb=1.5.9 | pytest=9.2.0 | has_clear_system_cache=True
+  [py311] Python=3.11.18 (main, Oct 26 2026, 14:08:50) [MSC v.1944 64 bit (AMD64)] | chromadb=1.5.9 | pytest=9.2.0 | has_clear_system_cache=True
+  [py312] Python=3.12.16 (main, Oct 26 2026, 14:10:56) [MSC v.1944 64 bit (AMD64)] | chromadb=1.5.9 | pytest=9.2.0 | has_clear_system_cache=True
+  [py313] Python=3.13.18 (main, Oct 26 2026, 14:10:48) [MSC v.1944 64 bit (AMD64)] | chromadb=1.5.9 | pytest=9.2.0 | has_clear_system_cache=True
+  [py314] Python=3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)] | chromadb=1.5.9 | pytest=9.2.0 | has_clear_system_cache=True
+
+--- [2] FUNÇÕES EM tests/ COM PARÂMETROS DAS FIXTURES DE conftest.py ---
+  tests/memory_stress_test.py:325 def test_dimension_1(store, vector, embedder, manager)
+  tests/memory_stress_test.py:410 def test_dimension_2(store, manager)
+  tests/memory_stress_test.py:445 def test_dimension_3(store, vector, manager, janitor)
+  tests/memory_stress_test.py:505 def test_dimension_4(store, janitor)
+  tests/stress_test_v2_parte1.py:18 def test_dim1(store, vector, embedder)
+  tests/stress_test_v2_parte1.py:169 def test_dim2(store, vector, embedder, manager)
+  tests/stress_test_v2_parte1.py:231 def test_dim3(store, vector, embedder)
+  tests/stress_test_v2_parte2.py:205 def test_dim5(store)
+  tests/stress_test_v2_parte2.py:326 def test_dim6(store)
+  tests/stress_test_v2_parte3.py:147 def test_dim8(store, vector, manager)
+  tests/test_chunk_cache.py:6 def test_chunk_cache_behavior(store, vector, manager)
+  tests/test_ignore.py:5 def test_safe_ignore_behavior(store, manager)
+  tests/test_lightweight.py:10 def test_lightweight_mode_behavior(store, manager)
+
+--- [3] ORDEM NORMAL: ORDEM DE MÓDULOS VIA pytest --collect-only -q  ---
+  01. tests/memory_stress_test.py  <== usa stress_components
+  02. tests/test_adaptive_gating.py
+  03. tests/test_agent_checkpointer.py
+  04. tests/test_agent_checkpoints_schema.py
+  05. tests/test_agent_hsm_coupling.py
+  06. tests/test_alias_tracker.py
+  07. tests/test_call_chain_edges_nodes.py
+  08. tests/test_checkpoint_pruning.py
+  09. tests/test_chunk_cache.py  <== usa stress_components
+  10. tests/test_cognitive_routing_memory.py
+  11. tests/test_concurrency_stress.py
+  12. tests/test_config.py
+  13. tests/test_connection_queue_resilience.py
+  14. tests/test_conversational_db.py
+  15. tests/test_delta_sync.py
+  16. tests/test_delta_sync_drift.py
+  17. tests/test_dependency_injection.py
+  18. tests/test_dependency_pins.py
+  19. tests/test_domain_neutrality_guard.py
+  20. tests/test_durable_checkpoints_timetravel.py
+  21. tests/test_e2e_concierge_integration.py
+  22. tests/test_env_example_provider.py
+  23. tests/test_extraction_noop.py
+  24. tests/test_fts_atomic_migration.py
+  25. tests/test_fts_code_search.py
+  26. tests/test_governor_wiring.py
+  27. tests/test_graph_rag_frugal.py
+  28. tests/test_graph_rag_janitor.py
+  29. tests/test_graph_rag_loops.py
+  30. tests/test_hierarchical_state_machine.py
+  31. tests/test_hsm_transition_hooks_and_delta.py
+  32. tests/test_ignore.py  <== usa stress_components
+  33. tests/test_ingestion_embed_regression.py
+  34. tests/test_ingestion_vector_repair.py
+  35. tests/test_interface_contracts.py
+  36. tests/test_lazy_ml_imports.py
+  37. tests/test_lightweight.py  <== usa stress_components
+  38. tests/test_llm_egress_guard.py
+  39. tests/test_local_graph_rag_recursion.py
+  40. tests/test_mcp_server_extensions.py
+  41. tests/test_mcp_server_handlers.py
+  42. tests/test_multilang_parser.py
+  43. tests/test_no_secrets_in_tracked_files.py
+  44. tests/test_probabilistic_retriever.py
+  45. tests/test_progressive_tool_disclosure.py
+  46. tests/test_project_index.py
+  47. tests/test_queue_writer_batching.py
+  48. tests/test_queue_writer_resilience.py
+  49. tests/test_rate_governor_priority.py
+  50. tests/test_revisor_critico.py
+  51. tests/test_secret_redaction.py
+  52. tests/test_ssh_language_coverage.py
+  53. tests/test_stdin_decouple.py
+  54. tests/test_storage_logic.py
+  55. tests/test_summary_persistence.py
+  56. tests/test_telemetry_api.py
+  57. tests/test_topology.py
+  58. tests/test_vector_reconciler.py
+  59. tests/test_watcher_ignore.py
+
+--- [4] ORDEM NORMAL: EVENTOS SETUP/TEARDOWN DE stress_components EM pytest --setup-plan ---
+  tests\memory_stress_test.py
+      SETUP    M stress_components
+      SETUP    M store (fixtures used: stress_components)
+      SETUP    M vector (fixtures used: stress_components)
+      SETUP    M embedder (fixtures used: stress_components)
+      SETUP    M manager (fixtures used: stress_components)
+          tests/memory_stress_test.py::test_dimension_1 (fixtures used: check_mcp_globals_leak_class, check_mcp_globals_leak_function, check_mcp_globals_leak_module, embedder, manager, store, stress_components, vector)
+          tests/memory_stress_test.py::test_dimension_2 (fixtures used: check_mcp_globals_leak_class, check_mcp_globals_leak_function, check_mcp_globals_leak_module, manager, store, stress_components)
+      SETUP    M janitor (fixtures used: stress_components)
+          tests/memory_stress_test.py::test_dimension_3 (fixtures used: check_mcp_globals_leak_class, check_mcp_globals_leak_function, check_mcp_globals_leak_module, janitor, manager, store, stress_components, vector)
+          tests/memory_stress_test.py::test_dimension_4 (fixtures used: check_mcp_globals_leak_class, check_mcp_globals_leak_function, check_mcp_globals_leak_module, janitor, store, stress_components)
+      TEARDOWN M stress_components
+  tests\test_chunk_cache.py
+      SETUP    M stress_components
+      SETUP    M store (fixtures used: stress_components)
+      SETUP    M vector (fixtures used: stress_components)
+      SETUP    M manager (fixtures used: stress_components)
+          tests/test_chunk_cache.py::test_chunk_cache_behavior (fixtures used: check_mcp_globals_leak_class, check_mcp_globals_leak_function, check_mcp_globals_leak_module, manager, store, stress_components, vector)
+      TEARDOWN M stress_components
+          tests/test_delta_sync_drift.py::TestDeltaSyncDrift::test_ignore_docstring_mutations (fixtures used: _unittest_setUpClass_fixture_TestDeltaSyncDrift, check_mcp_globals_leak_class, check_mcp_globals_leak_function, check_mcp_globals_leak_module, request)
+          tests/test_delta_sync_drift.py::TestDeltaSyncDrift::test_ignore_formatting_and_comments (fixtures used: _unittest_setUpClass_fixture_TestDeltaSyncDrift, check_mcp_globals_leak_class, check_mcp_globals_leak_function, check_mcp_globals_leak_module, request)
+  tests\test_ignore.py
+      SETUP    M stress_components
+      SETUP    M store (fixtures used: stress_components)
+      SETUP    M manager (fixtures used: stress_components)
+          tests/test_ignore.py::test_safe_ignore_behavior (fixtures used: check_mcp_globals_leak_class, check_mcp_globals_leak_function, check_mcp_globals_leak_module, manager, store, stress_components)
+      TEARDOWN M stress_components
+  tests\test_lightweight.py
+      SETUP    M stress_components
+      SETUP    M store (fixtures used: stress_components)
+      SETUP    M manager (fixtures used: stress_components)
+          tests/test_lightweight.py::test_lightweight_mode_behavior (fixtures used: check_mcp_globals_leak_class, check_mcp_globals_leak_function, check_mcp_globals_leak_module, manager, request, store, stress_components, tmp_path, tmp_path_factory)
+      TEARDOWN M stress_components
+
+--- [3] ORDEM INVERTIDA (--reverse): ORDEM DE MÓDULOS VIA pytest --collect-only -q --reverse ---
+  01. tests/test_watcher_ignore.py
+  02. tests/test_vector_reconciler.py
+  03. tests/test_topology.py
+  04. tests/test_telemetry_api.py
+  05. tests/test_summary_persistence.py
+  06. tests/test_storage_logic.py
+  07. tests/test_stdin_decouple.py
+  08. tests/test_ssh_language_coverage.py
+  09. tests/test_secret_redaction.py
+  10. tests/test_revisor_critico.py
+  11. tests/test_rate_governor_priority.py
+  12. tests/test_queue_writer_resilience.py
+  13. tests/test_queue_writer_batching.py
+  14. tests/test_project_index.py
+  15. tests/test_progressive_tool_disclosure.py
+  16. tests/test_probabilistic_retriever.py
+  17. tests/test_no_secrets_in_tracked_files.py
+  18. tests/test_multilang_parser.py
+  19. tests/test_mcp_server_handlers.py
+  20. tests/test_mcp_server_extensions.py
+  21. tests/test_local_graph_rag_recursion.py
+  22. tests/test_llm_egress_guard.py
+  23. tests/test_lightweight.py  <== usa stress_components
+  24. tests/test_lazy_ml_imports.py
+  25. tests/test_interface_contracts.py
+  26. tests/test_ingestion_vector_repair.py
+  27. tests/test_ingestion_embed_regression.py
+  28. tests/test_ignore.py  <== usa stress_components
+  29. tests/test_hsm_transition_hooks_and_delta.py
+  30. tests/test_hierarchical_state_machine.py
+  31. tests/test_graph_rag_loops.py
+  32. tests/test_graph_rag_janitor.py
+  33. tests/test_graph_rag_frugal.py
+  34. tests/test_governor_wiring.py
+  35. tests/test_fts_code_search.py
+  36. tests/test_fts_atomic_migration.py
+  37. tests/test_extraction_noop.py
+  38. tests/test_env_example_provider.py
+  39. tests/test_e2e_concierge_integration.py
+  40. tests/test_durable_checkpoints_timetravel.py
+  41. tests/test_domain_neutrality_guard.py
+  42. tests/test_dependency_pins.py
+  43. tests/test_dependency_injection.py
+  44. tests/test_delta_sync_drift.py
+  45. tests/test_delta_sync.py
+  46. tests/test_conversational_db.py
+  47. tests/test_connection_queue_resilience.py
+  48. tests/test_config.py
+  49. tests/test_concurrency_stress.py
+  50. tests/test_cognitive_routing_memory.py
+  51. tests/test_chunk_cache.py  <== usa stress_components
+  52. tests/test_checkpoint_pruning.py
+  53. tests/test_call_chain_edges_nodes.py
+  54. tests/test_alias_tracker.py
+  55. tests/test_agent_hsm_coupling.py
+  56. tests/test_agent_checkpoints_schema.py
+  57. tests/test_agent_checkpointer.py
+  58. tests/test_adaptive_gating.py
+  59. tests/memory_stress_test.py  <== usa stress_components
+
+--- [4] ORDEM INVERTIDA (--reverse): EVENTOS SETUP/TEARDOWN DE stress_components EM pytest --setup-plan ---
+  tests\test_lightweight.py
+      SETUP    M stress_components
+      SETUP    M store (fixtures used: stress_components)
+      SETUP    M manager (fixtures used: stress_components)
+          tests/test_lightweight.py::test_lightweight_mode_behavior (fixtures used: check_mcp_globals_leak_class, check_mcp_globals_leak_function, check_mcp_globals_leak_module, manager, request, store, stress_components, tmp_path, tmp_path_factory)
+      TEARDOWN M stress_components
+  tests\test_ignore.py
+      SETUP    M stress_components
+      SETUP    M store (fixtures used: stress_components)
+      SETUP    M manager (fixtures used: stress_components)
+          tests/test_ignore.py::test_safe_ignore_behavior (fixtures used: check_mcp_globals_leak_class, check_mcp_globals_leak_function, check_mcp_globals_leak_module, manager, store, stress_components)
+      TEARDOWN M stress_components
+          tests/test_delta_sync_drift.py::TestDeltaSyncDrift::test_ignore_formatting_and_comments (fixtures used: _unittest_setUpClass_fixture_TestDeltaSyncDrift, check_mcp_globals_leak_class, check_mcp_globals_leak_function, check_mcp_globals_leak_module, request)
+          tests/test_delta_sync_drift.py::TestDeltaSyncDrift::test_ignore_docstring_mutations (fixtures used: _unittest_setUpClass_fixture_TestDeltaSyncDrift, check_mcp_globals_leak_class, check_mcp_globals_leak_function, check_mcp_globals_leak_module, request)
+  tests\test_chunk_cache.py
+      SETUP    M stress_components
+      SETUP    M store (fixtures used: stress_components)
+      SETUP    M vector (fixtures used: stress_components)
+      SETUP    M manager (fixtures used: stress_components)
+          tests/test_chunk_cache.py::test_chunk_cache_behavior (fixtures used: check_mcp_globals_leak_class, check_mcp_globals_leak_function, check_mcp_globals_leak_module, manager, store, stress_components, vector)
+      TEARDOWN M stress_components
+  tests\memory_stress_test.py
+      SETUP    M stress_components
+      SETUP    M store (fixtures used: stress_components)
+      SETUP    M janitor (fixtures used: stress_components)
+          tests/memory_stress_test.py::test_dimension_4 (fixtures used: check_mcp_globals_leak_class, check_mcp_globals_leak_function, check_mcp_globals_leak_module, janitor, store, stress_components)
+      SETUP    M vector (fixtures used: stress_components)
+      SETUP    M manager (fixtures used: stress_components)
+          tests/memory_stress_test.py::test_dimension_3 (fixtures used: check_mcp_globals_leak_class, check_mcp_globals_leak_function, check_mcp_globals_leak_module, janitor, manager, store, stress_components, vector)
+          tests/memory_stress_test.py::test_dimension_2 (fixtures used: check_mcp_globals_leak_class, check_mcp_globals_leak_function, check_mcp_globals_leak_module, manager, store, stress_components)
+      SETUP    M embedder (fixtures used: stress_components)
+          tests/memory_stress_test.py::test_dimension_1 (fixtures used: check_mcp_globals_leak_class, check_mcp_globals_leak_function, check_mcp_globals_leak_module, embedder, manager, store, stress_components, vector)
+      TEARDOWN M stress_components
+
+--- [5] NOTA SOBRE pyproject.toml testpaths ---
+  Em pyproject.toml:117-118, testpaths = ['tests'], python_files = ['test_*.py', '*_test.py'].
+  Portanto, `pytest` / `pytest -v --tb=short` (como no .github/workflows/ci.yml:50) coleta AUTOMATICAMENTE todos os módulos test_*.py E *_test.py (incluindo tests/memory_stress_test.py).

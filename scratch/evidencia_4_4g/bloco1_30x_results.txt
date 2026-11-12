@@ -1,0 +1,74 @@
+=== BLOCO 1 (RODADA 4.4g): REPRODUÇÃO EM 30+30 EXECUÇÕES SEQUENCIAIS (ESTADO 26a43e2) ===
+Comando: <python> -m pytest -v --tb=short (ordem normal, env: TOKENIZERS_PARALLELISM=false, GRAFO_LIGHTWEIGHT_MODE=false, HF_HUB_OFFLINE=1)
+Interpretador Py3.10: Python=3.10.22 (main, Oct  9 2026, 15:18:58) [MSC v.1944 64 bit (AMD64)] | chromadb=1.5.9 | pytest=9.2.0
+Interpretador Py3.12: Python=3.12.16 (main, Oct 26 2026, 14:10:56) [MSC v.1944 64 bit (AMD64)] | chromadb=1.5.9 | pytest=9.2.0
+
+--- Execuções em py310 (30x) ---
+  [py310 01/30] PASS (102.65s) | ============ 475 passed, 1 xfailed, 4 warnings in 97.34s (0:01:37) ============
+  [py310 02/30] PASS (98.76s) | ============ 475 passed, 1 xfailed, 4 warnings in 93.79s (0:01:33) ============
+  [py310 03/30] PASS (100.81s) | ============ 475 passed, 1 xfailed, 4 warnings in 95.65s (0:01:35) ============
+  [py310 04/30] PASS (99.54s) | ============ 475 passed, 1 xfailed, 4 warnings in 94.28s (0:01:34) ============
+  [py310 05/30] PASS (100.58s) | ============ 475 passed, 1 xfailed, 4 warnings in 95.46s (0:01:35) ============
+  [py310 06/30] PASS (100.77s) | ============ 475 passed, 1 xfailed, 4 warnings in 95.41s (0:01:35) ============
+  [py310 07/30] PASS (101.62s) | ============ 475 passed, 1 xfailed, 4 warnings in 96.49s (0:01:36) ============
+  [py310 08/30] PASS (99.56s) | ============ 475 passed, 1 xfailed, 4 warnings in 94.49s (0:01:34) ============
+  [py310 09/30] PASS (101.01s) | ============ 475 passed, 1 xfailed, 4 warnings in 95.64s (0:01:35) ============
+  [py310 10/30] PASS (123.22s) | =========== 475 passed, 1 xfailed, 4 warnings in 117.57s (0:01:57) ============
+  [py310 11/30] PASS (115.72s) | =========== 475 passed, 1 xfailed, 4 warnings in 109.87s (0:01:49) ============
+  [py310 12/30] PASS (116.04s) | =========== 475 passed, 1 xfailed, 4 warnings in 109.89s (0:01:49) ============
+  [py310 13/30] PASS (115.20s) | =========== 475 passed, 1 xfailed, 4 warnings in 109.33s (0:01:49) ============
+  [py310 14/30] PASS (112.59s) | =========== 475 passed, 1 xfailed, 4 warnings in 107.73s (0:01:47) ============
+  [py310 15/30] PASS (100.66s) | ============ 475 passed, 1 xfailed, 4 warnings in 95.70s (0:01:35) ============
+  [py310 16/30] PASS (100.19s) | ============ 475 passed, 1 xfailed, 4 warnings in 95.11s (0:01:35) ============
+  [py310 17/30] PASS (106.78s) | =========== 475 passed, 1 xfailed, 4 warnings in 101.34s (0:01:41) ============
+  [py310 18/30] PASS (106.30s) | =========== 475 passed, 1 xfailed, 4 warnings in 100.58s (0:01:40) ============
+  [py310 19/30] PASS (104.80s) | ============ 475 passed, 1 xfailed, 4 warnings in 99.42s (0:01:39) ============
+  [py310 20/30] PASS (107.06s) | =========== 475 passed, 1 xfailed, 4 warnings in 101.57s (0:01:41) ============
+  [py310 21/30] PASS (104.15s) | ============ 475 passed, 1 xfailed, 4 warnings in 98.90s (0:01:38) ============
+  [py310 22/30] PASS (103.95s) | ============ 475 passed, 1 xfailed, 4 warnings in 98.54s (0:01:38) ============
+  [py310 23/30] PASS (104.54s) | ============ 475 passed, 1 xfailed, 4 warnings in 99.30s (0:01:39) ============
+  [py310 24/30] PASS (104.87s) | ============ 475 passed, 1 xfailed, 4 warnings in 99.61s (0:01:39) ============
+  [py310 25/30] PASS (103.09s) | ============ 475 passed, 1 xfailed, 4 warnings in 97.93s (0:01:37) ============
+  [py310 26/30] PASS (100.04s) | ============ 475 passed, 1 xfailed, 4 warnings in 94.93s (0:01:34) ============
+  [py310 27/30] PASS (100.12s) | ============ 475 passed, 1 xfailed, 4 warnings in 95.09s (0:01:35) ============
+  [py310 28/30] PASS (103.12s) | ============ 475 passed, 1 xfailed, 4 warnings in 98.08s (0:01:38) ============
+  [py310 29/30] PASS (103.95s) | ============ 475 passed, 1 xfailed, 4 warnings in 98.51s (0:01:38) ============
+  [py310 30/30] PASS (100.65s) | ============ 475 passed, 1 xfailed, 4 warnings in 95.58s (0:01:35) ============
+=> Resumo py310: total=30, chromadb_InternalError=0, outros_erros=0, total_falhas=0
+
+--- Execuções em py312 (30x) ---
+  [py312 01/30] PASS (100.47s) | =========== 475 passed, 1 xfailed, 21 warnings in 94.78s (0:01:34) ============
+  [py312 02/30] PASS (94.87s) | =========== 475 passed, 1 xfailed, 21 warnings in 89.38s (0:01:29) ============
+  [py312 03/30] PASS (94.95s) | =========== 475 passed, 1 xfailed, 21 warnings in 89.48s (0:01:29) ============
+  [py312 04/30] PASS (95.96s) | =========== 475 passed, 1 xfailed, 21 warnings in 90.62s (0:01:30) ============
+  [py312 05/30] PASS (95.42s) | =========== 475 passed, 1 xfailed, 21 warnings in 89.86s (0:01:29) ============
+  [py312 06/30] PASS (94.83s) | =========== 475 passed, 1 xfailed, 21 warnings in 89.46s (0:01:29) ============
+  [py312 07/30] PASS (93.79s) | =========== 475 passed, 1 xfailed, 21 warnings in 88.45s (0:01:28) ============
+  [py312 08/30] PASS (94.76s) | =========== 475 passed, 1 xfailed, 21 warnings in 89.38s (0:01:29) ============
+  [py312 09/30] PASS (95.31s) | =========== 475 passed, 1 xfailed, 21 warnings in 89.95s (0:01:29) ============
+  [py312 10/30] PASS (95.27s) | =========== 475 passed, 1 xfailed, 21 warnings in 89.80s (0:01:29) ============
+  [py312 11/30] PASS (95.10s) | =========== 475 passed, 1 xfailed, 21 warnings in 89.79s (0:01:29) ============
+  [py312 12/30] PASS (97.10s) | =========== 475 passed, 1 xfailed, 21 warnings in 91.25s (0:01:31) ============
+  [py312 13/30] PASS (97.31s) | =========== 475 passed, 1 xfailed, 21 warnings in 91.67s (0:01:31) ============
+  [py312 14/30] PASS (95.65s) | =========== 475 passed, 1 xfailed, 21 warnings in 90.10s (0:01:30) ============
+  [py312 15/30] PASS (95.33s) | =========== 475 passed, 1 xfailed, 21 warnings in 89.94s (0:01:29) ============
+  [py312 16/30] PASS (94.17s) | =========== 475 passed, 1 xfailed, 21 warnings in 88.83s (0:01:28) ============
+  [py312 17/30] PASS (95.02s) | =========== 475 passed, 1 xfailed, 21 warnings in 89.65s (0:01:29) ============
+  [py312 18/30] PASS (95.13s) | =========== 475 passed, 1 xfailed, 21 warnings in 89.73s (0:01:29) ============
+  [py312 19/30] PASS (95.32s) | =========== 475 passed, 1 xfailed, 21 warnings in 89.85s (0:01:29) ============
+  [py312 20/30] PASS (95.15s) | =========== 475 passed, 1 xfailed, 21 warnings in 89.79s (0:01:29) ============
+  [py312 21/30] PASS (94.50s) | =========== 475 passed, 1 xfailed, 21 warnings in 89.02s (0:01:29) ============
+  [py312 22/30] PASS (95.60s) | =========== 475 passed, 1 xfailed, 21 warnings in 90.23s (0:01:30) ============
+  [py312 23/30] PASS (94.83s) | =========== 475 passed, 1 xfailed, 21 warnings in 89.48s (0:01:29) ============
+  [py312 24/30] PASS (94.96s) | =========== 475 passed, 1 xfailed, 21 warnings in 89.32s (0:01:29) ============
+  [py312 25/30] PASS (94.71s) | =========== 475 passed, 1 xfailed, 21 warnings in 89.36s (0:01:29) ============
+  [py312 26/30] PASS (94.96s) | =========== 475 passed, 1 xfailed, 21 warnings in 89.60s (0:01:29) ============
+  [py312 27/30] PASS (95.91s) | =========== 475 passed, 1 xfailed, 21 warnings in 90.56s (0:01:30) ============
+  [py312 28/30] PASS (95.65s) | =========== 475 passed, 1 xfailed, 21 warnings in 90.32s (0:01:30) ============
+  [py312 29/30] PASS (95.79s) | =========== 475 passed, 1 xfailed, 21 warnings in 90.52s (0:01:30) ============
+  [py312 30/30] PASS (95.16s) | =========== 475 passed, 1 xfailed, 21 warnings in 89.63s (0:01:29) ============
+=> Resumo py312: total=30, chromadb_InternalError=0, outros_erros=0, total_falhas=0
+
+=== CONSOLIDADO FINAL BLOCO 1 ===
+  py310: 0/30 chromadb InternalError | 0/30 outros erros | 0/30 falhas totais
+  py312: 0/30 chromadb InternalError | 0/30 outros erros | 0/30 falhas totais

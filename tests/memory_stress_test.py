@@ -267,8 +267,11 @@ def bootstrap():
     # --- Storage ---
     store = SqliteStore(DB_PATH)
     embedder = EmbeddingManager()  # tier=FLASH por padrão
+    # Endurecimento defensivo (F4-034, causa não provada): subdiretório Chroma exclusivo por chamada
+    # para evitar que clientes consecutivos no mesmo processo reusem o mesmo persist_dir/SharedSystemClient.
+    chroma_dir = os.path.join(CHROMA_PATH, f"run_{uuid.uuid4().hex}")
     vector = ChromaVectorStore(
-        persist_dir=CHROMA_PATH,
+        persist_dir=chroma_dir,
         collection_name="stress_test",
         embedding_manager=embedder,
     )

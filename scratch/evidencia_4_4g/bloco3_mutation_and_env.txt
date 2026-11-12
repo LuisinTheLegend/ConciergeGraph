@@ -1,0 +1,63 @@
+=== BLOCO 3 (RODADA 4.4g): MUTAÇÃO EXTERNA (REINTRODUZIR persist_dir=CHROMA_PATH FIXO EM bootstrap) ===
+Objetivo: comprovar separadamente (a) o comportamento do teste de caracterização do ciclo de reuso e (b) a proteção estrutural da medida defensiva do Bloco 2.
+
+--- COM MUTAÇÃO | tests/test_stress_components_reuse.py::test_stress_components_reuse_cycle_characterization | RC=0 ---
+============================= test session starts =============================
+platform win32 -- Python 3.10.22, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_310\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_stress_components_reuse.py::test_stress_components_reuse_cycle_characterization PASSED [100%]
+
+============================== 1 passed in 0.62s ==============================
+
+--- COM MUTAÇÃO | tests/test_stress_components_reuse.py::test_bootstrap_uses_distinct_chroma_subdir_per_call | RC=1 ---
+============================= test session starts =============================
+platform win32 -- Python 3.10.22, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_310\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_stress_components_reuse.py::test_bootstrap_uses_distinct_chroma_subdir_per_call FAILED [100%]
+
+================================== FAILURES ===================================
+_____________ test_bootstrap_uses_distinct_chroma_subdir_per_call _____________
+tests\test_stress_components_reuse.py:115: in test_bootstrap_uses_distinct_chroma_subdir_per_call
+    assert len(subdirs_1) == 1, f"Esperava 1 subdiretório Chroma exclusivo na 1ª chamada, obteve {subdirs_1}"
+E   AssertionError: Esperava 1 subdiretório Chroma exclusivo na 1ª chamada, obteve set()
+E   assert 0 == 1
+E    +  where 0 = len(set())
+=========================== short test summary info ===========================
+FAILED tests/test_stress_components_reuse.py::test_bootstrap_uses_distinct_chroma_subdir_per_call
+============================== 1 failed in 1.82s ==============================
+
+--- SEM MUTAÇÃO (código corrigido) | tests/test_stress_components_reuse.py | RC=0 ---
+============================= test session starts =============================
+platform win32 -- Python 3.10.22, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_310\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 2 items
+
+tests/test_stress_components_reuse.py::test_stress_components_reuse_cycle_characterization PASSED [ 50%]
+tests/test_stress_components_reuse.py::test_bootstrap_uses_distinct_chroma_subdir_per_call PASSED [100%]
+
+============================== 2 passed in 1.04s ==============================
+
+--- RESTAURAÇÃO DE AMBIENTE ---
+Env restoration OK: after_unset=None, after_true='true'

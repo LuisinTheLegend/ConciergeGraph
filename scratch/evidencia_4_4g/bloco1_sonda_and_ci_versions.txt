@@ -1,0 +1,45 @@
+=== BLOCO 1 (PARTE 3): SONDA LOCAL DE COMPORTAMENTO WINDOWS & CONFIG CI CHROMADB ===
+
+--- Sonda mínima (rmtree no caminho vivo, Windows) em py310 ---
+trial=1 | rmtree_err=PermissionError: [WinError 32] O arquivo já está sendo usado por outro processo: 'C:\\Users\\guial\\AppData\\Local\\Temp\\chroma_min_probe_0_ye1ev1zj\\chroma.sqlite3' | c2_err=None | sqlite_remained_after_ignore_errors=True
+trial=2 | rmtree_err=PermissionError: [WinError 32] O arquivo já está sendo usado por outro processo: 'C:\\Users\\guial\\AppData\\Local\\Temp\\chroma_min_probe_1_meelm8_z\\chroma.sqlite3' | c2_err=None | sqlite_remained_after_ignore_errors=True
+trial=3 | rmtree_err=PermissionError: [WinError 32] O arquivo já está sendo usado por outro processo: 'C:\\Users\\guial\\AppData\\Local\\Temp\\chroma_min_probe_2_3d86730l\\chroma.sqlite3' | c2_err=None | sqlite_remained_after_ignore_errors=True
+
+--- Sonda mínima (rmtree no caminho vivo, Windows) em py312 ---
+trial=1 | rmtree_err=PermissionError: [WinError 32] O arquivo já está sendo usado por outro processo: 'C:\\Users\\guial\\AppData\\Local\\Temp\\chroma_min_probe_0_m6bn3wpy\\chroma.sqlite3' | c2_err=None | sqlite_remained_after_ignore_errors=True
+trial=2 | rmtree_err=PermissionError: [WinError 32] O arquivo já está sendo usado por outro processo: 'C:\\Users\\guial\\AppData\\Local\\Temp\\chroma_min_probe_1_xqnjsgbi\\chroma.sqlite3' | c2_err=None | sqlite_remained_after_ignore_errors=True
+trial=3 | rmtree_err=PermissionError: [WinError 32] O arquivo já está sendo usado por outro processo: 'C:\\Users\\guial\\AppData\\Local\\Temp\\chroma_min_probe_2_tzjt4fyj\\chroma.sqlite3' | c2_err=None | sqlite_remained_after_ignore_errors=True
+
+--- Versão de chromadb nos arquivos do projeto vs local ---
+[pyproject.toml]
+  37: dependencies = [
+  38:     "chromadb>=1.0",
+  39:     "mcp>=1.27,<2",
+  40:     "sentence-transformers>=3.0",
+[requirements.txt]
+  3: # Core System & Framework
+  4: chromadb>=1.0.0
+  5: mcp>=1.27,<2
+  6: sentence-transformers>=3.0.0
+[.github/workflows/ci.yml]
+  30:         python-version: ${{ matrix.python-version }}
+  31:         cache: 'pip'
+  32:         cache-dependency-path: pyproject.toml
+  33: 
+  34:     - name: Prepare test environment
+  35:       run: |
+  36:         cp .env.example .env
+  37: 
+  38:     - name: Install dependencies
+  39:       run: |
+  40:         python -m pip install --upgrade pip
+  41:         pip install -e .[dev]
+  42: 
+  43:     - name: Lint with flake8 (critical errors & syntax)
+  44:       run: |
+  45:         # stop the build if there are Python syntax errors or undefined names
+  46:         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+  47: 
+  48:     - name: Run tests with pytest
+  49:       run: |
+  50:         pytest -v --tb=short
