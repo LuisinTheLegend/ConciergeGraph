@@ -1,0 +1,26 @@
+=== MUTAÇÃO Tb (BLOCO 2 — RODADA 4.4f): Reintroduzir caminho fixo './tmp_chroma_test' em tests/test_lightweight.py:38 ===
+Alvo: tests/test_lightweight.py
+Resultado COM mutação em 5 pares paralelos de test_lightweight.py: 0/5 pares falharam
+Sonda de I/O em modo lightweight: available=False, client=None, dir_created_on_disk=False
+
+Demonstração e Explicação Técnica (conforme exigido pelo Bloco 2):
+1. Em `tests/test_lightweight.py:24`, `os.environ['GRAFO_LIGHTWEIGHT_MODE'] = 'true'` é definido ANTES da
+   chamada `vector_store = ChromaVectorStore(persist_dir=tmp_dir)` na linha 39.
+2. Em `storage/vector_store.py:297-302`, `ChromaVectorStore.__init__` verifica:
+   `if os.environ.get('GRAFO_LIGHTWEIGHT_MODE', 'false').lower() == 'true':`
+   e retorna imediatamente na linha 302 (`self._available = False; self._client = None; return`)
+   ANTES de `Path(resolved_dir).mkdir(parents=True, exist_ok=True)` (`storage/vector_store.py:315`)
+   e ANTES de `chromadb.PersistentClient(path=resolved_dir)` (`storage/vector_store.py:317`).
+3. Consequentemente, como provado pela sonda acima (`dir_created_on_disk=False`), `ChromaVectorStore`
+   em modo lightweight jamais cria, abre ou escreve em `persist_dir` no disco; e o `shutil.rmtree(tmp_dir, ignore_errors=True)`
+   no bloco `finally` (`tests/test_lightweight.py:69`) opera sobre um caminho inexistente.
+4. Antes do isolamento de `TEST_DIR` (`tests/memory_stress_test.py:42`), `test_lightweight.py` colidia em paralelo
+   não por causa de `./tmp_chroma_test`, mas porque na linha 20 (`manager.mine(PROJECT_UUID, PROJECT_DIR, ...)`)
+   ele usa a fixture `store`/`manager` de `conftest.py` (que apontava para `tests/_stress_test_workspace`).
+
+Logs dos 5 pares paralelos com Mutação Tb:
+  [Mutação Tb Par 01/05] ProcA rc=0 (25.57s) | ProcB rc=0 (25.56s)
+  [Mutação Tb Par 02/05] ProcA rc=0 (25.23s) | ProcB rc=0 (25.25s)
+  [Mutação Tb Par 03/05] ProcA rc=0 (25.71s) | ProcB rc=0 (25.68s)
+  [Mutação Tb Par 04/05] ProcA rc=0 (26.17s) | ProcB rc=0 (26.20s)
+  [Mutação Tb Par 05/05] ProcA rc=0 (26.11s) | ProcB rc=0 (26.14s)

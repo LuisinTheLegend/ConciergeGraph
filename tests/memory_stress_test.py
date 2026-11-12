@@ -21,9 +21,11 @@ Pré-requisitos:
 
 from __future__ import annotations
 
+import atexit
 import os
 import shutil
 import sys
+import tempfile
 import time
 import uuid
 
@@ -34,10 +36,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ---------------------------------------------------------------------------
-# Configuração de paths
+# Configuração de paths (diretório exclusivo por execução via tempfile.mkdtemp)
 # ---------------------------------------------------------------------------
 
-TEST_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_stress_test_workspace")
+if not hasattr(sys, "_grafo_stress_test_dir"):
+    sys._grafo_stress_test_dir = tempfile.mkdtemp(prefix=f"grafo_stress_{os.getpid()}_")
+    atexit.register(lambda: shutil.rmtree(sys._grafo_stress_test_dir, ignore_errors=True))
+TEST_DIR = sys._grafo_stress_test_dir
 DB_PATH = os.path.join(TEST_DIR, "stress_test.db")
 CHROMA_PATH = os.path.join(TEST_DIR, "chroma")
 PROJECT_DIR = os.path.join(TEST_DIR, "fake_project")

@@ -1,0 +1,1066 @@
+=== PROVA EM VERMELHO (BLOCO 2 — RODADA 4.4f): 10 PARES PARALELOS DE memory_stress_test.py NO COMMIT 3dccf68 ===
+Commit HEAD: 3dccf68d3085b553efe27a8175e5c5fcac29048d
+Sistema Operacional: Windows 11 (10.0.26300)
+Comando por processo: C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe -m pytest tests/memory_stress_test.py -v --tb=short
+--------------------------------------------------------------------------------
+  [Par 01/10] ProcA=FAIL(rc=1) (18.23s) | ProcB=PASS (51.93s) | Erros=['sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid']
+  [Par 02/10] ProcA=FAIL(rc=1) (7.30s) | ProcB=PASS (27.32s) | Erros=['InternalError', 'chromadb.errors.InternalError: Query error: Database error: error returned from database: (code: 5) database is locked']
+  [Par 03/10] ProcA=PASS (27.10s) | ProcB=FAIL(rc=1) (6.01s) | Erros=['sqlite3.OperationalError: database is locked']
+  [Par 04/10] ProcA=FAIL(rc=1) (7.02s) | ProcB=PASS (27.71s) | Erros=['sqlite3.OperationalError: database is locked']
+  [Par 05/10] ProcA=PASS (27.32s) | ProcB=FAIL(rc=1) (6.99s) | Erros=['sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid']
+  [Par 06/10] ProcA=PASS (27.24s) | ProcB=FAIL(rc=1) (6.87s) | Erros=['sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid']
+  [Par 07/10] ProcA=FAIL(rc=1) (6.28s) | ProcB=PASS (25.93s) | Erros=['sqlite3.OperationalError: database is locked']
+  [Par 08/10] ProcA=PASS (25.63s) | ProcB=FAIL(rc=1) (6.62s) | Erros=['sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid']
+  [Par 09/10] ProcA=FAIL(rc=1) (7.57s) | ProcB=PASS (26.50s) | Erros=['InternalError', 'chromadb.errors.InternalError: error returned from database: (code: 1) table collections already exists']
+  [Par 10/10] ProcA=PASS (25.11s) | ProcB=FAIL(rc=1) (6.04s) | Erros=['sqlite3.OperationalError: database is locked']
+--------------------------------------------------------------------------------
+RESUMO VERMELHO (commit 3dccf68): 10/10 pares paralelos falharam.
+Contagem por tipo de erro observado nos pares com falha:
+  - sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid: 4 par(es)
+  - sqlite3.OperationalError: database is locked: 4 par(es)
+  - InternalError: 2 par(es)
+  - chromadb.errors.InternalError: Query error: Database error: error returned from database: (code: 5) database is locked: 1 par(es)
+  - chromadb.errors.InternalError: error returned from database: (code: 1) table collections already exists: 1 par(es)
+--------------------------------------------------------------------------------
+
+=== TRACEBACKS COMPLETOS DOS PARES COM FALHA ===
+--- Detalhe Par #01 (ProcA rc=1, ProcB rc=0) ---
+[ProcA STDOUT]:
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/memory_stress_test.py::test_dimension_1 ERROR                      [ 25%]
+tests/memory_stress_test.py::test_dimension_2 ERROR                      [ 50%]
+tests/memory_stress_test.py::test_dimension_3 ERROR                      [ 75%]
+tests/memory_stress_test.py::test_dimension_4 ERROR                      [100%]
+
+=================================== ERRORS ====================================
+_____________________ ERROR at setup of test_dimension_1 ______________________
+tests\memory_stress_test.py:272: in bootstrap
+    store.create_project(
+storage\store.py:142: in create_project
+    return self._conn_mgr.write(_do, uuid, folder_name, primary_wing, privacy_level, summary)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:465: in write
+    return self._write_queue.submit(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:226: in submit
+    raise job.error
+storage\connection.py:323: in _worker
+    job.result = job.fn(self._conn, *job.args, **job.kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\store.py:137: in _do
+    conn.execute(
+E   sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid
+----------------------------- Captured log setup ------------------------------
+ERROR    grafo-concierge.connection:connection.py:337 Error in write thread (transaction rolled back): UNIQUE constraint failed: projects.uuid
+ERROR    grafo-concierge.connection:connection.py:225 Job execution failed: UNIQUE constraint failed: projects.uuid
+_____________________ ERROR at setup of test_dimension_2 ______________________
+tests\memory_stress_test.py:272: in bootstrap
+    store.create_project(
+storage\store.py:142: in create_project
+    return self._conn_mgr.write(_do, uuid, folder_name, primary_wing, privacy_level, summary)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:465: in write
+    return self._write_queue.submit(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:226: in submit
+    raise job.error
+storage\connection.py:323: in _worker
+    job.result = job.fn(self._conn, *job.args, **job.kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\store.py:137: in _do
+    conn.execute(
+E   sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid
+_____________________ ERROR at setup of test_dimension_3 ______________________
+tests\memory_stress_test.py:272: in bootstrap
+    store.create_project(
+storage\store.py:142: in create_project
+    return self._conn_mgr.write(_do, uuid, folder_name, primary_wing, privacy_level, summary)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:465: in write
+    return self._write_queue.submit(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:226: in submit
+    raise job.error
+storage\connection.py:323: in _worker
+    job.result = job.fn(self._conn, *job.args, **job.kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\store.py:137: in _do
+    conn.execute(
+E   sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid
+_____________________ ERROR at setup of test_dimension_4 ______________________
+tests\memory_stress_test.py:272: in bootstrap
+    store.create_project(
+storage\store.py:142: in create_project
+    return self._conn_mgr.write(_do, uuid, folder_name, primary_wing, privacy_level, summary)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:465: in write
+    return self._write_queue.submit(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:226: in submit
+    raise job.error
+storage\connection.py:323: in _worker
+    job.result = job.fn(self._conn, *job.args, **job.kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\store.py:137: in _do
+    conn.execute(
+E   sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid
+=========================== short test summary info ===========================
+ERROR tests/memory_stress_test.py::test_dimension_1 - sqlite3.IntegrityError:...
+ERROR tests/memory_stress_test.py::test_dimension_2 - sqlite3.IntegrityError:...
+ERROR tests/memory_stress_test.py::test_dimension_3 - sqlite3.IntegrityError:...
+ERROR tests/memory_stress_test.py::test_dimension_4 - sqlite3.IntegrityError:...
+============================== 4 errors in 3.59s ==============================
+
+[ProcB STDOUT]:
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/memory_stress_test.py::test_dimension_1 PASSED                     [ 25%]
+tests/memory_stress_test.py::test_dimension_2 PASSED                     [ 50%]
+tests/memory_stress_test.py::test_dimension_3 PASSED                     [ 75%]
+tests/memory_stress_test.py::test_dimension_4 PASSED                     [100%]
+
+============================= 4 passed in 35.86s ==============================
+
+
+--- Detalhe Par #02 (ProcA rc=1, ProcB rc=0) ---
+[ProcA STDOUT]:
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/memory_stress_test.py::test_dimension_1 ERROR                      [ 25%]
+tests/memory_stress_test.py::test_dimension_2 ERROR                      [ 50%]
+tests/memory_stress_test.py::test_dimension_3 ERROR                      [ 75%]
+tests/memory_stress_test.py::test_dimension_4 ERROR                      [100%]
+
+=================================== ERRORS ====================================
+_____________________ ERROR at setup of test_dimension_1 ______________________
+tests\memory_stress_test.py:265: in bootstrap
+    vector = ChromaVectorStore(
+storage\vector_store.py:317: in __init__
+    self._client = chromadb.PersistentClient(
+.venv_312\Lib\site-packages\chromadb\__init__.py:228: in PersistentClient
+    return ClientCreator(tenant=tenant, database=database, settings=settings)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv_312\Lib\site-packages\chromadb\api\client.py:69: in __init__
+    super().__init__(settings=settings)
+.venv_312\Lib\site-packages\chromadb\api\shared_system_client.py:25: in __init__
+    SharedSystemClient._create_system_if_not_exists(self._identifier, settings)
+.venv_312\Lib\site-packages\chromadb\api\shared_system_client.py:39: in _create_system_if_not_exists
+    new_system.start()
+.venv_312\Lib\site-packages\chromadb\config.py:467: in start
+    component.start()
+.venv_312\Lib\site-packages\chromadb\api\rust.py:122: in start
+    self.bindings = chromadb_rust_bindings.Bindings(
+E   chromadb.errors.InternalError: Query error: Database error: error returned from database: (code: 5) database is locked
+_____________________ ERROR at setup of test_dimension_2 ______________________
+tests\memory_stress_test.py:265: in bootstrap
+    vector = ChromaVectorStore(
+storage\vector_store.py:317: in __init__
+    self._client = chromadb.PersistentClient(
+.venv_312\Lib\site-packages\chromadb\__init__.py:228: in PersistentClient
+    return ClientCreator(tenant=tenant, database=database, settings=settings)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv_312\Lib\site-packages\chromadb\api\client.py:69: in __init__
+    super().__init__(settings=settings)
+.venv_312\Lib\site-packages\chromadb\api\shared_system_client.py:25: in __init__
+    SharedSystemClient._create_system_if_not_exists(self._identifier, settings)
+.venv_312\Lib\site-packages\chromadb\api\shared_system_client.py:39: in _create_system_if_not_exists
+    new_system.start()
+.venv_312\Lib\site-packages\chromadb\config.py:467: in start
+    component.start()
+.venv_312\Lib\site-packages\chromadb\api\rust.py:122: in start
+    self.bindings = chromadb_rust_bindings.Bindings(
+E   chromadb.errors.InternalError: Query error: Database error: error returned from database: (code: 5) database is locked
+_____________________ ERROR at setup of test_dimension_3 ______________________
+tests\memory_stress_test.py:265: in bootstrap
+    vector = ChromaVectorStore(
+storage\vector_store.py:317: in __init__
+    self._client = chromadb.PersistentClient(
+.venv_312\Lib\site-packages\chromadb\__init__.py:228: in PersistentClient
+    return ClientCreator(tenant=tenant, database=database, settings=settings)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv_312\Lib\site-packages\chromadb\api\client.py:69: in __init__
+    super().__init__(settings=settings)
+.venv_312\Lib\site-packages\chromadb\api\shared_system_client.py:25: in __init__
+    SharedSystemClient._create_system_if_not_exists(self._identifier, settings)
+.venv_312\Lib\site-packages\chromadb\api\shared_system_client.py:39: in _create_system_if_not_exists
+    new_system.start()
+.venv_312\Lib\site-packages\chromadb\config.py:467: in start
+    component.start()
+.venv_312\Lib\site-packages\chromadb\api\rust.py:122: in start
+    self.bindings = chromadb_rust_bindings.Bindings(
+E   chromadb.errors.InternalError: Query error: Database error: error returned from database: (code: 5) database is locked
+_____________________ ERROR at setup of test_dimension_4 ______________________
+tests\memory_stress_test.py:265: in bootstrap
+    vector = ChromaVectorStore(
+storage\vector_store.py:317: in __init__
+    self._client = chromadb.PersistentClient(
+.venv_312\Lib\site-packages\chromadb\__init__.py:228: in PersistentClient
+    return ClientCreator(tenant=tenant, database=database, settings=settings)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv_312\Lib\site-packages\chromadb\api\client.py:69: in __init__
+    super().__init__(settings=settings)
+.venv_312\Lib\site-packages\chromadb\api\shared_system_client.py:25: in __init__
+    SharedSystemClient._create_system_if_not_exists(self._identifier, settings)
+.venv_312\Lib\site-packages\chromadb\api\shared_system_client.py:39: in _create_system_if_not_exists
+    new_system.start()
+.venv_312\Lib\site-packages\chromadb\config.py:467: in start
+    component.start()
+.venv_312\Lib\site-packages\chromadb\api\rust.py:122: in start
+    self.bindings = chromadb_rust_bindings.Bindings(
+E   chromadb.errors.InternalError: Query error: Database error: error returned from database: (code: 5) database is locked
+=========================== short test summary info ===========================
+ERROR tests/memory_stress_test.py::test_dimension_1 - chromadb.errors.Interna...
+ERROR tests/memory_stress_test.py::test_dimension_2 - chromadb.errors.Interna...
+ERROR tests/memory_stress_test.py::test_dimension_3 - chromadb.errors.Interna...
+ERROR tests/memory_stress_test.py::test_dimension_4 - chromadb.errors.Interna...
+============================== 4 errors in 2.61s ==============================
+
+[ProcB STDOUT]:
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/memory_stress_test.py::test_dimension_1 PASSED                     [ 25%]
+tests/memory_stress_test.py::test_dimension_2 PASSED                     [ 50%]
+tests/memory_stress_test.py::test_dimension_3 PASSED                     [ 75%]
+tests/memory_stress_test.py::test_dimension_4 PASSED                     [100%]
+
+============================= 4 passed in 21.21s ==============================
+
+
+--- Detalhe Par #03 (ProcA rc=0, ProcB rc=1) ---
+[ProcA STDOUT]:
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/memory_stress_test.py::test_dimension_1 PASSED                     [ 25%]
+tests/memory_stress_test.py::test_dimension_2 PASSED                     [ 50%]
+tests/memory_stress_test.py::test_dimension_3 PASSED                     [ 75%]
+tests/memory_stress_test.py::test_dimension_4 PASSED                     [100%]
+
+============================= 4 passed in 21.12s ==============================
+
+[ProcB STDOUT]:
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/memory_stress_test.py::test_dimension_1 ERROR                      [ 25%]
+tests/memory_stress_test.py::test_dimension_2 ERROR                      [ 50%]
+tests/memory_stress_test.py::test_dimension_3 ERROR                      [ 75%]
+tests/memory_stress_test.py::test_dimension_4 ERROR                      [100%]
+
+=================================== ERRORS ====================================
+_____________________ ERROR at setup of test_dimension_1 ______________________
+tests\memory_stress_test.py:263: in bootstrap
+    store = SqliteStore(DB_PATH)
+            ^^^^^^^^^^^^^^^^^^^^
+storage\store.py:72: in __init__
+    self._boot_schema(resolved)
+storage\store.py:88: in _boot_schema
+    conn.execute("PRAGMA journal_mode=WAL;")
+E   sqlite3.OperationalError: database is locked
+_____________________ ERROR at setup of test_dimension_2 ______________________
+tests\memory_stress_test.py:263: in bootstrap
+    store = SqliteStore(DB_PATH)
+            ^^^^^^^^^^^^^^^^^^^^
+storage\store.py:72: in __init__
+    self._boot_schema(resolved)
+storage\store.py:88: in _boot_schema
+    conn.execute("PRAGMA journal_mode=WAL;")
+E   sqlite3.OperationalError: database is locked
+_____________________ ERROR at setup of test_dimension_3 ______________________
+tests\memory_stress_test.py:263: in bootstrap
+    store = SqliteStore(DB_PATH)
+            ^^^^^^^^^^^^^^^^^^^^
+storage\store.py:72: in __init__
+    self._boot_schema(resolved)
+storage\store.py:88: in _boot_schema
+    conn.execute("PRAGMA journal_mode=WAL;")
+E   sqlite3.OperationalError: database is locked
+_____________________ ERROR at setup of test_dimension_4 ______________________
+tests\memory_stress_test.py:263: in bootstrap
+    store = SqliteStore(DB_PATH)
+            ^^^^^^^^^^^^^^^^^^^^
+storage\store.py:72: in __init__
+    self._boot_schema(resolved)
+storage\store.py:88: in _boot_schema
+    conn.execute("PRAGMA journal_mode=WAL;")
+E   sqlite3.OperationalError: database is locked
+=========================== short test summary info ===========================
+ERROR tests/memory_stress_test.py::test_dimension_1 - sqlite3.OperationalErro...
+ERROR tests/memory_stress_test.py::test_dimension_2 - sqlite3.OperationalErro...
+ERROR tests/memory_stress_test.py::test_dimension_3 - sqlite3.OperationalErro...
+ERROR tests/memory_stress_test.py::test_dimension_4 - sqlite3.OperationalErro...
+============================== 4 errors in 1.61s ==============================
+
+
+--- Detalhe Par #04 (ProcA rc=1, ProcB rc=0) ---
+[ProcA STDOUT]:
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/memory_stress_test.py::test_dimension_1 ERROR                      [ 25%]
+tests/memory_stress_test.py::test_dimension_2 ERROR                      [ 50%]
+tests/memory_stress_test.py::test_dimension_3 ERROR                      [ 75%]
+tests/memory_stress_test.py::test_dimension_4 ERROR                      [100%]
+
+=================================== ERRORS ====================================
+_____________________ ERROR at setup of test_dimension_1 ______________________
+tests\memory_stress_test.py:263: in bootstrap
+    store = SqliteStore(DB_PATH)
+            ^^^^^^^^^^^^^^^^^^^^
+storage\store.py:72: in __init__
+    self._boot_schema(resolved)
+storage\store.py:88: in _boot_schema
+    conn.execute("PRAGMA journal_mode=WAL;")
+E   sqlite3.OperationalError: database is locked
+_____________________ ERROR at setup of test_dimension_2 ______________________
+tests\memory_stress_test.py:263: in bootstrap
+    store = SqliteStore(DB_PATH)
+            ^^^^^^^^^^^^^^^^^^^^
+storage\store.py:72: in __init__
+    self._boot_schema(resolved)
+storage\store.py:88: in _boot_schema
+    conn.execute("PRAGMA journal_mode=WAL;")
+E   sqlite3.OperationalError: database is locked
+_____________________ ERROR at setup of test_dimension_3 ______________________
+tests\memory_stress_test.py:263: in bootstrap
+    store = SqliteStore(DB_PATH)
+            ^^^^^^^^^^^^^^^^^^^^
+storage\store.py:72: in __init__
+    self._boot_schema(resolved)
+storage\store.py:88: in _boot_schema
+    conn.execute("PRAGMA journal_mode=WAL;")
+E   sqlite3.OperationalError: database is locked
+_____________________ ERROR at setup of test_dimension_4 ______________________
+tests\memory_stress_test.py:263: in bootstrap
+    store = SqliteStore(DB_PATH)
+            ^^^^^^^^^^^^^^^^^^^^
+storage\store.py:72: in __init__
+    self._boot_schema(resolved)
+storage\store.py:88: in _boot_schema
+    conn.execute("PRAGMA journal_mode=WAL;")
+E   sqlite3.OperationalError: database is locked
+=========================== short test summary info ===========================
+ERROR tests/memory_stress_test.py::test_dimension_1 - sqlite3.OperationalErro...
+ERROR tests/memory_stress_test.py::test_dimension_2 - sqlite3.OperationalErro...
+ERROR tests/memory_stress_test.py::test_dimension_3 - sqlite3.OperationalErro...
+ERROR tests/memory_stress_test.py::test_dimension_4 - sqlite3.OperationalErro...
+============================== 4 errors in 1.95s ==============================
+
+[ProcB STDOUT]:
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/memory_stress_test.py::test_dimension_1 PASSED                     [ 25%]
+tests/memory_stress_test.py::test_dimension_2 PASSED                     [ 50%]
+tests/memory_stress_test.py::test_dimension_3 PASSED                     [ 75%]
+tests/memory_stress_test.py::test_dimension_4 PASSED                     [100%]
+
+============================= 4 passed in 21.26s ==============================
+
+
+--- Detalhe Par #05 (ProcA rc=0, ProcB rc=1) ---
+[ProcA STDOUT]:
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/memory_stress_test.py::test_dimension_1 PASSED                     [ 25%]
+tests/memory_stress_test.py::test_dimension_2 PASSED                     [ 50%]
+tests/memory_stress_test.py::test_dimension_3 PASSED                     [ 75%]
+tests/memory_stress_test.py::test_dimension_4 PASSED                     [100%]
+
+============================= 4 passed in 21.21s ==============================
+
+[ProcB STDOUT]:
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/memory_stress_test.py::test_dimension_1 ERROR                      [ 25%]
+tests/memory_stress_test.py::test_dimension_2 ERROR                      [ 50%]
+tests/memory_stress_test.py::test_dimension_3 ERROR                      [ 75%]
+tests/memory_stress_test.py::test_dimension_4 ERROR                      [100%]
+
+=================================== ERRORS ====================================
+_____________________ ERROR at setup of test_dimension_1 ______________________
+tests\memory_stress_test.py:272: in bootstrap
+    store.create_project(
+storage\store.py:142: in create_project
+    return self._conn_mgr.write(_do, uuid, folder_name, primary_wing, privacy_level, summary)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:473: in write
+    return self._write_queue.submit(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:234: in submit
+    raise job.error
+storage\connection.py:331: in _worker
+    job.result = job.fn(self._conn, *job.args, **job.kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\store.py:137: in _do
+    conn.execute(
+E   sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid
+----------------------------- Captured log setup ------------------------------
+ERROR    grafo-concierge.connection:connection.py:345 Error in write thread (transaction rolled back): UNIQUE constraint failed: projects.uuid
+ERROR    grafo-concierge.connection:connection.py:233 Job execution failed: UNIQUE constraint failed: projects.uuid
+_____________________ ERROR at setup of test_dimension_2 ______________________
+tests\memory_stress_test.py:272: in bootstrap
+    store.create_project(
+storage\store.py:142: in create_project
+    return self._conn_mgr.write(_do, uuid, folder_name, primary_wing, privacy_level, summary)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:473: in write
+    return self._write_queue.submit(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:234: in submit
+    raise job.error
+storage\connection.py:331: in _worker
+    job.result = job.fn(self._conn, *job.args, **job.kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\store.py:137: in _do
+    conn.execute(
+E   sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid
+_____________________ ERROR at setup of test_dimension_3 ______________________
+tests\memory_stress_test.py:272: in bootstrap
+    store.create_project(
+storage\store.py:142: in create_project
+    return self._conn_mgr.write(_do, uuid, folder_name, primary_wing, privacy_level, summary)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:473: in write
+    return self._write_queue.submit(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:234: in submit
+    raise job.error
+storage\connection.py:331: in _worker
+    job.result = job.fn(self._conn, *job.args, **job.kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\store.py:137: in _do
+    conn.execute(
+E   sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid
+_____________________ ERROR at setup of test_dimension_4 ______________________
+tests\memory_stress_test.py:272: in bootstrap
+    store.create_project(
+storage\store.py:142: in create_project
+    return self._conn_mgr.write(_do, uuid, folder_name, primary_wing, privacy_level, summary)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:473: in write
+    return self._write_queue.submit(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:234: in submit
+    raise job.error
+storage\connection.py:331: in _worker
+    job.result = job.fn(self._conn, *job.args, **job.kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\store.py:137: in _do
+    conn.execute(
+E   sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid
+=========================== short test summary info ===========================
+ERROR tests/memory_stress_test.py::test_dimension_1 - sqlite3.IntegrityError:...
+ERROR tests/memory_stress_test.py::test_dimension_2 - sqlite3.IntegrityError:...
+ERROR tests/memory_stress_test.py::test_dimension_3 - sqlite3.IntegrityError:...
+ERROR tests/memory_stress_test.py::test_dimension_4 - sqlite3.IntegrityError:...
+============================== 4 errors in 2.24s ==============================
+
+
+--- Detalhe Par #06 (ProcA rc=0, ProcB rc=1) ---
+[ProcA STDOUT]:
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/memory_stress_test.py::test_dimension_1 PASSED                     [ 25%]
+tests/memory_stress_test.py::test_dimension_2 PASSED                     [ 50%]
+tests/memory_stress_test.py::test_dimension_3 PASSED                     [ 75%]
+tests/memory_stress_test.py::test_dimension_4 PASSED                     [100%]
+
+============================= 4 passed in 21.32s ==============================
+
+[ProcB STDOUT]:
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/memory_stress_test.py::test_dimension_1 ERROR                      [ 25%]
+tests/memory_stress_test.py::test_dimension_2 ERROR                      [ 50%]
+tests/memory_stress_test.py::test_dimension_3 ERROR                      [ 75%]
+tests/memory_stress_test.py::test_dimension_4 ERROR                      [100%]
+
+=================================== ERRORS ====================================
+_____________________ ERROR at setup of test_dimension_1 ______________________
+tests\memory_stress_test.py:272: in bootstrap
+    store.create_project(
+storage\store.py:142: in create_project
+    return self._conn_mgr.write(_do, uuid, folder_name, primary_wing, privacy_level, summary)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:473: in write
+    return self._write_queue.submit(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:234: in submit
+    raise job.error
+storage\connection.py:331: in _worker
+    job.result = job.fn(self._conn, *job.args, **job.kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\store.py:137: in _do
+    conn.execute(
+E   sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid
+----------------------------- Captured log setup ------------------------------
+ERROR    grafo-concierge.connection:connection.py:345 Error in write thread (transaction rolled back): UNIQUE constraint failed: projects.uuid
+ERROR    grafo-concierge.connection:connection.py:233 Job execution failed: UNIQUE constraint failed: projects.uuid
+_____________________ ERROR at setup of test_dimension_2 ______________________
+tests\memory_stress_test.py:272: in bootstrap
+    store.create_project(
+storage\store.py:142: in create_project
+    return self._conn_mgr.write(_do, uuid, folder_name, primary_wing, privacy_level, summary)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:473: in write
+    return self._write_queue.submit(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:234: in submit
+    raise job.error
+storage\connection.py:331: in _worker
+    job.result = job.fn(self._conn, *job.args, **job.kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\store.py:137: in _do
+    conn.execute(
+E   sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid
+_____________________ ERROR at setup of test_dimension_3 ______________________
+tests\memory_stress_test.py:272: in bootstrap
+    store.create_project(
+storage\store.py:142: in create_project
+    return self._conn_mgr.write(_do, uuid, folder_name, primary_wing, privacy_level, summary)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:473: in write
+    return self._write_queue.submit(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:234: in submit
+    raise job.error
+storage\connection.py:331: in _worker
+    job.result = job.fn(self._conn, *job.args, **job.kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\store.py:137: in _do
+    conn.execute(
+E   sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid
+_____________________ ERROR at setup of test_dimension_4 ______________________
+tests\memory_stress_test.py:272: in bootstrap
+    store.create_project(
+storage\store.py:142: in create_project
+    return self._conn_mgr.write(_do, uuid, folder_name, primary_wing, privacy_level, summary)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:473: in write
+    return self._write_queue.submit(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:234: in submit
+    raise job.error
+storage\connection.py:331: in _worker
+    job.result = job.fn(self._conn, *job.args, **job.kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\store.py:137: in _do
+    conn.execute(
+E   sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid
+=========================== short test summary info ===========================
+ERROR tests/memory_stress_test.py::test_dimension_1 - sqlite3.IntegrityError:...
+ERROR tests/memory_stress_test.py::test_dimension_2 - sqlite3.IntegrityError:...
+ERROR tests/memory_stress_test.py::test_dimension_3 - sqlite3.IntegrityError:...
+ERROR tests/memory_stress_test.py::test_dimension_4 - sqlite3.IntegrityError:...
+============================== 4 errors in 2.28s ==============================
+
+
+--- Detalhe Par #07 (ProcA rc=1, ProcB rc=0) ---
+[ProcA STDOUT]:
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/memory_stress_test.py::test_dimension_1 ERROR                      [ 25%]
+tests/memory_stress_test.py::test_dimension_2 ERROR                      [ 50%]
+tests/memory_stress_test.py::test_dimension_3 ERROR                      [ 75%]
+tests/memory_stress_test.py::test_dimension_4 ERROR                      [100%]
+
+=================================== ERRORS ====================================
+_____________________ ERROR at setup of test_dimension_1 ______________________
+tests\memory_stress_test.py:263: in bootstrap
+    store = SqliteStore(DB_PATH)
+            ^^^^^^^^^^^^^^^^^^^^
+storage\store.py:72: in __init__
+    self._boot_schema(resolved)
+storage\store.py:88: in _boot_schema
+    conn.execute("PRAGMA journal_mode=WAL;")
+E   sqlite3.OperationalError: database is locked
+_____________________ ERROR at setup of test_dimension_2 ______________________
+tests\memory_stress_test.py:263: in bootstrap
+    store = SqliteStore(DB_PATH)
+            ^^^^^^^^^^^^^^^^^^^^
+storage\store.py:72: in __init__
+    self._boot_schema(resolved)
+storage\store.py:88: in _boot_schema
+    conn.execute("PRAGMA journal_mode=WAL;")
+E   sqlite3.OperationalError: database is locked
+_____________________ ERROR at setup of test_dimension_3 ______________________
+tests\memory_stress_test.py:263: in bootstrap
+    store = SqliteStore(DB_PATH)
+            ^^^^^^^^^^^^^^^^^^^^
+storage\store.py:72: in __init__
+    self._boot_schema(resolved)
+storage\store.py:88: in _boot_schema
+    conn.execute("PRAGMA journal_mode=WAL;")
+E   sqlite3.OperationalError: database is locked
+_____________________ ERROR at setup of test_dimension_4 ______________________
+tests\memory_stress_test.py:263: in bootstrap
+    store = SqliteStore(DB_PATH)
+            ^^^^^^^^^^^^^^^^^^^^
+storage\store.py:72: in __init__
+    self._boot_schema(resolved)
+storage\store.py:88: in _boot_schema
+    conn.execute("PRAGMA journal_mode=WAL;")
+E   sqlite3.OperationalError: database is locked
+=========================== short test summary info ===========================
+ERROR tests/memory_stress_test.py::test_dimension_1 - sqlite3.OperationalErro...
+ERROR tests/memory_stress_test.py::test_dimension_2 - sqlite3.OperationalErro...
+ERROR tests/memory_stress_test.py::test_dimension_3 - sqlite3.OperationalErro...
+ERROR tests/memory_stress_test.py::test_dimension_4 - sqlite3.OperationalErro...
+============================== 4 errors in 1.81s ==============================
+
+[ProcB STDOUT]:
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/memory_stress_test.py::test_dimension_1 PASSED                     [ 25%]
+tests/memory_stress_test.py::test_dimension_2 PASSED                     [ 50%]
+tests/memory_stress_test.py::test_dimension_3 PASSED                     [ 75%]
+tests/memory_stress_test.py::test_dimension_4 PASSED                     [100%]
+
+============================= 4 passed in 20.13s ==============================
+
+
+--- Detalhe Par #08 (ProcA rc=0, ProcB rc=1) ---
+[ProcA STDOUT]:
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/memory_stress_test.py::test_dimension_1 PASSED                     [ 25%]
+tests/memory_stress_test.py::test_dimension_2 PASSED                     [ 50%]
+tests/memory_stress_test.py::test_dimension_3 PASSED                     [ 75%]
+tests/memory_stress_test.py::test_dimension_4 PASSED                     [100%]
+
+============================= 4 passed in 20.03s ==============================
+
+[ProcB STDOUT]:
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/memory_stress_test.py::test_dimension_1 ERROR                      [ 25%]
+tests/memory_stress_test.py::test_dimension_2 ERROR                      [ 50%]
+tests/memory_stress_test.py::test_dimension_3 ERROR                      [ 75%]
+tests/memory_stress_test.py::test_dimension_4 ERROR                      [100%]
+
+=================================== ERRORS ====================================
+_____________________ ERROR at setup of test_dimension_1 ______________________
+tests\memory_stress_test.py:272: in bootstrap
+    store.create_project(
+storage\store.py:142: in create_project
+    return self._conn_mgr.write(_do, uuid, folder_name, primary_wing, privacy_level, summary)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:473: in write
+    return self._write_queue.submit(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:234: in submit
+    raise job.error
+storage\connection.py:331: in _worker
+    job.result = job.fn(self._conn, *job.args, **job.kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\store.py:137: in _do
+    conn.execute(
+E   sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid
+----------------------------- Captured log setup ------------------------------
+ERROR    grafo-concierge.connection:connection.py:345 Error in write thread (transaction rolled back): UNIQUE constraint failed: projects.uuid
+ERROR    grafo-concierge.connection:connection.py:233 Job execution failed: UNIQUE constraint failed: projects.uuid
+_____________________ ERROR at setup of test_dimension_2 ______________________
+tests\memory_stress_test.py:272: in bootstrap
+    store.create_project(
+storage\store.py:142: in create_project
+    return self._conn_mgr.write(_do, uuid, folder_name, primary_wing, privacy_level, summary)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:473: in write
+    return self._write_queue.submit(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:234: in submit
+    raise job.error
+storage\connection.py:331: in _worker
+    job.result = job.fn(self._conn, *job.args, **job.kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\store.py:137: in _do
+    conn.execute(
+E   sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid
+_____________________ ERROR at setup of test_dimension_3 ______________________
+tests\memory_stress_test.py:272: in bootstrap
+    store.create_project(
+storage\store.py:142: in create_project
+    return self._conn_mgr.write(_do, uuid, folder_name, primary_wing, privacy_level, summary)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:473: in write
+    return self._write_queue.submit(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:234: in submit
+    raise job.error
+storage\connection.py:331: in _worker
+    job.result = job.fn(self._conn, *job.args, **job.kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\store.py:137: in _do
+    conn.execute(
+E   sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid
+_____________________ ERROR at setup of test_dimension_4 ______________________
+tests\memory_stress_test.py:272: in bootstrap
+    store.create_project(
+storage\store.py:142: in create_project
+    return self._conn_mgr.write(_do, uuid, folder_name, primary_wing, privacy_level, summary)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:473: in write
+    return self._write_queue.submit(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\connection.py:234: in submit
+    raise job.error
+storage\connection.py:331: in _worker
+    job.result = job.fn(self._conn, *job.args, **job.kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+storage\store.py:137: in _do
+    conn.execute(
+E   sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid
+=========================== short test summary info ===========================
+ERROR tests/memory_stress_test.py::test_dimension_1 - sqlite3.IntegrityError:...
+ERROR tests/memory_stress_test.py::test_dimension_2 - sqlite3.IntegrityError:...
+ERROR tests/memory_stress_test.py::test_dimension_3 - sqlite3.IntegrityError:...
+ERROR tests/memory_stress_test.py::test_dimension_4 - sqlite3.IntegrityError:...
+============================== 4 errors in 2.19s ==============================
+
+
+--- Detalhe Par #09 (ProcA rc=1, ProcB rc=0) ---
+[ProcA STDOUT]:
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/memory_stress_test.py::test_dimension_1 ERROR                      [ 25%]
+tests/memory_stress_test.py::test_dimension_2 ERROR                      [ 50%]
+tests/memory_stress_test.py::test_dimension_3 ERROR                      [ 75%]
+tests/memory_stress_test.py::test_dimension_4 ERROR                      [100%]
+
+=================================== ERRORS ====================================
+_____________________ ERROR at setup of test_dimension_1 ______________________
+tests\memory_stress_test.py:265: in bootstrap
+    vector = ChromaVectorStore(
+storage\vector_store.py:317: in __init__
+    self._client = chromadb.PersistentClient(
+.venv_312\Lib\site-packages\chromadb\__init__.py:228: in PersistentClient
+    return ClientCreator(tenant=tenant, database=database, settings=settings)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv_312\Lib\site-packages\chromadb\api\client.py:69: in __init__
+    super().__init__(settings=settings)
+.venv_312\Lib\site-packages\chromadb\api\shared_system_client.py:25: in __init__
+    SharedSystemClient._create_system_if_not_exists(self._identifier, settings)
+.venv_312\Lib\site-packages\chromadb\api\shared_system_client.py:39: in _create_system_if_not_exists
+    new_system.start()
+.venv_312\Lib\site-packages\chromadb\config.py:467: in start
+    component.start()
+.venv_312\Lib\site-packages\chromadb\api\rust.py:122: in start
+    self.bindings = chromadb_rust_bindings.Bindings(
+E   chromadb.errors.InternalError: error returned from database: (code: 1) table collections already exists
+_____________________ ERROR at setup of test_dimension_2 ______________________
+tests\memory_stress_test.py:265: in bootstrap
+    vector = ChromaVectorStore(
+storage\vector_store.py:317: in __init__
+    self._client = chromadb.PersistentClient(
+.venv_312\Lib\site-packages\chromadb\__init__.py:228: in PersistentClient
+    return ClientCreator(tenant=tenant, database=database, settings=settings)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv_312\Lib\site-packages\chromadb\api\client.py:69: in __init__
+    super().__init__(settings=settings)
+.venv_312\Lib\site-packages\chromadb\api\shared_system_client.py:25: in __init__
+    SharedSystemClient._create_system_if_not_exists(self._identifier, settings)
+.venv_312\Lib\site-packages\chromadb\api\shared_system_client.py:39: in _create_system_if_not_exists
+    new_system.start()
+.venv_312\Lib\site-packages\chromadb\config.py:467: in start
+    component.start()
+.venv_312\Lib\site-packages\chromadb\api\rust.py:122: in start
+    self.bindings = chromadb_rust_bindings.Bindings(
+E   chromadb.errors.InternalError: error returned from database: (code: 1) table collections already exists
+_____________________ ERROR at setup of test_dimension_3 ______________________
+tests\memory_stress_test.py:265: in bootstrap
+    vector = ChromaVectorStore(
+storage\vector_store.py:317: in __init__
+    self._client = chromadb.PersistentClient(
+.venv_312\Lib\site-packages\chromadb\__init__.py:228: in PersistentClient
+    return ClientCreator(tenant=tenant, database=database, settings=settings)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv_312\Lib\site-packages\chromadb\api\client.py:69: in __init__
+    super().__init__(settings=settings)
+.venv_312\Lib\site-packages\chromadb\api\shared_system_client.py:25: in __init__
+    SharedSystemClient._create_system_if_not_exists(self._identifier, settings)
+.venv_312\Lib\site-packages\chromadb\api\shared_system_client.py:39: in _create_system_if_not_exists
+    new_system.start()
+.venv_312\Lib\site-packages\chromadb\config.py:467: in start
+    component.start()
+.venv_312\Lib\site-packages\chromadb\api\rust.py:122: in start
+    self.bindings = chromadb_rust_bindings.Bindings(
+E   chromadb.errors.InternalError: error returned from database: (code: 1) table collections already exists
+_____________________ ERROR at setup of test_dimension_4 ______________________
+tests\memory_stress_test.py:265: in bootstrap
+    vector = ChromaVectorStore(
+storage\vector_store.py:317: in __init__
+    self._client = chromadb.PersistentClient(
+.venv_312\Lib\site-packages\chromadb\__init__.py:228: in PersistentClient
+    return ClientCreator(tenant=tenant, database=database, settings=settings)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv_312\Lib\site-packages\chromadb\api\client.py:69: in __init__
+    super().__init__(settings=settings)
+.venv_312\Lib\site-packages\chromadb\api\shared_system_client.py:25: in __init__
+    SharedSystemClient._create_system_if_not_exists(self._identifier, settings)
+.venv_312\Lib\site-packages\chromadb\api\shared_system_client.py:39: in _create_system_if_not_exists
+    new_system.start()
+.venv_312\Lib\site-packages\chromadb\config.py:467: in start
+    component.start()
+.venv_312\Lib\site-packages\chromadb\api\rust.py:122: in start
+    self.bindings = chromadb_rust_bindings.Bindings(
+E   chromadb.errors.InternalError: error returned from database: (code: 1) table collections already exists
+=========================== short test summary info ===========================
+ERROR tests/memory_stress_test.py::test_dimension_1 - chromadb.errors.Interna...
+ERROR tests/memory_stress_test.py::test_dimension_2 - chromadb.errors.Interna...
+ERROR tests/memory_stress_test.py::test_dimension_3 - chromadb.errors.Interna...
+ERROR tests/memory_stress_test.py::test_dimension_4 - chromadb.errors.Interna...
+============================== 4 errors in 2.74s ==============================
+
+[ProcB STDOUT]:
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/memory_stress_test.py::test_dimension_1 PASSED                     [ 25%]
+tests/memory_stress_test.py::test_dimension_2 PASSED                     [ 50%]
+tests/memory_stress_test.py::test_dimension_3 PASSED                     [ 75%]
+tests/memory_stress_test.py::test_dimension_4 PASSED                     [100%]
+
+============================= 4 passed in 20.35s ==============================
+
+
+--- Detalhe Par #10 (ProcA rc=0, ProcB rc=1) ---
+[ProcA STDOUT]:
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/memory_stress_test.py::test_dimension_1 PASSED                     [ 25%]
+tests/memory_stress_test.py::test_dimension_2 PASSED                     [ 50%]
+tests/memory_stress_test.py::test_dimension_3 PASSED                     [ 75%]
+tests/memory_stress_test.py::test_dimension_4 PASSED                     [100%]
+
+============================= 4 passed in 19.25s ==============================
+
+[ProcB STDOUT]:
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/memory_stress_test.py::test_dimension_1 ERROR                      [ 25%]
+tests/memory_stress_test.py::test_dimension_2 ERROR                      [ 50%]
+tests/memory_stress_test.py::test_dimension_3 ERROR                      [ 75%]
+tests/memory_stress_test.py::test_dimension_4 ERROR                      [100%]
+
+=================================== ERRORS ====================================
+_____________________ ERROR at setup of test_dimension_1 ______________________
+tests\memory_stress_test.py:263: in bootstrap
+    store = SqliteStore(DB_PATH)
+            ^^^^^^^^^^^^^^^^^^^^
+storage\store.py:72: in __init__
+    self._boot_schema(resolved)
+storage\store.py:88: in _boot_schema
+    conn.execute("PRAGMA journal_mode=WAL;")
+E   sqlite3.OperationalError: database is locked
+_____________________ ERROR at setup of test_dimension_2 ______________________
+tests\memory_stress_test.py:263: in bootstrap
+    store = SqliteStore(DB_PATH)
+            ^^^^^^^^^^^^^^^^^^^^
+storage\store.py:72: in __init__
+    self._boot_schema(resolved)
+storage\store.py:88: in _boot_schema
+    conn.execute("PRAGMA journal_mode=WAL;")
+E   sqlite3.OperationalError: database is locked
+_____________________ ERROR at setup of test_dimension_3 ______________________
+tests\memory_stress_test.py:263: in bootstrap
+    store = SqliteStore(DB_PATH)
+            ^^^^^^^^^^^^^^^^^^^^
+storage\store.py:72: in __init__
+    self._boot_schema(resolved)
+storage\store.py:88: in _boot_schema
+    conn.execute("PRAGMA journal_mode=WAL;")
+E   sqlite3.OperationalError: database is locked
+_____________________ ERROR at setup of test_dimension_4 ______________________
+tests\memory_stress_test.py:263: in bootstrap
+    store = SqliteStore(DB_PATH)
+            ^^^^^^^^^^^^^^^^^^^^
+storage\store.py:72: in __init__
+    self._boot_schema(resolved)
+storage\store.py:88: in _boot_schema
+    conn.execute("PRAGMA journal_mode=WAL;")
+E   sqlite3.OperationalError: database is locked
+=========================== short test summary info ===========================
+ERROR tests/memory_stress_test.py::test_dimension_1 - sqlite3.OperationalErro...
+ERROR tests/memory_stress_test.py::test_dimension_2 - sqlite3.OperationalErro...
+ERROR tests/memory_stress_test.py::test_dimension_3 - sqlite3.OperationalErro...
+ERROR tests/memory_stress_test.py::test_dimension_4 - sqlite3.OperationalErro...
+============================== 4 errors in 1.53s ==============================
+
+

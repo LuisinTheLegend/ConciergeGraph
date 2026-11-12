@@ -1,0 +1,17 @@
+=== PROVA EM VERDE (BLOCO 2 — RODADA 4.4f): 10 PARES PARALELOS DE memory_stress_test.py (PYTHON 3.12) ===
+Comando por processo: C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe -m pytest tests/memory_stress_test.py -v --tb=short
+--------------------------------------------------------------------------------
+  [Par 01/10] ProcA=PASS (27.08s) | ProcB=PASS (27.16s)
+  [Par 02/10] ProcA=PASS (29.37s) | ProcB=PASS (29.35s)
+  [Par 03/10] ProcA=PASS (29.88s) | ProcB=PASS (30.00s)
+  [Par 04/10] ProcA=PASS (31.33s) | ProcB=PASS (31.24s)
+  [Par 05/10] ProcA=PASS (29.97s) | ProcB=PASS (29.93s)
+  [Par 06/10] ProcA=PASS (28.73s) | ProcB=PASS (28.80s)
+  [Par 07/10] ProcA=PASS (28.13s) | ProcB=PASS (28.06s)
+  [Par 08/10] ProcA=PASS (27.88s) | ProcB=PASS (27.96s)
+  [Par 09/10] ProcA=PASS (28.26s) | ProcB=PASS (28.25s)
+  [Par 10/10] ProcA=PASS (29.68s) | ProcB=PASS (29.72s)
+--------------------------------------------------------------------------------
+RESUMO VERDE (memory_stress_test.py x2, Python 3.12): 0/10 pares com falha.
+Resíduo tests/_stress_test_workspace existe: False
+Resíduo tmp_chroma_test existe: False

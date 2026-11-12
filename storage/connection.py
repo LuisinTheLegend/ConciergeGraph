@@ -84,6 +84,14 @@ class SerializedWriteQueue:
 
     Lifecycle:
         start() → submit() → ... → stop()
+
+        Lifecycle note: ``SerializedWriteQueue`` is single-use. Calling
+        ``start()`` after ``stop()`` returns silently without restarting the
+        worker thread, and any subsequent ``submit()`` raises
+        ``RuntimeError('SerializedWriteQueue is not running. Call start() first.')``.
+        When ``stop()`` is called while a job is running, jobs queued before
+        the stop sentinel that have not yet started are not executed and fail
+        in ``submit()`` with ``RuntimeError('write worker died: ...')``.
     """
 
     def __init__(self, db_path: str) -> None:

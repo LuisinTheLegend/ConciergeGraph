@@ -1,0 +1,18 @@
+=== PROVA EM VERDE (BLOCO 2 — RODADA 4.4f): 10 PARES PARALELOS test_lightweight.py (Py3.10) vs memory_stress_test.py (Py3.12) ===
+Processo A (Py3.10): C:\Nexus-Memory\GrafoConcierge\.venv_310\Scripts\python.exe -m pytest tests/test_lightweight.py -v --tb=short
+Processo B (Py3.12): C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe -m pytest tests/memory_stress_test.py -v --tb=short
+--------------------------------------------------------------------------------
+  [Par 01/10] Py3.10(test_lightweight)=PASS (74.56s) | Py3.12(memory_stress_test)=PASS (27.61s)
+  [Par 02/10] Py3.10(test_lightweight)=PASS (23.06s) | Py3.12(memory_stress_test)=PASS (27.70s)
+  [Par 03/10] Py3.10(test_lightweight)=PASS (24.03s) | Py3.12(memory_stress_test)=PASS (28.22s)
+  [Par 04/10] Py3.10(test_lightweight)=PASS (23.94s) | Py3.12(memory_stress_test)=PASS (28.11s)
+  [Par 05/10] Py3.10(test_lightweight)=PASS (23.94s) | Py3.12(memory_stress_test)=PASS (28.05s)
+  [Par 06/10] Py3.10(test_lightweight)=PASS (24.38s) | Py3.12(memory_stress_test)=PASS (28.54s)
+  [Par 07/10] Py3.10(test_lightweight)=PASS (24.55s) | Py3.12(memory_stress_test)=PASS (28.71s)
+  [Par 08/10] Py3.10(test_lightweight)=PASS (23.90s) | Py3.12(memory_stress_test)=PASS (28.09s)
+  [Par 09/10] Py3.10(test_lightweight)=PASS (24.48s) | Py3.12(memory_stress_test)=PASS (28.54s)
+  [Par 10/10] Py3.10(test_lightweight)=PASS (23.95s) | Py3.12(memory_stress_test)=PASS (28.14s)
+--------------------------------------------------------------------------------
+RESUMO VERDE (test_lightweight.py Py3.10 vs memory_stress_test.py Py3.12): 0/10 pares com falha.
+Resíduo tests/_stress_test_workspace existe: False
+Resíduo tmp_chroma_test existe: False

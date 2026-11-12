@@ -1,0 +1,85 @@
+=== GITHUB ACTIONS CI STATUS (RODADA 4.4f) ===
+
+Commit 3dccf68 (3dccf68d3085b553efe27a8175e5c5fcac29048d):
+  Workflow: CI (run_id=43075938190, status=completed, conclusion=failure)
+    - Job: Test (Python 3.12) | status=completed | conclusion=success
+    - Job: Test (Python 3.11) | status=completed | conclusion=success
+    - Job: Test (Python 3.10) | status=completed | conclusion=failure
+  Workflow: Windows Stdin Decouple & Lazy ML Imports (run_id=43075938030, status=completed, conclusion=success)
+    - Job: Windows (3.12) | status=completed | conclusion=success
+    - Job: Windows (3.14) | status=completed | conclusion=success
+    - Job: Windows (3.10) | status=completed | conclusion=success
+  => Resumo 3dccf68: 5/6 jobs verdes (success)
+
+Commit a565c4e (a565c4e9aaebf744515820004728c8e3d635443e):
+  Workflow: CI (run_id=42863276492, status=completed, conclusion=success)
+    - Job: Test (Python 3.11) | status=completed | conclusion=success
+    - Job: Test (Python 3.12) | status=completed | conclusion=success
+    - Job: Test (Python 3.10) | status=completed | conclusion=success
+  Workflow: Windows Stdin Decouple & Lazy ML Imports (run_id=42863276453, status=completed, conclusion=success)
+    - Job: Windows (3.12) | status=completed | conclusion=success
+    - Job: Windows (3.10) | status=completed | conclusion=success
+    - Job: Windows (3.14) | status=completed | conclusion=success
+  => Resumo a565c4e: 6/6 jobs verdes (success)
+
+Commit 9519e16 (9519e16cc6e8bad93240dd51ba118a53c8a085d2):
+  Workflow: Windows Stdin Decouple & Lazy ML Imports (run_id=42553400294, status=completed, conclusion=success)
+    - Job: Windows (3.12) | status=completed | conclusion=success
+    - Job: Windows (3.14) | status=completed | conclusion=success
+    - Job: Windows (3.10) | status=completed | conclusion=success
+  Workflow: CI (run_id=42553400260, status=completed, conclusion=success)
+    - Job: Test (Python 3.12) | status=completed | conclusion=success
+    - Job: Test (Python 3.11) | status=completed | conclusion=success
+    - Job: Test (Python 3.10) | status=completed | conclusion=success
+  => Resumo 9519e16: 6/6 jobs verdes (success)
+
+Commit 8eccea7 (8eccea747f4fee5160045a1350c6f5e48596fc4a):
+  Workflow: Windows Stdin Decouple & Lazy ML Imports (run_id=42545089510, status=completed, conclusion=success)
+    - Job: Windows (3.10) | status=completed | conclusion=success
+    - Job: Windows (3.14) | status=completed | conclusion=success
+    - Job: Windows (3.12) | status=completed | conclusion=success
+  Workflow: CI (run_id=42545089499, status=completed, conclusion=failure)
+    - Job: Test (Python 3.10) | status=completed | conclusion=failure
+    - Job: Test (Python 3.11) | status=completed | conclusion=success
+    - Job: Test (Python 3.12) | status=completed | conclusion=success
+  => Resumo 8eccea7: 5/6 jobs verdes (success)
+
+Commit 6606b9a (6606b9a373847fa17e5723821703a48212c5dc1c):
+  Workflow: CI (run_id=42544665834, status=completed, conclusion=failure)
+    - Job: Test (Python 3.12) | status=completed | conclusion=success
+    - Job: Test (Python 3.11) | status=completed | conclusion=success
+    - Job: Test (Python 3.10) | status=completed | conclusion=failure
+  Workflow: Windows Stdin Decouple & Lazy ML Imports (run_id=42544665808, status=completed, conclusion=success)
+    - Job: Windows (3.10) | status=completed | conclusion=success
+    - Job: Windows (3.14) | status=completed | conclusion=success
+    - Job: Windows (3.12) | status=completed | conclusion=success
+  => Resumo 6606b9a: 5/6 jobs verdes (success)
+
+Commit 595086b (595086b668432aa89e6bb588e59d4d7ea7916a48):
+  Workflow: CI (run_id=42452906149, status=completed, conclusion=failure)
+    - Job: Test (Python 3.11) | status=completed | conclusion=failure
+    - Job: Test (Python 3.12) | status=completed | conclusion=failure
+    - Job: Test (Python 3.10) | status=completed | conclusion=failure
+  Workflow: Windows Stdin Decouple & Lazy ML Imports (run_id=42452906146, status=completed, conclusion=success)
+    - Job: Windows (3.12) | status=completed | conclusion=success
+    - Job: Windows (3.10) | status=completed | conclusion=success
+    - Job: Windows (3.14) | status=completed | conclusion=success
+  => Resumo 595086b: 3/6 jobs verdes (success)
+
+Commit 1dd388b (1dd388b212f8aa43ea945020a05e6b503de6ba9e):
+  Workflow: Windows Stdin Decouple & Lazy ML Imports (run_id=42451734429, status=completed, conclusion=success)
+    - Job: Windows (3.10) | status=completed | conclusion=success
+    - Job: Windows (3.12) | status=completed | conclusion=success
+    - Job: Windows (3.14) | status=completed | conclusion=success
+  Workflow: CI (run_id=42451734402, status=completed, conclusion=failure)
+    - Job: Test (Python 3.10) | status=completed | conclusion=failure
+    - Job: Test (Python 3.11) | status=completed | conclusion=success
+    - Job: Test (Python 3.12) | status=completed | conclusion=success
+  => Resumo 1dd388b: 5/6 jobs verdes (success)
+
+Commit 5abba37 (5abba374c3f05f3fcabc872a59599d2e6aa947d5):
+  Workflow: Windows Stdin Decouple & Lazy ML Imports (run_id=42449229118, status=completed, conclusion=success)
+    - Job: Windows (3.10) | status=completed | conclusion=success
+    - Job: Windows (3.12) | status=completed | conclusion=success
+    - Job: Windows (3.14) | status=completed | conclusion=success
+  => Resumo 5abba37: 3/3 jobs verdes (success)

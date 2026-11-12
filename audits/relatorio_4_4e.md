@@ -755,3 +755,11 @@ Consultado via API do GitHub Actions (`scratch/check_ci_status_4_4e.py` -> `scra
 - **Zero alteração em código de produto:** `git diff a565c4e..HEAD -- storage/ core/ ingestion/ interface/ services/ main.py` é vazio.
 - **Scanner de segredos (Regra 13):** `scratch/tools/scan_secrets.py` executado com `0` achados (`scratch/evidencia_4_4e/scan_secrets.txt`).
 - **Codificação (UTF-8 sem BOM e sem bytes nulos):** Conferida por comando em todos os arquivos de `scratch/evidencia_4_4e/` e `audits/` (`scratch/evidencia_4_4e/utf8_check.txt`).
+
+---
+
+## Adendo (2026-11-11 — Rodada 4.4f, Bloco 4): Esclarecimento sobre a Hipótese do `chromadb`
+
+- O erro reproduzido pela colisão de caminhos fixos em execuções paralelas (`sqlite3.IntegrityError: UNIQUE constraint failed: projects.uuid` na Sonda 3c do executor em Windows; e `sqlite3.OperationalError: unable to open database file`, `ProjectNotFoundError` e `ValueError: Project not found` na reprodução de 3/4 pares pelo auditor independente em Linux, registrado como `F4-033`) **é diferente** do erro interno intermitente do `chromadb` (`InternalError` / `PanicException` / `sqlite3.OperationalError: no such table: collections`) observado na 1ª tentativa da Rodada 4.4d.
+- A ligação entre os dois permanece estritamente como **hipótese** e não deve ser afirmada como causa: **o `chromadb` intermitente segue aberto, com causa não provada**.
+

@@ -7,7 +7,7 @@ from core.hybrid_search import HybridSearchEngine
 from core.project_index import ProjectIndex
 from tests.memory_stress_test import PROJECT_UUID, PROJECT_DIR
 
-def test_lightweight_mode_behavior(store, manager):
+def test_lightweight_mode_behavior(store, manager, tmp_path):
     """Valida o funcionamento e isolamento do Modo Lightweight.
 
     Verifica se:
@@ -35,7 +35,7 @@ def test_lightweight_mode_behavior(store, manager):
         assert embedding is None, "EmbeddingManager deveria retornar None no modo lightweight (bypass do modelo)."
 
         # 3. Valida bypass de inicialização no ChromaVectorStore
-        tmp_dir = "./tmp_chroma_test"
+        tmp_dir = str(tmp_path / "tmp_chroma_test")
         vector_store = ChromaVectorStore(persist_dir=tmp_dir)
         assert vector_store._available is False, "ChromaVectorStore deveria estar com _available=False no modo lightweight."
         assert vector_store._client is None, "ChromaVectorStore não deveria ter instanciado o PersistentClient."
