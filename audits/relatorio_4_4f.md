@@ -2,7 +2,7 @@
 
 - **Data:** 2026-11-11
 - **Base da Rodada:** `3dccf68d3085b553efe27a8175e5c5fcac29048d` (`3dccf68`)
-- **HEAD no momento da geração:** `3dccf68d3085b553efe27a8175e5c5fcac29048d`
+- **HEAD no momento da geração:** `39bfbb01a327b4c4232d6812436d71298b3a22da`
 - **Natureza da Rodada:** Mini-rodada exclusiva de higiene de teste e documentação. O único arquivo de código de produto modificado é `storage/connection.py`, restrito à docstring da classe `SerializedWriteQueue` (provado por comparação de AST sem docstrings com SHA-256 idêntico).
 - **Gerado por script (Regra 12):** `scratch/generate_relatorio_4_4f.py`
 
@@ -36,7 +36,7 @@
 
 ```markdown
 59: | 4.4e | `b709ba5`, `3dccf68` | Bloco 1 (testes A1, A2, A3 da invariante commit/rollback de `storage/connection.py::SerializedWriteQueue` e mutações Sm, Sn, So); Bloco 2 (reescrita do item de reprodução natural de `F4-031` com Exp A vs Exp B e atribuição Windows/Linux); Bloco 3 (registro de `F4-032` sobre `get_read_connection()` sem retry); Bloco 4 (testes de caracterização T-S1 e T-S2 de `start()` após `stop()` e jobs descartados na parada + mutações Sp, Sq + documentação em `design_4_4d_connection_queue.md`); Bloco 5 (investigação de 30 execuções de `test_lightweight.py` e `memory_stress_test.py`) | corrigido pelo executor, aguardando verificação independente | Sim (reproduzida colisão paralela 3/4 pares em Linux -> F4-033) |
-60: | 4.4f | `(ver commit da 4.4f)` | Bloco 1 (registro de `F4-033` sobre caminhos fixos compartilhados em `memory_stress_test.py` e `test_lightweight.py`); Bloco 2 (isolamento por diretório exclusivo via `tempfile.mkdtemp` e `tmp_path`, provas vermelho->verde em 10 pares paralelos, mutações Ta e Tb, suíte sequencial 3.10–3.14); Bloco 3 (docstring de `SerializedWriteQueue` em `storage/connection.py` com prova de AST sem docstrings idêntica); Bloco 4 (adendo em `relatorio_4_4e.md` e em `F4-033` esclarecendo que o erro de colisão difere do `chromadb` `InternalError`, que segue aberto com causa não provada) | corrigido pelo executor, aguardando verificação independente | — |
+60: | 4.4f | `39bfbb0` | Bloco 1 (registro de `F4-033` sobre caminhos fixos compartilhados em `memory_stress_test.py` e `test_lightweight.py`); Bloco 2 (isolamento por diretório exclusivo via `tempfile.mkdtemp` e `tmp_path`, provas vermelho->verde em 10 pares paralelos, mutações Ta e Tb, suíte sequencial 3.10–3.14); Bloco 3 (docstring de `SerializedWriteQueue` em `storage/connection.py` com prova de AST sem docstrings idêntica); Bloco 4 (adendo em `relatorio_4_4e.md` e em `F4-033` esclarecendo que o erro de colisão difere do `chromadb` `InternalError`, que segue aberto com causa não provada) | corrigido pelo executor, aguardando verificação independente | — |
 ...
 97: | F4-032 | `ConnectionManager.get_read_connection()` executa conexão e PRAGMAs de leitura sem retry (levanta `OperationalError`, não trava; observado apenas no Windows no Exp A 97/100, não no caminho `SqliteStore` real Exp B 0/100) | BAIXA | ABERTO (registrado na 4.4e, sem correção nesta rodada) | `storage/connection.py:382-386, 427-443`, `scratch/evidencia_4_4d/natural_reproduction_100_procs.txt:15, 243`, `audits/fase4-achados.md` |
 98: | F4-033 | Caminhos fixos compartilhados em `tests/memory_stress_test.py:40-43` (`_stress_test_workspace`) e `tests/test_lightweight.py:38` (`./tmp_chroma_test`) causam colisão em execuções paralelas de `pytest` (10/10 pares no Windows pelo executor; 3/4 pares no Linux pelo auditor; não explica o `chromadb` `InternalError`, que segue aberto com causa não provada) | BAIXA | corrigido pelo executor, aguardando verificação independente | `tests/memory_stress_test.py`, `tests/test_lightweight.py`, `scratch/evidencia_4_4f/`, `audits/fase4-achados.md` |
@@ -574,13 +574,36 @@
 ### 5.2 Resumo de Alterações (`git diff --stat 3dccf68`)
 
 ```text
-audits/fase4-achados.md     | 21 +++++++++++++++++++++
- audits/fase4-roadmap.md     |  6 ++++--
- audits/relatorio_4_4e.md    |  8 ++++++++
- storage/connection.py       |  8 ++++++++
- tests/memory_stress_test.py |  9 +++++++--
- tests/test_lightweight.py   |  4 ++--
- 6 files changed, 50 insertions(+), 6 deletions(-)
+audits/fase4-achados.md                            |   21 +
+ audits/fase4-roadmap.md                            |    6 +-
+ audits/relatorio_4_4e.md                           |    8 +
+ audits/relatorio_4_4f.md                           |  591 +++++++++++
+ scratch/check_ci_status_4_4f.py                    |   53 +
+ scratch/evidencia_4_4f/bloco3_ast_and_tests.txt    |   68 ++
+ scratch/evidencia_4_4f/ci_status.txt               |   85 ++
+ .../evidencia_4_4f/consumers_and_guards_check.txt  |   47 +
+ .../green_10_pairs_lightweight_vs_stress.txt       |   18 +
+ .../green_10_pairs_memory_stress.txt               |   17 +
+ scratch/evidencia_4_4f/mutacao_Ta.txt              |  128 +++
+ scratch/evidencia_4_4f/mutacao_Tb.txt              |   26 +
+ .../red_10_pairs_memory_stress_3dccf68.txt         | 1066 ++++++++++++++++++++
+ scratch/evidencia_4_4f/scan_secrets.txt            |    8 +
+ scratch/evidencia_4_4f/suite_py310.txt             |  166 +++
+ scratch/evidencia_4_4f/suite_py311.txt             |  178 ++++
+ scratch/evidencia_4_4f/suite_py312.txt             |  198 ++++
+ scratch/evidencia_4_4f/suite_py313.txt             |  210 ++++
+ scratch/evidencia_4_4f/suite_py314.txt             |  218 ++++
+ scratch/evidencia_4_4f/utf8_check.txt              |   83 ++
+ scratch/generate_relatorio_4_4f.py                 |  250 +++++
+ scratch/run_bloco2_4_4f_green_and_mutations.py     |  327 ++++++
+ scratch/run_bloco2_4_4f_red.py                     |  151 +++
+ scratch/run_multiversion_suites_4_4f.py            |   77 ++
+ scratch/verify_4_4f_integrity.py                   |   83 ++
+ scratch/verify_bloco3_ast_4_4f.py                  |  131 +++
+ storage/connection.py                              |    8 +
+ tests/memory_stress_test.py                        |    9 +-
+ tests/test_lightweight.py                          |    4 +-
+ 29 files changed, 4229 insertions(+), 6 deletions(-)
 ```
 
 ### 5.3 Verificações Finais de Higiene e Segurança

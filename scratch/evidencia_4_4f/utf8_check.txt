@@ -52,7 +52,7 @@ audits/fase4-2b-pin-mcp-e-correcao-t4.md: bytes=27423, utf8=True, bom=False, nul
 audits/fase4-2c-medicao-inicializacao.md: bytes=14759, utf8=True, bom=False, null=False
 audits/fase4-achados.md: bytes=96575, utf8=True, bom=False, null=False
 audits/fase4-decisoes.md: bytes=7649, utf8=True, bom=False, null=False
-audits/fase4-roadmap.md: bytes=26617, utf8=True, bom=False, null=False
+audits/fase4-roadmap.md: bytes=26604, utf8=True, bom=False, null=False
 audits/fora-de-escopo.md: bytes=7905, utf8=True, bom=False, null=False
 audits/grafo-dashboard-web.md: bytes=35990, utf8=True, bom=False, null=False
 audits/ingestion.md: bytes=39787, utf8=True, bom=False, null=False
@@ -75,7 +75,7 @@ audits/relatorio_4_4b.md: bytes=33567, utf8=True, bom=False, null=False
 audits/relatorio_4_4c.md: bytes=25275, utf8=True, bom=False, null=False
 audits/relatorio_4_4d.md: bytes=23626, utf8=True, bom=False, null=False
 audits/relatorio_4_4e.md: bytes=57306, utf8=True, bom=False, null=False
-audits/relatorio_4_4f.md: bytes=41057, utf8=True, bom=False, null=False
+audits/relatorio_4_4f.md: bytes=42616, utf8=True, bom=False, null=False
 audits/schema-oficial-incompleto.md: bytes=31416, utf8=True, bom=False, null=False
 audits/storage.md: bytes=36574, utf8=True, bom=False, null=False
 audits/egm/4.4b-codebase-details.md: bytes=17475, utf8=True, bom=False, null=False
