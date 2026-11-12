@@ -2,7 +2,7 @@
 
 - **Data:** 2026-11-12
 - **Base da Rodada:** `26a43e2723488f5206c12f639c0a94a7ba3c483d` (`26a43e2`)
-- **HEAD no momento da geração:** `26a43e2723488f5206c12f639c0a94a7ba3c483d`
+- **HEAD no momento da geração:** `c1eefbaa3858e5db6d8a49d590a54583166e621b`
 - **Status do achado `F4-034`:** **aberto, causa não provada**
 - **Natureza da Rodada:** Mini-rodada exclusiva de testes e documentação. **Zero alterações** em código de produto (`core/`, `storage/`, `ingestion/`, `interface/`, `services/`, `main.py`).
 - **Regra 15 (EGM):** Não utilizado nesta rodada (sem código de produto modificado e sem alteração irreversível).
@@ -456,7 +456,7 @@
 ### 4.4 Entradas em `audits/fase4-roadmap.md:61-61` e `100-100`
 
 ```markdown
-61: | 4.4g | `<PENDENTE_HASH>` | Bloco 1 (investigação de `F4-034` no estado `26a43e2`: 0/30 Py3.10 + 0/30 Py3.12 = 0/60 reproduções sequenciais, mapeamento de coleta e sonda Windows `WinError 32` vs Linux); Bloco 2 (endurecimento defensivo em `tests/memory_stress_test.py:270-277` com subdiretório Chroma exclusivo `run_<uuid4>` por chamada em `bootstrap()`, sem alteração em código de produto); Bloco 3 (`tests/test_stress_components_reuse.py` com teste de caracterização e teste estrutural + mutação externa); Bloco 4 (registro de `F4-034` e adendos em `F4-033` e `relatorio_4_4e.md`) | aberto, causa não provada | — |
+61: | 4.4g | `c1eefba` | Bloco 1 (investigação de `F4-034` no estado `26a43e2`: 0/30 Py3.10 + 0/30 Py3.12 = 0/60 reproduções sequenciais, mapeamento de coleta e sonda Windows `WinError 32` vs Linux); Bloco 2 (endurecimento defensivo em `tests/memory_stress_test.py:270-277` com subdiretório Chroma exclusivo `run_<uuid4>` por chamada em `bootstrap()`, sem alteração em código de produto); Bloco 3 (`tests/test_stress_components_reuse.py` com teste de caracterização e teste estrutural + mutação externa); Bloco 4 (registro de `F4-034` e adendos em `F4-033` e `relatorio_4_4e.md`) | aberto, causa não provada | — |
 ...
 100: | F4-034 | Erro interno intermitente do `chromadb` em setup de `stress_components` no CI do commit `3dccf68` (run `43075938190`, job `Test (Python 3.10)`, `no such table: acquire_write`, `code: 1`, em execução sequencial de processo único); não reproduzido localmente (`0/30` Py3.10 + `0/30` Py3.12 = `0/60`); subdiretório Chroma exclusivo `run_<uuid4>` por chamada em `bootstrap()` (`tests/memory_stress_test.py:270-277`) aplicado apenas como endurecimento defensivo, sem código de produto alterado | BAIXA | aberto, causa não provada | `tests/memory_stress_test.py`, `tests/test_stress_components_reuse.py`, `scratch/evidencia_4_4g/`, `audits/fase4-achados.md`, `audits/relatorio_4_4g.md` |
 ```
@@ -560,11 +560,37 @@
 ### 6.1 `git diff --stat` vs `26a43e2`
 
 ```text
-audits/fase4-achados.md     | 24 ++++++++++++++++++++++++
- audits/fase4-roadmap.md     |  2 ++
- audits/relatorio_4_4e.md    |  5 +++++
- tests/memory_stress_test.py |  5 ++++-
- 4 files changed, 35 insertions(+), 1 deletion(-)
+audits/fase4-achados.md                            |   24 +
+ audits/fase4-roadmap.md                            |    2 +
+ audits/relatorio_4_4e.md                           |    5 +
+ audits/relatorio_4_4g.md                           |  685 +++++++++++
+ scratch/check_ci_status_4_4g.py                    |  141 +++
+ scratch/evidencia_4_4g/bloco1_30x_results.txt      |   74 ++
+ .../bloco1_collect_order_and_versions.txt          |  219 ++++
+ .../bloco1_sonda_and_ci_versions.txt               |   45 +
+ scratch/evidencia_4_4g/bloco1_tracebacks.txt       |    1 +
+ .../evidencia_4_4g/bloco2_consumers_and_guards.txt |  128 +++
+ .../evidencia_4_4g/bloco3_base_26a43e2_check.txt   |   35 +
+ scratch/evidencia_4_4g/bloco3_mutation_and_env.txt |   63 ++
+ scratch/evidencia_4_4g/ci_status.txt               |   20 +
+ scratch/evidencia_4_4g/scan_secrets.txt            |    8 +
+ scratch/evidencia_4_4g/suite_py310.txt             | 1135 +++++++++++++++++++
+ scratch/evidencia_4_4g/suite_py311.txt             | 1147 +++++++++++++++++++
+ scratch/evidencia_4_4g/suite_py312.txt             | 1167 +++++++++++++++++++
+ scratch/evidencia_4_4g/suite_py313.txt             | 1179 +++++++++++++++++++
+ scratch/evidencia_4_4g/suite_py314.txt             | 1187 ++++++++++++++++++++
+ scratch/evidencia_4_4g/utf8_check.txt              |   86 ++
+ scratch/generate_relatorio_4_4g.py                 |  317 ++++++
+ scratch/investigate_bloco1_4_4g_part1.py           |  138 +++
+ scratch/probe_bloco1_4_4g.py                       |   76 ++
+ scratch/run_bloco1_30x_4_4g.py                     |  138 +++
+ scratch/run_bloco3_on_base_4_4g.py                 |   62 +
+ scratch/run_multiversion_suites_4_4g.py            |   91 ++
+ scratch/verify_4_4g_integrity.py                   |  118 ++
+ scratch/verify_bloco2_bloco3_4_4g.py               |  178 +++
+ tests/memory_stress_test.py                        |    5 +-
+ tests/test_stress_components_reuse.py              |  128 +++
+ 30 files changed, 8601 insertions(+), 1 deletion(-)
 ```
 
 ### 6.2 `scratch/tools/scan_secrets.py` (Regra 13) e Checagem UTF-8 / Nulos
@@ -572,7 +598,7 @@ audits/fase4-achados.md     | 24 ++++++++++++++++++++++++
 ```text
 1: ReturnCode: 0
 2: STDOUT:
-3: scanned_files=1322
+3: scanned_files=1331
 4: files_with_findings=0
 5: total_pattern_hits=0
 6: 
@@ -589,74 +615,82 @@ audits/fase4-achados.md     | 24 ++++++++++++++++++++++++
 8: scratch/evidencia_4_4g/bloco2_consumers_and_guards.txt: bytes=8230, utf8=True, bom=False, null=False
 9: scratch/evidencia_4_4g/bloco3_base_26a43e2_check.txt: bytes=1683, utf8=True, bom=False, null=False
 10: scratch/evidencia_4_4g/bloco3_mutation_and_env.txt: bytes=3378, utf8=True, bom=False, null=False
-11: scratch/evidencia_4_4g/scan_secrets.txt: bytes=94, utf8=True, bom=False, null=False
-12: audits/agent-and-agents.md: bytes=27646, utf8=True, bom=False, null=False
-13: audits/backlog-final-v2.md: bytes=24365, utf8=True, bom=False, null=False
-14: audits/backlog-final.md: bytes=135137, utf8=True, bom=False, null=False
-15: audits/bypass-governanca-por-session-id.md: bytes=26942, utf8=True, bom=False, null=False
-16: audits/comparacao-fase3.md: bytes=6478, utf8=True, bom=False, null=False
-17: audits/core-alias-tracker.md: bytes=4137, utf8=True, bom=False, null=False
-18: audits/core-background-janitor.md: bytes=22060, utf8=True, bom=False, null=False
-19: audits/core-checkpointer.md: bytes=27174, utf8=True, bom=False, null=False
-20: audits/core-delta-manager.md: bytes=15218, utf8=True, bom=False, null=False
-21: audits/core-rate-governor.md: bytes=17321, utf8=True, bom=False, null=False
-22: audits/core-security-guard.md: bytes=12654, utf8=True, bom=False, null=False
-23: audits/core-vector-reconciler.md: bytes=19998, utf8=True, bom=False, null=False
-24: audits/cruzamento-modulos.md: bytes=28102, utf8=True, bom=False, null=False
-25: audits/design_4_4d_connection_queue.md: bytes=14999, utf8=True, bom=False, null=False
-26: audits/duplicacao-serialized-write-queue.md: bytes=20887, utf8=True, bom=False, null=False
-27: audits/errata-4-2c.md: bytes=5226, utf8=True, bom=False, null=False
-28: audits/errata-4-2e-3.md: bytes=4125, utf8=True, bom=False, null=False
-29: audits/errata-4-2e.md: bytes=6484, utf8=True, bom=False, null=False
-30: audits/errata-4-2f.md: bytes=3299, utf8=True, bom=False, null=False
-31: audits/errata-4-2g.md: bytes=3420, utf8=True, bom=False, null=False
-32: audits/errata-4-2h.md: bytes=3785, utf8=True, bom=False, null=False
-33: audits/errata-4-2i.md: bytes=32152, utf8=True, bom=False, null=False
-34: audits/errata-4-3.md: bytes=6465, utf8=True, bom=False, null=False
-35: audits/errata-4-3b.md: bytes=15321, utf8=True, bom=False, null=False
-36: audits/errata-4-3c.md: bytes=11789, utf8=True, bom=False, null=False
-37: audits/fase4-0-mapa-poda.md: bytes=61121, utf8=True, bom=False, null=False
-38: audits/fase4-0b-prova-de-execucao.md: bytes=70404, utf8=True, bom=False, null=False
-39: audits/fase4-0c-prova-corrigida.md: bytes=36714, utf8=True, bom=False, null=False
-40: audits/fase4-1-inventario-ddl.md: bytes=43259, utf8=True, bom=False, null=False
-41: audits/fase4-1c-investigacao-f4-008.md: bytes=14138, utf8=True, bom=False, null=False
-42: audits/fase4-1d-relatorio-retificado.md: bytes=19850, utf8=True, bom=False, null=False
-43: audits/fase4-1g-investigacao-summary.md: bytes=33812, utf8=True, bom=False, null=False
-44: audits/fase4-1h-migracao-summary.md: bytes=19047, utf8=True, bom=False, null=False
-45: audits/fase4-2-desacoplamento-governor.md: bytes=13285, utf8=True, bom=False, null=False
-46: audits/fase4-2b-pin-mcp-e-correcao-t4.md: bytes=27423, utf8=True, bom=False, null=False
-47: audits/fase4-2c-medicao-inicializacao.md: bytes=14759, utf8=True, bom=False, null=False
-48: audits/fase4-achados.md: bytes=103814, utf8=True, bom=False, null=False
-49: audits/fase4-decisoes.md: bytes=7649, utf8=True, bom=False, null=False
-50: audits/fase4-roadmap.md: bytes=27939, utf8=True, bom=False, null=False
-51: audits/fora-de-escopo.md: bytes=7905, utf8=True, bom=False, null=False
-52: audits/grafo-dashboard-web.md: bytes=35990, utf8=True, bom=False, null=False
-53: audits/ingestion.md: bytes=39787, utf8=True, bom=False, null=False
-54: audits/interface-telemetry-api.md: bytes=21308, utf8=True, bom=False, null=False
-55: audits/mock-vs-real-audit.md: bytes=19569, utf8=True, bom=False, null=False
-56: audits/relatorio_4_2e_3.md: bytes=22983, utf8=True, bom=False, null=False
-57: audits/relatorio_4_2f.md: bytes=71722, utf8=True, bom=False, null=False
-58: audits/relatorio_4_2g.md: bytes=41446, utf8=True, bom=False, null=False
-59: audits/relatorio_4_2h.md: bytes=205351, utf8=True, bom=False, null=False
-60: audits/relatorio_4_2h2.md: bytes=75830, utf8=True, bom=False, null=False
-61: audits/relatorio_4_2i.md: bytes=142768, utf8=True, bom=False, null=False
-62: audits/relatorio_4_2j.md: bytes=11735, utf8=True, bom=False, null=False
-63: audits/relatorio_4_2k.md: bytes=16385, utf8=True, bom=False, null=False
-64: audits/relatorio_4_2l.md: bytes=12506, utf8=True, bom=False, null=False
-65: audits/relatorio_4_3.md: bytes=8599, utf8=True, bom=False, null=False
-66: audits/relatorio_4_3b.md: bytes=13300, utf8=True, bom=False, null=False
-67: audits/relatorio_4_3c.md: bytes=25361, utf8=True, bom=False, null=False
-68: audits/relatorio_4_4.md: bytes=26079, utf8=True, bom=False, null=False
-69: audits/relatorio_4_4b.md: bytes=33567, utf8=True, bom=False, null=False
-70: audits/relatorio_4_4c.md: bytes=25275, utf8=True, bom=False, null=False
-71: audits/relatorio_4_4d.md: bytes=23626, utf8=True, bom=False, null=False
-72: audits/relatorio_4_4e.md: bytes=58142, utf8=True, bom=False, null=False
-73: audits/relatorio_4_4f.md: bytes=42616, utf8=True, bom=False, null=False
-74: audits/schema-oficial-incompleto.md: bytes=31416, utf8=True, bom=False, null=False
-75: audits/storage.md: bytes=36574, utf8=True, bom=False, null=False
-76: audits/egm/4.4b-codebase-details.md: bytes=17475, utf8=True, bom=False, null=False
-77: audits/egm/4.4b-design.md: bytes=11805, utf8=True, bom=False, null=False
-78: Total verificados: 74 arquivos — TODOS OK.
+11: scratch/evidencia_4_4g/ci_status.txt: bytes=1326, utf8=True, bom=False, null=False
+12: scratch/evidencia_4_4g/scan_secrets.txt: bytes=94, utf8=True, bom=False, null=False
+13: scratch/evidencia_4_4g/suite_py310.txt: bytes=116737, utf8=True, bom=False, null=False
+14: scratch/evidencia_4_4g/suite_py311.txt: bytes=117340, utf8=True, bom=False, null=False
+15: scratch/evidencia_4_4g/suite_py312.txt: bytes=119167, utf8=True, bom=False, null=False
+16: scratch/evidencia_4_4g/suite_py313.txt: bytes=119512, utf8=True, bom=False, null=False
+17: scratch/evidencia_4_4g/suite_py314.txt: bytes=119073, utf8=True, bom=False, null=False
+18: scratch/evidencia_4_4g/utf8_check.txt: bytes=6081, utf8=True, bom=False, null=False
+19: audits/agent-and-agents.md: bytes=27646, utf8=True, bom=False, null=False
+20: audits/backlog-final-v2.md: bytes=24365, utf8=True, bom=False, null=False
+21: audits/backlog-final.md: bytes=135137, utf8=True, bom=False, null=False
+22: audits/bypass-governanca-por-session-id.md: bytes=26942, utf8=True, bom=False, null=False
+23: audits/comparacao-fase3.md: bytes=6478, utf8=True, bom=False, null=False
+24: audits/core-alias-tracker.md: bytes=4137, utf8=True, bom=False, null=False
+25: audits/core-background-janitor.md: bytes=22060, utf8=True, bom=False, null=False
+26: audits/core-checkpointer.md: bytes=27174, utf8=True, bom=False, null=False
+27: audits/core-delta-manager.md: bytes=15218, utf8=True, bom=False, null=False
+28: audits/core-rate-governor.md: bytes=17321, utf8=True, bom=False, null=False
+29: audits/core-security-guard.md: bytes=12654, utf8=True, bom=False, null=False
+30: audits/core-vector-reconciler.md: bytes=19998, utf8=True, bom=False, null=False
+31: audits/cruzamento-modulos.md: bytes=28102, utf8=True, bom=False, null=False
+32: audits/design_4_4d_connection_queue.md: bytes=14999, utf8=True, bom=False, null=False
+33: audits/duplicacao-serialized-write-queue.md: bytes=20887, utf8=True, bom=False, null=False
+34: audits/errata-4-2c.md: bytes=5226, utf8=True, bom=False, null=False
+35: audits/errata-4-2e-3.md: bytes=4125, utf8=True, bom=False, null=False
+36: audits/errata-4-2e.md: bytes=6484, utf8=True, bom=False, null=False
+37: audits/errata-4-2f.md: bytes=3299, utf8=True, bom=False, null=False
+38: audits/errata-4-2g.md: bytes=3420, utf8=True, bom=False, null=False
+39: audits/errata-4-2h.md: bytes=3785, utf8=True, bom=False, null=False
+40: audits/errata-4-2i.md: bytes=32152, utf8=True, bom=False, null=False
+41: audits/errata-4-3.md: bytes=6465, utf8=True, bom=False, null=False
+42: audits/errata-4-3b.md: bytes=15321, utf8=True, bom=False, null=False
+43: audits/errata-4-3c.md: bytes=11789, utf8=True, bom=False, null=False
+44: audits/fase4-0-mapa-poda.md: bytes=61121, utf8=True, bom=False, null=False
+45: audits/fase4-0b-prova-de-execucao.md: bytes=70404, utf8=True, bom=False, null=False
+46: audits/fase4-0c-prova-corrigida.md: bytes=36714, utf8=True, bom=False, null=False
+47: audits/fase4-1-inventario-ddl.md: bytes=43259, utf8=True, bom=False, null=False
+48: audits/fase4-1c-investigacao-f4-008.md: bytes=14138, utf8=True, bom=False, null=False
+49: audits/fase4-1d-relatorio-retificado.md: bytes=19850, utf8=True, bom=False, null=False
+50: audits/fase4-1g-investigacao-summary.md: bytes=33812, utf8=True, bom=False, null=False
+51: audits/fase4-1h-migracao-summary.md: bytes=19047, utf8=True, bom=False, null=False
+52: audits/fase4-2-desacoplamento-governor.md: bytes=13285, utf8=True, bom=False, null=False
+53: audits/fase4-2b-pin-mcp-e-correcao-t4.md: bytes=27423, utf8=True, bom=False, null=False
+54: audits/fase4-2c-medicao-inicializacao.md: bytes=14759, utf8=True, bom=False, null=False
+55: audits/fase4-achados.md: bytes=103814, utf8=True, bom=False, null=False
+56: audits/fase4-decisoes.md: bytes=7649, utf8=True, bom=False, null=False
+57: audits/fase4-roadmap.md: bytes=27939, utf8=True, bom=False, null=False
+58: audits/fora-de-escopo.md: bytes=7905, utf8=True, bom=False, null=False
+59: audits/grafo-dashboard-web.md: bytes=35990, utf8=True, bom=False, null=False
+60: audits/ingestion.md: bytes=39787, utf8=True, bom=False, null=False
+61: audits/interface-telemetry-api.md: bytes=21308, utf8=True, bom=False, null=False
+62: audits/mock-vs-real-audit.md: bytes=19569, utf8=True, bom=False, null=False
+63: audits/relatorio_4_2e_3.md: bytes=22983, utf8=True, bom=False, null=False
+64: audits/relatorio_4_2f.md: bytes=71722, utf8=True, bom=False, null=False
+65: audits/relatorio_4_2g.md: bytes=41446, utf8=True, bom=False, null=False
+66: audits/relatorio_4_2h.md: bytes=205351, utf8=True, bom=False, null=False
+67: audits/relatorio_4_2h2.md: bytes=75830, utf8=True, bom=False, null=False
+68: audits/relatorio_4_2i.md: bytes=142768, utf8=True, bom=False, null=False
+69: audits/relatorio_4_2j.md: bytes=11735, utf8=True, bom=False, null=False
+70: audits/relatorio_4_2k.md: bytes=16385, utf8=True, bom=False, null=False
+71: audits/relatorio_4_2l.md: bytes=12506, utf8=True, bom=False, null=False
+72: audits/relatorio_4_3.md: bytes=8599, utf8=True, bom=False, null=False
+73: audits/relatorio_4_3b.md: bytes=13300, utf8=True, bom=False, null=False
+74: audits/relatorio_4_3c.md: bytes=25361, utf8=True, bom=False, null=False
+75: audits/relatorio_4_4.md: bytes=26079, utf8=True, bom=False, null=False
+76: audits/relatorio_4_4b.md: bytes=33567, utf8=True, bom=False, null=False
+77: audits/relatorio_4_4c.md: bytes=25275, utf8=True, bom=False, null=False
+78: audits/relatorio_4_4d.md: bytes=23626, utf8=True, bom=False, null=False
+79: audits/relatorio_4_4e.md: bytes=58142, utf8=True, bom=False, null=False
+80: audits/relatorio_4_4f.md: bytes=42616, utf8=True, bom=False, null=False
+81: audits/relatorio_4_4g.md: bytes=49672, utf8=True, bom=False, null=False
+82: audits/schema-oficial-incompleto.md: bytes=31416, utf8=True, bom=False, null=False
+83: audits/storage.md: bytes=36574, utf8=True, bom=False, null=False
+84: audits/egm/4.4b-codebase-details.md: bytes=17475, utf8=True, bom=False, null=False
+85: audits/egm/4.4b-design.md: bytes=11805, utf8=True, bom=False, null=False
+86: Total verificados: 82 arquivos — TODOS OK.
 ```
 
 ### 6.3 Status do GitHub Actions CI (`scratch/evidencia_4_4g/ci_status.txt`)

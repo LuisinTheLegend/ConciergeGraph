@@ -15,7 +15,7 @@ scratch/evidencia_4_4g/suite_py311.txt: bytes=117340, utf8=True, bom=False, null
 scratch/evidencia_4_4g/suite_py312.txt: bytes=119167, utf8=True, bom=False, null=False
 scratch/evidencia_4_4g/suite_py313.txt: bytes=119512, utf8=True, bom=False, null=False
 scratch/evidencia_4_4g/suite_py314.txt: bytes=119073, utf8=True, bom=False, null=False
-scratch/evidencia_4_4g/utf8_check.txt: bytes=6081, utf8=True, bom=False, null=False
+scratch/evidencia_4_4g/utf8_check.txt: bytes=6755, utf8=True, bom=False, null=False
 audits/agent-and-agents.md: bytes=27646, utf8=True, bom=False, null=False
 audits/backlog-final-v2.md: bytes=24365, utf8=True, bom=False, null=False
 audits/backlog-final.md: bytes=135137, utf8=True, bom=False, null=False
@@ -54,7 +54,7 @@ audits/fase4-2b-pin-mcp-e-correcao-t4.md: bytes=27423, utf8=True, bom=False, nul
 audits/fase4-2c-medicao-inicializacao.md: bytes=14759, utf8=True, bom=False, null=False
 audits/fase4-achados.md: bytes=103814, utf8=True, bom=False, null=False
 audits/fase4-decisoes.md: bytes=7649, utf8=True, bom=False, null=False
-audits/fase4-roadmap.md: bytes=27939, utf8=True, bom=False, null=False
+audits/fase4-roadmap.md: bytes=27931, utf8=True, bom=False, null=False
 audits/fora-de-escopo.md: bytes=7905, utf8=True, bom=False, null=False
 audits/grafo-dashboard-web.md: bytes=35990, utf8=True, bom=False, null=False
 audits/ingestion.md: bytes=39787, utf8=True, bom=False, null=False
@@ -78,7 +78,7 @@ audits/relatorio_4_4c.md: bytes=25275, utf8=True, bom=False, null=False
 audits/relatorio_4_4d.md: bytes=23626, utf8=True, bom=False, null=False
 audits/relatorio_4_4e.md: bytes=58142, utf8=True, bom=False, null=False
 audits/relatorio_4_4f.md: bytes=42616, utf8=True, bom=False, null=False
-audits/relatorio_4_4g.md: bytes=49672, utf8=True, bom=False, null=False
+audits/relatorio_4_4g.md: bytes=52155, utf8=True, bom=False, null=False
 audits/schema-oficial-incompleto.md: bytes=31416, utf8=True, bom=False, null=False
 audits/storage.md: bytes=36574, utf8=True, bom=False, null=False
 audits/egm/4.4b-codebase-details.md: bytes=17475, utf8=True, bom=False, null=False
