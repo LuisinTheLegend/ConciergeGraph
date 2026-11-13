@@ -1,0 +1,1665 @@
+{
+  "tools_count": 31,
+  "tools_trace": [
+    {
+      "tool_name": "concierge_register",
+      "tool_lines": "interface/mcp_server.py:284-301",
+      "handlers": [
+        {
+          "handler": "_handle_register",
+          "lines": "interface/mcp_server.py:1023-1047",
+          "gc_calls": [
+            {
+              "middleware_method": "register_project",
+              "lines": "core/middleware.py:105-149",
+              "vector_keywords": []
+            }
+          ],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "concierge_list_projects",
+      "tool_lines": "interface/mcp_server.py:311-313",
+      "handlers": [
+        {
+          "handler": "_handle_list_projects",
+          "lines": "interface/mcp_server.py:1008-1016",
+          "gc_calls": [],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "concierge_mine",
+      "tool_lines": "interface/mcp_server.py:325-340",
+      "handlers": [
+        {
+          "handler": "_handle_mine",
+          "lines": "interface/mcp_server.py:1053-1109",
+          "gc_calls": [
+            {
+              "middleware_method": "mine",
+              "lines": "core/middleware.py:213-233",
+              "vector_keywords": []
+            },
+            {
+              "middleware_method": "register_project",
+              "lines": "core/middleware.py:105-149",
+              "vector_keywords": []
+            }
+          ],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "concierge_search",
+      "tool_lines": "interface/mcp_server.py:352-377",
+      "handlers": [
+        {
+          "handler": "_handle_search",
+          "lines": "interface/mcp_server.py:1115-1199",
+          "gc_calls": [
+            {
+              "middleware_method": "hybrid_search",
+              "lines": "core/middleware.py:239-271",
+              "vector_keywords": [
+                "_search_engine"
+              ]
+            }
+          ],
+          "handler_vec_keywords": [
+            "vector"
+          ]
+        }
+      ]
+    },
+    {
+      "tool_name": "concierge_commit",
+      "tool_lines": "interface/mcp_server.py:388-410",
+      "handlers": [
+        {
+          "handler": "_handle_commit",
+          "lines": "interface/mcp_server.py:1206-1231",
+          "gc_calls": [
+            {
+              "middleware_method": "commit_memory",
+              "lines": "core/middleware.py:277-321",
+              "vector_keywords": []
+            }
+          ],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "concierge_set_state",
+      "tool_lines": "interface/mcp_server.py:420-436",
+      "handlers": []
+    },
+    {
+      "tool_name": "concierge_wakeup",
+      "tool_lines": "interface/mcp_server.py:447-456",
+      "handlers": [
+        {
+          "handler": "_handle_wakeup",
+          "lines": "interface/mcp_server.py:1238-1243",
+          "gc_calls": [
+            {
+              "middleware_method": "wake_up",
+              "lines": "core/middleware.py:155-207",
+              "vector_keywords": []
+            }
+          ],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "concierge_resume",
+      "tool_lines": "interface/mcp_server.py:466-475",
+      "handlers": [
+        {
+          "handler": "_handle_resume",
+          "lines": "interface/mcp_server.py:1250-1263",
+          "gc_calls": [
+            {
+              "middleware_method": "get_resume",
+              "lines": "core/middleware.py:327-350",
+              "vector_keywords": []
+            }
+          ],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "concierge_load",
+      "tool_lines": "interface/mcp_server.py:485-494",
+      "handlers": [
+        {
+          "handler": "_handle_load",
+          "lines": "interface/mcp_server.py:1270-1274",
+          "gc_calls": [
+            {
+              "middleware_method": "lazy_load",
+              "lines": "core/middleware.py:356-383",
+              "vector_keywords": []
+            }
+          ],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "concierge_status",
+      "tool_lines": "interface/mcp_server.py:505-517",
+      "handlers": [
+        {
+          "handler": "_handle_status",
+          "lines": "interface/mcp_server.py:1281-1327",
+          "gc_calls": [
+            {
+              "middleware_method": "status",
+              "lines": "core/middleware.py:442-463",
+              "vector_keywords": []
+            }
+          ],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "search_symbols",
+      "tool_lines": "interface/mcp_server.py:527-540",
+      "handlers": [
+        {
+          "handler": "_handle_search_symbols",
+          "lines": "interface/mcp_server.py:1334-1347",
+          "gc_calls": [],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "get_implementations",
+      "tool_lines": "interface/mcp_server.py:549-558",
+      "handlers": [
+        {
+          "handler": "_handle_get_implementations",
+          "lines": "interface/mcp_server.py:1354-1364",
+          "gc_calls": [
+            {
+              "middleware_method": "get_implementations",
+              "lines": "core/middleware.py:488-498",
+              "vector_keywords": []
+            }
+          ],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "get_callers",
+      "tool_lines": "interface/mcp_server.py:567-576",
+      "handlers": [
+        {
+          "handler": "_handle_get_callers",
+          "lines": "interface/mcp_server.py:1371-1386",
+          "gc_calls": [],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "concierge_store_fact",
+      "tool_lines": "interface/mcp_server.py:587-602",
+      "handlers": [
+        {
+          "handler": "_handle_store_fact",
+          "lines": "interface/mcp_server.py:1393-1415",
+          "gc_calls": [
+            {
+              "middleware_method": "store_fact",
+              "lines": "core/middleware.py:512-592",
+              "vector_keywords": [
+                "_vector",
+                "_embedder",
+                "_extractor",
+                "embedding",
+                "vector",
+                "QdrantVectorStore"
+              ]
+            }
+          ],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "concierge_list_facts",
+      "tool_lines": "interface/mcp_server.py:617-630",
+      "handlers": [
+        {
+          "handler": "_handle_list_facts",
+          "lines": "interface/mcp_server.py:1422-1438",
+          "gc_calls": [
+            {
+              "middleware_method": "list_facts",
+              "lines": "core/middleware.py:598-626",
+              "vector_keywords": []
+            }
+          ],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "concierge_set_memory",
+      "tool_lines": "interface/mcp_server.py:640-657",
+      "handlers": [
+        {
+          "handler": "_handle_set_memory",
+          "lines": "interface/mcp_server.py:1469-1499",
+          "gc_calls": [
+            {
+              "middleware_method": "set_core_memory",
+              "lines": "core/middleware.py:632-650",
+              "vector_keywords": []
+            }
+          ],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "concierge_get_memory",
+      "tool_lines": "interface/mcp_server.py:668-683",
+      "handlers": [
+        {
+          "handler": "_handle_get_memory",
+          "lines": "interface/mcp_server.py:1506-1529",
+          "gc_calls": [
+            {
+              "middleware_method": "get_core_memory_blocks",
+              "lines": "core/middleware.py:652-672",
+              "vector_keywords": []
+            }
+          ],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "concierge_feedback",
+      "tool_lines": "interface/mcp_server.py:694-707",
+      "handlers": [
+        {
+          "handler": "_handle_feedback",
+          "lines": "interface/mcp_server.py:1536-1550",
+          "gc_calls": [
+            {
+              "middleware_method": "update_fact_utility",
+              "lines": "core/middleware.py:678-697",
+              "vector_keywords": []
+            }
+          ],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "get_full_topology",
+      "tool_lines": "interface/mcp_server.py:719-730",
+      "handlers": [
+        {
+          "handler": "_handle_get_full_topology",
+          "lines": "interface/mcp_server.py:1557-1574",
+          "gc_calls": [
+            {
+              "middleware_method": "get_full_topology",
+              "lines": "core/middleware.py:504-506",
+              "vector_keywords": []
+            }
+          ],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "delete_project",
+      "tool_lines": "interface/mcp_server.py:740-746",
+      "handlers": [
+        {
+          "handler": "_handle_delete_project",
+          "lines": "interface/mcp_server.py:1581-1586",
+          "gc_calls": [
+            {
+              "middleware_method": "delete_project",
+              "lines": "core/middleware.py:389-410",
+              "vector_keywords": [
+                "_vector",
+                "embedding",
+                "vector"
+              ]
+            }
+          ],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "update_project",
+      "tool_lines": "interface/mcp_server.py:756-774",
+      "handlers": [
+        {
+          "handler": "_handle_update_project",
+          "lines": "interface/mcp_server.py:1593-1622",
+          "gc_calls": [
+            {
+              "middleware_method": "update_project",
+              "lines": "core/middleware.py:703-712",
+              "vector_keywords": []
+            }
+          ],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "add_reference_wing",
+      "tool_lines": "interface/mcp_server.py:781-788",
+      "handlers": [
+        {
+          "handler": "_handle_add_reference_wing",
+          "lines": "interface/mcp_server.py:1629-1634",
+          "gc_calls": [
+            {
+              "middleware_method": "add_reference_wing",
+              "lines": "core/middleware.py:714-722",
+              "vector_keywords": []
+            }
+          ],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "remove_reference_wing",
+      "tool_lines": "interface/mcp_server.py:795-802",
+      "handlers": [
+        {
+          "handler": "_handle_remove_reference_wing",
+          "lines": "interface/mcp_server.py:1641-1646",
+          "gc_calls": [
+            {
+              "middleware_method": "remove_reference_wing",
+              "lines": "core/middleware.py:724-732",
+              "vector_keywords": []
+            }
+          ],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "find_similar",
+      "tool_lines": "interface/mcp_server.py:809-823",
+      "handlers": [
+        {
+          "handler": "_handle_find_similar",
+          "lines": "interface/mcp_server.py:1653-1673",
+          "gc_calls": [
+            {
+              "middleware_method": "find_similar",
+              "lines": "core/middleware.py:416-436",
+              "vector_keywords": [
+                "find_similar"
+              ]
+            }
+          ],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "get_trajectories",
+      "tool_lines": "interface/mcp_server.py:830-836",
+      "handlers": [
+        {
+          "handler": "_handle_get_trajectories",
+          "lines": "interface/mcp_server.py:1680-1689",
+          "gc_calls": [
+            {
+              "middleware_method": "get_trajectories",
+              "lines": "core/middleware.py:734-743",
+              "vector_keywords": []
+            }
+          ],
+          "handler_vec_keywords": []
+        }
+      ]
+    },
+    {
+      "tool_name": "count_embeddings",
+      "tool_lines": "interface/mcp_server.py:843-849",
+      "handlers": [
+        {
+          "handler": "_handle_count_embeddings",
+          "lines": "interface/mcp_server.py:1696-1707",
+          "gc_calls": [
+            {
+              "middleware_method": "count_embeddings",
+              "lines": "core/middleware.py:745-754",
+              "vector_keywords": [
+                "_vector",
+                "embedding",
+                "vector",
+                "count_embeddings"
+              ]
+            }
+          ],
+          "handler_vec_keywords": [
+            "embedding"
+          ]
+        }
+      ]
+    },
+    {
+      "tool_name": "reset_collection",
+      "tool_lines": "interface/mcp_server.py:859-861",
+      "handlers": [
+        {
+          "handler": "_handle_reset_collection",
+          "lines": "interface/mcp_server.py:1714-1718",
+          "gc_calls": [
+            {
+              "middleware_method": "reset_collection",
+              "lines": "core/middleware.py:756-767",
+              "vector_keywords": [
+                "_vector",
+                "vector",
+                "reset_collection"
+              ]
+            }
+          ],
+          "handler_vec_keywords": [
+            "reset_collection"
+          ]
+        }
+      ]
+    },
+    {
+      "tool_name": "concierge_get_call_chain",
+      "tool_lines": "interface/mcp_server.py:874-889",
+      "handlers": []
+    },
+    {
+      "tool_name": "agent_save_checkpoint",
+      "tool_lines": "interface/mcp_server.py:899-916",
+      "handlers": []
+    },
+    {
+      "tool_name": "agent_get_checkpoint",
+      "tool_lines": "interface/mcp_server.py:925-940",
+      "handlers": []
+    },
+    {
+      "tool_name": "agent_list_checkpoints",
+      "tool_lines": "interface/mcp_server.py:949-962",
+      "handlers": []
+    }
+  ],
+  "lightweight_chroma_hits": [
+    {
+      "file": "main.py",
+      "line": 9,
+      "text": "2. Storage: SqliteStore + EmbeddingManager + ChromaVectorStore"
+    },
+    {
+      "file": "main.py",
+      "line": 258,
+      "text": "logger.info(\"Initializing QdrantVectorStore: url=%s, collection=%s\", qdrant_url, CHROMA_COLLECTION)"
+    },
+    {
+      "file": "main.py",
+      "line": 259,
+      "text": "from core.vector_backend import QdrantVectorStore"
+    },
+    {
+      "file": "main.py",
+      "line": 260,
+      "text": "vector_store = QdrantVectorStore("
+    },
+    {
+      "file": "main.py",
+      "line": 267,
+      "text": "logger.info(\"Initializing ChromaVectorStore: path=%s, collection=%s\", CHROMA_PATH, CHROMA_COLLECTION)"
+    },
+    {
+      "file": "main.py",
+      "line": 268,
+      "text": "from storage import ChromaVectorStore"
+    },
+    {
+      "file": "main.py",
+      "line": 269,
+      "text": "vector_store = ChromaVectorStore("
+    },
+    {
+      "file": "main.py",
+      "line": 272,
+      "text": "embedding_manager=embedder,"
+    },
+    {
+      "file": "main.py",
+      "line": 295,
+      "text": "vector_store=vector_store,"
+    },
+    {
+      "file": "main.py",
+      "line": 296,
+      "text": "embedding_manager=embedder,"
+    },
+    {
+      "file": "main.py",
+      "line": 305,
+      "text": "vector_store=vector_store,"
+    },
+    {
+      "file": "main.py",
+      "line": 314,
+      "text": "vector_store=vector_store,"
+    },
+    {
+      "file": "main.py",
+      "line": 315,
+      "text": "embedding_manager=embedder,"
+    },
+    {
+      "file": "interface/cli.py",
+      "line": 54,
+      "text": "from storage import SqliteStore, EmbeddingManager, EmbeddingTier, ChromaVectorStore"
+    },
+    {
+      "file": "interface/cli.py",
+      "line": 87,
+      "text": "from core.vector_backend import QdrantVectorStore"
+    },
+    {
+      "file": "interface/cli.py",
+      "line": 88,
+      "text": "vector_store = QdrantVectorStore("
+    },
+    {
+      "file": "interface/cli.py",
+      "line": 95,
+      "text": "vector_store = ChromaVectorStore("
+    },
+    {
+      "file": "interface/cli.py",
+      "line": 98,
+      "text": "embedding_manager=embedder,"
+    },
+    {
+      "file": "interface/cli.py",
+      "line": 111,
+      "text": "vector_store=vector_store,"
+    },
+    {
+      "file": "interface/cli.py",
+      "line": 112,
+      "text": "embedding_manager=embedder,"
+    },
+    {
+      "file": "interface/cli.py",
+      "line": 118,
+      "text": "vector_store=vector_store,"
+    },
+    {
+      "file": "interface/cli.py",
+      "line": 119,
+      "text": "embedding_manager=embedder,"
+    },
+    {
+      "file": "interface/cli.py",
+      "line": 237,
+      "text": "vector_store=gc._vector,"
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "line": 851,
+      "text": "# --- reset_collection ---"
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "line": 853,
+      "text": "name=\"reset_collection\","
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "line": 859,
+      "text": "def reset_collection() -> dict:"
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "line": 861,
+      "text": "return server._handle_reset_collection()"
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "line": 1710,
+      "text": "# HANDLER: reset_collection"
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "line": 1713,
+      "text": "@_mcp_handler(\"reset_collection\")"
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "line": 1714,
+      "text": "def _handle_reset_collection(self) -> dict:"
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "line": 1715,
+      "text": "\"\"\"Handler for reset_collection.\"\"\""
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "line": 1716,
+      "text": "success = self._gc.reset_collection()"
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "line": 1717,
+      "text": "logger.info(\"reset_collection OK: %s\", success)"
+    },
+    {
+      "file": "core/middleware.py",
+      "line": 28,
+      "text": "Principle: No internal class (SqliteStore, ChromaVectorStore, etc.)"
+    },
+    {
+      "file": "core/middleware.py",
+      "line": 44,
+      "text": "from storage.vector_store import ChromaVectorStore, EmbeddingManager"
+    },
+    {
+      "file": "core/middleware.py",
+      "line": 58,
+      "text": "vector_store: ChromaVectorStore instance."
+    },
+    {
+      "file": "core/middleware.py",
+      "line": 59,
+      "text": "embedding_manager: EmbeddingManager instance."
+    },
+    {
+      "file": "core/middleware.py",
+      "line": 67,
+      "text": "vector_store: ChromaVectorStore,"
+    },
+    {
+      "file": "core/middleware.py",
+      "line": 68,
+      "text": "embedding_manager: EmbeddingManager,"
+    },
+    {
+      "file": "core/middleware.py",
+      "line": 74,
+      "text": "self._vector = vector_store"
+    },
+    {
+      "file": "core/middleware.py",
+      "line": 75,
+      "text": "self._embedder = embedding_manager"
+    },
+    {
+      "file": "core/middleware.py",
+      "line": 83,
+      "text": "vector_store=vector_store,"
+    },
+    {
+      "file": "core/middleware.py",
+      "line": 84,
+      "text": "embedding_manager=embedding_manager,"
+    },
+    {
+      "file": "core/middleware.py",
+      "line": 505,
+      "text": "\"\"\"Returns the complete topology (nodes and edges) in a lightweight format.\"\"\""
+    },
+    {
+      "file": "core/middleware.py",
+      "line": 506,
+      "text": "return self._store.get_lightweight_topology(project_uuid)"
+    },
+    {
+      "file": "core/middleware.py",
+      "line": 564,
+      "text": "# Episodic vector synchronization if vector backend is QdrantVectorStore"
+    },
+    {
+      "file": "core/middleware.py",
+      "line": 566,
+      "text": "from core.vector_backend import QdrantVectorStore"
+    },
+    {
+      "file": "core/middleware.py",
+      "line": 567,
+      "text": "if isinstance(self._vector, QdrantVectorStore) and results:"
+    },
+    {
+      "file": "core/middleware.py",
+      "line": 756,
+      "text": "def reset_collection(self) -> bool:"
+    },
+    {
+      "file": "core/middleware.py",
+      "line": 764,
+      "text": "result = self._vector.reset_collection()"
+    },
+    {
+      "file": "core/middleware.py",
+      "line": 766,
+      "text": "logger.warning(\"reset_collection: vector collection destroyed and recreated.\")"
+    },
+    {
+      "file": "core/hybrid_search.py",
+      "line": 17,
+      "text": "3. VECTOR SEARCH — ChromaVectorStore.search() returns candidates"
+    },
+    {
+      "file": "core/hybrid_search.py",
+      "line": 28,
+      "text": "- storage.vector_store.ChromaVectorStore → Vector search"
+    },
+    {
+      "file": "core/hybrid_search.py",
+      "line": 29,
+      "text": "- storage.vector_store.EmbeddingManager → Embedding generation"
+    },
+    {
+      "file": "core/hybrid_search.py",
+      "line": 41,
+      "text": "from storage.vector_store import ChromaVectorStore, EmbeddingManager"
+    },
+    {
+      "file": "core/hybrid_search.py",
+      "line": 54,
+      "text": "vector_store: Vector backend for cosine similarity."
+    },
+    {
+      "file": "core/hybrid_search.py",
+      "line": 55,
+      "text": "embedding_manager: Query embedding generator."
+    },
+    {
+      "file": "core/hybrid_search.py",
+      "line": 63,
+      "text": "vector_store: ChromaVectorStore,"
+    },
+    {
+      "file": "core/hybrid_search.py",
+      "line": 64,
+      "text": "embedding_manager: EmbeddingManager,"
+    },
+    {
+      "file": "core/hybrid_search.py",
+      "line": 69,
+      "text": "self._vector = vector_store"
+    },
+    {
+      "file": "core/hybrid_search.py",
+      "line": 70,
+      "text": "self._embedder = embedding_manager"
+    },
+    {
+      "file": "core/vector_backend.py",
+      "line": 27,
+      "text": "\"[CRITICAL] qdrant-client not found. QdrantVectorStore operating in NO-OP mode. Semantic searches will return empty!\""
+    },
+    {
+      "file": "core/vector_backend.py",
+      "line": 33,
+      "text": "class QdrantVectorStore(BaseVectorBackend):"
+    },
+    {
+      "file": "core/vector_backend.py",
+      "line": 72,
+      "text": "if os.environ.get(\"GRAFO_LIGHTWEIGHT_MODE\", \"false\").lower() == \"true\":"
+    },
+    {
+      "file": "core/vector_backend.py",
+      "line": 73,
+      "text": "logger.info(\"QdrantVectorStore operating in NO-OP mode (Lightweight Mode active).\")"
+    },
+    {
+      "file": "core/config.py",
+      "line": 120,
+      "text": "lightweight_mode: bool = False"
+    },
+    {
+      "file": "core/config.py",
+      "line": 146,
+      "text": "if not self.lightweight_mode:"
+    },
+    {
+      "file": "core/config.py",
+      "line": 147,
+      "text": "env_val = os.environ.get(\"GRAFO_LIGHTWEIGHT_MODE\", \"false\").lower() == \"true\""
+    },
+    {
+      "file": "core/config.py",
+      "line": 149,
+      "text": "object.__setattr__(self, \"lightweight_mode\", True)"
+    },
+    {
+      "file": "core/mcp_governor.py",
+      "line": 123,
+      "text": "\"reset_collection\": \"DANGEROUS\","
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "line": 15,
+      "text": "6. STORE (Vector): QdrantVectorStore/ChromaVectorStore stores embeddings in batch."
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "line": 31,
+      "text": "- storage.vector_store.ChromaVectorStore/QdrantVectorStore → Vector persistence."
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "line": 32,
+      "text": "- storage.vector_store.EmbeddingManager → Embedding generation."
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "line": 45,
+      "text": "from storage import SqliteStore, ChromaVectorStore, EmbeddingManager"
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "line": 128,
+      "text": "vector_store: ChromaVectorStore,"
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "line": 129,
+      "text": "embedding_manager: EmbeddingManager,"
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "line": 135,
+      "text": "self._vector = vector_store"
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "line": 136,
+      "text": "self._embedder = embedding_manager"
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "line": 144,
+      "text": "embedding_manager.tier.value if hasattr(embedding_manager, 'tier') else \"unknown\","
+    },
+    {
+      "file": "ingestion/parser.py",
+      "line": 386,
+      "text": "source_bytes = source.encode('utf-8')"
+    },
+    {
+      "file": "services/janitor.py",
+      "line": 36,
+      "text": "from storage import SqliteStore, ChromaVectorStore"
+    },
+    {
+      "file": "services/janitor.py",
+      "line": 114,
+      "text": "janitor = JanitorService(store, vector_store, ingestion_manager)"
+    },
+    {
+      "file": "services/janitor.py",
+      "line": 125,
+      "text": "vector_store: ChromaVectorStore,"
+    },
+    {
+      "file": "services/janitor.py",
+      "line": 133,
+      "text": "self._vector = vector_store"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 2,
+      "text": "storage/vector_store.py — Grafo Concierge v3.8.0 (Absolute Solidity)"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 15,
+      "text": "ChromaVectorStore → Implements BaseVectorBackend on ChromaDB"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 34,
+      "text": "CHROMADB_AVAILABLE = True"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 36,
+      "text": "CHROMADB_AVAILABLE = False"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 48,
+      "text": "SENTENCE_TRANSFORMERS_AVAILABLE: bool = ("
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 51,
+      "text": "if not SENTENCE_TRANSFORMERS_AVAILABLE:"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 148,
+      "text": "if os.environ.get(\"GRAFO_LIGHTWEIGHT_MODE\", \"false\").lower() == \"true\":"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 152,
+      "text": "if not SENTENCE_TRANSFORMERS_AVAILABLE:"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 202,
+      "text": "vector = self._model.encode(text).tolist()"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 242,
+      "text": "vectors = self._model.encode(texts)"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 263,
+      "text": "# ChromaVectorStore — concrete implementation of BaseVectorBackend"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 266,
+      "text": "class ChromaVectorStore(BaseVectorBackend):"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 279,
+      "text": "embedding_manager: Instance of EmbeddingManager to generate embeddings."
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 289,
+      "text": "embedding_manager: Optional[EmbeddingManager] = None,"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 293,
+      "text": "self._embedding_mgr = embedding_manager or EmbeddingManager()"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 297,
+      "text": "if os.environ.get(\"GRAFO_LIGHTWEIGHT_MODE\", \"false\").lower() == \"true\":"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 298,
+      "text": "logger.info(\"ChromaVectorStore operating in NO-OP mode (Lightweight Mode active).\")"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 304,
+      "text": "self._available = CHROMADB_AVAILABLE"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 306,
+      "text": "if not CHROMADB_AVAILABLE:"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 308,
+      "text": "\"ChromaVectorStore operating in NO-OP mode (chromadb not installed).\""
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 327,
+      "text": "\"ChromaVectorStore initialized: dir=%s, collection=%s, tier=%s\","
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 352,
+      "text": "logger.warning(\"store_embedding ignored: ChromaDB unavailable.\")"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 387,
+      "text": "logger.warning(\"store_embeddings_batch ignored: ChromaDB unavailable.\")"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 459,
+      "text": "logger.warning(\"search ignored: ChromaDB unavailable.\")"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 643,
+      "text": "def reset_collection(self) -> bool:"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 653,
+      "text": "logger.warning(\"reset_collection ignored: ChromaDB unavailable.\")"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 664,
+      "text": "\"reset_collection OK: collection '%s' destroyed and recreated \""
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 670,
+      "text": "logger.error(\"reset_collection FAILED: %s\", e)"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 688,
+      "text": "logger.debug(\"update_metadata: ChromaDB unavailable — ignored for %s.\", doc_id)"
+    },
+    {
+      "file": "storage/store.py",
+      "line": 311,
+      "text": "def get_lightweight_topology(self, project_uuid: Optional[str] = None) -> dict[str, list[dict]]:"
+    },
+    {
+      "file": "storage/store.py",
+      "line": 312,
+      "text": "\"\"\"Returns the complete and lightweight topology (nodes and edges) from the database."
+    }
+  ],
+  "indented_or_conditional_imports_in_live": [
+    {
+      "file": "main.py",
+      "line": 247,
+      "kind": "from",
+      "module": "storage",
+      "names": [
+        "SqliteStore"
+      ]
+    },
+    {
+      "file": "main.py",
+      "line": 251,
+      "kind": "from",
+      "module": "storage",
+      "names": [
+        "EmbeddingManager",
+        "EmbeddingTier"
+      ]
+    },
+    {
+      "file": "main.py",
+      "line": 277,
+      "kind": "from",
+      "module": "ingestion",
+      "names": [
+        "ZoomSummarizer"
+      ]
+    },
+    {
+      "file": "main.py",
+      "line": 278,
+      "kind": "from",
+      "module": "ingestion.summarizer",
+      "names": [
+        "LLMAdapter"
+      ]
+    },
+    {
+      "file": "main.py",
+      "line": 292,
+      "kind": "from",
+      "module": "ingestion",
+      "names": [
+        "IngestionManager"
+      ]
+    },
+    {
+      "file": "main.py",
+      "line": 302,
+      "kind": "from",
+      "module": "services",
+      "names": [
+        "JanitorService"
+      ]
+    },
+    {
+      "file": "main.py",
+      "line": 311,
+      "kind": "from",
+      "module": "core.middleware",
+      "names": [
+        "GrafoConcierge"
+      ]
+    },
+    {
+      "file": "main.py",
+      "line": 322,
+      "kind": "from",
+      "module": "interface.mcp_server",
+      "names": [
+        "GrafoConciergeServer"
+      ]
+    },
+    {
+      "file": "main.py",
+      "line": 259,
+      "kind": "from",
+      "module": "core.vector_backend",
+      "names": [
+        "QdrantVectorStore"
+      ]
+    },
+    {
+      "file": "main.py",
+      "line": 268,
+      "kind": "from",
+      "module": "storage",
+      "names": [
+        "ChromaVectorStore"
+      ]
+    },
+    {
+      "file": "interface/__init__.py",
+      "line": 23,
+      "kind": "from",
+      "module": "interface.action_hooks",
+      "names": [
+        "ActionHooks"
+      ]
+    },
+    {
+      "file": "interface/cli.py",
+      "line": 51,
+      "kind": "from",
+      "module": "dotenv",
+      "names": [
+        "load_dotenv"
+      ]
+    },
+    {
+      "file": "interface/cli.py",
+      "line": 54,
+      "kind": "from",
+      "module": "storage",
+      "names": [
+        "SqliteStore",
+        "EmbeddingManager",
+        "EmbeddingTier",
+        "ChromaVectorStore"
+      ]
+    },
+    {
+      "file": "interface/cli.py",
+      "line": 55,
+      "kind": "from",
+      "module": "ingestion",
+      "names": [
+        "IngestionManager",
+        "ZoomSummarizer"
+      ]
+    },
+    {
+      "file": "interface/cli.py",
+      "line": 56,
+      "kind": "from",
+      "module": "ingestion.summarizer",
+      "names": [
+        "LLMAdapter"
+      ]
+    },
+    {
+      "file": "interface/cli.py",
+      "line": 57,
+      "kind": "from",
+      "module": "core.middleware",
+      "names": [
+        "GrafoConcierge"
+      ]
+    },
+    {
+      "file": "interface/cli.py",
+      "line": 232,
+      "kind": "from",
+      "module": "services.janitor",
+      "names": [
+        "JanitorService",
+        "MaintenanceReport"
+      ]
+    },
+    {
+      "file": "interface/cli.py",
+      "line": 87,
+      "kind": "from",
+      "module": "core.vector_backend",
+      "names": [
+        "QdrantVectorStore"
+      ]
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "line": 969,
+      "kind": "import",
+      "targets": [
+        "uuid"
+      ]
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "line": 1450,
+      "kind": "import",
+      "targets": [
+        "asyncio"
+      ]
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "line": 151,
+      "kind": "from",
+      "module": "core.mcp_governor",
+      "names": [
+        "get_shared_governor"
+      ]
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "line": 162,
+      "kind": "from",
+      "module": "core.database",
+      "names": [
+        "ConciergeDatabaseManager"
+      ]
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "line": 166,
+      "kind": "from",
+      "module": "core.checkpointer",
+      "names": [
+        "AgnosticCheckpointer"
+      ]
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "line": 170,
+      "kind": "from",
+      "module": "core.graph_rag",
+      "names": [
+        "GraphRAGEngine"
+      ]
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "line": 180,
+      "kind": "from",
+      "module": "starlette.middleware.cors",
+      "names": [
+        "CORSMiddleware"
+      ]
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "line": 181,
+      "kind": "from",
+      "module": "starlette.responses",
+      "names": [
+        "JSONResponse"
+      ]
+    },
+    {
+      "file": "core/middleware.py",
+      "line": 617,
+      "kind": "from",
+      "module": "storage.semantic_logic",
+      "names": [
+        "get_active_semantic_facts"
+      ]
+    },
+    {
+      "file": "core/middleware.py",
+      "line": 688,
+      "kind": "from",
+      "module": "storage.semantic_logic",
+      "names": [
+        "update_memory_utility"
+      ]
+    },
+    {
+      "file": "core/middleware.py",
+      "line": 566,
+      "kind": "from",
+      "module": "core.vector_backend",
+      "names": [
+        "QdrantVectorStore"
+      ]
+    },
+    {
+      "file": "core/middleware.py",
+      "line": 538,
+      "kind": "from",
+      "module": "storage.semantic_logic",
+      "names": [
+        "insert_semantic_fact"
+      ]
+    },
+    {
+      "file": "core/hybrid_search.py",
+      "line": 252,
+      "kind": "from",
+      "module": "core.probabilistic_retriever",
+      "names": [
+        "ThompsonRetriever"
+      ]
+    },
+    {
+      "file": "core/vector_backend.py",
+      "line": 21,
+      "kind": "import",
+      "targets": [
+        "qdrant_client"
+      ]
+    },
+    {
+      "file": "core/vector_backend.py",
+      "line": 22,
+      "kind": "from",
+      "module": "qdrant_client.http",
+      "names": [
+        "models"
+      ]
+    },
+    {
+      "file": "core/vector_backend.py",
+      "line": 71,
+      "kind": "import",
+      "targets": [
+        "os"
+      ]
+    },
+    {
+      "file": "core/config.py",
+      "line": 145,
+      "kind": "import",
+      "targets": [
+        "os"
+      ]
+    },
+    {
+      "file": "core/mcp_governor.py",
+      "line": 33,
+      "kind": "import",
+      "targets": [
+        "os"
+      ]
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "line": 339,
+      "kind": "import",
+      "targets": [
+        "json"
+      ]
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "line": 449,
+      "kind": "import",
+      "targets": [
+        "asyncio"
+      ]
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "line": 548,
+      "kind": "from",
+      "module": "concurrent.futures",
+      "names": [
+        "ThreadPoolExecutor"
+      ]
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "line": 624,
+      "kind": "from",
+      "module": "ingestion.parser",
+      "names": [
+        "ChunkType"
+      ]
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "line": 1026,
+      "kind": "import",
+      "targets": [
+        "json"
+      ]
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "line": 508,
+      "kind": "import",
+      "targets": [
+        "concurrent.futures"
+      ]
+    },
+    {
+      "file": "ingestion/parser.py",
+      "line": 180,
+      "kind": "import",
+      "targets": [
+        "tree_sitter"
+      ]
+    },
+    {
+      "file": "ingestion/parser.py",
+      "line": 181,
+      "kind": "import",
+      "targets": [
+        "ctypes"
+      ]
+    },
+    {
+      "file": "ingestion/parser.py",
+      "line": 218,
+      "kind": "import",
+      "targets": [
+        "tree_sitter_python"
+      ]
+    },
+    {
+      "file": "ingestion/parser.py",
+      "line": 221,
+      "kind": "import",
+      "targets": [
+        "tree_sitter_javascript"
+      ]
+    },
+    {
+      "file": "ingestion/parser.py",
+      "line": 224,
+      "kind": "import",
+      "targets": [
+        "tree_sitter_typescript"
+      ]
+    },
+    {
+      "file": "ingestion/parser.py",
+      "line": 227,
+      "kind": "import",
+      "targets": [
+        "tree_sitter_typescript"
+      ]
+    },
+    {
+      "file": "ingestion/parser.py",
+      "line": 230,
+      "kind": "import",
+      "targets": [
+        "tree_sitter_go"
+      ]
+    },
+    {
+      "file": "ingestion/parser.py",
+      "line": 233,
+      "kind": "import",
+      "targets": [
+        "tree_sitter_rust"
+      ]
+    },
+    {
+      "file": "ingestion/summarizer.py",
+      "line": 351,
+      "kind": "import",
+      "targets": [
+        "asyncio"
+      ]
+    },
+    {
+      "file": "ingestion/summarizer.py",
+      "line": 279,
+      "kind": "from",
+      "module": "google",
+      "names": [
+        "genai"
+      ]
+    },
+    {
+      "file": "ingestion/summarizer.py",
+      "line": 313,
+      "kind": "import",
+      "targets": [
+        "openai"
+      ]
+    },
+    {
+      "file": "ingestion/summarizer.py",
+      "line": 366,
+      "kind": "import",
+      "targets": [
+        "openai"
+      ]
+    },
+    {
+      "file": "ingestion/summarizer.py",
+      "line": 288,
+      "kind": "import",
+      "targets": [
+        "warnings"
+      ]
+    },
+    {
+      "file": "ingestion/summarizer.py",
+      "line": 633,
+      "kind": "import",
+      "targets": [
+        "re"
+      ]
+    },
+    {
+      "file": "ingestion/summarizer.py",
+      "line": 291,
+      "kind": "import",
+      "targets": [
+        "google.generativeai"
+      ]
+    },
+    {
+      "file": "services/janitor.py",
+      "line": 538,
+      "kind": "import",
+      "targets": [
+        "json"
+      ]
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 32,
+      "kind": "import",
+      "targets": [
+        "chromadb"
+      ]
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 33,
+      "kind": "from",
+      "module": "chromadb.config",
+      "names": [
+        "Settings"
+      ]
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 296,
+      "kind": "import",
+      "targets": [
+        "os"
+      ]
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 147,
+      "kind": "import",
+      "targets": [
+        "os"
+      ]
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 158,
+      "kind": "from",
+      "module": "sentence_transformers",
+      "names": [
+        "SentenceTransformer"
+      ]
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 175,
+      "kind": "import",
+      "targets": [
+        "openai"
+      ]
+    },
+    {
+      "file": "storage/store.py",
+      "line": 29,
+      "kind": "from",
+      "module": "core.config",
+      "names": [
+        "ConciergeConfig"
+      ]
+    },
+    {
+      "file": "storage/logic.py",
+      "line": 28,
+      "kind": "from",
+      "module": "core.config",
+      "names": [
+        "ConciergeConfig"
+      ]
+    }
+  ]
+}

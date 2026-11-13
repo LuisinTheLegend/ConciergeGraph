@@ -1,0 +1,21 @@
+Total .py in tests/: 67, collected tests: 478
+
+--- CUT: CLASS (i) ONLY (14 UNREACHABLE D0 modules) ---
+  so-dormente: 4 files, 28 tests
+  misto: 11 files, 101 tests
+  so-queue_writer: 6 files, 28 tests
+  so-vivo: 46 files, 321 tests
+
+--- CUT: 28 UNREACHABLE (CLASS i + ii/iii UNREACHABLE) ---
+  so-dormente: 7 files, 50 tests
+  misto: 15 files, 114 tests
+  so-queue_writer: 6 files, 28 tests
+  so-vivo: 39 files, 286 tests
+
+--- CUT: ALL (i) + (ii)/(iii) + (iv) [32 modules, excl. queue_writer] ---
+  so-dormente: 7 files, 50 tests
+  misto: 20 files, 150 tests
+  so-queue_writer: 6 files, 28 tests
+  so-vivo: 34 files, 250 tests
+
+Granular sum (affected 33 files): {'dormant_only': 99, 'mixed': 92, 'live_only': 9, 'qw': 28}

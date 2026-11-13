@@ -1,0 +1,143 @@
+Pytest collect: 478 tests collected in 1.97s
+
+=== PROD REFS ===
+[agents_or_revisor] (18)
+  agents/__init__.py:2: agents/__init__.py — Grafo Concierge v3.8.0 (Absolute Solidity)
+  agents/__init__.py:4: agents/ package — Guardians of Evolution.
+  agents/__init__.py:6: Exports the critical AI agents:
+  agents/__init__.py:7: - RevisorCritico → Evolution Auditor + Drawer Reranking
+  agents/__init__.py:10: from agents.revisor_critico import RevisorCritico
+  agents/__init__.py:13: "RevisorCritico",
+  agents/revisor_critico.py:2: agents/revisor_critico.py — Grafo Concierge v3.8.0 (Absolute Solidity)
+  agents/revisor_critico.py:159: # RevisorCritico — Guardian of Evolution
+  agents/revisor_critico.py:162: class RevisorCritico:
+  agents/revisor_critico.py:188: logger.info("RevisorCritico initialized: mode=%s, max_loops=%d", mode, self._max_loops)
+  core/checkpointer.py:14: concurrent agents, sessions, and branching timelines
+  core/mcp_governor.py:6: Acts as a dynamic cognitive firewall for AI agents, intercepting
+  interface/__init__.py:21: """Exportação preguiçosa (PEP 562) para cortar a cadeia de importação de agents.revisor_critico."""
+  interface/action_hooks.py:23: - Consumes agents.revisor_critico.RevisorCritico for auditing
+  interface/action_hooks.py:32: from agents.revisor_critico import RevisorCritico
+  interface/action_hooks.py:53: revisor: Optional[RevisorCritico] = None,
+  interface/action_hooks.py:56: self._revisor = revisor or RevisorCritico()
+  interface/mcp_server.py:5: to LLM agents via FastMCP.
+[action_hooks] (10)
+  agents/revisor_critico.py:35: - Is consumed by core.middleware.GrafoConcierge and interface/action_hooks
+  core/middleware.py:13: - interface/action_hooks.py (Operational Modules)
+  interface/__init__.py:6: action_hooks.py  -> Reactive lifecycle triggers (on_planning, on_execution, on_done)
+  interface/__init__.py:16: "ActionHooks",
+  interface/__init__.py:22: if name == "ActionHooks":
+  interface/__init__.py:23: from interface.action_hooks import ActionHooks
+  interface/__init__.py:24: return ActionHooks
+  interface/action_hooks.py:2: interface/action_hooks.py — Grafo Concierge v3.8.0 (Absolute Solidity)
+  interface/action_hooks.py:37: class ActionHooks:
+  interface/action_hooks.py:59: "ActionHooks initialized: reviewer=%s",
+[probabilistic_or_thompson] (11)
+  core/hybrid_search.py:86: enable_probabilistic: bool = False,
+  core/hybrid_search.py:215: if enable_probabilistic:
+  core/hybrid_search.py:216: scored_results = self._apply_thompson_sampling(scored_results)
+  core/hybrid_search.py:238: def _apply_thompson_sampling(self, results: list[dict]) -> list[dict]:
+  core/hybrid_search.py:252: from core.probabilistic_retriever import ThompsonRetriever
+  core/hybrid_search.py:262: multiplier = ThompsonRetriever.sample_multiplier(alpha, beta_param)
+  core/probabilistic_retriever.py:2: core/probabilistic_retriever.py - Grafo Concierge v3.8.0 (Absolute Solidity)
+  core/probabilistic_retriever.py:20: class ThompsonRetriever:
+  core/probabilistic_retriever.py:28: """Initializes the ThompsonRetriever.
+  core/probabilistic_retriever.py:60: thompson_multiplier = ThompsonRetriever.sample_multiplier(alpha, beta)
+  core/probabilistic_retriever.py:92: thompson_multiplier = ThompsonRetriever.sample_multiplier(alpha, beta)
+[env_flags_prob_or_hooks] (0)
+
+=== DOC MENTIONS ===
+[revisor_or_agents] (2)
+  AGENTS.md:13: 1. Ative o skill `reversa` disponível em `.agents/skills/reversa/SKILL.md`
+  docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:95: | `test_revisor_critico.py` | `core/critical_revisor.py` | Self-correction loops, architectural compliance audit, and anti-hallucination verification. |
+[action_hooks] (0)
+[probabilistic_or_thompson] (19)
+  README.md:40: 13. **Zero-NumPy Native Bayesian Thompson Sampling (`core/probabilistic_retriever.py`)**: Executes probabilistic memory ranking via Python's built-in `random.betavariate()` with defensive input sanitization (`max(val, 1e-5)`), saving ~30MB without sacrificing statistical precision.
+  README.md:74: * 🎯 **Bayesian Thompson Sampling**: Real-time feedback loop (`concierge_feedback`) that dynamically adjusts search scoring weights based on agent reinforcement signals.
+  README.md:171: * **`concierge_feedback`**: Registers utility feedback for Bayesian Thompson Sampling optimization.
+  README.pt-BR.md:40: 13. **Amostragem de Thompson Nativa Zero-NumPy (`core/probabilistic_retriever.py`)**: Substitui a biblioteca externa `numpy` pela função nativa `random.betavariate()` com sanitização defensiva (`max(val, 1e-5)`), economizando ~30MB sem perdas estatísticas.
+  README.pt-BR.md:171: * **`concierge_feedback`**: Registra feedback de utilidade para otimização Bayesiana por Thompson Sampling.
+  docs-grafo-concierge/01_ARCHITECTURE.md:20: 9. **Zero-NumPy Native Bayesian Thompson Sampling (`core/probabilistic_retriever.py`)**: Replaces the 30MB external NumPy dependency with Python's built-in `random.betavariate()` and input parameter sanitization (`max(val, 1e-5)`), delivering exact statistical equivalence and rock-solid memory ranking without footprint bloat.
+  docs-grafo-concierge/01_ARCHITECTURE.md:78: │ - probabilistic_retriever.py: Zero-NumPy Thompson Sampling via native random.betavariate()   │
+  docs-grafo-concierge/01_ARCHITECTURE.md:351: ### 5.7 Zero-NumPy Native Bayesian Thompson Sampling
+  docs-grafo-concierge/01_ARCHITECTURE.md:352: * `core/probabilistic_retriever.py` uses Python's standard `random.betavariate()` instead of external NumPy packages (~30MB savings):
+  docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md:248: Registers utility feedback for a semantic fact to tune Thompson Sampling weights.
+  docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md:3: > **Architectural Deep-Dive into Bi-Temporal Persistence, Scoped Core Memory, and Bayesian Thompson Sampling**
+  docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md:14: Grafo Concierge solves these challenges through **Bi-Temporal Fact Invalidation**, **LLM-Driven Semantic Consolidation (`SemanticExtractor`)**, **Scoped Core Memory**, and **Bayesian Thompson Sampling**.
+  docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md:141: ## 5. Bayesian Thompson Sampling & Reinforcement (`probabilistic_retriever.py`)
+  docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md:143: To prevent the retrieval engine from getting stuck in local optima (repeatedly recalling the same high-similarity memory even when newer or alternative memories are more helpful), Grafo Concierge implements **Thompson Sampling (SA-CTS)**.
+  docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md:150: During retrieval with `enable_probabilistic=True`:
+  docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md:159: │        Thompson Sampling Beta Multiplier (0.0 to 1.0)  │
+  docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:88: | `test_probabilistic_retriever.py` | `core/probabilistic_retriever.py` | Zero-NumPy Thompson Sampling Beta(α,β) ranking via `random.betavariate()` and Bayesian feedback loop. |
+  docs-grafo-concierge/README.md:13: | [**`03_COGNITIVE_MEMORY_AND_FACTS.md`**](03_COGNITIVE_MEMORY_AND_FACTS.md) | Deep dive into bi-temporal fact invalidation (`t_valid` / `t_invalid`), `SemanticExtractor` (ADD/UPDATE/DELETE/NOOP), Scoped Core Memory, Zero-NumPy Thompson Sampling, Durable FSM Checkpoints, and `HSMStateContext` Deep History Node integration. | ML / AI Engineers |
+  docs-grafo-concierge/README.md:59: │ - ThompsonRetriever (Zero-NumPy Bayesian Sampling)      │
+
+=== FOUR REACHABLE-NOT-LOADED TEST HITS ===
+[agents]
+  {'test_file': 'tests/colossus_benchmark.py', 'collected': 0, 'live_mods': ['core.hybrid_search', 'core.project_index', 'ingestion', 'services.janitor', 'storage'], 'string_ref_only': True}
+  {'test_file': 'tests/stress_test_v2_setup.py', 'collected': 0, 'live_mods': ['core.middleware', 'ingestion.orchestrator', 'ingestion.summarizer', 'storage'], 'string_ref_only': True}
+  {'test_file': 'tests/test_agent_checkpointer.py', 'collected': 4, 'live_mods': ['core.checkpointer', 'core.database', 'interface'], 'string_ref_only': True}
+  {'test_file': 'tests/test_governor_wiring.py', 'collected': 5, 'live_mods': ['core.mcp_governor', 'interface', 'interface.mcp_server', 'storage.store'], 'string_ref_only': True}
+  {'test_file': 'tests/test_ingestion_embed_regression.py', 'collected': 3, 'live_mods': ['ingestion.orchestrator', 'storage'], 'string_ref_only': True}
+  {'test_file': 'tests/test_revisor_critico.py', 'collected': 11, 'live_mods': ['core.config'], 'string_ref_only': True}
+[agents.revisor_critico]
+  {'test_file': 'tests/colossus_benchmark.py', 'collected': 0, 'live_mods': ['core.hybrid_search', 'core.project_index', 'ingestion', 'services.janitor', 'storage']}
+  {'test_file': 'tests/stress_test_v2_setup.py', 'collected': 0, 'live_mods': ['core.middleware', 'ingestion.orchestrator', 'ingestion.summarizer', 'storage']}
+  {'test_file': 'tests/test_governor_wiring.py', 'collected': 5, 'live_mods': ['core.mcp_governor', 'interface', 'interface.mcp_server', 'storage.store'], 'string_ref_only': True}
+  {'test_file': 'tests/test_revisor_critico.py', 'collected': 11, 'live_mods': ['core.config']}
+[interface.action_hooks]
+  {'test_file': 'tests/stress_test_v2_setup.py', 'collected': 0, 'live_mods': ['core.middleware', 'ingestion.orchestrator', 'ingestion.summarizer', 'storage']}
+  {'test_file': 'tests/test_governor_wiring.py', 'collected': 5, 'live_mods': ['core.mcp_governor', 'interface', 'interface.mcp_server', 'storage.store']}
+  {'test_file': 'tests/test_interface_contracts.py', 'collected': 22, 'live_mods': ['core.middleware', 'interface', 'interface.cli', 'interface.mcp_server', 'storage.store']}
+[core.probabilistic_retriever]
+  {'test_file': 'tests/test_probabilistic_retriever.py', 'collected': 3, 'live_mods': ['storage.schema', 'storage.semantic_logic']}
+
+=== RECONCILIATION SUMMARY ===
+4.5a affected (no prob_retriever, incl 4-lazy + queue_writer? check): 32 files, 225 tests
+Only 28 unreachable: 22 files, 164 tests
+Only 28 excl test_watcher_ignore.py: 21 files, 160 tests
+Diff (in 4.5a 26 files but not importing any of the 28):
+  {'test_file': 'tests/colossus_benchmark.py', 'test_count': 0, 'dormant_imported': ['agents.revisor_critico']}
+  {'test_file': 'tests/stress_test_v2_setup.py', 'test_count': 0, 'dormant_imported': ['agents.revisor_critico', 'interface.action_hooks']}
+  {'test_file': 'tests/test_agent_checkpointer.py', 'test_count': 4, 'dormant_imported': ['interface.queue_writer']}
+  {'test_file': 'tests/test_concurrency_stress.py', 'test_count': 2, 'dormant_imported': ['interface.queue_writer']}
+  {'test_file': 'tests/test_graph_rag_loops.py', 'test_count': 3, 'dormant_imported': ['interface.queue_writer']}
+  {'test_file': 'tests/test_interface_contracts.py', 'test_count': 22, 'dormant_imported': ['interface.action_hooks']}
+  {'test_file': 'tests/test_mcp_server_extensions.py', 'test_count': 3, 'dormant_imported': ['interface.queue_writer']}
+  {'test_file': 'tests/test_queue_writer_batching.py', 'test_count': 2, 'dormant_imported': ['interface.queue_writer']}
+  {'test_file': 'tests/test_queue_writer_resilience.py', 'test_count': 14, 'dormant_imported': ['interface.queue_writer']}
+  {'test_file': 'tests/test_revisor_critico.py', 'test_count': 11, 'dormant_imported': ['agents.revisor_critico']}
+
+=== ALL AFFECTED FILES ACROSS 33 (28 + 1 + 4) ===
+  tests/colossus_benchmark.py | collected=0 | cat=misto | h28=[] | h4=['agents.revisor_critico'] | hqw=[] | live=['core.hybrid_search', 'core.project_index', 'ingestion', 'services.janitor', 'storage']
+  tests/stress_test_v2_setup.py | collected=0 | cat=misto | h28=[] | h4=['agents.revisor_critico', 'interface.action_hooks'] | hqw=[] | live=['core.middleware', 'ingestion.orchestrator', 'ingestion.summarizer', 'storage']
+  tests/test_adaptive_gating.py | collected=13 | cat=so-dormente | h28=['core.gating_interceptor', 'core.security_guard'] | h4=[] | hqw=[] | live=[]
+  tests/test_agent_checkpointer.py | collected=4 | cat=misto_queue_writer_e_vivo | h28=[] | h4=[] | hqw=['interface.queue_writer'] | live=['core.checkpointer', 'core.database', 'interface']
+  tests/test_agent_hsm_coupling.py | collected=13 | cat=misto | h28=['agent.agent_prompts', 'agent.run_agent', 'core.gating_interceptor', 'core.hsm_engine', 'core.rate_governor', 'core.security_guard'] | h4=[] | hqw=[] | live=['core.checkpointer', 'core.database', 'core.mcp_governor']
+  tests/test_alias_tracker.py | collected=4 | cat=misto | h28=['core.alias_tracker'] | h4=[] | hqw=[] | live=['core.database']
+  tests/test_checkpoint_pruning.py | collected=1 | cat=misto | h28=['core.background_janitor'] | h4=[] | hqw=['interface.queue_writer'] | live=['core.checkpointer', 'core.database', 'interface']
+  tests/test_cognitive_routing_memory.py | collected=3 | cat=misto | h28=['core.federated_knowledge_router', 'core.global_memory_adapter', 'core.intent_classifier'] | h4=[] | hqw=[] | live=['core.database']
+  tests/test_concurrency_stress.py | collected=2 | cat=misto_queue_writer_e_vivo | h28=[] | h4=[] | hqw=['interface.queue_writer'] | live=['core.database', 'interface', 'storage.schema']
+  tests/test_delta_sync.py | collected=4 | cat=misto | h28=['core.delta_manager'] | h4=[] | hqw=['interface.queue_writer'] | live=['core.database', 'interface']
+  tests/test_delta_sync_drift.py | collected=4 | cat=so-dormente | h28=['core.delta_sync'] | h4=[] | hqw=[] | live=[]
+  tests/test_dependency_injection.py | collected=3 | cat=so-dormente | h28=['core.dependencies'] | h4=[] | hqw=[] | live=[]
+  tests/test_durable_checkpoints_timetravel.py | collected=3 | cat=misto | h28=['interface.telemetry_api'] | h4=[] | hqw=[] | live=['core.checkpointer', 'core.database']
+  tests/test_e2e_concierge_integration.py | collected=1 | cat=misto | h28=['core.background_janitor', 'core.delta_manager', 'core.search_engine', 'core.vector_reconciler'] | h4=[] | hqw=['interface.queue_writer'] | live=['core.checkpointer', 'core.database', 'core.graph_rag', 'interface', 'interface.mcp_server', 'storage.schema']
+  tests/test_governor_wiring.py | collected=5 | cat=misto | h28=['interface.telemetry_api'] | h4=['interface.action_hooks'] | hqw=[] | live=['core.mcp_governor', 'interface', 'interface.mcp_server', 'storage.store']
+  tests/test_graph_rag_frugal.py | collected=2 | cat=misto | h28=['core.background_janitor'] | h4=[] | hqw=['interface.queue_writer'] | live=['core.database', 'core.graph_rag']
+  tests/test_graph_rag_janitor.py | collected=3 | cat=misto | h28=['core.background_janitor'] | h4=[] | hqw=['interface.queue_writer'] | live=['core.database', 'core.graph_rag', 'interface', 'storage.schema']
+  tests/test_graph_rag_loops.py | collected=3 | cat=misto_queue_writer_e_vivo | h28=[] | h4=[] | hqw=['interface.queue_writer'] | live=['core.database', 'core.graph_rag', 'storage.schema']
+  tests/test_hierarchical_state_machine.py | collected=43 | cat=misto | h28=['core.hsm_engine', 'interface.telemetry_api'] | h4=[] | hqw=[] | live=['core.checkpointer', 'core.database', 'core.mcp_governor']
+  tests/test_hsm_transition_hooks_and_delta.py | collected=20 | cat=misto | h28=['core.hsm_engine'] | h4=[] | hqw=[] | live=['core.checkpointer', 'core.database']
+  tests/test_interface_contracts.py | collected=22 | cat=misto | h28=[] | h4=['interface.action_hooks'] | hqw=[] | live=['core.middleware', 'interface', 'interface.cli', 'interface.mcp_server', 'storage.store']
+  tests/test_mcp_server_extensions.py | collected=3 | cat=misto_queue_writer_e_vivo | h28=[] | h4=[] | hqw=['interface.queue_writer'] | live=['core.checkpointer', 'core.database', 'core.graph_rag', 'interface', 'interface.mcp_server', 'storage.schema']
+  tests/test_multilang_parser.py | collected=8 | cat=so-dormente | h28=['core.parser_factory', 'core.parsers.python_parser', 'core.parsers.ts_js_parser'] | h4=[] | hqw=[] | live=[]
+  tests/test_probabilistic_retriever.py | collected=3 | cat=misto | h28=[] | h4=['core.probabilistic_retriever'] | hqw=[] | live=['storage.schema', 'storage.semantic_logic']
+  tests/test_progressive_tool_disclosure.py | collected=5 | cat=misto | h28=['interface.telemetry_api'] | h4=[] | hqw=[] | live=['core.mcp_governor']
+  tests/test_queue_writer_batching.py | collected=2 | cat=misto_queue_writer_e_vivo | h28=[] | h4=[] | hqw=['interface.queue_writer'] | live=['core.database']
+  tests/test_queue_writer_resilience.py | collected=14 | cat=misto_queue_writer_e_vivo | h28=[] | h4=[] | hqw=['interface.queue_writer'] | live=['core.database']
+  tests/test_rate_governor_priority.py | collected=8 | cat=so-dormente | h28=['core.rate_governor'] | h4=[] | hqw=[] | live=[]
+  tests/test_revisor_critico.py | collected=11 | cat=misto | h28=[] | h4=['agents.revisor_critico'] | hqw=[] | live=['core.config']
+  tests/test_ssh_language_coverage.py | collected=10 | cat=so-dormente | h28=['core.delta_manager'] | h4=[] | hqw=[] | live=[]
+  tests/test_telemetry_api.py | collected=5 | cat=misto | h28=['interface.telemetry_api'] | h4=[] | hqw=['interface.queue_writer'] | live=['core.database']
+  tests/test_vector_reconciler.py | collected=2 | cat=misto | h28=['core.search_engine', 'core.vector_reconciler'] | h4=[] | hqw=['interface.queue_writer'] | live=['core.database', 'interface']
+  tests/test_watcher_ignore.py | collected=4 | cat=misto | h28=['interface.watcher'] | h4=[] | hqw=[] | live=['interface']

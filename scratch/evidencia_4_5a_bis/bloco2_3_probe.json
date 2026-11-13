@@ -1,0 +1,1607 @@
+{
+  "pytest_summary": "478 tests collected in 1.97s",
+  "collected_counts_by_file": {
+    "tests/memory_stress_test.py": 4,
+    "tests/test_adaptive_gating.py": 13,
+    "tests/test_agent_checkpointer.py": 4,
+    "tests/test_agent_checkpoints_schema.py": 11,
+    "tests/test_agent_hsm_coupling.py": 13,
+    "tests/test_alias_tracker.py": 4,
+    "tests/test_call_chain_edges_nodes.py": 15,
+    "tests/test_checkpoint_pruning.py": 1,
+    "tests/test_chunk_cache.py": 1,
+    "tests/test_cognitive_routing_memory.py": 3,
+    "tests/test_concurrency_stress.py": 2,
+    "tests/test_config.py": 18,
+    "tests/test_connection_queue_resilience.py": 14,
+    "tests/test_conversational_db.py": 5,
+    "tests/test_delta_sync.py": 4,
+    "tests/test_delta_sync_drift.py": 4,
+    "tests/test_dependency_injection.py": 3,
+    "tests/test_dependency_pins.py": 2,
+    "tests/test_domain_neutrality_guard.py": 4,
+    "tests/test_durable_checkpoints_timetravel.py": 3,
+    "tests/test_e2e_concierge_integration.py": 1,
+    "tests/test_env_example_provider.py": 1,
+    "tests/test_extraction_noop.py": 5,
+    "tests/test_fts_atomic_migration.py": 3,
+    "tests/test_fts_code_search.py": 12,
+    "tests/test_governor_wiring.py": 5,
+    "tests/test_graph_rag_frugal.py": 2,
+    "tests/test_graph_rag_janitor.py": 3,
+    "tests/test_graph_rag_loops.py": 3,
+    "tests/test_hierarchical_state_machine.py": 43,
+    "tests/test_hsm_transition_hooks_and_delta.py": 20,
+    "tests/test_ignore.py": 1,
+    "tests/test_ingestion_embed_regression.py": 3,
+    "tests/test_ingestion_vector_repair.py": 9,
+    "tests/test_interface_contracts.py": 22,
+    "tests/test_lazy_ml_imports.py": 5,
+    "tests/test_lightweight.py": 1,
+    "tests/test_llm_egress_guard.py": 14,
+    "tests/test_local_graph_rag_recursion.py": 3,
+    "tests/test_mcp_server_extensions.py": 3,
+    "tests/test_mcp_server_handlers.py": 28,
+    "tests/test_multilang_parser.py": 8,
+    "tests/test_no_secrets_in_tracked_files.py": 1,
+    "tests/test_probabilistic_retriever.py": 3,
+    "tests/test_progressive_tool_disclosure.py": 5,
+    "tests/test_project_index.py": 1,
+    "tests/test_queue_writer_batching.py": 2,
+    "tests/test_queue_writer_resilience.py": 14,
+    "tests/test_rate_governor_priority.py": 8,
+    "tests/test_revisor_critico.py": 11,
+    "tests/test_secret_redaction.py": 22,
+    "tests/test_ssh_language_coverage.py": 10,
+    "tests/test_stdin_decouple.py": 4,
+    "tests/test_storage_logic.py": 57,
+    "tests/test_stress_components_reuse.py": 2,
+    "tests/test_summary_persistence.py": 2,
+    "tests/test_telemetry_api.py": 5,
+    "tests/test_topology.py": 2,
+    "tests/test_vector_reconciler.py": 2,
+    "tests/test_watcher_ignore.py": 4
+  },
+  "prod_refs": {
+    "agents_or_revisor": [
+      {
+        "file": "agents/__init__.py",
+        "line": 2,
+        "text": "agents/__init__.py — Grafo Concierge v3.8.0 (Absolute Solidity)"
+      },
+      {
+        "file": "agents/__init__.py",
+        "line": 4,
+        "text": "agents/ package — Guardians of Evolution."
+      },
+      {
+        "file": "agents/__init__.py",
+        "line": 6,
+        "text": "Exports the critical AI agents:"
+      },
+      {
+        "file": "agents/__init__.py",
+        "line": 7,
+        "text": "- RevisorCritico → Evolution Auditor + Drawer Reranking"
+      },
+      {
+        "file": "agents/__init__.py",
+        "line": 10,
+        "text": "from agents.revisor_critico import RevisorCritico"
+      },
+      {
+        "file": "agents/__init__.py",
+        "line": 13,
+        "text": "\"RevisorCritico\","
+      },
+      {
+        "file": "agents/revisor_critico.py",
+        "line": 2,
+        "text": "agents/revisor_critico.py — Grafo Concierge v3.8.0 (Absolute Solidity)"
+      },
+      {
+        "file": "agents/revisor_critico.py",
+        "line": 159,
+        "text": "# RevisorCritico — Guardian of Evolution"
+      },
+      {
+        "file": "agents/revisor_critico.py",
+        "line": 162,
+        "text": "class RevisorCritico:"
+      },
+      {
+        "file": "agents/revisor_critico.py",
+        "line": 188,
+        "text": "logger.info(\"RevisorCritico initialized: mode=%s, max_loops=%d\", mode, self._max_loops)"
+      },
+      {
+        "file": "core/checkpointer.py",
+        "line": 14,
+        "text": "concurrent agents, sessions, and branching timelines"
+      },
+      {
+        "file": "core/mcp_governor.py",
+        "line": 6,
+        "text": "Acts as a dynamic cognitive firewall for AI agents, intercepting"
+      },
+      {
+        "file": "interface/__init__.py",
+        "line": 21,
+        "text": "\"\"\"Exportação preguiçosa (PEP 562) para cortar a cadeia de importação de agents.revisor_critico.\"\"\""
+      },
+      {
+        "file": "interface/action_hooks.py",
+        "line": 23,
+        "text": "- Consumes agents.revisor_critico.RevisorCritico for auditing"
+      },
+      {
+        "file": "interface/action_hooks.py",
+        "line": 32,
+        "text": "from agents.revisor_critico import RevisorCritico"
+      },
+      {
+        "file": "interface/action_hooks.py",
+        "line": 53,
+        "text": "revisor: Optional[RevisorCritico] = None,"
+      },
+      {
+        "file": "interface/action_hooks.py",
+        "line": 56,
+        "text": "self._revisor = revisor or RevisorCritico()"
+      },
+      {
+        "file": "interface/mcp_server.py",
+        "line": 5,
+        "text": "to LLM agents via FastMCP."
+      }
+    ],
+    "action_hooks": [
+      {
+        "file": "agents/revisor_critico.py",
+        "line": 35,
+        "text": "- Is consumed by core.middleware.GrafoConcierge and interface/action_hooks"
+      },
+      {
+        "file": "core/middleware.py",
+        "line": 13,
+        "text": "- interface/action_hooks.py (Operational Modules)"
+      },
+      {
+        "file": "interface/__init__.py",
+        "line": 6,
+        "text": "action_hooks.py  -> Reactive lifecycle triggers (on_planning, on_execution, on_done)"
+      },
+      {
+        "file": "interface/__init__.py",
+        "line": 16,
+        "text": "\"ActionHooks\","
+      },
+      {
+        "file": "interface/__init__.py",
+        "line": 22,
+        "text": "if name == \"ActionHooks\":"
+      },
+      {
+        "file": "interface/__init__.py",
+        "line": 23,
+        "text": "from interface.action_hooks import ActionHooks"
+      },
+      {
+        "file": "interface/__init__.py",
+        "line": 24,
+        "text": "return ActionHooks"
+      },
+      {
+        "file": "interface/action_hooks.py",
+        "line": 2,
+        "text": "interface/action_hooks.py — Grafo Concierge v3.8.0 (Absolute Solidity)"
+      },
+      {
+        "file": "interface/action_hooks.py",
+        "line": 37,
+        "text": "class ActionHooks:"
+      },
+      {
+        "file": "interface/action_hooks.py",
+        "line": 59,
+        "text": "\"ActionHooks initialized: reviewer=%s\","
+      }
+    ],
+    "probabilistic_or_thompson": [
+      {
+        "file": "core/hybrid_search.py",
+        "line": 86,
+        "text": "enable_probabilistic: bool = False,"
+      },
+      {
+        "file": "core/hybrid_search.py",
+        "line": 215,
+        "text": "if enable_probabilistic:"
+      },
+      {
+        "file": "core/hybrid_search.py",
+        "line": 216,
+        "text": "scored_results = self._apply_thompson_sampling(scored_results)"
+      },
+      {
+        "file": "core/hybrid_search.py",
+        "line": 238,
+        "text": "def _apply_thompson_sampling(self, results: list[dict]) -> list[dict]:"
+      },
+      {
+        "file": "core/hybrid_search.py",
+        "line": 252,
+        "text": "from core.probabilistic_retriever import ThompsonRetriever"
+      },
+      {
+        "file": "core/hybrid_search.py",
+        "line": 262,
+        "text": "multiplier = ThompsonRetriever.sample_multiplier(alpha, beta_param)"
+      },
+      {
+        "file": "core/probabilistic_retriever.py",
+        "line": 2,
+        "text": "core/probabilistic_retriever.py - Grafo Concierge v3.8.0 (Absolute Solidity)"
+      },
+      {
+        "file": "core/probabilistic_retriever.py",
+        "line": 20,
+        "text": "class ThompsonRetriever:"
+      },
+      {
+        "file": "core/probabilistic_retriever.py",
+        "line": 28,
+        "text": "\"\"\"Initializes the ThompsonRetriever."
+      },
+      {
+        "file": "core/probabilistic_retriever.py",
+        "line": 60,
+        "text": "thompson_multiplier = ThompsonRetriever.sample_multiplier(alpha, beta)"
+      },
+      {
+        "file": "core/probabilistic_retriever.py",
+        "line": 92,
+        "text": "thompson_multiplier = ThompsonRetriever.sample_multiplier(alpha, beta)"
+      }
+    ],
+    "env_flags_prob_or_hooks": []
+  },
+  "doc_mentions": {
+    "revisor_or_agents": [
+      {
+        "file": "AGENTS.md",
+        "line": 13,
+        "text": "1. Ative o skill `reversa` disponível em `.agents/skills/reversa/SKILL.md`"
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 95,
+        "text": "| `test_revisor_critico.py` | `core/critical_revisor.py` | Self-correction loops, architectural compliance audit, and anti-hallucination verification. |"
+      }
+    ],
+    "action_hooks": [],
+    "probabilistic_or_thompson": [
+      {
+        "file": "README.md",
+        "line": 40,
+        "text": "13. **Zero-NumPy Native Bayesian Thompson Sampling (`core/probabilistic_retriever.py`)**: Executes probabilistic memory ranking via Python's built-in `random.betavariate()` with defensive input sanitization (`max(val, 1e-5)`), saving ~30MB without sacrificing statistical precision."
+      },
+      {
+        "file": "README.md",
+        "line": 74,
+        "text": "* 🎯 **Bayesian Thompson Sampling**: Real-time feedback loop (`concierge_feedback`) that dynamically adjusts search scoring weights based on agent reinforcement signals."
+      },
+      {
+        "file": "README.md",
+        "line": 171,
+        "text": "* **`concierge_feedback`**: Registers utility feedback for Bayesian Thompson Sampling optimization."
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 40,
+        "text": "13. **Amostragem de Thompson Nativa Zero-NumPy (`core/probabilistic_retriever.py`)**: Substitui a biblioteca externa `numpy` pela função nativa `random.betavariate()` com sanitização defensiva (`max(val, 1e-5)`), economizando ~30MB sem perdas estatísticas."
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 171,
+        "text": "* **`concierge_feedback`**: Registra feedback de utilidade para otimização Bayesiana por Thompson Sampling."
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 20,
+        "text": "9. **Zero-NumPy Native Bayesian Thompson Sampling (`core/probabilistic_retriever.py`)**: Replaces the 30MB external NumPy dependency with Python's built-in `random.betavariate()` and input parameter sanitization (`max(val, 1e-5)`), delivering exact statistical equivalence and rock-solid memory ranking without footprint bloat."
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 78,
+        "text": "│ - probabilistic_retriever.py: Zero-NumPy Thompson Sampling via native random.betavariate()   │"
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 351,
+        "text": "### 5.7 Zero-NumPy Native Bayesian Thompson Sampling"
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 352,
+        "text": "* `core/probabilistic_retriever.py` uses Python's standard `random.betavariate()` instead of external NumPy packages (~30MB savings):"
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 248,
+        "text": "Registers utility feedback for a semantic fact to tune Thompson Sampling weights."
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 3,
+        "text": "> **Architectural Deep-Dive into Bi-Temporal Persistence, Scoped Core Memory, and Bayesian Thompson Sampling**"
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 14,
+        "text": "Grafo Concierge solves these challenges through **Bi-Temporal Fact Invalidation**, **LLM-Driven Semantic Consolidation (`SemanticExtractor`)**, **Scoped Core Memory**, and **Bayesian Thompson Sampling**."
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 141,
+        "text": "## 5. Bayesian Thompson Sampling & Reinforcement (`probabilistic_retriever.py`)"
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 143,
+        "text": "To prevent the retrieval engine from getting stuck in local optima (repeatedly recalling the same high-similarity memory even when newer or alternative memories are more helpful), Grafo Concierge implements **Thompson Sampling (SA-CTS)**."
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 150,
+        "text": "During retrieval with `enable_probabilistic=True`:"
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 159,
+        "text": "│        Thompson Sampling Beta Multiplier (0.0 to 1.0)  │"
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 88,
+        "text": "| `test_probabilistic_retriever.py` | `core/probabilistic_retriever.py` | Zero-NumPy Thompson Sampling Beta(α,β) ranking via `random.betavariate()` and Bayesian feedback loop. |"
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 13,
+        "text": "| [**`03_COGNITIVE_MEMORY_AND_FACTS.md`**](03_COGNITIVE_MEMORY_AND_FACTS.md) | Deep dive into bi-temporal fact invalidation (`t_valid` / `t_invalid`), `SemanticExtractor` (ADD/UPDATE/DELETE/NOOP), Scoped Core Memory, Zero-NumPy Thompson Sampling, Durable FSM Checkpoints, and `HSMStateContext` Deep History Node integration. | ML / AI Engineers |"
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 59,
+        "text": "│ - ThompsonRetriever (Zero-NumPy Bayesian Sampling)      │"
+      }
+    ]
+  },
+  "reconciliation": {
+    "unreachable_28": [
+      "agent",
+      "agent.agent_prompts",
+      "agent.run_agent",
+      "core.alias_tracker",
+      "core.background_janitor",
+      "core.delta_manager",
+      "core.delta_sync",
+      "core.dependencies",
+      "core.federated_knowledge_router",
+      "core.gating_interceptor",
+      "core.global_memory_adapter",
+      "core.hsm_engine",
+      "core.intent_classifier",
+      "core.janitor",
+      "core.nozomio_router",
+      "core.parser_factory",
+      "core.parsers",
+      "core.parsers.base",
+      "core.parsers.python_parser",
+      "core.parsers.ts_js_parser",
+      "core.rate_governor",
+      "core.search_engine",
+      "core.security_guard",
+      "core.telemetry_schemas",
+      "core.vector_reconciler",
+      "interface.telemetry_api",
+      "interface.watcher",
+      "storage.relational_db"
+    ],
+    "reachable_4": [
+      "agents",
+      "agents.revisor_critico",
+      "core.probabilistic_retriever",
+      "interface.action_hooks"
+    ],
+    "ev45a_26_files_count": 32,
+    "ev45a_26_tests_sum": 225,
+    "only_28_files_count": 22,
+    "only_28_tests_sum": 164,
+    "only_28_excl_watcher_ignore_count": 21,
+    "only_28_excl_watcher_ignore_sum": 160,
+    "in_ev45a_26_but_not_28": [
+      {
+        "test_file": "tests/colossus_benchmark.py",
+        "test_count": 0,
+        "dormant_imported": [
+          "agents.revisor_critico"
+        ]
+      },
+      {
+        "test_file": "tests/stress_test_v2_setup.py",
+        "test_count": 0,
+        "dormant_imported": [
+          "agents.revisor_critico",
+          "interface.action_hooks"
+        ]
+      },
+      {
+        "test_file": "tests/test_agent_checkpointer.py",
+        "test_count": 4,
+        "dormant_imported": [
+          "interface.queue_writer"
+        ]
+      },
+      {
+        "test_file": "tests/test_concurrency_stress.py",
+        "test_count": 2,
+        "dormant_imported": [
+          "interface.queue_writer"
+        ]
+      },
+      {
+        "test_file": "tests/test_graph_rag_loops.py",
+        "test_count": 3,
+        "dormant_imported": [
+          "interface.queue_writer"
+        ]
+      },
+      {
+        "test_file": "tests/test_interface_contracts.py",
+        "test_count": 22,
+        "dormant_imported": [
+          "interface.action_hooks"
+        ]
+      },
+      {
+        "test_file": "tests/test_mcp_server_extensions.py",
+        "test_count": 3,
+        "dormant_imported": [
+          "interface.queue_writer"
+        ]
+      },
+      {
+        "test_file": "tests/test_queue_writer_batching.py",
+        "test_count": 2,
+        "dormant_imported": [
+          "interface.queue_writer"
+        ]
+      },
+      {
+        "test_file": "tests/test_queue_writer_resilience.py",
+        "test_count": 14,
+        "dormant_imported": [
+          "interface.queue_writer"
+        ]
+      },
+      {
+        "test_file": "tests/test_revisor_critico.py",
+        "test_count": 11,
+        "dormant_imported": [
+          "agents.revisor_critico"
+        ]
+      }
+    ],
+    "rows_28": [
+      {
+        "test_file": "tests/test_adaptive_gating.py",
+        "collected": 13,
+        "hits_28": [
+          "core.gating_interceptor",
+          "core.security_guard"
+        ],
+        "live_mods": []
+      },
+      {
+        "test_file": "tests/test_agent_hsm_coupling.py",
+        "collected": 13,
+        "hits_28": [
+          "agent.agent_prompts",
+          "agent.run_agent",
+          "core.gating_interceptor",
+          "core.hsm_engine",
+          "core.rate_governor",
+          "core.security_guard"
+        ],
+        "live_mods": [
+          "core.checkpointer",
+          "core.database",
+          "core.mcp_governor"
+        ]
+      },
+      {
+        "test_file": "tests/test_alias_tracker.py",
+        "collected": 4,
+        "hits_28": [
+          "core.alias_tracker"
+        ],
+        "live_mods": [
+          "core.database"
+        ]
+      },
+      {
+        "test_file": "tests/test_checkpoint_pruning.py",
+        "collected": 1,
+        "hits_28": [
+          "core.background_janitor"
+        ],
+        "live_mods": [
+          "core.checkpointer",
+          "core.database",
+          "interface"
+        ]
+      },
+      {
+        "test_file": "tests/test_cognitive_routing_memory.py",
+        "collected": 3,
+        "hits_28": [
+          "core.federated_knowledge_router",
+          "core.global_memory_adapter",
+          "core.intent_classifier"
+        ],
+        "live_mods": [
+          "core.database"
+        ]
+      },
+      {
+        "test_file": "tests/test_delta_sync.py",
+        "collected": 4,
+        "hits_28": [
+          "core.delta_manager"
+        ],
+        "live_mods": [
+          "core.database",
+          "interface"
+        ]
+      },
+      {
+        "test_file": "tests/test_delta_sync_drift.py",
+        "collected": 4,
+        "hits_28": [
+          "core.delta_sync"
+        ],
+        "live_mods": []
+      },
+      {
+        "test_file": "tests/test_dependency_injection.py",
+        "collected": 3,
+        "hits_28": [
+          "core.dependencies"
+        ],
+        "live_mods": []
+      },
+      {
+        "test_file": "tests/test_durable_checkpoints_timetravel.py",
+        "collected": 3,
+        "hits_28": [
+          "interface.telemetry_api"
+        ],
+        "live_mods": [
+          "core.checkpointer",
+          "core.database"
+        ]
+      },
+      {
+        "test_file": "tests/test_e2e_concierge_integration.py",
+        "collected": 1,
+        "hits_28": [
+          "core.background_janitor",
+          "core.delta_manager",
+          "core.search_engine",
+          "core.vector_reconciler"
+        ],
+        "live_mods": [
+          "core.checkpointer",
+          "core.database",
+          "core.graph_rag",
+          "interface",
+          "interface.mcp_server",
+          "storage.schema"
+        ]
+      },
+      {
+        "test_file": "tests/test_governor_wiring.py",
+        "collected": 5,
+        "hits_28": [
+          "interface.telemetry_api"
+        ],
+        "live_mods": [
+          "core.mcp_governor",
+          "interface",
+          "interface.mcp_server",
+          "storage.store"
+        ]
+      },
+      {
+        "test_file": "tests/test_graph_rag_frugal.py",
+        "collected": 2,
+        "hits_28": [
+          "core.background_janitor"
+        ],
+        "live_mods": [
+          "core.database",
+          "core.graph_rag"
+        ]
+      },
+      {
+        "test_file": "tests/test_graph_rag_janitor.py",
+        "collected": 3,
+        "hits_28": [
+          "core.background_janitor"
+        ],
+        "live_mods": [
+          "core.database",
+          "core.graph_rag",
+          "interface",
+          "storage.schema"
+        ]
+      },
+      {
+        "test_file": "tests/test_hierarchical_state_machine.py",
+        "collected": 43,
+        "hits_28": [
+          "core.hsm_engine",
+          "interface.telemetry_api"
+        ],
+        "live_mods": [
+          "core.checkpointer",
+          "core.database",
+          "core.mcp_governor"
+        ]
+      },
+      {
+        "test_file": "tests/test_hsm_transition_hooks_and_delta.py",
+        "collected": 20,
+        "hits_28": [
+          "core.hsm_engine"
+        ],
+        "live_mods": [
+          "core.checkpointer",
+          "core.database"
+        ]
+      },
+      {
+        "test_file": "tests/test_multilang_parser.py",
+        "collected": 8,
+        "hits_28": [
+          "core.parser_factory",
+          "core.parsers.python_parser",
+          "core.parsers.ts_js_parser"
+        ],
+        "live_mods": []
+      },
+      {
+        "test_file": "tests/test_progressive_tool_disclosure.py",
+        "collected": 5,
+        "hits_28": [
+          "interface.telemetry_api"
+        ],
+        "live_mods": [
+          "core.mcp_governor"
+        ]
+      },
+      {
+        "test_file": "tests/test_rate_governor_priority.py",
+        "collected": 8,
+        "hits_28": [
+          "core.rate_governor"
+        ],
+        "live_mods": []
+      },
+      {
+        "test_file": "tests/test_ssh_language_coverage.py",
+        "collected": 10,
+        "hits_28": [
+          "core.delta_manager"
+        ],
+        "live_mods": []
+      },
+      {
+        "test_file": "tests/test_telemetry_api.py",
+        "collected": 5,
+        "hits_28": [
+          "interface.telemetry_api"
+        ],
+        "live_mods": [
+          "core.database"
+        ]
+      },
+      {
+        "test_file": "tests/test_vector_reconciler.py",
+        "collected": 2,
+        "hits_28": [
+          "core.search_engine",
+          "core.vector_reconciler"
+        ],
+        "live_mods": [
+          "core.database",
+          "interface"
+        ]
+      },
+      {
+        "test_file": "tests/test_watcher_ignore.py",
+        "collected": 4,
+        "hits_28": [
+          "interface.watcher"
+        ],
+        "live_mods": [
+          "interface"
+        ]
+      }
+    ],
+    "rows_4": {
+      "agents": [
+        {
+          "test_file": "tests/colossus_benchmark.py",
+          "collected": 0,
+          "live_mods": [
+            "core.hybrid_search",
+            "core.project_index",
+            "ingestion",
+            "services.janitor",
+            "storage"
+          ],
+          "string_ref_only": true
+        },
+        {
+          "test_file": "tests/stress_test_v2_setup.py",
+          "collected": 0,
+          "live_mods": [
+            "core.middleware",
+            "ingestion.orchestrator",
+            "ingestion.summarizer",
+            "storage"
+          ],
+          "string_ref_only": true
+        },
+        {
+          "test_file": "tests/test_agent_checkpointer.py",
+          "collected": 4,
+          "live_mods": [
+            "core.checkpointer",
+            "core.database",
+            "interface"
+          ],
+          "string_ref_only": true
+        },
+        {
+          "test_file": "tests/test_governor_wiring.py",
+          "collected": 5,
+          "live_mods": [
+            "core.mcp_governor",
+            "interface",
+            "interface.mcp_server",
+            "storage.store"
+          ],
+          "string_ref_only": true
+        },
+        {
+          "test_file": "tests/test_ingestion_embed_regression.py",
+          "collected": 3,
+          "live_mods": [
+            "ingestion.orchestrator",
+            "storage"
+          ],
+          "string_ref_only": true
+        },
+        {
+          "test_file": "tests/test_revisor_critico.py",
+          "collected": 11,
+          "live_mods": [
+            "core.config"
+          ],
+          "string_ref_only": true
+        }
+      ],
+      "agents.revisor_critico": [
+        {
+          "test_file": "tests/colossus_benchmark.py",
+          "collected": 0,
+          "live_mods": [
+            "core.hybrid_search",
+            "core.project_index",
+            "ingestion",
+            "services.janitor",
+            "storage"
+          ]
+        },
+        {
+          "test_file": "tests/stress_test_v2_setup.py",
+          "collected": 0,
+          "live_mods": [
+            "core.middleware",
+            "ingestion.orchestrator",
+            "ingestion.summarizer",
+            "storage"
+          ]
+        },
+        {
+          "test_file": "tests/test_governor_wiring.py",
+          "collected": 5,
+          "live_mods": [
+            "core.mcp_governor",
+            "interface",
+            "interface.mcp_server",
+            "storage.store"
+          ],
+          "string_ref_only": true
+        },
+        {
+          "test_file": "tests/test_revisor_critico.py",
+          "collected": 11,
+          "live_mods": [
+            "core.config"
+          ]
+        }
+      ],
+      "interface.action_hooks": [
+        {
+          "test_file": "tests/stress_test_v2_setup.py",
+          "collected": 0,
+          "live_mods": [
+            "core.middleware",
+            "ingestion.orchestrator",
+            "ingestion.summarizer",
+            "storage"
+          ]
+        },
+        {
+          "test_file": "tests/test_governor_wiring.py",
+          "collected": 5,
+          "live_mods": [
+            "core.mcp_governor",
+            "interface",
+            "interface.mcp_server",
+            "storage.store"
+          ]
+        },
+        {
+          "test_file": "tests/test_interface_contracts.py",
+          "collected": 22,
+          "live_mods": [
+            "core.middleware",
+            "interface",
+            "interface.cli",
+            "interface.mcp_server",
+            "storage.store"
+          ]
+        }
+      ],
+      "core.probabilistic_retriever": [
+        {
+          "test_file": "tests/test_probabilistic_retriever.py",
+          "collected": 3,
+          "live_mods": [
+            "storage.schema",
+            "storage.semantic_logic"
+          ]
+        }
+      ]
+    },
+    "all_rows_33": [
+      {
+        "test_file": "tests/colossus_benchmark.py",
+        "collected": 0,
+        "hits_28": [],
+        "hits_4": [
+          "agents.revisor_critico"
+        ],
+        "hits_qw": [],
+        "live_mods": [
+          "core.hybrid_search",
+          "core.project_index",
+          "ingestion",
+          "services.janitor",
+          "storage"
+        ],
+        "category": "misto",
+        "mixed_fn_info": null
+      },
+      {
+        "test_file": "tests/stress_test_v2_setup.py",
+        "collected": 0,
+        "hits_28": [],
+        "hits_4": [
+          "agents.revisor_critico",
+          "interface.action_hooks"
+        ],
+        "hits_qw": [],
+        "live_mods": [
+          "core.middleware",
+          "ingestion.orchestrator",
+          "ingestion.summarizer",
+          "storage"
+        ],
+        "category": "misto",
+        "mixed_fn_info": null
+      },
+      {
+        "test_file": "tests/test_adaptive_gating.py",
+        "collected": 13,
+        "hits_28": [
+          "core.gating_interceptor",
+          "core.security_guard"
+        ],
+        "hits_4": [],
+        "hits_qw": [],
+        "live_mods": [],
+        "category": "so-dormente",
+        "mixed_fn_info": {
+          "dormant_only_tests": 11,
+          "mixed_tests": 2,
+          "live_only_tests": 0,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_agent_checkpointer.py",
+        "collected": 4,
+        "hits_28": [],
+        "hits_4": [],
+        "hits_qw": [
+          "interface.queue_writer"
+        ],
+        "live_mods": [
+          "core.checkpointer",
+          "core.database",
+          "interface"
+        ],
+        "category": "misto_queue_writer_e_vivo",
+        "mixed_fn_info": {
+          "dormant_only_tests": 0,
+          "mixed_tests": 0,
+          "live_only_tests": 0,
+          "qw_tests": 4
+        }
+      },
+      {
+        "test_file": "tests/test_agent_hsm_coupling.py",
+        "collected": 13,
+        "hits_28": [
+          "agent.agent_prompts",
+          "agent.run_agent",
+          "core.gating_interceptor",
+          "core.hsm_engine",
+          "core.rate_governor",
+          "core.security_guard"
+        ],
+        "hits_4": [],
+        "hits_qw": [],
+        "live_mods": [
+          "core.checkpointer",
+          "core.database",
+          "core.mcp_governor"
+        ],
+        "category": "misto",
+        "mixed_fn_info": {
+          "dormant_only_tests": 0,
+          "mixed_tests": 13,
+          "live_only_tests": 0,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_alias_tracker.py",
+        "collected": 4,
+        "hits_28": [
+          "core.alias_tracker"
+        ],
+        "hits_4": [],
+        "hits_qw": [],
+        "live_mods": [
+          "core.database"
+        ],
+        "category": "misto",
+        "mixed_fn_info": {
+          "dormant_only_tests": 0,
+          "mixed_tests": 4,
+          "live_only_tests": 0,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_checkpoint_pruning.py",
+        "collected": 1,
+        "hits_28": [
+          "core.background_janitor"
+        ],
+        "hits_4": [],
+        "hits_qw": [
+          "interface.queue_writer"
+        ],
+        "live_mods": [
+          "core.checkpointer",
+          "core.database",
+          "interface"
+        ],
+        "category": "misto",
+        "mixed_fn_info": {
+          "dormant_only_tests": 0,
+          "mixed_tests": 1,
+          "live_only_tests": 0,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_cognitive_routing_memory.py",
+        "collected": 3,
+        "hits_28": [
+          "core.federated_knowledge_router",
+          "core.global_memory_adapter",
+          "core.intent_classifier"
+        ],
+        "hits_4": [],
+        "hits_qw": [],
+        "live_mods": [
+          "core.database"
+        ],
+        "category": "misto",
+        "mixed_fn_info": {
+          "dormant_only_tests": 0,
+          "mixed_tests": 3,
+          "live_only_tests": 0,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_concurrency_stress.py",
+        "collected": 2,
+        "hits_28": [],
+        "hits_4": [],
+        "hits_qw": [
+          "interface.queue_writer"
+        ],
+        "live_mods": [
+          "core.database",
+          "interface",
+          "storage.schema"
+        ],
+        "category": "misto_queue_writer_e_vivo",
+        "mixed_fn_info": {
+          "dormant_only_tests": 0,
+          "mixed_tests": 0,
+          "live_only_tests": 0,
+          "qw_tests": 2
+        }
+      },
+      {
+        "test_file": "tests/test_delta_sync.py",
+        "collected": 4,
+        "hits_28": [
+          "core.delta_manager"
+        ],
+        "hits_4": [],
+        "hits_qw": [
+          "interface.queue_writer"
+        ],
+        "live_mods": [
+          "core.database",
+          "interface"
+        ],
+        "category": "misto",
+        "mixed_fn_info": {
+          "dormant_only_tests": 0,
+          "mixed_tests": 4,
+          "live_only_tests": 0,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_delta_sync_drift.py",
+        "collected": 4,
+        "hits_28": [
+          "core.delta_sync"
+        ],
+        "hits_4": [],
+        "hits_qw": [],
+        "live_mods": [],
+        "category": "so-dormente",
+        "mixed_fn_info": {
+          "dormant_only_tests": 4,
+          "mixed_tests": 0,
+          "live_only_tests": 0,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_dependency_injection.py",
+        "collected": 3,
+        "hits_28": [
+          "core.dependencies"
+        ],
+        "hits_4": [],
+        "hits_qw": [],
+        "live_mods": [],
+        "category": "so-dormente",
+        "mixed_fn_info": {
+          "dormant_only_tests": 3,
+          "mixed_tests": 0,
+          "live_only_tests": 0,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_durable_checkpoints_timetravel.py",
+        "collected": 3,
+        "hits_28": [
+          "interface.telemetry_api"
+        ],
+        "hits_4": [],
+        "hits_qw": [],
+        "live_mods": [
+          "core.checkpointer",
+          "core.database"
+        ],
+        "category": "misto",
+        "mixed_fn_info": {
+          "dormant_only_tests": 0,
+          "mixed_tests": 3,
+          "live_only_tests": 0,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_e2e_concierge_integration.py",
+        "collected": 1,
+        "hits_28": [
+          "core.background_janitor",
+          "core.delta_manager",
+          "core.search_engine",
+          "core.vector_reconciler"
+        ],
+        "hits_4": [],
+        "hits_qw": [
+          "interface.queue_writer"
+        ],
+        "live_mods": [
+          "core.checkpointer",
+          "core.database",
+          "core.graph_rag",
+          "interface",
+          "interface.mcp_server",
+          "storage.schema"
+        ],
+        "category": "misto",
+        "mixed_fn_info": {
+          "dormant_only_tests": 0,
+          "mixed_tests": 1,
+          "live_only_tests": 0,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_governor_wiring.py",
+        "collected": 5,
+        "hits_28": [
+          "interface.telemetry_api"
+        ],
+        "hits_4": [
+          "interface.action_hooks"
+        ],
+        "hits_qw": [],
+        "live_mods": [
+          "core.mcp_governor",
+          "interface",
+          "interface.mcp_server",
+          "storage.store"
+        ],
+        "category": "misto",
+        "mixed_fn_info": {
+          "dormant_only_tests": 1,
+          "mixed_tests": 3,
+          "live_only_tests": 1,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_graph_rag_frugal.py",
+        "collected": 2,
+        "hits_28": [
+          "core.background_janitor"
+        ],
+        "hits_4": [],
+        "hits_qw": [
+          "interface.queue_writer"
+        ],
+        "live_mods": [
+          "core.database",
+          "core.graph_rag"
+        ],
+        "category": "misto",
+        "mixed_fn_info": {
+          "dormant_only_tests": 0,
+          "mixed_tests": 2,
+          "live_only_tests": 0,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_graph_rag_janitor.py",
+        "collected": 3,
+        "hits_28": [
+          "core.background_janitor"
+        ],
+        "hits_4": [],
+        "hits_qw": [
+          "interface.queue_writer"
+        ],
+        "live_mods": [
+          "core.database",
+          "core.graph_rag",
+          "interface",
+          "storage.schema"
+        ],
+        "category": "misto",
+        "mixed_fn_info": {
+          "dormant_only_tests": 0,
+          "mixed_tests": 3,
+          "live_only_tests": 0,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_graph_rag_loops.py",
+        "collected": 3,
+        "hits_28": [],
+        "hits_4": [],
+        "hits_qw": [
+          "interface.queue_writer"
+        ],
+        "live_mods": [
+          "core.database",
+          "core.graph_rag",
+          "storage.schema"
+        ],
+        "category": "misto_queue_writer_e_vivo",
+        "mixed_fn_info": {
+          "dormant_only_tests": 0,
+          "mixed_tests": 0,
+          "live_only_tests": 0,
+          "qw_tests": 3
+        }
+      },
+      {
+        "test_file": "tests/test_hierarchical_state_machine.py",
+        "collected": 43,
+        "hits_28": [
+          "core.hsm_engine",
+          "interface.telemetry_api"
+        ],
+        "hits_4": [],
+        "hits_qw": [],
+        "live_mods": [
+          "core.checkpointer",
+          "core.database",
+          "core.mcp_governor"
+        ],
+        "category": "misto",
+        "mixed_fn_info": {
+          "dormant_only_tests": 32,
+          "mixed_tests": 11,
+          "live_only_tests": 0,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_hsm_transition_hooks_and_delta.py",
+        "collected": 20,
+        "hits_28": [
+          "core.hsm_engine"
+        ],
+        "hits_4": [],
+        "hits_qw": [],
+        "live_mods": [
+          "core.checkpointer",
+          "core.database"
+        ],
+        "category": "misto",
+        "mixed_fn_info": {
+          "dormant_only_tests": 8,
+          "mixed_tests": 12,
+          "live_only_tests": 0,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_interface_contracts.py",
+        "collected": 22,
+        "hits_28": [],
+        "hits_4": [
+          "interface.action_hooks"
+        ],
+        "hits_qw": [],
+        "live_mods": [
+          "core.middleware",
+          "interface",
+          "interface.cli",
+          "interface.mcp_server",
+          "storage.store"
+        ],
+        "category": "misto",
+        "mixed_fn_info": {
+          "dormant_only_tests": 0,
+          "mixed_tests": 17,
+          "live_only_tests": 5,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_mcp_server_extensions.py",
+        "collected": 3,
+        "hits_28": [],
+        "hits_4": [],
+        "hits_qw": [
+          "interface.queue_writer"
+        ],
+        "live_mods": [
+          "core.checkpointer",
+          "core.database",
+          "core.graph_rag",
+          "interface",
+          "interface.mcp_server",
+          "storage.schema"
+        ],
+        "category": "misto_queue_writer_e_vivo",
+        "mixed_fn_info": {
+          "dormant_only_tests": 0,
+          "mixed_tests": 0,
+          "live_only_tests": 0,
+          "qw_tests": 3
+        }
+      },
+      {
+        "test_file": "tests/test_multilang_parser.py",
+        "collected": 8,
+        "hits_28": [
+          "core.parser_factory",
+          "core.parsers.python_parser",
+          "core.parsers.ts_js_parser"
+        ],
+        "hits_4": [],
+        "hits_qw": [],
+        "live_mods": [],
+        "category": "so-dormente",
+        "mixed_fn_info": {
+          "dormant_only_tests": 7,
+          "mixed_tests": 1,
+          "live_only_tests": 0,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_probabilistic_retriever.py",
+        "collected": 3,
+        "hits_28": [],
+        "hits_4": [
+          "core.probabilistic_retriever"
+        ],
+        "hits_qw": [],
+        "live_mods": [
+          "storage.schema",
+          "storage.semantic_logic"
+        ],
+        "category": "misto",
+        "mixed_fn_info": null
+      },
+      {
+        "test_file": "tests/test_progressive_tool_disclosure.py",
+        "collected": 5,
+        "hits_28": [
+          "interface.telemetry_api"
+        ],
+        "hits_4": [],
+        "hits_qw": [],
+        "live_mods": [
+          "core.mcp_governor"
+        ],
+        "category": "misto",
+        "mixed_fn_info": {
+          "dormant_only_tests": 0,
+          "mixed_tests": 5,
+          "live_only_tests": 0,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_queue_writer_batching.py",
+        "collected": 2,
+        "hits_28": [],
+        "hits_4": [],
+        "hits_qw": [
+          "interface.queue_writer"
+        ],
+        "live_mods": [
+          "core.database"
+        ],
+        "category": "misto_queue_writer_e_vivo",
+        "mixed_fn_info": {
+          "dormant_only_tests": 0,
+          "mixed_tests": 0,
+          "live_only_tests": 0,
+          "qw_tests": 2
+        }
+      },
+      {
+        "test_file": "tests/test_queue_writer_resilience.py",
+        "collected": 14,
+        "hits_28": [],
+        "hits_4": [],
+        "hits_qw": [
+          "interface.queue_writer"
+        ],
+        "live_mods": [
+          "core.database"
+        ],
+        "category": "misto_queue_writer_e_vivo",
+        "mixed_fn_info": {
+          "dormant_only_tests": 0,
+          "mixed_tests": 0,
+          "live_only_tests": 0,
+          "qw_tests": 14
+        }
+      },
+      {
+        "test_file": "tests/test_rate_governor_priority.py",
+        "collected": 8,
+        "hits_28": [
+          "core.rate_governor"
+        ],
+        "hits_4": [],
+        "hits_qw": [],
+        "live_mods": [],
+        "category": "so-dormente",
+        "mixed_fn_info": {
+          "dormant_only_tests": 8,
+          "mixed_tests": 0,
+          "live_only_tests": 0,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_revisor_critico.py",
+        "collected": 11,
+        "hits_28": [],
+        "hits_4": [
+          "agents.revisor_critico"
+        ],
+        "hits_qw": [],
+        "live_mods": [
+          "core.config"
+        ],
+        "category": "misto",
+        "mixed_fn_info": {
+          "dormant_only_tests": 9,
+          "mixed_tests": 2,
+          "live_only_tests": 0,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_ssh_language_coverage.py",
+        "collected": 10,
+        "hits_28": [
+          "core.delta_manager"
+        ],
+        "hits_4": [],
+        "hits_qw": [],
+        "live_mods": [],
+        "category": "so-dormente",
+        "mixed_fn_info": {
+          "dormant_only_tests": 10,
+          "mixed_tests": 0,
+          "live_only_tests": 0,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_telemetry_api.py",
+        "collected": 5,
+        "hits_28": [
+          "interface.telemetry_api"
+        ],
+        "hits_4": [],
+        "hits_qw": [
+          "interface.queue_writer"
+        ],
+        "live_mods": [
+          "core.database"
+        ],
+        "category": "misto",
+        "mixed_fn_info": {
+          "dormant_only_tests": 0,
+          "mixed_tests": 5,
+          "live_only_tests": 0,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_vector_reconciler.py",
+        "collected": 2,
+        "hits_28": [
+          "core.search_engine",
+          "core.vector_reconciler"
+        ],
+        "hits_4": [],
+        "hits_qw": [
+          "interface.queue_writer"
+        ],
+        "live_mods": [
+          "core.database",
+          "interface"
+        ],
+        "category": "misto",
+        "mixed_fn_info": {
+          "dormant_only_tests": 0,
+          "mixed_tests": 0,
+          "live_only_tests": 2,
+          "qw_tests": 0
+        }
+      },
+      {
+        "test_file": "tests/test_watcher_ignore.py",
+        "collected": 4,
+        "hits_28": [
+          "interface.watcher"
+        ],
+        "hits_4": [],
+        "hits_qw": [],
+        "live_mods": [
+          "interface"
+        ],
+        "category": "misto",
+        "mixed_fn_info": {
+          "dormant_only_tests": 4,
+          "mixed_tests": 0,
+          "live_only_tests": 0,
+          "qw_tests": 0
+        }
+      }
+    ],
+    "ev45a_26_names": [
+      "tests/colossus_benchmark.py",
+      "tests/stress_test_v2_setup.py",
+      "tests/test_adaptive_gating.py",
+      "tests/test_agent_checkpointer.py",
+      "tests/test_agent_hsm_coupling.py",
+      "tests/test_alias_tracker.py",
+      "tests/test_checkpoint_pruning.py",
+      "tests/test_cognitive_routing_memory.py",
+      "tests/test_concurrency_stress.py",
+      "tests/test_delta_sync.py",
+      "tests/test_delta_sync_drift.py",
+      "tests/test_dependency_injection.py",
+      "tests/test_durable_checkpoints_timetravel.py",
+      "tests/test_e2e_concierge_integration.py",
+      "tests/test_governor_wiring.py",
+      "tests/test_graph_rag_frugal.py",
+      "tests/test_graph_rag_janitor.py",
+      "tests/test_graph_rag_loops.py",
+      "tests/test_hierarchical_state_machine.py",
+      "tests/test_hsm_transition_hooks_and_delta.py",
+      "tests/test_interface_contracts.py",
+      "tests/test_mcp_server_extensions.py",
+      "tests/test_multilang_parser.py",
+      "tests/test_progressive_tool_disclosure.py",
+      "tests/test_queue_writer_batching.py",
+      "tests/test_queue_writer_resilience.py",
+      "tests/test_rate_governor_priority.py",
+      "tests/test_revisor_critico.py",
+      "tests/test_ssh_language_coverage.py",
+      "tests/test_telemetry_api.py",
+      "tests/test_vector_reconciler.py",
+      "tests/test_watcher_ignore.py"
+    ]
+  }
+}

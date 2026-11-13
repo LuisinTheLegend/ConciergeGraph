@@ -1,0 +1,289 @@
+{
+  "total_py_files_in_tests": 67,
+  "total_collected_tests": 478,
+  "cut_class_i": {
+    "so-dormente": {
+      "files_count": 4,
+      "tests_count": 28,
+      "files": [
+        "tests/test_adaptive_gating.py",
+        "tests/test_dependency_injection.py",
+        "tests/test_rate_governor_priority.py",
+        "tests/test_watcher_ignore.py"
+      ]
+    },
+    "misto": {
+      "files_count": 11,
+      "tests_count": 101,
+      "files": [
+        "tests/test_agent_hsm_coupling.py",
+        "tests/test_checkpoint_pruning.py",
+        "tests/test_durable_checkpoints_timetravel.py",
+        "tests/test_e2e_concierge_integration.py",
+        "tests/test_governor_wiring.py",
+        "tests/test_graph_rag_frugal.py",
+        "tests/test_graph_rag_janitor.py",
+        "tests/test_hierarchical_state_machine.py",
+        "tests/test_hsm_transition_hooks_and_delta.py",
+        "tests/test_progressive_tool_disclosure.py",
+        "tests/test_telemetry_api.py"
+      ]
+    },
+    "so-queue_writer": {
+      "files_count": 6,
+      "tests_count": 28,
+      "files": [
+        "tests/test_agent_checkpointer.py",
+        "tests/test_concurrency_stress.py",
+        "tests/test_graph_rag_loops.py",
+        "tests/test_mcp_server_extensions.py",
+        "tests/test_queue_writer_batching.py",
+        "tests/test_queue_writer_resilience.py"
+      ]
+    },
+    "so-vivo": {
+      "files_count": 46,
+      "tests_count": 321,
+      "files": [
+        "tests/check_brain.py",
+        "tests/colossus_benchmark.py",
+        "tests/conftest.py",
+        "tests/memory_stress_test.py",
+        "tests/stress_test_v2_parte1.py",
+        "tests/stress_test_v2_parte2.py",
+        "tests/stress_test_v2_parte3.py",
+        "tests/stress_test_v2_setup.py",
+        "tests/test_agent_checkpoints_schema.py",
+        "tests/test_alias_tracker.py",
+        "tests/test_call_chain_edges_nodes.py",
+        "tests/test_chunk_cache.py",
+        "tests/test_cognitive_routing_memory.py",
+        "tests/test_config.py",
+        "tests/test_connection_queue_resilience.py",
+        "tests/test_conversational_db.py",
+        "tests/test_delta_sync.py",
+        "tests/test_delta_sync_drift.py",
+        "tests/test_dependency_pins.py",
+        "tests/test_domain_neutrality_guard.py",
+        "tests/test_env_example_provider.py",
+        "tests/test_extraction_noop.py",
+        "tests/test_fts_atomic_migration.py",
+        "tests/test_fts_code_search.py",
+        "tests/test_ignore.py",
+        "tests/test_ingestion_embed_regression.py",
+        "tests/test_ingestion_vector_repair.py",
+        "tests/test_interface_contracts.py",
+        "tests/test_lazy_ml_imports.py",
+        "tests/test_lightweight.py",
+        "tests/test_llm_egress_guard.py",
+        "tests/test_local_graph_rag_recursion.py",
+        "tests/test_mcp_server_handlers.py",
+        "tests/test_multilang_parser.py",
+        "tests/test_no_secrets_in_tracked_files.py",
+        "tests/test_probabilistic_retriever.py",
+        "tests/test_project_index.py",
+        "tests/test_revisor_critico.py",
+        "tests/test_secret_redaction.py",
+        "tests/test_ssh_language_coverage.py",
+        "tests/test_stdin_decouple.py",
+        "tests/test_storage_logic.py",
+        "tests/test_stress_components_reuse.py",
+        "tests/test_summary_persistence.py",
+        "tests/test_topology.py",
+        "tests/test_vector_reconciler.py"
+      ]
+    }
+  },
+  "cut_unreachable_28": {
+    "so-dormente": {
+      "files_count": 7,
+      "tests_count": 50,
+      "files": [
+        "tests/test_adaptive_gating.py",
+        "tests/test_delta_sync_drift.py",
+        "tests/test_dependency_injection.py",
+        "tests/test_multilang_parser.py",
+        "tests/test_rate_governor_priority.py",
+        "tests/test_ssh_language_coverage.py",
+        "tests/test_watcher_ignore.py"
+      ]
+    },
+    "misto": {
+      "files_count": 15,
+      "tests_count": 114,
+      "files": [
+        "tests/test_agent_hsm_coupling.py",
+        "tests/test_alias_tracker.py",
+        "tests/test_checkpoint_pruning.py",
+        "tests/test_cognitive_routing_memory.py",
+        "tests/test_delta_sync.py",
+        "tests/test_durable_checkpoints_timetravel.py",
+        "tests/test_e2e_concierge_integration.py",
+        "tests/test_governor_wiring.py",
+        "tests/test_graph_rag_frugal.py",
+        "tests/test_graph_rag_janitor.py",
+        "tests/test_hierarchical_state_machine.py",
+        "tests/test_hsm_transition_hooks_and_delta.py",
+        "tests/test_progressive_tool_disclosure.py",
+        "tests/test_telemetry_api.py",
+        "tests/test_vector_reconciler.py"
+      ]
+    },
+    "so-queue_writer": {
+      "files_count": 6,
+      "tests_count": 28,
+      "files": [
+        "tests/test_agent_checkpointer.py",
+        "tests/test_concurrency_stress.py",
+        "tests/test_graph_rag_loops.py",
+        "tests/test_mcp_server_extensions.py",
+        "tests/test_queue_writer_batching.py",
+        "tests/test_queue_writer_resilience.py"
+      ]
+    },
+    "so-vivo": {
+      "files_count": 39,
+      "tests_count": 286,
+      "files": [
+        "tests/check_brain.py",
+        "tests/colossus_benchmark.py",
+        "tests/conftest.py",
+        "tests/memory_stress_test.py",
+        "tests/stress_test_v2_parte1.py",
+        "tests/stress_test_v2_parte2.py",
+        "tests/stress_test_v2_parte3.py",
+        "tests/stress_test_v2_setup.py",
+        "tests/test_agent_checkpoints_schema.py",
+        "tests/test_call_chain_edges_nodes.py",
+        "tests/test_chunk_cache.py",
+        "tests/test_config.py",
+        "tests/test_connection_queue_resilience.py",
+        "tests/test_conversational_db.py",
+        "tests/test_dependency_pins.py",
+        "tests/test_domain_neutrality_guard.py",
+        "tests/test_env_example_provider.py",
+        "tests/test_extraction_noop.py",
+        "tests/test_fts_atomic_migration.py",
+        "tests/test_fts_code_search.py",
+        "tests/test_ignore.py",
+        "tests/test_ingestion_embed_regression.py",
+        "tests/test_ingestion_vector_repair.py",
+        "tests/test_interface_contracts.py",
+        "tests/test_lazy_ml_imports.py",
+        "tests/test_lightweight.py",
+        "tests/test_llm_egress_guard.py",
+        "tests/test_local_graph_rag_recursion.py",
+        "tests/test_mcp_server_handlers.py",
+        "tests/test_no_secrets_in_tracked_files.py",
+        "tests/test_probabilistic_retriever.py",
+        "tests/test_project_index.py",
+        "tests/test_revisor_critico.py",
+        "tests/test_secret_redaction.py",
+        "tests/test_stdin_decouple.py",
+        "tests/test_storage_logic.py",
+        "tests/test_stress_components_reuse.py",
+        "tests/test_summary_persistence.py",
+        "tests/test_topology.py"
+      ]
+    }
+  },
+  "cut_all_i_ii_iii_iv": {
+    "so-dormente": {
+      "files_count": 7,
+      "tests_count": 50,
+      "files": [
+        "tests/test_adaptive_gating.py",
+        "tests/test_delta_sync_drift.py",
+        "tests/test_dependency_injection.py",
+        "tests/test_multilang_parser.py",
+        "tests/test_rate_governor_priority.py",
+        "tests/test_ssh_language_coverage.py",
+        "tests/test_watcher_ignore.py"
+      ]
+    },
+    "misto": {
+      "files_count": 20,
+      "tests_count": 150,
+      "files": [
+        "tests/colossus_benchmark.py",
+        "tests/stress_test_v2_setup.py",
+        "tests/test_agent_hsm_coupling.py",
+        "tests/test_alias_tracker.py",
+        "tests/test_checkpoint_pruning.py",
+        "tests/test_cognitive_routing_memory.py",
+        "tests/test_delta_sync.py",
+        "tests/test_durable_checkpoints_timetravel.py",
+        "tests/test_e2e_concierge_integration.py",
+        "tests/test_governor_wiring.py",
+        "tests/test_graph_rag_frugal.py",
+        "tests/test_graph_rag_janitor.py",
+        "tests/test_hierarchical_state_machine.py",
+        "tests/test_hsm_transition_hooks_and_delta.py",
+        "tests/test_interface_contracts.py",
+        "tests/test_probabilistic_retriever.py",
+        "tests/test_progressive_tool_disclosure.py",
+        "tests/test_revisor_critico.py",
+        "tests/test_telemetry_api.py",
+        "tests/test_vector_reconciler.py"
+      ]
+    },
+    "so-queue_writer": {
+      "files_count": 6,
+      "tests_count": 28,
+      "files": [
+        "tests/test_agent_checkpointer.py",
+        "tests/test_concurrency_stress.py",
+        "tests/test_graph_rag_loops.py",
+        "tests/test_mcp_server_extensions.py",
+        "tests/test_queue_writer_batching.py",
+        "tests/test_queue_writer_resilience.py"
+      ]
+    },
+    "so-vivo": {
+      "files_count": 34,
+      "tests_count": 250,
+      "files": [
+        "tests/check_brain.py",
+        "tests/conftest.py",
+        "tests/memory_stress_test.py",
+        "tests/stress_test_v2_parte1.py",
+        "tests/stress_test_v2_parte2.py",
+        "tests/stress_test_v2_parte3.py",
+        "tests/test_agent_checkpoints_schema.py",
+        "tests/test_call_chain_edges_nodes.py",
+        "tests/test_chunk_cache.py",
+        "tests/test_config.py",
+        "tests/test_connection_queue_resilience.py",
+        "tests/test_conversational_db.py",
+        "tests/test_dependency_pins.py",
+        "tests/test_domain_neutrality_guard.py",
+        "tests/test_env_example_provider.py",
+        "tests/test_extraction_noop.py",
+        "tests/test_fts_atomic_migration.py",
+        "tests/test_fts_code_search.py",
+        "tests/test_ignore.py",
+        "tests/test_ingestion_embed_regression.py",
+        "tests/test_ingestion_vector_repair.py",
+        "tests/test_lazy_ml_imports.py",
+        "tests/test_lightweight.py",
+        "tests/test_llm_egress_guard.py",
+        "tests/test_local_graph_rag_recursion.py",
+        "tests/test_mcp_server_handlers.py",
+        "tests/test_no_secrets_in_tracked_files.py",
+        "tests/test_project_index.py",
+        "tests/test_secret_redaction.py",
+        "tests/test_stdin_decouple.py",
+        "tests/test_storage_logic.py",
+        "tests/test_stress_components_reuse.py",
+        "tests/test_summary_persistence.py",
+        "tests/test_topology.py"
+      ]
+    }
+  },
+  "granular_4_5a_plus_prob": {
+    "dormant_only": 99,
+    "mixed": 92,
+    "live_only": 9,
+    "qw": 28
+  }
+}

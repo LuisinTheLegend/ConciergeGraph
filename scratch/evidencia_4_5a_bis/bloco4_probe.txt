@@ -1,0 +1,155 @@
+=== 31 MCP TOOLS TRACE (31) ===
+- concierge_register (interface/mcp_server.py:284-301):
+    handler _handle_register (interface/mcp_server.py:1023-1047) h_vec=[]
+      -> register_project (core/middleware.py:105-149) vec_kw=[]
+- concierge_list_projects (interface/mcp_server.py:311-313):
+    handler _handle_list_projects (interface/mcp_server.py:1008-1016) h_vec=[]
+- concierge_mine (interface/mcp_server.py:325-340):
+    handler _handle_mine (interface/mcp_server.py:1053-1109) h_vec=[]
+      -> mine (core/middleware.py:213-233) vec_kw=[]
+      -> register_project (core/middleware.py:105-149) vec_kw=[]
+- concierge_search (interface/mcp_server.py:352-377):
+    handler _handle_search (interface/mcp_server.py:1115-1199) h_vec=['vector']
+      -> hybrid_search (core/middleware.py:239-271) vec_kw=['_search_engine']
+- concierge_commit (interface/mcp_server.py:388-410):
+    handler _handle_commit (interface/mcp_server.py:1206-1231) h_vec=[]
+      -> commit_memory (core/middleware.py:277-321) vec_kw=[]
+- concierge_set_state (interface/mcp_server.py:420-436):
+    [no server._handle_* match]
+- concierge_wakeup (interface/mcp_server.py:447-456):
+    handler _handle_wakeup (interface/mcp_server.py:1238-1243) h_vec=[]
+      -> wake_up (core/middleware.py:155-207) vec_kw=[]
+- concierge_resume (interface/mcp_server.py:466-475):
+    handler _handle_resume (interface/mcp_server.py:1250-1263) h_vec=[]
+      -> get_resume (core/middleware.py:327-350) vec_kw=[]
+- concierge_load (interface/mcp_server.py:485-494):
+    handler _handle_load (interface/mcp_server.py:1270-1274) h_vec=[]
+      -> lazy_load (core/middleware.py:356-383) vec_kw=[]
+- concierge_status (interface/mcp_server.py:505-517):
+    handler _handle_status (interface/mcp_server.py:1281-1327) h_vec=[]
+      -> status (core/middleware.py:442-463) vec_kw=[]
+- search_symbols (interface/mcp_server.py:527-540):
+    handler _handle_search_symbols (interface/mcp_server.py:1334-1347) h_vec=[]
+- get_implementations (interface/mcp_server.py:549-558):
+    handler _handle_get_implementations (interface/mcp_server.py:1354-1364) h_vec=[]
+      -> get_implementations (core/middleware.py:488-498) vec_kw=[]
+- get_callers (interface/mcp_server.py:567-576):
+    handler _handle_get_callers (interface/mcp_server.py:1371-1386) h_vec=[]
+- concierge_store_fact (interface/mcp_server.py:587-602):
+    handler _handle_store_fact (interface/mcp_server.py:1393-1415) h_vec=[]
+      -> store_fact (core/middleware.py:512-592) vec_kw=['_vector', '_embedder', '_extractor', 'embedding', 'vector', 'QdrantVectorStore']
+- concierge_list_facts (interface/mcp_server.py:617-630):
+    handler _handle_list_facts (interface/mcp_server.py:1422-1438) h_vec=[]
+      -> list_facts (core/middleware.py:598-626) vec_kw=[]
+- concierge_set_memory (interface/mcp_server.py:640-657):
+    handler _handle_set_memory (interface/mcp_server.py:1469-1499) h_vec=[]
+      -> set_core_memory (core/middleware.py:632-650) vec_kw=[]
+- concierge_get_memory (interface/mcp_server.py:668-683):
+    handler _handle_get_memory (interface/mcp_server.py:1506-1529) h_vec=[]
+      -> get_core_memory_blocks (core/middleware.py:652-672) vec_kw=[]
+- concierge_feedback (interface/mcp_server.py:694-707):
+    handler _handle_feedback (interface/mcp_server.py:1536-1550) h_vec=[]
+      -> update_fact_utility (core/middleware.py:678-697) vec_kw=[]
+- get_full_topology (interface/mcp_server.py:719-730):
+    handler _handle_get_full_topology (interface/mcp_server.py:1557-1574) h_vec=[]
+      -> get_full_topology (core/middleware.py:504-506) vec_kw=[]
+- delete_project (interface/mcp_server.py:740-746):
+    handler _handle_delete_project (interface/mcp_server.py:1581-1586) h_vec=[]
+      -> delete_project (core/middleware.py:389-410) vec_kw=['_vector', 'embedding', 'vector']
+- update_project (interface/mcp_server.py:756-774):
+    handler _handle_update_project (interface/mcp_server.py:1593-1622) h_vec=[]
+      -> update_project (core/middleware.py:703-712) vec_kw=[]
+- add_reference_wing (interface/mcp_server.py:781-788):
+    handler _handle_add_reference_wing (interface/mcp_server.py:1629-1634) h_vec=[]
+      -> add_reference_wing (core/middleware.py:714-722) vec_kw=[]
+- remove_reference_wing (interface/mcp_server.py:795-802):
+    handler _handle_remove_reference_wing (interface/mcp_server.py:1641-1646) h_vec=[]
+      -> remove_reference_wing (core/middleware.py:724-732) vec_kw=[]
+- find_similar (interface/mcp_server.py:809-823):
+    handler _handle_find_similar (interface/mcp_server.py:1653-1673) h_vec=[]
+      -> find_similar (core/middleware.py:416-436) vec_kw=['find_similar']
+- get_trajectories (interface/mcp_server.py:830-836):
+    handler _handle_get_trajectories (interface/mcp_server.py:1680-1689) h_vec=[]
+      -> get_trajectories (core/middleware.py:734-743) vec_kw=[]
+- count_embeddings (interface/mcp_server.py:843-849):
+    handler _handle_count_embeddings (interface/mcp_server.py:1696-1707) h_vec=['embedding']
+      -> count_embeddings (core/middleware.py:745-754) vec_kw=['_vector', 'embedding', 'vector', 'count_embeddings']
+- reset_collection (interface/mcp_server.py:859-861):
+    handler _handle_reset_collection (interface/mcp_server.py:1714-1718) h_vec=['reset_collection']
+      -> reset_collection (core/middleware.py:756-767) vec_kw=['_vector', 'vector', 'reset_collection']
+- concierge_get_call_chain (interface/mcp_server.py:874-889):
+    [no server._handle_* match]
+- agent_save_checkpoint (interface/mcp_server.py:899-916):
+    [no server._handle_* match]
+- agent_get_checkpoint (interface/mcp_server.py:925-940):
+    [no server._handle_* match]
+- agent_list_checkpoints (interface/mcp_server.py:949-962):
+    [no server._handle_* match]
+
+=== INDENTED / CONDITIONAL IMPORTS IN LIVE FILES (66) ===
+  main.py:247: {'file': 'main.py', 'line': 247, 'kind': 'from', 'module': 'storage', 'names': ['SqliteStore']}
+  main.py:251: {'file': 'main.py', 'line': 251, 'kind': 'from', 'module': 'storage', 'names': ['EmbeddingManager', 'EmbeddingTier']}
+  main.py:277: {'file': 'main.py', 'line': 277, 'kind': 'from', 'module': 'ingestion', 'names': ['ZoomSummarizer']}
+  main.py:278: {'file': 'main.py', 'line': 278, 'kind': 'from', 'module': 'ingestion.summarizer', 'names': ['LLMAdapter']}
+  main.py:292: {'file': 'main.py', 'line': 292, 'kind': 'from', 'module': 'ingestion', 'names': ['IngestionManager']}
+  main.py:302: {'file': 'main.py', 'line': 302, 'kind': 'from', 'module': 'services', 'names': ['JanitorService']}
+  main.py:311: {'file': 'main.py', 'line': 311, 'kind': 'from', 'module': 'core.middleware', 'names': ['GrafoConcierge']}
+  main.py:322: {'file': 'main.py', 'line': 322, 'kind': 'from', 'module': 'interface.mcp_server', 'names': ['GrafoConciergeServer']}
+  main.py:259: {'file': 'main.py', 'line': 259, 'kind': 'from', 'module': 'core.vector_backend', 'names': ['QdrantVectorStore']}
+  main.py:268: {'file': 'main.py', 'line': 268, 'kind': 'from', 'module': 'storage', 'names': ['ChromaVectorStore']}
+  interface/__init__.py:23: {'file': 'interface/__init__.py', 'line': 23, 'kind': 'from', 'module': 'interface.action_hooks', 'names': ['ActionHooks']}
+  interface/cli.py:51: {'file': 'interface/cli.py', 'line': 51, 'kind': 'from', 'module': 'dotenv', 'names': ['load_dotenv']}
+  interface/cli.py:54: {'file': 'interface/cli.py', 'line': 54, 'kind': 'from', 'module': 'storage', 'names': ['SqliteStore', 'EmbeddingManager', 'EmbeddingTier', 'ChromaVectorStore']}
+  interface/cli.py:55: {'file': 'interface/cli.py', 'line': 55, 'kind': 'from', 'module': 'ingestion', 'names': ['IngestionManager', 'ZoomSummarizer']}
+  interface/cli.py:56: {'file': 'interface/cli.py', 'line': 56, 'kind': 'from', 'module': 'ingestion.summarizer', 'names': ['LLMAdapter']}
+  interface/cli.py:57: {'file': 'interface/cli.py', 'line': 57, 'kind': 'from', 'module': 'core.middleware', 'names': ['GrafoConcierge']}
+  interface/cli.py:232: {'file': 'interface/cli.py', 'line': 232, 'kind': 'from', 'module': 'services.janitor', 'names': ['JanitorService', 'MaintenanceReport']}
+  interface/cli.py:87: {'file': 'interface/cli.py', 'line': 87, 'kind': 'from', 'module': 'core.vector_backend', 'names': ['QdrantVectorStore']}
+  interface/mcp_server.py:969: {'file': 'interface/mcp_server.py', 'line': 969, 'kind': 'import', 'targets': ['uuid']}
+  interface/mcp_server.py:1450: {'file': 'interface/mcp_server.py', 'line': 1450, 'kind': 'import', 'targets': ['asyncio']}
+  interface/mcp_server.py:151: {'file': 'interface/mcp_server.py', 'line': 151, 'kind': 'from', 'module': 'core.mcp_governor', 'names': ['get_shared_governor']}
+  interface/mcp_server.py:162: {'file': 'interface/mcp_server.py', 'line': 162, 'kind': 'from', 'module': 'core.database', 'names': ['ConciergeDatabaseManager']}
+  interface/mcp_server.py:166: {'file': 'interface/mcp_server.py', 'line': 166, 'kind': 'from', 'module': 'core.checkpointer', 'names': ['AgnosticCheckpointer']}
+  interface/mcp_server.py:170: {'file': 'interface/mcp_server.py', 'line': 170, 'kind': 'from', 'module': 'core.graph_rag', 'names': ['GraphRAGEngine']}
+  interface/mcp_server.py:180: {'file': 'interface/mcp_server.py', 'line': 180, 'kind': 'from', 'module': 'starlette.middleware.cors', 'names': ['CORSMiddleware']}
+  interface/mcp_server.py:181: {'file': 'interface/mcp_server.py', 'line': 181, 'kind': 'from', 'module': 'starlette.responses', 'names': ['JSONResponse']}
+  core/middleware.py:617: {'file': 'core/middleware.py', 'line': 617, 'kind': 'from', 'module': 'storage.semantic_logic', 'names': ['get_active_semantic_facts']}
+  core/middleware.py:688: {'file': 'core/middleware.py', 'line': 688, 'kind': 'from', 'module': 'storage.semantic_logic', 'names': ['update_memory_utility']}
+  core/middleware.py:566: {'file': 'core/middleware.py', 'line': 566, 'kind': 'from', 'module': 'core.vector_backend', 'names': ['QdrantVectorStore']}
+  core/middleware.py:538: {'file': 'core/middleware.py', 'line': 538, 'kind': 'from', 'module': 'storage.semantic_logic', 'names': ['insert_semantic_fact']}
+  core/hybrid_search.py:252: {'file': 'core/hybrid_search.py', 'line': 252, 'kind': 'from', 'module': 'core.probabilistic_retriever', 'names': ['ThompsonRetriever']}
+  core/vector_backend.py:21: {'file': 'core/vector_backend.py', 'line': 21, 'kind': 'import', 'targets': ['qdrant_client']}
+  core/vector_backend.py:22: {'file': 'core/vector_backend.py', 'line': 22, 'kind': 'from', 'module': 'qdrant_client.http', 'names': ['models']}
+  core/vector_backend.py:71: {'file': 'core/vector_backend.py', 'line': 71, 'kind': 'import', 'targets': ['os']}
+  core/config.py:145: {'file': 'core/config.py', 'line': 145, 'kind': 'import', 'targets': ['os']}
+  core/mcp_governor.py:33: {'file': 'core/mcp_governor.py', 'line': 33, 'kind': 'import', 'targets': ['os']}
+  ingestion/orchestrator.py:339: {'file': 'ingestion/orchestrator.py', 'line': 339, 'kind': 'import', 'targets': ['json']}
+  ingestion/orchestrator.py:449: {'file': 'ingestion/orchestrator.py', 'line': 449, 'kind': 'import', 'targets': ['asyncio']}
+  ingestion/orchestrator.py:548: {'file': 'ingestion/orchestrator.py', 'line': 548, 'kind': 'from', 'module': 'concurrent.futures', 'names': ['ThreadPoolExecutor']}
+  ingestion/orchestrator.py:624: {'file': 'ingestion/orchestrator.py', 'line': 624, 'kind': 'from', 'module': 'ingestion.parser', 'names': ['ChunkType']}
+  ingestion/orchestrator.py:1026: {'file': 'ingestion/orchestrator.py', 'line': 1026, 'kind': 'import', 'targets': ['json']}
+  ingestion/orchestrator.py:508: {'file': 'ingestion/orchestrator.py', 'line': 508, 'kind': 'import', 'targets': ['concurrent.futures']}
+  ingestion/parser.py:180: {'file': 'ingestion/parser.py', 'line': 180, 'kind': 'import', 'targets': ['tree_sitter']}
+  ingestion/parser.py:181: {'file': 'ingestion/parser.py', 'line': 181, 'kind': 'import', 'targets': ['ctypes']}
+  ingestion/parser.py:218: {'file': 'ingestion/parser.py', 'line': 218, 'kind': 'import', 'targets': ['tree_sitter_python']}
+  ingestion/parser.py:221: {'file': 'ingestion/parser.py', 'line': 221, 'kind': 'import', 'targets': ['tree_sitter_javascript']}
+  ingestion/parser.py:224: {'file': 'ingestion/parser.py', 'line': 224, 'kind': 'import', 'targets': ['tree_sitter_typescript']}
+  ingestion/parser.py:227: {'file': 'ingestion/parser.py', 'line': 227, 'kind': 'import', 'targets': ['tree_sitter_typescript']}
+  ingestion/parser.py:230: {'file': 'ingestion/parser.py', 'line': 230, 'kind': 'import', 'targets': ['tree_sitter_go']}
+  ingestion/parser.py:233: {'file': 'ingestion/parser.py', 'line': 233, 'kind': 'import', 'targets': ['tree_sitter_rust']}
+  ingestion/summarizer.py:351: {'file': 'ingestion/summarizer.py', 'line': 351, 'kind': 'import', 'targets': ['asyncio']}
+  ingestion/summarizer.py:279: {'file': 'ingestion/summarizer.py', 'line': 279, 'kind': 'from', 'module': 'google', 'names': ['genai']}
+  ingestion/summarizer.py:313: {'file': 'ingestion/summarizer.py', 'line': 313, 'kind': 'import', 'targets': ['openai']}
+  ingestion/summarizer.py:366: {'file': 'ingestion/summarizer.py', 'line': 366, 'kind': 'import', 'targets': ['openai']}
+  ingestion/summarizer.py:288: {'file': 'ingestion/summarizer.py', 'line': 288, 'kind': 'import', 'targets': ['warnings']}
+  ingestion/summarizer.py:633: {'file': 'ingestion/summarizer.py', 'line': 633, 'kind': 'import', 'targets': ['re']}
+  ingestion/summarizer.py:291: {'file': 'ingestion/summarizer.py', 'line': 291, 'kind': 'import', 'targets': ['google.generativeai']}
+  services/janitor.py:538: {'file': 'services/janitor.py', 'line': 538, 'kind': 'import', 'targets': ['json']}
+  storage/vector_store.py:32: {'file': 'storage/vector_store.py', 'line': 32, 'kind': 'import', 'targets': ['chromadb']}
+  storage/vector_store.py:33: {'file': 'storage/vector_store.py', 'line': 33, 'kind': 'from', 'module': 'chromadb.config', 'names': ['Settings']}
+  storage/vector_store.py:296: {'file': 'storage/vector_store.py', 'line': 296, 'kind': 'import', 'targets': ['os']}
+  storage/vector_store.py:147: {'file': 'storage/vector_store.py', 'line': 147, 'kind': 'import', 'targets': ['os']}
+  storage/vector_store.py:158: {'file': 'storage/vector_store.py', 'line': 158, 'kind': 'from', 'module': 'sentence_transformers', 'names': ['SentenceTransformer']}
+  storage/vector_store.py:175: {'file': 'storage/vector_store.py', 'line': 175, 'kind': 'import', 'targets': ['openai']}
+  storage/store.py:29: {'file': 'storage/store.py', 'line': 29, 'kind': 'from', 'module': 'core.config', 'names': ['ConciergeConfig']}
+  storage/logic.py:28: {'file': 'storage/logic.py', 'line': 28, 'kind': 'from', 'module': 'core.config', 'names': ['ConciergeConfig']}
