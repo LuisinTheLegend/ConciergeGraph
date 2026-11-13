@@ -1,0 +1,1593 @@
+{
+  "module_info": {
+    "module": "interface.queue_writer",
+    "path": "interface/queue_writer.py",
+    "status": "REACHABLE_ANNOTATION_ONLY_RUNTIME",
+    "loc": 304,
+    "non_empty_lines": 271,
+    "defs": [
+      "SerializedWriteQueue"
+    ],
+    "prod_importers": [
+      {
+        "importer": "core.database",
+        "importer_path": "core/database.py",
+        "line": 18,
+        "kind": "load",
+        "ann_only": true,
+        "raw": "from interface.queue_writer import SerializedWriteQueue"
+      }
+    ],
+    "importing_tests": [
+      {
+        "test_file": "tests/test_agent_checkpointer.py",
+        "test_count": 4,
+        "lines": [
+          [
+            29,
+            "\"interface.queue_writer\","
+          ],
+          [
+            33,
+            "sys.modules[\"interface.queue_writer\"] = _qw_mod"
+          ]
+        ],
+        "also_imports_live": [
+          "core.checkpointer",
+          "core.database",
+          "interface"
+        ],
+        "also_imports_dormant": [
+          "interface.queue_writer"
+        ],
+        "is_mixed": true
+      },
+      {
+        "test_file": "tests/test_checkpoint_pruning.py",
+        "test_count": 1,
+        "lines": [
+          [
+            29,
+            "\"interface.queue_writer\","
+          ],
+          [
+            33,
+            "sys.modules[\"interface.queue_writer\"] = _qw_mod"
+          ]
+        ],
+        "also_imports_live": [
+          "core.checkpointer",
+          "core.database",
+          "interface"
+        ],
+        "also_imports_dormant": [
+          "core.background_janitor",
+          "interface.queue_writer"
+        ],
+        "is_mixed": true
+      },
+      {
+        "test_file": "tests/test_concurrency_stress.py",
+        "test_count": 2,
+        "lines": [
+          [
+            30,
+            "\"interface.queue_writer\","
+          ],
+          [
+            34,
+            "sys.modules[\"interface.queue_writer\"] = _qw_mod"
+          ]
+        ],
+        "also_imports_live": [
+          "core.database",
+          "interface",
+          "storage.schema"
+        ],
+        "also_imports_dormant": [
+          "interface.queue_writer"
+        ],
+        "is_mixed": true
+      },
+      {
+        "test_file": "tests/test_delta_sync.py",
+        "test_count": 4,
+        "lines": [
+          [
+            30,
+            "\"interface.queue_writer\","
+          ],
+          [
+            34,
+            "sys.modules[\"interface.queue_writer\"] = _qw_mod"
+          ]
+        ],
+        "also_imports_live": [
+          "core.database",
+          "interface"
+        ],
+        "also_imports_dormant": [
+          "core.delta_manager",
+          "interface.queue_writer"
+        ],
+        "is_mixed": true
+      },
+      {
+        "test_file": "tests/test_e2e_concierge_integration.py",
+        "test_count": 1,
+        "lines": [
+          [
+            31,
+            "\"interface.queue_writer\","
+          ],
+          [
+            35,
+            "sys.modules[\"interface.queue_writer\"] = _qw_mod"
+          ],
+          [
+            201,
+            "if \"interface.queue_writer\" in sys.modules:"
+          ],
+          [
+            221,
+            "if \"interface.queue_writer\" in sys.modules:"
+          ],
+          [
+            202,
+            "setattr(sys.modules[\"interface\"], \"queue_writer\", sys.modules[\"interface.queue_writer\"])"
+          ],
+          [
+            222,
+            "setattr(sys.modules[\"interface\"], \"queue_writer\", sys.modules[\"interface.queue_writer\"])"
+          ]
+        ],
+        "also_imports_live": [
+          "core.checkpointer",
+          "core.database",
+          "core.graph_rag",
+          "core.middleware",
+          "interface",
+          "interface.mcp_server",
+          "storage.schema"
+        ],
+        "also_imports_dormant": [
+          "core.background_janitor",
+          "core.delta_manager",
+          "core.search_engine",
+          "core.vector_reconciler",
+          "interface.queue_writer"
+        ],
+        "is_mixed": true
+      },
+      {
+        "test_file": "tests/test_graph_rag_frugal.py",
+        "test_count": 2,
+        "lines": [
+          [
+            19,
+            "from interface.queue_writer import SerializedWriteQueue"
+          ]
+        ],
+        "also_imports_live": [
+          "core.database",
+          "core.graph_rag"
+        ],
+        "also_imports_dormant": [
+          "core.background_janitor",
+          "interface.queue_writer"
+        ],
+        "is_mixed": true
+      },
+      {
+        "test_file": "tests/test_graph_rag_janitor.py",
+        "test_count": 3,
+        "lines": [
+          [
+            28,
+            "\"interface.queue_writer\","
+          ],
+          [
+            32,
+            "sys.modules[\"interface.queue_writer\"] = _qw_mod"
+          ]
+        ],
+        "also_imports_live": [
+          "core.database",
+          "core.graph_rag",
+          "interface",
+          "main",
+          "storage.schema"
+        ],
+        "also_imports_dormant": [
+          "core.background_janitor",
+          "interface.queue_writer"
+        ],
+        "is_mixed": true
+      },
+      {
+        "test_file": "tests/test_graph_rag_loops.py",
+        "test_count": 3,
+        "lines": [
+          [
+            17,
+            "from interface.queue_writer import SerializedWriteQueue"
+          ]
+        ],
+        "also_imports_live": [
+          "core.database",
+          "core.graph_rag",
+          "storage.schema"
+        ],
+        "also_imports_dormant": [
+          "interface.queue_writer"
+        ],
+        "is_mixed": true
+      },
+      {
+        "test_file": "tests/test_mcp_server_extensions.py",
+        "test_count": 3,
+        "lines": [
+          [
+            32,
+            "\"interface.queue_writer\","
+          ],
+          [
+            36,
+            "sys.modules[\"interface.queue_writer\"] = _qw_mod"
+          ],
+          [
+            131,
+            "if \"interface.queue_writer\" in sys.modules:"
+          ],
+          [
+            150,
+            "if \"interface.queue_writer\" in sys.modules:"
+          ],
+          [
+            132,
+            "setattr(sys.modules[\"interface\"], \"queue_writer\", sys.modules[\"interface.queue_writer\"])"
+          ],
+          [
+            151,
+            "setattr(sys.modules[\"interface\"], \"queue_writer\", sys.modules[\"interface.queue_writer\"])"
+          ]
+        ],
+        "also_imports_live": [
+          "core.checkpointer",
+          "core.database",
+          "core.graph_rag",
+          "core.middleware",
+          "interface",
+          "interface.mcp_server",
+          "storage.schema"
+        ],
+        "also_imports_dormant": [
+          "interface.queue_writer"
+        ],
+        "is_mixed": true
+      },
+      {
+        "test_file": "tests/test_queue_writer_batching.py",
+        "test_count": 2,
+        "lines": [
+          [
+            18,
+            "from interface.queue_writer import SerializedWriteQueue"
+          ]
+        ],
+        "also_imports_live": [
+          "core.database"
+        ],
+        "also_imports_dormant": [
+          "interface.queue_writer"
+        ],
+        "is_mixed": true
+      },
+      {
+        "test_file": "tests/test_queue_writer_resilience.py",
+        "test_count": 14,
+        "lines": [
+          [
+            25,
+            "import interface.queue_writer as qw_module"
+          ],
+          [
+            26,
+            "from interface.queue_writer import SerializedWriteQueue"
+          ],
+          [
+            98,
+            "with self.assertLogs(\"interface.queue_writer\", level=\"WARNING\") as log_capture:"
+          ]
+        ],
+        "also_imports_live": [
+          "core.database"
+        ],
+        "also_imports_dormant": [
+          "interface.queue_writer"
+        ],
+        "is_mixed": true
+      },
+      {
+        "test_file": "tests/test_telemetry_api.py",
+        "test_count": 5,
+        "lines": [
+          [
+            25,
+            "from interface.queue_writer import SerializedWriteQueue"
+          ]
+        ],
+        "also_imports_live": [
+          "core.database"
+        ],
+        "also_imports_dormant": [
+          "interface.queue_writer",
+          "interface.telemetry_api"
+        ],
+        "is_mixed": true
+      },
+      {
+        "test_file": "tests/test_vector_reconciler.py",
+        "test_count": 2,
+        "lines": [
+          [
+            28,
+            "\"interface.queue_writer\","
+          ],
+          [
+            32,
+            "sys.modules[\"interface.queue_writer\"] = _qw_mod"
+          ]
+        ],
+        "also_imports_live": [
+          "core.database",
+          "interface"
+        ],
+        "also_imports_dormant": [
+          "core.search_engine",
+          "core.vector_reconciler",
+          "interface.queue_writer"
+        ],
+        "is_mixed": true
+      }
+    ],
+    "total_tests_in_importing_files": 46,
+    "doc_mentions": [
+      {
+        "file": "README.md",
+        "line": 28,
+        "text": "1. **Zero-Lock Concurrency & Auto-Batching (`SerializedWriteQueue`)**: Channels all writes through a single-writer daemon on SQLite WAL. Fea"
+      },
+      {
+        "file": "README.md",
+        "line": 55,
+        "text": "| **\"Database is Locked\" Concurrency Crashing** | **`SerializedWriteQueue` with Auto-Batching**: Single-writer daemon drains up to 50 writes"
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 28,
+        "text": "1. **Concorrência Zero-Lock e Auto-Batching (`SerializedWriteQueue`)**: Canaliza todas as escritas através de uma thread daemon dedicada no "
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 55,
+        "text": "| **Travamentos por \"Database is Locked\"** | **`SerializedWriteQueue` com Auto-Batching**: Fila serializada com lotes de até 50 itens, Fallb"
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 12,
+        "text": "1. **Serialized SQLite WAL Concurrency with Auto-Batching & Single-Item Fallback (`SerializedWriteQueue` / `ConciergeDatabaseManager`)**: Co"
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 15,
+        "text": "4. **Smart Checkpoint Pruning (`BackgroundJanitor.prune_session_checkpoints`)**: Implements an intelligent Smart LRU per Session algorithm t"
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 55,
+        "text": "│ - queue_writer.py (SerializedWriteQueue): Single-Writer Daemon + Adaptive Auto-Batching     │"
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 97,
+        "text": "│ │ - connection.py: SerializedWriteQueue + ConnMgr  │ │ - base_backend.py: Abstract Interface  │ │"
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 110,
+        "text": "### 3.1 `SerializedWriteQueue` (Adaptive Auto-Batching & Single-Item Fallback)"
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 336,
+        "text": "* `BackgroundJanitor.prune_session_checkpoints(session_id, keep_limit=10)` executes Smart LRU pruning: protects checkpoint `\"init\"` (point-z"
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 25,
+        "text": "* **Paginated Batch Elimination**: Safely purges intermediate obsolete checkpoints through `SerializedWriteQueue` with zero database lock co"
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 76,
+        "text": "| `test_queue_writer_batching.py` | `interface/queue_writer.py` | Adaptive opportunistic batching throughput & Single-Item Fallback with ROL"
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 85,
+        "text": "| `test_concurrency_stress.py` | `interface/queue_writer.py` | Massive concurrent write stress test against SQLite WAL. |"
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 47,
+        "text": "│ - SerializedWriteQueue (Auto-Batching + Fallback WAL)   │"
+      }
+    ],
+    "walkthrough_mentions_count": 10
+  },
+  "references": [
+    {
+      "file": "core/background_janitor.py",
+      "line": 29,
+      "text": "4. Deletes intermediate obsolete checkpoints via SerializedWriteQueue"
+    },
+    {
+      "file": "core/background_janitor.py",
+      "line": 191,
+      "text": "# Batch delete via SerializedWriteQueue"
+    },
+    {
+      "file": "core/database.py",
+      "line": 7,
+      "text": "(INSERT, UPDATE, DELETE) to SerializedWriteQueue, ensuring hybrid performance"
+    },
+    {
+      "file": "core/database.py",
+      "line": 18,
+      "text": "from interface.queue_writer import SerializedWriteQueue"
+    },
+    {
+      "file": "core/database.py",
+      "line": 24,
+      "text": "all mutations and write transactions to SerializedWriteQueue."
+    },
+    {
+      "file": "core/database.py",
+      "line": 27,
+      "text": "def __init__(self, db_path: str, write_queue: Optional[SerializedWriteQueue] = None):"
+    },
+    {
+      "file": "core/database.py",
+      "line": 29,
+      "text": "self.write_queue = write_queue"
+    },
+    {
+      "file": "core/database.py",
+      "line": 49,
+      "text": "if self.write_queue is not None:"
+    },
+    {
+      "file": "core/database.py",
+      "line": 50,
+      "text": "return self.write_queue.execute_write(query, params)"
+    },
+    {
+      "file": "interface/queue_writer.py",
+      "line": 2,
+      "text": "interface/queue_writer.py — SDD-SURVIVAL-10"
+    },
+    {
+      "file": "interface/queue_writer.py",
+      "line": 43,
+      "text": "class SerializedWriteQueue(threading.Thread):"
+    },
+    {
+      "file": "interface/queue_writer.py",
+      "line": 78,
+      "text": "\"SerializedWriteQueue startup connection attempt %d/%d failed with '%s'. Retrying in %.3fs...\","
+    },
+    {
+      "file": "interface/queue_writer.py",
+      "line": 98,
+      "text": "logger.error(\"SerializedWriteQueue startup failed with unexpected OperationalError: %s\", e)"
+    },
+    {
+      "file": "interface/queue_writer.py",
+      "line": 104,
+      "text": "logger.error(\"SerializedWriteQueue startup failed with unexpected error: %s\", e)"
+    },
+    {
+      "file": "interface/queue_writer.py",
+      "line": 120,
+      "text": "self._fail_all_pending(RuntimeError(\"SerializedWriteQueue is shutting down.\"))"
+    },
+    {
+      "file": "interface/queue_writer.py",
+      "line": 149,
+      "text": "logger.error(\"SerializedWriteQueue daemon thread loop encountered fatal error: %s\", loop_error, exc_info=True)"
+    },
+    {
+      "file": "interface/queue_writer.py",
+      "line": 268,
+      "text": "return False, RuntimeError(\"SerializedWriteQueue worker thread has not been started.\")"
+    },
+    {
+      "file": "interface/queue_writer.py",
+      "line": 280,
+      "text": "f\"SerializedWriteQueue worker failed to initialize within {READY_TIMEOUT_SECONDS}s.\""
+    },
+    {
+      "file": "interface/queue_writer.py",
+      "line": 287,
+      "text": "err = RuntimeError(\"SerializedWriteQueue worker thread is not alive.\")"
+    },
+    {
+      "file": "interface/queue_writer.py",
+      "line": 302,
+      "text": "return False, RuntimeError(\"SerializedWriteQueue worker thread died while awaiting response.\")"
+    },
+    {
+      "file": "services/janitor.py",
+      "line": 18,
+      "text": "SerializedWriteQueue with thread-safe write() and contextmanager read())."
+    },
+    {
+      "file": "services/janitor.py",
+      "line": 110,
+      "text": "Thread Safety guaranteed by SerializedWriteQueue of SqliteStore."
+    },
+    {
+      "file": "services/janitor.py",
+      "line": 185,
+      "text": "if self._store and not self._store.is_write_queue_empty():"
+    },
+    {
+      "file": "services/janitor.py",
+      "line": 657,
+      "text": "Thread-safe: uses SerializedWriteQueue of SqliteStore."
+    },
+    {
+      "file": "storage/__init__.py",
+      "line": 5,
+      "text": "connection.py   → SerializedWriteQueue + ConnectionManager (WAL, thread-safe)"
+    },
+    {
+      "file": "storage/__init__.py",
+      "line": 14,
+      "text": "from storage.connection import ConnectionManager, SerializedWriteQueue"
+    },
+    {
+      "file": "storage/__init__.py",
+      "line": 23,
+      "text": "\"SerializedWriteQueue\","
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 8,
+      "text": "- SerializedWriteQueue: dedicated thread that processes all writes"
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 56,
+      "text": "# SerializedWriteQueue — Resilience & Regime Constants (SDD / F4-031)"
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 69,
+      "text": "# SerializedWriteQueue — dedicated write thread"
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 72,
+      "text": "class SerializedWriteQueue:"
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 88,
+      "text": "Lifecycle note: ``SerializedWriteQueue`` is single-use. Calling"
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 91,
+      "text": "``RuntimeError('SerializedWriteQueue is not running. Call start() first.')``."
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 126,
+      "text": "logger.debug(\"SerializedWriteQueue is already running for %s\", self._db_path)"
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 137,
+      "text": "f\"SerializedWriteQueue failed to complete startup handshake within {READY_TIMEOUT_SECONDS}s\""
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 145,
+      "text": "f\"SerializedWriteQueue startup failed: {self._startup_error}\""
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 148,
+      "text": "logger.info(\"SerializedWriteQueue started successfully (db: %s)\", self._db_path)"
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 161,
+      "text": "logger.debug(\"SerializedWriteQueue was already stopped.\")"
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 164,
+      "text": "logger.info(\"Requesting stop of SerializedWriteQueue...\")"
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 170,
+      "text": "logger.info(\"SerializedWriteQueue finished.\")"
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 215,
+      "text": "raise RuntimeError(\"SerializedWriteQueue is not running. Call start() first.\")"
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 280,
+      "text": "\"SerializedWriteQueue startup attempt %d/%d failed with '%s'. Retrying in %.3fs...\","
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 290,
+      "text": "\"SerializedWriteQueue startup failed on attempt %d/%d: %s\","
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 308,
+      "text": "logger.error(\"SerializedWriteQueue unexpected startup failure: %s\", exc)"
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 378,
+      "text": "Writes: Delegated to SerializedWriteQueue (single thread)."
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 406,
+      "text": "self._write_queue = SerializedWriteQueue(self._db_path)"
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 412,
+      "text": "def is_write_queue_empty(self) -> bool:"
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 413,
+      "text": "\"\"\"Returns True if the SerializedWriteQueue is empty (no pending jobs).\"\"\""
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 414,
+      "text": "return self._write_queue.is_empty()"
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 417,
+      "text": "\"\"\"Starts the SerializedWriteQueue. Call after __init__.\"\"\""
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 418,
+      "text": "self._write_queue.start()"
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 422,
+      "text": "self._write_queue.stop()"
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 463,
+      "text": "\"\"\"Delegates a write operation to the SerializedWriteQueue."
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 473,
+      "text": "return self._write_queue.submit(fn, *args, **kwargs)"
+    },
+    {
+      "file": "storage/store.py",
+      "line": 736,
+      "text": "def is_write_queue_empty(self) -> bool:"
+    },
+    {
+      "file": "storage/store.py",
+      "line": 737,
+      "text": "\"\"\"Returns True if the write queue (SerializedWriteQueue) has no pending jobs."
+    },
+    {
+      "file": "storage/store.py",
+      "line": 739,
+      "text": "Replaces direct access to _conn_mgr._write_queue._queue.empty() in Janitor."
+    },
+    {
+      "file": "storage/store.py",
+      "line": 741,
+      "text": "return self._conn_mgr.is_write_queue_empty()"
+    },
+    {
+      "file": "tests/test_agent_checkpointer.py",
+      "line": 27,
+      "text": "# 1) interface.queue_writer"
+    },
+    {
+      "file": "tests/test_agent_checkpointer.py",
+      "line": 29,
+      "text": "\"interface.queue_writer\","
+    },
+    {
+      "file": "tests/test_agent_checkpointer.py",
+      "line": 30,
+      "text": "os.path.join(_project_root, \"interface\", \"queue_writer.py\"),"
+    },
+    {
+      "file": "tests/test_agent_checkpointer.py",
+      "line": 33,
+      "text": "sys.modules[\"interface.queue_writer\"] = _qw_mod"
+    },
+    {
+      "file": "tests/test_agent_checkpointer.py",
+      "line": 37,
+      "text": "setattr(sys.modules[\"interface\"], \"queue_writer\", _qw_mod)"
+    },
+    {
+      "file": "tests/test_agent_checkpointer.py",
+      "line": 38,
+      "text": "SerializedWriteQueue = _qw_mod.SerializedWriteQueue"
+    },
+    {
+      "file": "tests/test_agent_checkpointer.py",
+      "line": 66,
+      "text": "self.write_queue = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_agent_checkpointer.py",
+      "line": 67,
+      "text": "self.write_queue.start()"
+    },
+    {
+      "file": "tests/test_agent_checkpointer.py",
+      "line": 68,
+      "text": "self.db_manager = ConciergeDatabaseManager(self.db_path, self.write_queue)"
+    },
+    {
+      "file": "tests/test_agent_checkpointer.py",
+      "line": 86,
+      "text": "self.write_queue.queue.put(None)"
+    },
+    {
+      "file": "tests/test_agent_checkpointer.py",
+      "line": 87,
+      "text": "self.write_queue.join(timeout=10)"
+    },
+    {
+      "file": "tests/test_checkpoint_pruning.py",
+      "line": 27,
+      "text": "# 1) interface.queue_writer"
+    },
+    {
+      "file": "tests/test_checkpoint_pruning.py",
+      "line": 29,
+      "text": "\"interface.queue_writer\","
+    },
+    {
+      "file": "tests/test_checkpoint_pruning.py",
+      "line": 30,
+      "text": "os.path.join(_project_root, \"interface\", \"queue_writer.py\"),"
+    },
+    {
+      "file": "tests/test_checkpoint_pruning.py",
+      "line": 33,
+      "text": "sys.modules[\"interface.queue_writer\"] = _qw_mod"
+    },
+    {
+      "file": "tests/test_checkpoint_pruning.py",
+      "line": 37,
+      "text": "setattr(sys.modules[\"interface\"], \"queue_writer\", _qw_mod)"
+    },
+    {
+      "file": "tests/test_checkpoint_pruning.py",
+      "line": 38,
+      "text": "SerializedWriteQueue = _qw_mod.SerializedWriteQueue"
+    },
+    {
+      "file": "tests/test_checkpoint_pruning.py",
+      "line": 75,
+      "text": "self.write_queue = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_checkpoint_pruning.py",
+      "line": 76,
+      "text": "self.write_queue.start()"
+    },
+    {
+      "file": "tests/test_checkpoint_pruning.py",
+      "line": 77,
+      "text": "self.db_manager = ConciergeDatabaseManager(self.db_path, self.write_queue)"
+    },
+    {
+      "file": "tests/test_checkpoint_pruning.py",
+      "line": 95,
+      "text": "self.write_queue.queue.put(None)"
+    },
+    {
+      "file": "tests/test_checkpoint_pruning.py",
+      "line": 96,
+      "text": "self.write_queue.join(timeout=10)"
+    },
+    {
+      "file": "tests/test_concurrency_stress.py",
+      "line": 7,
+      "text": "logs de trajetória no SQLite WAL via SerializedWriteQueue."
+    },
+    {
+      "file": "tests/test_concurrency_stress.py",
+      "line": 28,
+      "text": "# 1) interface.queue_writer"
+    },
+    {
+      "file": "tests/test_concurrency_stress.py",
+      "line": 30,
+      "text": "\"interface.queue_writer\","
+    },
+    {
+      "file": "tests/test_concurrency_stress.py",
+      "line": 31,
+      "text": "os.path.join(_project_root, \"interface\", \"queue_writer.py\"),"
+    },
+    {
+      "file": "tests/test_concurrency_stress.py",
+      "line": 34,
+      "text": "sys.modules[\"interface.queue_writer\"] = _qw_mod"
+    },
+    {
+      "file": "tests/test_concurrency_stress.py",
+      "line": 38,
+      "text": "setattr(sys.modules[\"interface\"], \"queue_writer\", _qw_mod)"
+    },
+    {
+      "file": "tests/test_concurrency_stress.py",
+      "line": 39,
+      "text": "SerializedWriteQueue = _qw_mod.SerializedWriteQueue"
+    },
+    {
+      "file": "tests/test_concurrency_stress.py",
+      "line": 41,
+      "text": "# 2) core.database (depende de interface.queue_writer já registrado acima)"
+    },
+    {
+      "file": "tests/test_concurrency_stress.py",
+      "line": 58,
+      "text": "self.write_queue = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_concurrency_stress.py",
+      "line": 59,
+      "text": "self.write_queue.start()"
+    },
+    {
+      "file": "tests/test_concurrency_stress.py",
+      "line": 62,
+      "text": "self.db_manager = ConciergeDatabaseManager(self.db_path, self.write_queue)"
+    },
+    {
+      "file": "tests/test_concurrency_stress.py",
+      "line": 76,
+      "text": "self.write_queue.queue.put(None)"
+    },
+    {
+      "file": "tests/test_concurrency_stress.py",
+      "line": 77,
+      "text": "self.write_queue.join(timeout=10)"
+    },
+    {
+      "file": "tests/test_connection_queue_resilience.py",
+      "line": 5,
+      "text": "(storage/connection.py::SerializedWriteQueue e ConnectionManager):"
+    },
+    {
+      "file": "tests/test_connection_queue_resilience.py",
+      "line": 30,
+      "text": "from storage.connection import ConnectionManager, SerializedWriteQueue"
+    },
+    {
+      "file": "tests/test_connection_queue_resilience.py",
+      "line": 75,
+      "text": "q = SerializedWriteQueue(tmp_db_path)"
+    },
+    {
+      "file": "tests/test_connection_queue_resilience.py",
+      "line": 113,
+      "text": "q = SerializedWriteQueue(tmp_db_path)"
+    },
+    {
+      "file": "tests/test_connection_queue_resilience.py",
+      "line": 163,
+      "text": "q = SerializedWriteQueue(tmp_db_path)"
+    },
+    {
+      "file": "tests/test_connection_queue_resilience.py",
+      "line": 188,
+      "text": "q = SerializedWriteQueue(tmp_db_path)"
+    },
+    {
+      "file": "tests/test_connection_queue_resilience.py",
+      "line": 285,
+      "text": "q = SerializedWriteQueue(tmp_db_path)"
+    },
+    {
+      "file": "tests/test_connection_queue_resilience.py",
+      "line": 330,
+      "text": "q = SerializedWriteQueue(tmp_db_path)"
+    },
+    {
+      "file": "tests/test_connection_queue_resilience.py",
+      "line": 349,
+      "text": "\"\"\"P9: Ao nível do SqliteStore, se a partida da SerializedWriteQueue falhar"
+    },
+    {
+      "file": "tests/test_connection_queue_resilience.py",
+      "line": 380,
+      "text": "\"\"\"A1 (commit visível): Um job de escrita bem-sucedido em SerializedWriteQueue"
+    },
+    {
+      "file": "tests/test_connection_queue_resilience.py",
+      "line": 385,
+      "text": "q = SerializedWriteQueue(tmp_db_path)"
+    },
+    {
+      "file": "tests/test_connection_queue_resilience.py",
+      "line": 411,
+      "text": "q = SerializedWriteQueue(tmp_db_path)"
+    },
+    {
+      "file": "tests/test_connection_queue_resilience.py",
+      "line": 444,
+      "text": "q = SerializedWriteQueue(tmp_db_path)"
+    },
+    {
+      "file": "tests/test_connection_queue_resilience.py",
+      "line": 465,
+      "text": "storage.connection.SerializedWriteQueue (Pedido 4.4e - Bloco 4):"
+    },
+    {
+      "file": "tests/test_connection_queue_resilience.py",
+      "line": 468,
+      "text": "Uma instância de SerializedWriteQueue possui ciclo de vida único (`start() -> submit() -> stop()`)."
+    },
+    {
+      "file": "tests/test_connection_queue_resilience.py",
+      "line": 473,
+      "text": "`RuntimeError(\"SerializedWriteQueue is not running. Call start() first.\")` porque"
+    },
+    {
+      "file": "tests/test_connection_queue_resilience.py",
+      "line": 491,
+      "text": "q = SerializedWriteQueue(tmp_db_path)"
+    },
+    {
+      "file": "tests/test_connection_queue_resilience.py",
+      "line": 504,
+      "text": "# O submit() seguinte levanta RuntimeError(\"SerializedWriteQueue is not running. Call start() first.\")"
+    },
+    {
+      "file": "tests/test_connection_queue_resilience.py",
+      "line": 514,
+      "text": "q = SerializedWriteQueue(tmp_db_path)"
+    },
+    {
+      "file": "tests/test_delta_sync.py",
+      "line": 12,
+      "text": "- SerializedWriteQueue (SDD-02) para escrita segura no SQLite WAL"
+    },
+    {
+      "file": "tests/test_delta_sync.py",
+      "line": 28,
+      "text": "# 1) interface.queue_writer"
+    },
+    {
+      "file": "tests/test_delta_sync.py",
+      "line": 30,
+      "text": "\"interface.queue_writer\","
+    },
+    {
+      "file": "tests/test_delta_sync.py",
+      "line": 31,
+      "text": "os.path.join(_project_root, \"interface\", \"queue_writer.py\"),"
+    },
+    {
+      "file": "tests/test_delta_sync.py",
+      "line": 34,
+      "text": "sys.modules[\"interface.queue_writer\"] = _qw_mod"
+    },
+    {
+      "file": "tests/test_delta_sync.py",
+      "line": 38,
+      "text": "setattr(sys.modules[\"interface\"], \"queue_writer\", _qw_mod)"
+    },
+    {
+      "file": "tests/test_delta_sync.py",
+      "line": 39,
+      "text": "SerializedWriteQueue = _qw_mod.SerializedWriteQueue"
+    },
+    {
+      "file": "tests/test_delta_sync.py",
+      "line": 67,
+      "text": "self.write_queue = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_delta_sync.py",
+      "line": 68,
+      "text": "self.write_queue.start()"
+    },
+    {
+      "file": "tests/test_delta_sync.py",
+      "line": 69,
+      "text": "self.db_manager = ConciergeDatabaseManager(self.db_path, self.write_queue)"
+    },
+    {
+      "file": "tests/test_delta_sync.py",
+      "line": 93,
+      "text": "self.write_queue.queue.put(None)"
+    },
+    {
+      "file": "tests/test_delta_sync.py",
+      "line": 94,
+      "text": "self.write_queue.join(timeout=10)"
+    },
+    {
+      "file": "tests/test_e2e_concierge_integration.py",
+      "line": 29,
+      "text": "# 1) interface.queue_writer"
+    },
+    {
+      "file": "tests/test_e2e_concierge_integration.py",
+      "line": 31,
+      "text": "\"interface.queue_writer\","
+    },
+    {
+      "file": "tests/test_e2e_concierge_integration.py",
+      "line": 32,
+      "text": "os.path.join(_project_root, \"interface\", \"queue_writer.py\"),"
+    },
+    {
+      "file": "tests/test_e2e_concierge_integration.py",
+      "line": 35,
+      "text": "sys.modules[\"interface.queue_writer\"] = _qw_mod"
+    },
+    {
+      "file": "tests/test_e2e_concierge_integration.py",
+      "line": 39,
+      "text": "setattr(sys.modules[\"interface\"], \"queue_writer\", _qw_mod)"
+    },
+    {
+      "file": "tests/test_e2e_concierge_integration.py",
+      "line": 40,
+      "text": "SerializedWriteQueue = _qw_mod.SerializedWriteQueue"
+    },
+    {
+      "file": "tests/test_e2e_concierge_integration.py",
+      "line": 201,
+      "text": "if \"interface.queue_writer\" in sys.modules:"
+    },
+    {
+      "file": "tests/test_e2e_concierge_integration.py",
+      "line": 202,
+      "text": "setattr(sys.modules[\"interface\"], \"queue_writer\", sys.modules[\"interface.queue_writer\"])"
+    },
+    {
+      "file": "tests/test_e2e_concierge_integration.py",
+      "line": 221,
+      "text": "if \"interface.queue_writer\" in sys.modules:"
+    },
+    {
+      "file": "tests/test_e2e_concierge_integration.py",
+      "line": 222,
+      "text": "setattr(sys.modules[\"interface\"], \"queue_writer\", sys.modules[\"interface.queue_writer\"])"
+    },
+    {
+      "file": "tests/test_e2e_concierge_integration.py",
+      "line": 236,
+      "text": "# 2. Initialize SerializedWriteQueue (WAL) — Phase 1 (SDD-02)"
+    },
+    {
+      "file": "tests/test_e2e_concierge_integration.py",
+      "line": 237,
+      "text": "self.write_queue = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_e2e_concierge_integration.py",
+      "line": 238,
+      "text": "self.write_queue.start()"
+    },
+    {
+      "file": "tests/test_e2e_concierge_integration.py",
+      "line": 239,
+      "text": "self.db_manager = ConciergeDatabaseManager(self.db_path, self.write_queue)"
+    },
+    {
+      "file": "tests/test_e2e_concierge_integration.py",
+      "line": 284,
+      "text": "self.write_queue.queue.put(None)"
+    },
+    {
+      "file": "tests/test_e2e_concierge_integration.py",
+      "line": 285,
+      "text": "self.write_queue.join(timeout=10)"
+    },
+    {
+      "file": "tests/test_graph_rag_frugal.py",
+      "line": 19,
+      "text": "from interface.queue_writer import SerializedWriteQueue"
+    },
+    {
+      "file": "tests/test_graph_rag_frugal.py",
+      "line": 28,
+      "text": "self.write_queue = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_graph_rag_frugal.py",
+      "line": 29,
+      "text": "self.write_queue.start()"
+    },
+    {
+      "file": "tests/test_graph_rag_frugal.py",
+      "line": 30,
+      "text": "self.db_manager = ConciergeDatabaseManager(self.db_path, self.write_queue)"
+    },
+    {
+      "file": "tests/test_graph_rag_frugal.py",
+      "line": 48,
+      "text": "self.write_queue.queue.put(None)"
+    },
+    {
+      "file": "tests/test_graph_rag_frugal.py",
+      "line": 49,
+      "text": "self.write_queue.join()"
+    },
+    {
+      "file": "tests/test_graph_rag_janitor.py",
+      "line": 26,
+      "text": "# 1) interface.queue_writer"
+    },
+    {
+      "file": "tests/test_graph_rag_janitor.py",
+      "line": 28,
+      "text": "\"interface.queue_writer\","
+    },
+    {
+      "file": "tests/test_graph_rag_janitor.py",
+      "line": 29,
+      "text": "os.path.join(_project_root, \"interface\", \"queue_writer.py\"),"
+    },
+    {
+      "file": "tests/test_graph_rag_janitor.py",
+      "line": 32,
+      "text": "sys.modules[\"interface.queue_writer\"] = _qw_mod"
+    },
+    {
+      "file": "tests/test_graph_rag_janitor.py",
+      "line": 36,
+      "text": "setattr(sys.modules[\"interface\"], \"queue_writer\", _qw_mod)"
+    },
+    {
+      "file": "tests/test_graph_rag_janitor.py",
+      "line": 37,
+      "text": "SerializedWriteQueue = _qw_mod.SerializedWriteQueue"
+    },
+    {
+      "file": "tests/test_graph_rag_janitor.py",
+      "line": 75,
+      "text": "self.write_queue = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_graph_rag_janitor.py",
+      "line": 76,
+      "text": "self.write_queue.start()"
+    },
+    {
+      "file": "tests/test_graph_rag_janitor.py",
+      "line": 77,
+      "text": "self.db_manager = ConciergeDatabaseManager(self.db_path, self.write_queue)"
+    },
+    {
+      "file": "tests/test_graph_rag_janitor.py",
+      "line": 103,
+      "text": "self.write_queue.queue.put(None)"
+    },
+    {
+      "file": "tests/test_graph_rag_janitor.py",
+      "line": 104,
+      "text": "self.write_queue.join(timeout=10)"
+    },
+    {
+      "file": "tests/test_graph_rag_loops.py",
+      "line": 17,
+      "text": "from interface.queue_writer import SerializedWriteQueue"
+    },
+    {
+      "file": "tests/test_graph_rag_loops.py",
+      "line": 33,
+      "text": "self.write_queue = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_graph_rag_loops.py",
+      "line": 34,
+      "text": "self.write_queue.start()"
+    },
+    {
+      "file": "tests/test_graph_rag_loops.py",
+      "line": 35,
+      "text": "self.db_manager = ConciergeDatabaseManager(self.db_path, self.write_queue)"
+    },
+    {
+      "file": "tests/test_graph_rag_loops.py",
+      "line": 45,
+      "text": "self.write_queue.queue.put(None)"
+    },
+    {
+      "file": "tests/test_graph_rag_loops.py",
+      "line": 46,
+      "text": "self.write_queue.join(timeout=10)"
+    },
+    {
+      "file": "tests/test_mcp_server_extensions.py",
+      "line": 30,
+      "text": "# 1) interface.queue_writer"
+    },
+    {
+      "file": "tests/test_mcp_server_extensions.py",
+      "line": 32,
+      "text": "\"interface.queue_writer\","
+    },
+    {
+      "file": "tests/test_mcp_server_extensions.py",
+      "line": 33,
+      "text": "os.path.join(_project_root, \"interface\", \"queue_writer.py\"),"
+    },
+    {
+      "file": "tests/test_mcp_server_extensions.py",
+      "line": 36,
+      "text": "sys.modules[\"interface.queue_writer\"] = _qw_mod"
+    },
+    {
+      "file": "tests/test_mcp_server_extensions.py",
+      "line": 40,
+      "text": "setattr(sys.modules[\"interface\"], \"queue_writer\", _qw_mod)"
+    },
+    {
+      "file": "tests/test_mcp_server_extensions.py",
+      "line": 41,
+      "text": "SerializedWriteQueue = _qw_mod.SerializedWriteQueue"
+    },
+    {
+      "file": "tests/test_mcp_server_extensions.py",
+      "line": 131,
+      "text": "if \"interface.queue_writer\" in sys.modules:"
+    },
+    {
+      "file": "tests/test_mcp_server_extensions.py",
+      "line": 132,
+      "text": "setattr(sys.modules[\"interface\"], \"queue_writer\", sys.modules[\"interface.queue_writer\"])"
+    },
+    {
+      "file": "tests/test_mcp_server_extensions.py",
+      "line": 150,
+      "text": "if \"interface.queue_writer\" in sys.modules:"
+    },
+    {
+      "file": "tests/test_mcp_server_extensions.py",
+      "line": 151,
+      "text": "setattr(sys.modules[\"interface\"], \"queue_writer\", sys.modules[\"interface.queue_writer\"])"
+    },
+    {
+      "file": "tests/test_mcp_server_extensions.py",
+      "line": 165,
+      "text": "self.write_queue = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_mcp_server_extensions.py",
+      "line": 166,
+      "text": "self.write_queue.start()"
+    },
+    {
+      "file": "tests/test_mcp_server_extensions.py",
+      "line": 167,
+      "text": "self.db_manager = ConciergeDatabaseManager(self.db_path, self.write_queue)"
+    },
+    {
+      "file": "tests/test_mcp_server_extensions.py",
+      "line": 187,
+      "text": "self.write_queue.queue.put(None)"
+    },
+    {
+      "file": "tests/test_mcp_server_extensions.py",
+      "line": 188,
+      "text": "self.write_queue.join(timeout=10)"
+    },
+    {
+      "file": "tests/test_queue_writer_batching.py",
+      "line": 2,
+      "text": "tests/test_queue_writer_batching.py — SDD-SURVIVAL-10"
+    },
+    {
+      "file": "tests/test_queue_writer_batching.py",
+      "line": 5,
+      "text": "e o Fallback Atômico de Item Único da SerializedWriteQueue."
+    },
+    {
+      "file": "tests/test_queue_writer_batching.py",
+      "line": 18,
+      "text": "from interface.queue_writer import SerializedWriteQueue"
+    },
+    {
+      "file": "tests/test_queue_writer_batching.py",
+      "line": 25,
+      "text": "self.write_queue = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_queue_writer_batching.py",
+      "line": 26,
+      "text": "self.write_queue.start()"
+    },
+    {
+      "file": "tests/test_queue_writer_batching.py",
+      "line": 27,
+      "text": "self.db_manager = ConciergeDatabaseManager(self.db_path, self.write_queue)"
+    },
+    {
+      "file": "tests/test_queue_writer_batching.py",
+      "line": 39,
+      "text": "self.write_queue.queue.put(None)"
+    },
+    {
+      "file": "tests/test_queue_writer_batching.py",
+      "line": 40,
+      "text": "self.write_queue.join()"
+    },
+    {
+      "file": "tests/test_queue_writer_resilience.py",
+      "line": 2,
+      "text": "tests/test_queue_writer_resilience.py — Testes de Resiliência da SerializedWriteQueue (F4-029)"
+    },
+    {
+      "file": "tests/test_queue_writer_resilience.py",
+      "line": 25,
+      "text": "import interface.queue_writer as qw_module"
+    },
+    {
+      "file": "tests/test_queue_writer_resilience.py",
+      "line": 26,
+      "text": "from interface.queue_writer import SerializedWriteQueue"
+    },
+    {
+      "file": "tests/test_queue_writer_resilience.py",
+      "line": 54,
+      "text": "qw = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_queue_writer_resilience.py",
+      "line": 95,
+      "text": "qw = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_queue_writer_resilience.py",
+      "line": 98,
+      "text": "with self.assertLogs(\"interface.queue_writer\", level=\"WARNING\") as log_capture:"
+    },
+    {
+      "file": "tests/test_queue_writer_resilience.py",
+      "line": 100,
+      "text": "self.assertTrue(hasattr(qw, \"_ready\") and isinstance(qw._ready, threading.Event), \"SerializedWriteQueue deve possuir Event _ready\")"
+    },
+    {
+      "file": "tests/test_queue_writer_resilience.py",
+      "line": 123,
+      "text": "qw = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_queue_writer_resilience.py",
+      "line": 156,
+      "text": "qw = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_queue_writer_resilience.py",
+      "line": 184,
+      "text": "qw = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_queue_writer_resilience.py",
+      "line": 185,
+      "text": "with patch.object(SerializedWriteQueue, \"ident\", new_callable=PropertyMock(return_value=99999)):"
+    },
+    {
+      "file": "tests/test_queue_writer_resilience.py",
+      "line": 200,
+      "text": "qw = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_queue_writer_resilience.py",
+      "line": 228,
+      "text": "qw = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_queue_writer_resilience.py",
+      "line": 280,
+      "text": "qw = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_queue_writer_resilience.py",
+      "line": 318,
+      "text": "qw = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_queue_writer_resilience.py",
+      "line": 353,
+      "text": "qw = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_queue_writer_resilience.py",
+      "line": 383,
+      "text": "qw = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_queue_writer_resilience.py",
+      "line": 425,
+      "text": "qw = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_telemetry_api.py",
+      "line": 25,
+      "text": "from interface.queue_writer import SerializedWriteQueue"
+    },
+    {
+      "file": "tests/test_telemetry_api.py",
+      "line": 32,
+      "text": "self.write_queue = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_telemetry_api.py",
+      "line": 33,
+      "text": "self.write_queue.start()"
+    },
+    {
+      "file": "tests/test_telemetry_api.py",
+      "line": 34,
+      "text": "self.db_manager = ConciergeDatabaseManager(self.db_path, self.write_queue)"
+    },
+    {
+      "file": "tests/test_telemetry_api.py",
+      "line": 55,
+      "text": "self.write_queue.queue.put(None)"
+    },
+    {
+      "file": "tests/test_telemetry_api.py",
+      "line": 56,
+      "text": "self.write_queue.join()"
+    },
+    {
+      "file": "tests/test_vector_reconciler.py",
+      "line": 26,
+      "text": "# 1) interface.queue_writer"
+    },
+    {
+      "file": "tests/test_vector_reconciler.py",
+      "line": 28,
+      "text": "\"interface.queue_writer\","
+    },
+    {
+      "file": "tests/test_vector_reconciler.py",
+      "line": 29,
+      "text": "os.path.join(_project_root, \"interface\", \"queue_writer.py\"),"
+    },
+    {
+      "file": "tests/test_vector_reconciler.py",
+      "line": 32,
+      "text": "sys.modules[\"interface.queue_writer\"] = _qw_mod"
+    },
+    {
+      "file": "tests/test_vector_reconciler.py",
+      "line": 36,
+      "text": "setattr(sys.modules[\"interface\"], \"queue_writer\", _qw_mod)"
+    },
+    {
+      "file": "tests/test_vector_reconciler.py",
+      "line": 37,
+      "text": "SerializedWriteQueue = _qw_mod.SerializedWriteQueue"
+    },
+    {
+      "file": "tests/test_vector_reconciler.py",
+      "line": 103,
+      "text": "self.write_queue = SerializedWriteQueue(self.db_path)"
+    },
+    {
+      "file": "tests/test_vector_reconciler.py",
+      "line": 104,
+      "text": "self.write_queue.start()"
+    },
+    {
+      "file": "tests/test_vector_reconciler.py",
+      "line": 105,
+      "text": "self.db_manager = ConciergeDatabaseManager(self.db_path, self.write_queue)"
+    },
+    {
+      "file": "tests/test_vector_reconciler.py",
+      "line": 136,
+      "text": "self.write_queue.queue.put(None)"
+    },
+    {
+      "file": "tests/test_vector_reconciler.py",
+      "line": 137,
+      "text": "self.write_queue.join(timeout=10)"
+    }
+  ],
+  "suites_comparison": {
+    "tests/test_queue_writer_batching.py": {
+      "count": 2,
+      "nodeids": [
+        "tests/test_queue_writer_batching.py::TestQueueWriterBatching::test_opportunistic_batch_throughput",
+        "tests/test_queue_writer_batching.py::TestQueueWriterBatching::test_single_item_fallback_on_integrity_error"
+      ]
+    },
+    "tests/test_queue_writer_resilience.py": {
+      "count": 14,
+      "nodeids": [
+        "tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_characterization_inflight_write_may_apply_after_timeout",
+        "tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_execute_write_before_start_fails_fast_without_handshake_wait",
+        "tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_startup_budget_strictly_less_than_ready_timeout",
+        "tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t10_worker_death_in_loop_fails_waiting_and_subsequent_callers_fast",
+        "tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t11_multiple_queued_items_fail_fast_when_loop_dies",
+        "tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t1_connect_persistent_failure_fails_fast_without_hanging",
+        "tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t2_connect_retry_and_eventual_success",
+        "tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t3_worker_thread_late_death_fails_pending_and_future_fast",
+        "tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t4_normal_path_unaltered_throughput",
+        "tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t5_unready_worker_handshake_timeout_fails_fast_without_enqueuing",
+        "tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t6_batch_fatal_error_notifies_all_batched_callers",
+        "tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t7_expired_deadline_task_skipped_without_executing",
+        "tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t8_reader_read_query_does_not_execute_pragma_wal",
+        "tests/test_queue_writer_resilience.py::TestQueueWriterResilience::test_t9_busy_timeout_regime_allows_lock_held_for_3s_to_succeed"
+      ]
+    },
+    "tests/test_connection_queue_resilience.py": {
+      "count": 14,
+      "nodeids": [
+        "tests/test_connection_queue_resilience.py::test_p1_connect_persistent_locked_fails_fast",
+        "tests/test_connection_queue_resilience.py::test_p2_startup_retries_twice_on_locked_then_succeeds",
+        "tests/test_connection_queue_resilience.py::test_p3_non_lock_operational_error_fails_immediately_and_closes_conn",
+        "tests/test_connection_queue_resilience.py::test_p4_worker_late_death_in_loop_notifies_active_pending_and_subsequent",
+        "tests/test_connection_queue_resilience.py::test_p5_long_running_job_2s_succeeds_without_total_timeout",
+        "tests/test_connection_queue_resilience.py::test_p6_submit_before_start_raises_runtime_error_immediately",
+        "tests/test_connection_queue_resilience.py::test_p7_regime_pragmas_and_row_factory",
+        "tests/test_connection_queue_resilience.py::test_p8_start_idempotent_and_stop_terminates_thread",
+        "tests/test_connection_queue_resilience.py::test_p9_sqlitestore_startup_failure_does_not_hang",
+        "tests/test_connection_queue_resilience.py::test_a1_commit_visible_to_external_connection",
+        "tests/test_connection_queue_resilience.py::test_a2_rollback_on_error_prevents_partial_write_leak",
+        "tests/test_connection_queue_resilience.py::test_a3_failed_job_does_not_block_subsequent_jobs",
+        "tests/test_connection_queue_resilience.py::TestStopAndRestartCharacterization::test_ts1_start_after_stop_returns_silently_and_submit_raises_not_running",
+        "tests/test_connection_queue_resilience.py::TestStopAndRestartCharacterization::test_ts2_jobs_queued_before_stop_sentinel_fail_with_write_worker_died"
+      ]
+    },
+    "tests/test_concurrency_stress.py": {
+      "count": 2,
+      "nodeids": [
+        "tests/test_concurrency_stress.py::TestConcurrencyAndDelta::test_massive_concurrent_writes_should_never_lock_db",
+        "tests/test_concurrency_stress.py::TestCleanDatabaseManagerSchema::test_clean_manager_does_not_leak_test_log"
+      ]
+    }
+  },
+  "queue_writer_loc": 304,
+  "storage_connection_loc": 488,
+  "core_database_loc": 66
+}

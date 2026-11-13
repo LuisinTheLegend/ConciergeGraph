@@ -1,0 +1,767 @@
+=== BLOCO 3: PROMESSAS PÚBLICAS (372 linhas encontradas) ===
+
+[README.md] (46 ocorrências)
+  L6: **The Open-Source Long-Term Memory (LTM), Hierarchical Cognitive Engine & Real-Time Cockpit for AI Agents, IDEs & Developer Environments**
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L11: [![Next.js 16](https://img.shields.io/badge/Cockpit-Next.js%2016-black)](grafo-dashboard-web/)
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L15: Concierge Graph is a high-performance, local-first cognitive memory server designed to eliminate LLM "amnesia", prevent context window pollution, isolate HTTP 429 quota exhaustion, and govern multi-agent autonomy. Operat
+     -> alvos: core.hsm_engine / agent.run_agent, core.rate_governor, core.gating_interceptor / core.security_guard, grafo-dashboard-web / interface.telemetry_api, core.delta_manager / core.delta_sync, core.parser_factory / core.parsers.* (vs ingestion.parser), storage.connection vs interface.queue_writer (produção usa storage.connection)
+  L28: 1. **Zero-Lock Concurrency & Auto-Batching (`SerializedWriteQueue`)**: Channels all writes through a single-writer daemon on SQLite WAL. Features Adaptive Opportunistic Batching (draining up to 50 queued items in atomic 
+     -> alvos: storage.connection vs interface.queue_writer (produção usa storage.connection)
+  L29: 2. **Hierarchical State Machine & Deep History Nodes (`core/hsm_engine.py`)**: Models agent execution as an interactive state tree (`PLANNING`, `EXECUTION`, `MAINTENANCE`, `ERROR`) with hierarchical lifecycle hooks (`on_
+     -> alvos: core.hsm_engine / agent.run_agent
+  L30: 3. **Priority Rate Governor (`core/rate_governor.py`)**: Sliding 60-second window quota regulator (60 RPM, 40,000 TPM) with a 3-tier priority queue (HIGH, MEDIUM, LOW). Reactively freezes background queues at 85% and 95%
+     -> alvos: core.rate_governor
+  L31: 4. **Adaptive Gating Interceptor & Security Guard (`core/gating_interceptor.py`, `core/security_guard.py`)**: Enforces granular monorepo boundaries with configurable autonomy levels (`plan-only`, `ask`, `auto-approve`), 
+     -> alvos: core.gating_interceptor / core.security_guard
+  L32: 5. **Dual-Hash Delta Sync (SSH + LBH Semantic Drift Guard)**: Combines Structural Signature Hashes (SSH) with Logical Body Hashes (LBH) using `DocstringStripper(ast.NodeTransformer)`. Catches internal logic changes (`is_
+     -> alvos: core.delta_manager / core.delta_sync
+  L33: 6. **Next.js 16 Passive Observability Cockpit (`grafo-dashboard-web/`)**: Real-time 2x2 monitoring grid featuring a 2D Force-Directed code dependency graph with 60fps pulsating amber nodes for dirty files, live RPM/TPM c
+     -> alvos: core.hsm_engine / agent.run_agent, grafo-dashboard-web / interface.telemetry_api
+  L34: 7. **Structural Semantic Alias Tracking (`core/alias_tracker.py`)**: Resolves file renames and moves atomically in $< 1\text{s}$ using Structural Semantic Hashing (SSH). Cascades path updates across `ast_edges`, `files`,
+     -> alvos: core.alias_tracker
+  L35: 8. **Polyglot AST Parser Factory (`core/parser_factory.py`)**: Extends AST code intelligence to TypeScript and JavaScript (`.ts`, `.tsx`, `.js`, `.jsx`) via Tree-sitter and high-performance lexical fallback, automaticall
+     -> alvos: core.parser_factory / core.parsers.* (vs ingestion.parser)
+  L37: 10. **Progressive Tool Disclosure Governance (`core/mcp_governor.py`)**: Cognitive firewall enforcing two-layer tool visibility based on active HSM states. Passively filters tool discovery to eliminate prompt bloat and a
+     -> alvos: core.hsm_engine / agent.run_agent
+  L38: 11. **Federated Knowledge Routing & Global Hybrid Memory Adapter**: JIT 3-tier Intent Classifier (Regex < 1ms, SQLite entities, Ollama SLM) routes queries between private `LOCAL_GRAPHRAG` (`is_private: True`) and public 
+     -> alvos: core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter
+  L39: 12. **Master 15-Endpoint Telemetry REST API (`interface/telemetry_api.py`)**: Exposes FastAPI endpoints for live dashboard observability, providing structured Pydantic v2 telemetry snapshots, persistent Server-Sent Event
+     -> alvos: core.hsm_engine / agent.run_agent, core.rate_governor, core.gating_interceptor / core.security_guard, interface.telemetry_api / core.telemetry_schemas, storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L40: 13. **Zero-NumPy Native Bayesian Thompson Sampling (`core/probabilistic_retriever.py`)**: Executes probabilistic memory ranking via Python's built-in `random.betavariate()` with defensive input sanitization (`max(val, 1e
+     -> alvos: core.probabilistic_retriever (import condicional em hybrid_search.py:252)
+  L41: 14. **Smart Checkpoint Auto-Pruning (`BackgroundJanitor`)**: Prevents database bloat via a Smart LRU per Session algorithm that inviolably protects the initial `"init"` checkpoint for factory rollbacks while keeping the 
+     -> alvos: core.background_janitor (vs services.janitor)
+  L50: | **HTTP 429 Quota Exhaustion Crashes** | **Priority Rate Governor (SDD-23)**: 60s sliding window automatically isolates traffic into HIGH/MEDIUM/LOW, freezing background tasks at 85%/95% to preserve user chat. |
+     -> alvos: core.rate_governor
+  L51: | **Agent Infinite Loops & Stalls** | **HSM & 5-Turn Circuit Breaker (SDD-25/26)**: Hierarchical state tree limits turns per sub-state, tripping into `ERROR.PAUSE` before budget or context is blown. |
+     -> alvos: core.hsm_engine / agent.run_agent
+  L52: | **Silent Code Drift on Session Resume** | **Runtime Dual-Hash Delta Audit (SDD-27)**: Detects disk modifications made during downtime and auto-redirects agent to `EXECUTION.RE_INDEX`. |
+     -> alvos: core.hsm_engine / agent.run_agent, core.delta_manager / core.delta_sync
+  L53: | **Accidental Overwrites in Monorepos** | **Adaptive Gating Interceptor (SDD-24)**: Strict root confinement and gating modes (`plan-only`, `ask`, `auto-approve`) prevent out-of-scope mutations. |
+     -> alvos: core.gating_interceptor / core.security_guard
+  L54: | **Blindness to Agent Internal State** | **Next.js 16 Passive Cockpit (SDD-28)**: Real-time 2x2 dashboard visualizes active HSM states, quota gauges, and dirty files at 60fps via SSE. |
+     -> alvos: core.hsm_engine / agent.run_agent, core.rate_governor, grafo-dashboard-web / interface.telemetry_api
+  L55: | **"Database is Locked" Concurrency Crashing** | **`SerializedWriteQueue` with Auto-Batching**: Single-writer daemon drains up to 50 writes per atomic transaction with Single-Item Fallback and sub-5ms concurrent reads. 
+     -> alvos: storage.connection vs interface.queue_writer (produção usa storage.connection)
+  L56: | **Silent Semantic Drift & Token Waste** | **Dual-Hash Delta Sync (SSH + LBH)**: `DocstringStripper` ignores formatting and docstrings (zero AI token cost), detecting true logic alterations. |
+     -> alvos: core.delta_manager / core.delta_sync
+  L57: | **File Renames Destroying Trajectories & Edges** | **Structural Semantic Alias Tracking**: 1-second atomic SSH buffer matches renames, migrating relations across SQLite WAL without graph rebuilds. |
+     -> alvos: core.alias_tracker
+  L58: | **Single-Language Blind Spots** | **Polyglot Parser Factory**: Native Python AST plus Tree-sitter and lexical parsing for TypeScript/JavaScript/React (`.ts`, `.tsx`, `.js`, `.jsx`). |
+     -> alvos: core.parser_factory / core.parsers.* (vs ingestion.parser)
+  L61: | **Linear Chat History Token Inflation** | **Global Memory Adapter**: Preserves only the last 3 immediate chat messages (STM) and replaces older history with a structured LTM substrate from the graph. |
+     -> alvos: core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter
+  L63: | **Proprietary SDK Lock-in** | **Native MCP Standard (30 Tools) + FastAPI SSE**: Operates via Model Context Protocol (JSON-RPC/SSE) and FastAPI REST/SSE for full IDE and dashboard integration. |
+     -> alvos: Contagem desatualizada em README (real: 31 tools MCP, 478 testes pytest)
+  L69: * ⚡ **Unified Concurrent DX (`npm run dev:all`)**: Orchestrates both the Next.js 16 frontend (`grafo-dashboard-web`) and FastAPI/FastMCP backend concurrently with unified colored output via `concurrently`.
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L70: * 📊 **Real-Time SSE Telemetry Stream (`GET /api/telemetry/stream`)**: Pushes live state mutations (dirty files, rate governor updates, HSM transitions) to the cockpit with near-zero network overhead.
+     -> alvos: core.hsm_engine / agent.run_agent, core.rate_governor, interface.telemetry_api / core.telemetry_schemas, grafo-dashboard-web / interface.telemetry_api
+  L74: * 🎯 **Bayesian Thompson Sampling**: Real-time feedback loop (`concierge_feedback`) that dynamically adjusts search scoring weights based on agent reinforcement signals.
+     -> alvos: core.probabilistic_retriever (import condicional em hybrid_search.py:252)
+  L95: │  FastAPI REST / SSE (Port 8001)
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L98: │ 📊 Real-Time Cockpit Next.js│
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L99: │  (2x2 Grid Observability)   │
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L105: * 📊 **Next.js 16 Cockpit (`grafo-dashboard-web/`)**: Receives low-latency Server-Sent Events showing real-time memory health, quota gauges, and HSM states.
+     -> alvos: core.hsm_engine / agent.run_agent, core.rate_governor, grafo-dashboard-web / interface.telemetry_api
+  L142: GRAFO_GATING_MODE=plan-only
+     -> alvos: core.gating_interceptor / core.security_guard
+  L145: 3. **Start Backend & Cockpit Concurrently**:
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L147: cd grafo-dashboard-web
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L149: npm run dev:all
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L151: * **Cockpit UI**: `http://localhost:3000`
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L152: * **Telemetry API**: `http://localhost:8001`
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L157: ## 🔌 Core MCP Tools Reference (30 Tools)
+     -> alvos: Contagem desatualizada em README (real: 31 tools MCP, 478 testes pytest)
+  L159: * **`concierge_mine`**: Ingests a directory with early-exit filtering, AST chunking, dual-hash checks (SSH + LBH), and L0/L1/L2 summarization.
+     -> alvos: core.delta_manager / core.delta_sync
+  L162: * **`agent_save_checkpoint`**: Persists arbitrary AI agent state dictionaries into SQLite WAL (Smart LRU auto-prunable).
+     -> alvos: core.background_janitor (vs services.janitor)
+  L164: * **`agent_list_checkpoints`**: Returns the chronological timeline of checkpoints for Time-Travel Debugging.
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L171: * **`concierge_feedback`**: Registers utility feedback for Bayesian Thompson Sampling optimization.
+     -> alvos: core.probabilistic_retriever (import condicional em hybrid_search.py:252)
+  L177: Concierge Graph features an exhaustive automated test suite covering all survival modules, HSM transitions, rate quotas, gating security, and E2E integration with **100% green status (326 tests collected across 47 suites
+     -> alvos: core.hsm_engine / agent.run_agent, core.rate_governor, core.gating_interceptor / core.security_guard, Contagem desatualizada em README (real: 31 tools MCP, 478 testes pytest)
+
+[README.pt-BR.md] (46 ocorrências)
+  L6: **O Palácio de Memórias Cognitivas de Longo Prazo (LTM), Motor Hierárquico de Estados e Cockpit em Tempo Real para Agentes de IA, IDEs e Ambientes de Desenvolvimento**
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L11: [![Next.js 16](https://img.shields.io/badge/Cockpit-Next.js%2016-black)](grafo-dashboard-web/)
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L15: O Grafo Concierge é um servidor de memória cognitiva local-first de alta performance projetado para eliminar a "amnésia" dos LLMs, prevenir a poluição de janelas de contexto, isolar o esgotamento de cotas HTTP 429 e gove
+     -> alvos: core.hsm_engine / agent.run_agent, core.rate_governor, core.gating_interceptor / core.security_guard, grafo-dashboard-web / interface.telemetry_api, core.delta_manager / core.delta_sync, core.parser_factory / core.parsers.* (vs ingestion.parser), storage.connection vs interface.queue_writer (produção usa storage.connection)
+  L28: 1. **Concorrência Zero-Lock e Auto-Batching (`SerializedWriteQueue`)**: Canaliza todas as escritas através de uma thread daemon dedicada no SQLite WAL. Possui Auto-Batching Adaptativo (agrupa até 50 operações da fila em 
+     -> alvos: storage.connection vs interface.queue_writer (produção usa storage.connection)
+  L29: 2. **Máquina de Estados Hierárquica e Deep History Nodes (`core/hsm_engine.py`)**: Modela a execução do agente em uma árvore de estados interativa (`PLANNING`, `EXECUTION`, `MAINTENANCE`, `ERROR`) com ganchos de ciclo de
+     -> alvos: core.hsm_engine / agent.run_agent
+  L30: 3. **Rate Governor com Fila de Prioridades (`core/rate_governor.py`)**: Regulador de cotas em janela deslizante de 60 segundos (60 RPM, 40.000 TPM) com fila de 3 prioridades (HIGH, MEDIUM, LOW). Congela reativamente tare
+     -> alvos: core.rate_governor
+  L31: 4. **Adaptive Gating Interceptor e Security Guard (`core/gating_interceptor.py`, `core/security_guard.py`)**: Impõe réguas de fronteira no monorepo com níveis configuráveis de autonomia (`plan-only`, `ask`, `auto-approve
+     -> alvos: core.gating_interceptor / core.security_guard
+  L32: 5. **Sincronização Delta Dual-Hash (SSH + LBH Semantic Drift Guard)**: Combina o hash de assinaturas (SSH) com o hash de corpo lógico (LBH) via `DocstringStripper(ast.NodeTransformer)`. Detecta alterações de lógica real 
+     -> alvos: core.delta_manager / core.delta_sync
+  L33: 6. **Cockpit de Observabilidade Passiva Next.js 16 (`grafo-dashboard-web/`)**: Grid de monitoramento 2x2 em tempo real com visualizador de grafos de código 2D Force-Directed com nós pulsantes a 60fps para arquivos dirty,
+     -> alvos: core.hsm_engine / agent.run_agent, grafo-dashboard-web / interface.telemetry_api
+  L34: 7. **Rastreamento de Alias por Hash Estrutural (`core/alias_tracker.py`)**: Resolve renomeações e movimentações de arquivos atomicamente em $< 1\text{s}$ via Structural Semantic Hashing (SSH). Propaga atualizações em cas
+     -> alvos: core.alias_tracker
+  L35: 8. **Fábrica de Parsers Multilíngue (`core/parser_factory.py`)**: Estende a inteligência AST para TypeScript e JavaScript (`.ts`, `.tsx`, `.js`, `.jsx`) via Tree-sitter e fallback léxico de alta performance, filtrando pa
+     -> alvos: core.parser_factory / core.parsers.* (vs ingestion.parser)
+  L37: 10. **Governança por Ocultação Progressiva de Ferramentas (`core/mcp_governor.py`)**: Firewall cognitivo que impõe controle em duas camadas com base no estado ativo da HSM. Oculta ferramentas de mutação/perigosas no plan
+     -> alvos: core.hsm_engine / agent.run_agent
+  L38: 11. **Roteamento Federado de Conhecimento e Adaptador de Memória Global Híbrida**: Classificador JIT de intenção em 3 camadas (Regex < 1ms, entidades SQLite e SLM Ollama) que roteia consultas entre o `LOCAL_GRAPHRAG` pri
+     -> alvos: core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter
+  L39: 12. **API REST e Telemetria Mestra com 15 Endpoints (`interface/telemetry_api.py`)**: Expõe rotas FastAPI para observabilidade ao vivo, fornecendo snapshots Pydantic v2, stream Server-Sent Events (`/api/telemetry/stream`
+     -> alvos: core.hsm_engine / agent.run_agent, core.rate_governor, interface.telemetry_api / core.telemetry_schemas, storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L40: 13. **Amostragem de Thompson Nativa Zero-NumPy (`core/probabilistic_retriever.py`)**: Substitui a biblioteca externa `numpy` pela função nativa `random.betavariate()` com sanitização defensiva (`max(val, 1e-5)`), economi
+     -> alvos: core.probabilistic_retriever (import condicional em hybrid_search.py:252)
+  L41: 14. **Auto-Poda Inteligente de Checkpoints (`BackgroundJanitor`)**: Algoritmo Smart LRU por sessão que evita o inchaço do banco relacional. Protege o checkpoint inicial `"init"` (ponto zero fundamental para hard resets),
+     -> alvos: core.background_janitor (vs services.janitor)
+  L50: | **Travamentos por Esgotamento de Quotas HTTP 429** | **Rate Governor Prioritário (SDD-23)**: Janela de 60s isola tráfego em HIGH/MEDIUM/LOW, congelando tarefas de background a 85%/95% para preservar o chat. |
+     -> alvos: core.rate_governor
+  L51: | **Loops Infinitos e Desorientação do Agente** | **HSM e Circuit Breaker de 5 Turnos (SDD-25/26)**: Árvore de estados limita turnos por sub-estado, disparando para `ERROR.PAUSE` antes de estourar custos. |
+     -> alvos: core.hsm_engine / agent.run_agent
+  L52: | **Deriva Silenciosa de Código no Resume** | **Auditoria de Delta Dual-Hash (SDD-27)**: Detecta mudanças feitas no disco durante paradas e auto-redireciona o agente para `EXECUTION.RE_INDEX`. |
+     -> alvos: core.hsm_engine / agent.run_agent, core.delta_manager / core.delta_sync
+  L53: | **Mutações Indesejadas em Monorepos** | **Adaptive Gating Interceptor (SDD-24)**: Confinamento na raiz do projeto e modos de autonomia (`plan-only`, `ask`, `auto-approve`) impedem edições fora de escopo. |
+     -> alvos: core.gating_interceptor / core.security_guard
+  L54: | **Falta de Visibilidade do Estado do Agente** | **Cockpit Passivo Next.js 16 (SDD-28)**: Dashboard 2x2 em tempo real exibe nós ativos da HSM, gauges de cota e arquivos dirty a 60fps via SSE. |
+     -> alvos: core.hsm_engine / agent.run_agent, grafo-dashboard-web / interface.telemetry_api
+  L55: | **Travamentos por "Database is Locked"** | **`SerializedWriteQueue` com Auto-Batching**: Fila serializada com lotes de até 50 itens, Fallback Atômico e leituras concorrentes ultrarrápidas (< 5ms). |
+     -> alvos: storage.connection vs interface.queue_writer (produção usa storage.connection)
+  L56: | **Deriva Semântica Silenciosa e Desperdício de Tokens** | **Dual-Hash Delta Sync (SSH + LBH)**: `DocstringStripper` ignora formatações/docstrings (zero custo de token), mas detecta alterações reais de lógica. |
+     -> alvos: core.delta_manager / core.delta_sync
+  L57: | **Renomeação de Arquivos Destruindo Trajetórias** | **Rastreamento de Alias por Hash Estrutural**: Buffer atômico de 1s via SSH detecta renomeações e propaga alterações sem reconstruir o grafo. |
+     -> alvos: core.alias_tracker
+  L58: | **Ponto Cego em Projetos Multilinguagem** | **Fábrica de Parsers Multilíngue**: Suporte nativo a Python e TypeScript/JavaScript/React (`.ts`, `.tsx`, `.js`, `.jsx`) com filtro inteligente de pacotes npm. |
+     -> alvos: core.parser_factory / core.parsers.* (vs ingestion.parser)
+  L61: | **Inchaço Linear do Histórico de Conversação** | **Adaptador de Memória Global Híbrida**: Preserva estritamente as últimas 3 mensagens do chat (STM) e substitui o histórico antigo por um bloco LTM estruturado do grafo.
+     -> alvos: core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter
+  L63: | **Bloqueio por SDK Proprietária** | **Padrão MCP Nativo (30 Ferramentas) + FastAPI SSE**: Opera via Model Context Protocol (JSON-RPC/SSE) e FastAPI REST/SSE para total integração com IDEs e dashboards. |
+     -> alvos: Contagem desatualizada em README (real: 31 tools MCP, 478 testes pytest)
+  L69: * ⚡ **DX Concorrente Unificado (`npm run dev:all`)**: Inicia simultaneamente o frontend Next.js 16 (`grafo-dashboard-web`) e o backend FastAPI/FastMCP em um único terminal com logs coloridos via `concurrently`.
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L70: * 📊 **Stream de Telemetria SSE em Tempo Real (`GET /api/telemetry/stream`)**: Envia mutações de estado ao vivo (arquivos sujos, atualizações de cotas, transições da HSM) para o cockpit sem overhead de polling.
+     -> alvos: core.hsm_engine / agent.run_agent, interface.telemetry_api / core.telemetry_schemas, grafo-dashboard-web / interface.telemetry_api
+  L74: * 🎯 **Amostragem de Thompson Bayesiana**: Loop de feedback em tempo real (`concierge_feedback`) que ajusta dinamicamente os pesos de busca com base em reforço.
+     -> alvos: core.probabilistic_retriever (import condicional em hybrid_search.py:252)
+  L95: │  FastAPI REST / SSE (Porta 8001)
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L98: │ 📊 Cockpit Next.js 16       │
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L99: │  (Observabilidade 2x2 Grid) │
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L105: * 📊 **Cockpit Next.js 16 (`grafo-dashboard-web/`)**: Recebe Server-Sent Events de baixa latência exibindo a saúde da memória, gauges de cota e estados ativos da HSM em tempo real.
+     -> alvos: core.hsm_engine / agent.run_agent, grafo-dashboard-web / interface.telemetry_api
+  L142: GRAFO_GATING_MODE=plan-only
+     -> alvos: core.gating_interceptor / core.security_guard
+  L145: 3. **Iniciar Backend e Cockpit Concorrentemente**:
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L147: cd grafo-dashboard-web
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L149: npm run dev:all
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L151: * **Cockpit UI**: `http://localhost:3000`
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L152: * **API de Telemetria**: `http://localhost:8001`
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L157: ## 🔌 Referência Rápida das Ferramentas MCP (30 Ferramentas)
+     -> alvos: Contagem desatualizada em README (real: 31 tools MCP, 478 testes pytest)
+  L159: * **`concierge_mine`**: Ingestão de diretório com filtro early-exit, análise AST, dual-hash (SSH + LBH) e resumos L0/L1/L2.
+     -> alvos: core.delta_manager / core.delta_sync
+  L162: * **`agent_save_checkpoint`**: Persistência de estados genéricos de agentes no SQLite WAL (com auto-poda Smart LRU).
+     -> alvos: core.background_janitor (vs services.janitor)
+  L164: * **`agent_list_checkpoints`**: Linha do tempo cronológica de checkpoints para Time-Travel Debugging.
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L171: * **`concierge_feedback`**: Registra feedback de utilidade para otimização Bayesiana por Thompson Sampling.
+     -> alvos: core.probabilistic_retriever (import condicional em hybrid_search.py:252)
+  L177: O Grafo Concierge conta com uma suíte rigorosa de testes automatizados cobrindo todos os módulos de sobrevivência, transições da HSM, limites do rate governor, segurança de gating e integração E2E com **100% de status ve
+     -> alvos: core.hsm_engine / agent.run_agent, core.rate_governor, core.gating_interceptor / core.security_guard
+
+[pyproject.toml] (1 ocorrências)
+  L51: "watchdog>=4.0",
+     -> alvos: interface.watcher
+
+[docs-grafo-concierge/01_ARCHITECTURE.md] (97 ocorrências)
+  L12: 1. **Serialized SQLite WAL Concurrency with Auto-Batching & Single-Item Fallback (`SerializedWriteQueue` / `ConciergeDatabaseManager`)**: Completely eliminates `database is locked` errors by channeling all writes (`INSER
+     -> alvos: storage.connection vs interface.queue_writer (produção usa storage.connection)
+  L13: 2. **Dual-Hash Delta Sync: SSH & LBH Semantic Drift Guard (`DeltaManager` / `DocstringStripper`)**: Combines Structural Signature Hashing (SSH) for public signatures (`def`, `class`, `import`, `from`) with Logical Body H
+     -> alvos: core.delta_manager / core.delta_sync
+  L14: 3. **Lazy Summarization JIT & SLM Offloading (`BackgroundJanitor`)**: Postpones AI re-summarization until context is actively queried, delegating background processing to free local Small Language Models (SLMs via Ollama
+     -> alvos: core.gating_interceptor / core.security_guard, core.background_janitor (vs services.janitor)
+  L15: 4. **Smart Checkpoint Pruning (`BackgroundJanitor.prune_session_checkpoints`)**: Implements an intelligent Smart LRU per Session algorithm that prevents database bloat in `state.db`. Inviolably protects the initial "poin
+     -> alvos: core.background_janitor (vs services.janitor), storage.connection vs interface.queue_writer (produção usa storage.connection)
+  L18: 7. **Hardware-Aware Thermal Throttling & Rate Governor (`BackgroundJanitor.check_hardware_clearance`)**: Prevents CPU exhaustion and developer distraction by inspecting host CPU utilization ($<40\%$) and active typing qu
+     -> alvos: core.rate_governor, core.background_janitor (vs services.janitor)
+  L19: 8. **Real-Time Telemetry & SSE Streaming Layer (`interface/telemetry_api.py` / `core/telemetry_schemas.py`)**: Exposes structured Pydantic v2 schemas and low-latency Server-Sent Events (`/api/telemetry/stream`) alongside
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L20: 9. **Zero-NumPy Native Bayesian Thompson Sampling (`core/probabilistic_retriever.py`)**: Replaces the 30MB external NumPy dependency with Python's built-in `random.betavariate()` and input parameter sanitization (`max(va
+     -> alvos: core.probabilistic_retriever (import condicional em hybrid_search.py:252)
+  L21: 10. **Agnostic State Checkpointing & Time-Travel (`AgnosticCheckpointer`)**: Provides generic, agent-agnostic persistence for arbitrary AI state dictionaries stored as JSON blobs under composite primary keys (`agent_id`,
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L22: 11. **Early-Exit Reactive Watcher (`ConciergeFileSystemHandler`)**: Filters file modification events against `.conciergeignore` / `pathspec` rules *before* hitting disk I/O, protecting the indexing pipeline from `node_mo
+     -> alvos: interface.watcher
+  L24: 13. **Structural Semantic Alias Tracking (`core/alias_tracker.py`)**: Resolves file renames and moves atomically in $< 1\text{s}$ using Structural Semantic Hashing (SSH). Cascades path updates across `ast_edges`, `files`
+     -> alvos: core.alias_tracker
+  L25: 14. **Polyglot AST Parser Factory (`core/parser_factory.py`, `core/parsers/`)**: Extends codebase intelligence beyond Python to TypeScript and JavaScript (`.ts`, `.tsx`, `.js`, `.jsx`) via Tree-sitter and an ultra-fast l
+     -> alvos: core.parser_factory / core.parsers.* (vs ingestion.parser)
+  L26: 15. **Durable FSM Checkpoints & Cognitive Time-Travel (`storage/relational_db.py`, `core/checkpointer.py`)**: Persists resilient execution snapshots in `fsm_checkpoints` under `(session_id, checkpoint_id)`. Performs recu
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L28: 17. **Federated Knowledge Routing & Global Hybrid Memory Adapter (`core/intent_classifier.py`, `core/federated_knowledge_router.py`, `core/global_memory_adapter.py`)**: JIT Intent Classifier in 3 layers (Regex < 1ms, SQL
+     -> alvos: core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter
+  L29: 18. **Hierarchical State Machine Engine (`core/hsm_engine.py`)**: Replaces flat FSM with a recursive, tree-structured HSM model. Organizes agent cognitive flow into canonical Super-States (`PLANNING`, `EXECUTION`, `MAINT
+     -> alvos: core.hsm_engine / agent.run_agent
+  L30: 19. **Strict Lifecycle Hooks & History Node ($H^*$) Delta Verification (`core/hsm_engine.py`)**: Dispatches `on_enter` and `on_exit` hooks in strict hierarchical order (sub-state exit $\to$ super-state exit; super-state 
+     -> alvos: core.hsm_engine / agent.run_agent, core.delta_manager / core.delta_sync
+  L31: 20. **Cognitive Loop Runner Coupling & Circuit Breaker (`agent/run_agent.py`)**: Couples `HermesAgentRunner` with the HSM engine. Automatically initializes sessions from the latest History Node or defaults to `PLANNING.D
+     -> alvos: core.hsm_engine / agent.run_agent
+  L32: 21. **Rate Governor Quotas & Multi-Tier Priority Queuing (`core/rate_governor.py`)**: Enforces high-precision 60-second sliding window quotas (60 RPM / 40,000 TPM) with a 3-tier priority request queue (`HIGH` for interac
+     -> alvos: core.rate_governor
+  L33: 22. **Real-Time Passive Observability Cockpit (`grafo-dashboard-web/`)**: Next.js 16 (App Router) + React 19 + Tailwind CSS v4 dashboard operating under a strict **100% Zero-Mutation UI** paradigm. Receives sub-second te
+     -> alvos: core.hsm_engine / agent.run_agent, core.gating_interceptor / core.security_guard, interface.telemetry_api / core.telemetry_schemas, grafo-dashboard-web / interface.telemetry_api
+  L42: │            Next.js 16 Observability Cockpit (Grid 2x2)  │
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L48: │ 🌐 INTERFACE & GOVERNANCE LAYER (interface/, core/mcp_governor.py, core/rate_governor.py)   │
+     -> alvos: core.rate_governor
+  L51: │ - rate_governor.py (RateGovernor): 60s Sliding Quotas (60 RPM/40k TPM) & Priority Freezing  │
+     -> alvos: core.rate_governor
+  L52: │ - gating_interceptor.py & security_guard.py: Adaptive Gating Interceptor (ask/auto/auton) │
+     -> alvos: core.gating_interceptor / core.security_guard
+  L53: │ - telemetry_api.py: 15 REST routes (/api/telemetry/*, /api/governor/*, /api/hsm/*) & SSE    │
+     -> alvos: core.hsm_engine / agent.run_agent, interface.telemetry_api / core.telemetry_schemas
+  L54: │ - watcher.py: Early-Exit Reactive File Watcher (pathspec / .conciergeignore)                │
+     -> alvos: interface.watcher
+  L55: │ - queue_writer.py (SerializedWriteQueue): Single-Writer Daemon + Adaptive Auto-Batching     │
+     -> alvos: storage.connection vs interface.queue_writer (produção usa storage.connection)
+  L62: │ - hsm_engine.py (HierarchicalStateMachine): Recursive HSM, Super/Sub-States, Hooks & H* Node│
+     -> alvos: core.hsm_engine / agent.run_agent
+  L63: │ - run_agent.py (HermesAgentRunner): Cognitive Execution Loop + 5-turn Circuit Breaker       │
+     -> alvos: core.hsm_engine / agent.run_agent
+  L68: │ - alias_tracker.py: Atomic File Rename & Move Detection via Structural Semantic Hash (SSH) │
+     -> alvos: core.alias_tracker
+  L69: │ - parser_factory.py: Polyglot parser dispatcher (.py, .ts, .tsx, .js, .jsx)                 │
+     -> alvos: core.parser_factory / core.parsers.* (vs ingestion.parser)
+  L70: │ - delta_manager.py: Dual Hash (SSH Signature + LBH Semantic Drift) & DocstringStripper      │
+     -> alvos: core.delta_manager / core.delta_sync
+  L73: │ - checkpointer.py: Durable FSM & Agent Checkpoints with chronological Time-Travel           │
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L74: │ - background_janitor.py: Hardware-aware Thermal Governor, Smart LRU Pruning & Local SLM    │
+     -> alvos: core.background_janitor (vs services.janitor)
+  L78: │ - probabilistic_retriever.py: Zero-NumPy Thompson Sampling via native random.betavariate()   │
+     -> alvos: core.probabilistic_retriever (import condicional em hybrid_search.py:252)
+  L87: │ - FileParser: Tree-sitter AST & Tags     │   │ - Bidirectional Vector Reconciliation            │
+     -> alvos: core.parser_factory / core.parsers.* (vs ingestion.parser)
+  L97: │ │ - connection.py: SerializedWriteQueue + ConnMgr  │ │ - base_backend.py: Abstract Interface  │ │
+     -> alvos: storage.connection vs interface.queue_writer (produção usa storage.connection)
+  L110: ### 3.1 `SerializedWriteQueue` (Adaptive Auto-Batching & Single-Item Fallback)
+     -> alvos: storage.connection vs interface.queue_writer (produção usa storage.connection)
+  L135: -- 1. Files & Dual-Hash Delta Sync (SSH + LBH)
+     -> alvos: core.delta_manager / core.delta_sync
+  L140: body_hash    TEXT,             -- SHA-256 of AST body without docstrings (LBH)
+     -> alvos: core.delta_manager / core.delta_sync
+  L160: -- 4. Agnostic State Checkpoints & Time-Travel Timeline (Smart LRU Prunable)
+     -> alvos: core.background_janitor (vs services.janitor), storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L282: -- 13. Durable FSM Checkpoints & Time-Travel (Active-SDD #20)
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L283: CREATE TABLE IF NOT EXISTS fsm_checkpoints (
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L291: CREATE INDEX IF NOT EXISTS idx_fsm_checkpoints_session_created
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L292: ON fsm_checkpoints(session_id, created_at ASC);
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L299: ### 5.1 Dual-Hash Delta Manager: SSH & LBH Semantic Drift Guard
+     -> alvos: core.delta_manager / core.delta_sync
+  L301: * `DeltaManager.calculate_lbh(content)` parses the code AST, traverses it with `DocstringStripper(ast.NodeTransformer)` to strip all docstrings from functions/classes/modules, dumps the clean AST via `ast.dump(tree, anno
+     -> alvos: core.delta_manager / core.delta_sync
+  L303: * If SSH changes **OR** LBH changes: File is marked `is_dirty = 1` and community is marked `is_dirty = 1`.
+     -> alvos: core.delta_manager / core.delta_sync
+  L334: ### 5.4 Agnostic Checkpointer & Smart Checkpoint Pruning
+     -> alvos: core.background_janitor (vs services.janitor)
+  L336: * `BackgroundJanitor.prune_session_checkpoints(session_id, keep_limit=10)` executes Smart LRU pruning: protects checkpoint `"init"` (point-zero) while keeping the $N$ most recent entries and purging stale intermediate re
+     -> alvos: core.background_janitor (vs services.janitor), storage.connection vs interface.queue_writer (produção usa storage.connection)
+  L339: ### 5.5 Hardware-Aware Thermal Throttling & Rate Governor
+     -> alvos: core.rate_governor
+  L340: * `BackgroundJanitor.check_hardware_clearance(max_cpu_percent=40.0, quiet_period_seconds=180.0)` verifies host health before launching local SLMs (Ollama):
+     -> alvos: core.background_janitor (vs services.janitor)
+  L345: ### 5.6 Real-Time SSE Telemetry & Health Stream
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L346: * `interface/telemetry_api.py` provides FastAPI endpoints for dashboard integrations:
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L347: * `GET /api/telemetry/snapshot`: Complete JSON snapshot of dirty files, Janitor status, self-healing events, and agent checkpoints using Pydantic v2 schemas.
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L348: * `GET /api/telemetry/stream`: High-efficiency Server-Sent Events (SSE) streaming state changes every 2 seconds with automatic reconnection support.
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L351: ### 5.7 Zero-NumPy Native Bayesian Thompson Sampling
+     -> alvos: core.probabilistic_retriever (import condicional em hybrid_search.py:252)
+  L352: * `core/probabilistic_retriever.py` uses Python's standard `random.betavariate()` instead of external NumPy packages (~30MB savings):
+     -> alvos: core.probabilistic_retriever (import condicional em hybrid_search.py:252)
+  L360: ### 5.8 Structural Semantic Alias Tracking (`core/alias_tracker.py`)
+     -> alvos: core.alias_tracker
+  L361: * Solves the **File Rename & Move Anomaly**: When developers rename files (e.g. `auth_service.py` $\rightarrow$ `authentication.py`), standard watchers trigger a `DELETE` followed by a `CREATE`, which naive systems treat
+     -> alvos: interface.watcher
+  L367: ### 5.9 Polyglot AST Parser Factory (`core/parser_factory.py` & `core/parsers/`)
+     -> alvos: core.parser_factory / core.parsers.* (vs ingestion.parser)
+  L370: * `.ts`, `.tsx`, `.js`, `.jsx` $\rightarrow$ `TsJsParser` (Tree-sitter with high-performance regex fallback)
+     -> alvos: core.parser_factory / core.parsers.* (vs ingestion.parser)
+  L377: ### 5.10 Durable FSM Checkpoints & Cognitive Time-Travel (`core/checkpointer.py`)
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L378: * Extends agent state preservation beyond lightweight dictionaries into durable SQLite relational persistence (`storage/relational_db.py`).
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L380: * **Time-Travel Rollback Execution**: `execute_time_travel(session_id, target_checkpoint_id)`:
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L381: 1. Loads the target state snapshot from `fsm_checkpoints`.
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L383: 3. Re-flags any rolled-back files recorded in `dirty_files` as `is_dirty = 1` in SQLite WAL, instructing the watcher and Janitor to re-synchronize local graph state.
+     -> alvos: interface.watcher
+  L390: * `PLANNING`, `DISCOVERY`: Only `READ_ONLY` tools + `get_telemetry_snapshot`.
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L394: ### 5.12 Federated Knowledge Routing & Global Hybrid Memory Adapter (`core/`)
+     -> alvos: core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter
+  L400: * **GlobalMemoryAdapter (`core/global_memory_adapter.py`)**: Compiles a hybrid context payload: preserves the last 3 immediate chat messages (Short-Term Memory) for conversational continuity, while replacing older chat h
+     -> alvos: core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter
+  L402: ### 5.13 Hierarchical State Machine (HSM) Engine (`core/hsm_engine.py`)
+     -> alvos: core.hsm_engine / agent.run_agent
+  L403: * Replaces naive, flat FSMs with a recursive, tree-structured HSM model (`HierarchicalStateMachine` and `HSMNode`).
+     -> alvos: core.hsm_engine / agent.run_agent
+  L408: * Sub-states: `CODE_GEN`, `TDD_GREEN`, `REFACTORING`, `RE_INDEX`.
+     -> alvos: core.hsm_engine / agent.run_agent
+  L418: ### 5.14 State Transition Lifecycle Hooks & History Node ($H^*$) Delta Verification
+     -> alvos: core.hsm_engine / agent.run_agent
+  L423: * **Deep History Node ($H^*$)**:
+     -> alvos: core.hsm_engine / agent.run_agent
+  L427: * Before restoring execution context, the engine executes an active audit comparing current workspace files against recorded hashes in SQLite WAL using `DeltaManager` (Dual-Hash: SSH + LBH).
+     -> alvos: core.delta_manager / core.delta_sync
+  L428: * If out-of-band file edits (stale code) are detected, it dynamically intercepts the restoration and redirects the session to `EXECUTION.RE_INDEX`, triggering graph re-synchronization before code generation resumes.
+     -> alvos: core.hsm_engine / agent.run_agent
+  L430: ### 5.15 Cognitive Runner Coupling & Circuit Breaker (`agent/run_agent.py`)
+     -> alvos: core.hsm_engine / agent.run_agent
+  L431: * Couples `HermesAgentRunner` with the HSM engine as the core brain of the cognitive execution loop:
+     -> alvos: core.hsm_engine / agent.run_agent
+  L433: * **Cognitive Circuit Breaker (Anti-Loop Guard)**:
+     -> alvos: core.hsm_engine / agent.run_agent
+  L435: * When `turn_count >= 5` (configurable via `max_turns`), the Circuit Breaker trips:
+     -> alvos: core.hsm_engine / agent.run_agent
+  L436: 1. Emits a warning event to the telemetry stream.
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L439: ### 5.16 Rate Governor Quotas & Multi-Tier Priority Queuing (`core/rate_governor.py`)
+     -> alvos: core.rate_governor
+  L440: * **60-Second Sliding Window Quotas**: Continuously measures rolling consumption:
+     -> alvos: core.rate_governor
+  L441: * **RPM (Requests per Minute)**: Default quota = 60 req/min.
+     -> alvos: core.rate_governor
+  L442: * **TPM (Tokens per Minute)**: Default quota = 40,000 tok/min.
+     -> alvos: core.rate_governor
+  L450: * 🟡 **`LOW_FROZEN` (≥ 85%)**: Suspends `LOW` priority queue to protect interactive performance.
+     -> alvos: core.rate_governor
+  L451: * 🟠 **`MEDIUM_FROZEN` (≥ 95%)**: Suspends `MEDIUM` subagents, dedicating remaining quota strictly to `HIGH` priority Hermes turns until the sliding window drains.
+     -> alvos: core.rate_governor
+  L453: ### 5.17 Adaptive Gating & Security Guard (`core/gating_interceptor.py`, `core/security_guard.py`)
+     -> alvos: core.gating_interceptor / core.security_guard
+  L455: * `ask`: Strict human-in-the-loop gating for all mutating operations.
+     -> alvos: core.gating_interceptor / core.security_guard
+  L457: * `autonomous`: Full autonomy within the allowed bounds of the current HSM state.
+     -> alvos: core.hsm_engine / agent.run_agent
+  L460: ### 5.18 Real-Time Passive Observability Cockpit (`grafo-dashboard-web/`)
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L461: * Built with Next.js 16 (App Router), React 19, and Tailwind CSS v4 under a **100% Zero-Mutation UI** paradigm:
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L462: * **Real-time SSE Stream**: Connects to `/api/telemetry/stream` (FastAPI), hydrating state instantly on load via `/api/telemetry/snapshot`, `/api/governor/metrics`, and `/api/hsm/tree` without network polling.
+     -> alvos: core.hsm_engine / agent.run_agent, interface.telemetry_api / core.telemetry_schemas
+  L463: * **2x2 Grid Cockpit Layout**:
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L464: 1. **Top-Left — CodeGraphViewer (`components/topology/CodeGraphViewer.tsx`)**: 2D Force-Directed Graph with directory community grouping and a 60fps sinusoidal pulsating yellow aura for files with `is_dirty = 1`.
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L465: 2. **Top-Right — QuotaGauges (`components/governor/QuotaGauges.tsx`)**: Semicircular SVG radial gauges for RPM/TPM with smooth `stroke-dashoffset` transitions and reactive freezing badges.
+     -> alvos: core.rate_governor
+  L466: 3. **Bottom-Left — HSMStateInspector (`components/hsm/HSMStateInspector.tsx`)**: Visual hierarchy tree, active state highlight, Deep History Node card, and 5-turn Circuit Breaker dots.
+     -> alvos: core.hsm_engine / agent.run_agent
+  L467: 4. **Bottom-Right — LiveEventFeed (`components/telemetry/LiveEventFeed.tsx`)**: Cyber console with auto-scroll toggle, ISO 8601 UTC to local browser time formatting (`HH:mm:ss.SSS`), and category badges (`[WAL]`, `[JANIT
+     -> alvos: core.hsm_engine / agent.run_agent, core.gating_interceptor / core.security_guard, interface.telemetry_api / core.telemetry_schemas
+
+[docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md] (25 ocorrências)
+  L1: # 🔌 MCP Tools Reference — Complete 30 Tools Catalog (v4.2.0)
+     -> alvos: Contagem desatualizada em README (real: 31 tools MCP, 478 testes pytest)
+  L34: ├── 💾 Session Checkpointing & Time-Travel (3 tools)
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L35: │   ├── agent_save_checkpoint            [Smart LRU Prunable]
+     -> alvos: core.background_janitor (vs services.janitor)
+  L111: Executes directory ingestion: scans filesystem with early-exit filtering, performs dual-hash delta checks (SSH + LBH), Tree-sitter AST chunking, prompt armoring, summarization, embedding, and garbage collection.
+     -> alvos: core.delta_manager / core.delta_sync, core.parser_factory / core.parsers.* (vs ingestion.parser)
+  L202: ## 5. Session Checkpointing & Time-Travel
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L205: Persists arbitrary agent state dictionaries as JSON blobs in SQLite WAL under a composite primary key `(agent_id, session_id, checkpoint_id)` via `AgnosticCheckpointer`. Checkpoints are automatically prunable by `Backgro
+     -> alvos: core.background_janitor (vs services.janitor)
+  L209: * `checkpoint_id` (`str`, required): Identifier of the step/checkpoint (e.g. `init`, `step_1`, `pre_refactor`).
+     -> alvos: core.background_janitor (vs services.janitor)
+  L222: Lists the complete chronological history of checkpoints recorded for an agent session, enabling Time-Travel navigation and rollback capabilities.
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L248: Registers utility feedback for a semantic fact to tune Thompson Sampling weights.
+     -> alvos: core.probabilistic_retriever (import condicional em hybrid_search.py:252)
+  L304: ## 9. Progressive Tool Disclosure & Hierarchical State Machine (HSM) Security Matrix (Active-SDD #21 / #25)
+     -> alvos: core.hsm_engine / agent.run_agent
+  L306: To prevent LLM context window pollution and protect the codebase against inadvertent modifications during early research phases, Grafo Concierge implements **Progressive Tool Disclosure** through the `MCPToolGovernor` (`
+     -> alvos: core.hsm_engine / agent.run_agent
+  L317: │ Filters returned tools by HSM     │       │ Validates session permission      │
+     -> alvos: core.hsm_engine / agent.run_agent
+  L333: ### 9.3 Hierarchical State Machine (HSM) Disclosure Matrix
+     -> alvos: core.hsm_engine / agent.run_agent
+  L340: | **`EXECUTION`** | `CODE_GEN`<br>`TDD_GREEN`<br>`REFACTORING`<br>`RE_INDEX` | `READ_ONLY`<br>`LOCAL_MUTATION` | Modifying files, running incremental commits (`concierge_commit`), creating checkpoints (`agent_save_checkp
+     -> alvos: core.hsm_engine / agent.run_agent
+  L342: | **`STALL`** | `AWAITING_HUMAN`<br>`CONTEXT_FULL`<br>`ERROR_PAUSE` | `READ_ONLY` | Safe mitigation state when Circuit Breaker trips (turn $\ge 5$) or when human guidance is required. |
+     -> alvos: core.hsm_engine / agent.run_agent
+  L345: ### 9.4 Lifecycle Hooks, Deep History Node ($H^*$) & Circuit Breaker
+     -> alvos: core.hsm_engine / agent.run_agent
+  L351: * **Deep History Node ($H^*$)**:
+     -> alvos: core.hsm_engine / agent.run_agent
+  L354: * Checks Dual-Hash delta drift during `resume_from_history_node()`; redirects to `EXECUTION.RE_INDEX` if files changed out-of-band.
+     -> alvos: core.hsm_engine / agent.run_agent, core.delta_manager / core.delta_sync
+  L355: * **Cognitive Circuit Breaker**:
+     -> alvos: core.hsm_engine / agent.run_agent
+  L360: Agents, orchestrators, and the Next.js Cockpit interact with the HSM via dedicated FastAPI endpoints:
+     -> alvos: core.hsm_engine / agent.run_agent, grafo-dashboard-web / interface.telemetry_api
+  L364: | **`/api/hsm/state/{session_id}`** | `GET` | `{"current_full_path": "EXECUTION.CODE_GEN", "history_node": [...]}` | Queries the active qualified state path and History Node for a session. |
+     -> alvos: core.hsm_engine / agent.run_agent
+  L365: | **`/api/hsm/transition`** | `POST` | `{"session_id": "s1", "target_state": "EXECUTION.TDD_GREEN"}` | Executes a state transition, firing exit/enter hooks and updating the tool disclosure filter. |
+     -> alvos: core.hsm_engine / agent.run_agent
+  L366: | **`/api/hsm/resume/{session_id}`** | `POST` | `{"status": "resumed", "state": "EXECUTION.CODE_GEN"}` | Restores session from History Node after auditing codebase drift. |
+     -> alvos: core.hsm_engine / agent.run_agent
+  L367: | **`/api/hsm/tree`** | `GET` | `{"state_tree": {...}}` | Returns the entire canonical HSM topology tree for UI rendering. |
+     -> alvos: core.hsm_engine / agent.run_agent
+  L368: | **`/api/gating/config`** | `GET` / `POST` | `{"mode": "ask" \| "auto_read" \| "autonomous"}` | Inspects or toggles the runtime adaptive gating autonomy mode. |
+     -> alvos: core.gating_interceptor / core.security_guard
+
+[docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md] (22 ocorrências)
+  L3: > **Architectural Deep-Dive into Bi-Temporal Persistence, Scoped Core Memory, and Bayesian Thompson Sampling**
+     -> alvos: core.probabilistic_retriever (import condicional em hybrid_search.py:252)
+  L14: Grafo Concierge solves these challenges through **Bi-Temporal Fact Invalidation**, **LLM-Driven Semantic Consolidation (`SemanticExtractor`)**, **Scoped Core Memory**, and **Bayesian Thompson Sampling**.
+     -> alvos: core.probabilistic_retriever (import condicional em hybrid_search.py:252)
+  L141: ## 5. Bayesian Thompson Sampling & Reinforcement (`probabilistic_retriever.py`)
+     -> alvos: core.probabilistic_retriever (import condicional em hybrid_search.py:252)
+  L143: To prevent the retrieval engine from getting stuck in local optima (repeatedly recalling the same high-similarity memory even when newer or alternative memories are more helpful), Grafo Concierge implements **Thompson Sa
+     -> alvos: core.probabilistic_retriever (import condicional em hybrid_search.py:252)
+  L159: │        Thompson Sampling Beta Multiplier (0.0 to 1.0)  │
+     -> alvos: core.probabilistic_retriever (import condicional em hybrid_search.py:252)
+  L201: ## 6. Durable FSM Checkpoints & Cognitive Time-Travel (`core/checkpointer.py`)
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L205: ### 6.1 Relational Schema (`storage/relational_db.py`)
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L207: CREATE TABLE IF NOT EXISTS fsm_checkpoints (
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L215: CREATE INDEX IF NOT EXISTS idx_fsm_checkpoints_session_created
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L216: ON fsm_checkpoints(session_id, created_at ASC);
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L227: ### 6.3 Time-Travel Rollback Workflow
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L228: When an agent or developer triggers a rollback (`POST /api/checkpoints/time-travel`):
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L229: 1. **Target Snapshot Retrieval**: Fetches `target_checkpoint_id` from `fsm_checkpoints` for the given `session_id`.
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L232: DELETE FROM fsm_checkpoints WHERE session_id = ? AND created_at > ?;
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L234: 3. **Dirty File Synchronization**: Parses the `dirty_files` array stored in the snapshot and executes `UPDATE files SET is_dirty = 1 WHERE path IN (...)`, instructing the file watcher and background Janitor to immediatel
+     -> alvos: interface.watcher
+  L238: ## 7. Hierarchical Global Memory Adapter (`core/global_memory_adapter.py`)
+     -> alvos: core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter
+  L240: Under **Active-SDD #22**, the `GlobalMemoryAdapter` eliminates the quadratic token bloat caused by linear raw chat histories while preserving conversational naturalness.
+     -> alvos: core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter
+  L281: ## 8. HSM State Context & Deep History Node ($H^*$) Coupling (`core/hsm_engine.py`)
+     -> alvos: core.hsm_engine / agent.run_agent
+  L292: turn_count: int             # Consecutive turns in current sub-state (Circuit Breaker)
+     -> alvos: core.hsm_engine / agent.run_agent
+  L297: * Whenever the agent saves a progress checkpoint via `agent_save_checkpoint`, the HSM engine binds the durable `fsm_checkpoints` entry with the qualified state path.
+     -> alvos: core.hsm_engine / agent.run_agent, storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L298: * The **Deep History Node ($H^*$)** records this tuple in SQLite memory.
+     -> alvos: core.hsm_engine / agent.run_agent
+  L300: 1. The durable variable state snapshot from `fsm_checkpoints`.
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+
+[docs-grafo-concierge/04_INGESTION_AND_AST.md] (29 ocorrências)
+  L1: # 📥 Ingestion Engine, Tree-sitter AST & Dual-Hash Delta Sync (v4.2.0)
+     -> alvos: core.delta_manager / core.delta_sync, core.parser_factory / core.parsers.* (vs ingestion.parser)
+  L3: > **Architectural Specification for Early-Exit Watchers, Multi-Language Tree-sitter AST Parsing, Structural Signature Hashing (SSH), Logical Body Hashing (LBH), Alias Tracking, Deep History Delta Validation, and Reactive
+     -> alvos: core.delta_manager / core.delta_sync, core.alias_tracker, core.parser_factory / core.parsers.* (vs ingestion.parser), interface.watcher
+  L13: │ 1. WATCHER   │ ─► │ 2. DELTA    │ ─► │ 3. PARSE     │ ─► │ 4. CHUNK    │
+     -> alvos: interface.watcher
+  L14: │ Early-Exit   │    │ SSH + LBH   │    │ Tree-sitter  │    │ Delta Cache │
+     -> alvos: core.delta_manager / core.delta_sync, core.parser_factory / core.parsers.* (vs ingestion.parser)
+  L25: ## 2. Early-Exit Reactive Watcher (`interface/watcher.py`)
+     -> alvos: interface.watcher
+  L27: To ensure zero latency and zero wasted I/O on large developer repositories containing thousands of transient files (`node_modules`, `.git`, `.venv`, build artifacts), the `ConciergeFileSystemHandler` implements an **Earl
+     -> alvos: interface.watcher
+  L35: ## 3. Dual-Hash Delta Sync: SSH & LBH Semantic Drift Guard (`core/delta_manager.py`)
+     -> alvos: core.delta_manager / core.delta_sync
+  L39: Grafo Concierge resolves both problems with a **Dual-Hash Architecture**:
+     -> alvos: core.delta_manager / core.delta_sync
+  L52: ### 3.2 Logical Body Hashing (LBH) via `DocstringStripper`
+     -> alvos: core.delta_manager / core.delta_sync
+  L55: 2. `DocstringStripper(ast.NodeTransformer)` inspects `FunctionDef`, `AsyncFunctionDef`, `ClassDef`, and `Module` nodes. If the first statement in the body is an `ast.Expr` containing a string literal constant (`ast.Const
+     -> alvos: core.delta_manager / core.delta_sync
+  L57: class DocstringStripper(ast.NodeTransformer):
+     -> alvos: core.delta_manager / core.delta_sync
+  L71: | Change Type | SSH Changed? | LBH Changed? | Action in SQLite (`files` / `communities`) | Token Cost |
+     -> alvos: core.delta_manager / core.delta_sync
+  L80: ## 4. Multi-Language AST Parsing via Tree-sitter & `ParserFactory`
+     -> alvos: core.parser_factory / core.parsers.* (vs ingestion.parser)
+  L82: Under **Active-SDD #19**, Grafo Concierge introduces the **Polyglot Parser Factory** (`core/parser_factory.py`), enabling deep AST comprehension across both backend (Python) and frontend (TypeScript/JavaScript/React) mod
+     -> alvos: core.parser_factory / core.parsers.* (vs ingestion.parser)
+  L84: ### 4.1 Parser Factory Dispatch (`core/parser_factory.py`)
+     -> alvos: core.parser_factory / core.parsers.* (vs ingestion.parser)
+  L102: 1. **Tree-sitter TS/TSX Grammar**: Native AST traversal when Tree-sitter bindings are present.
+     -> alvos: core.parser_factory / core.parsers.* (vs ingestion.parser)
+  L108: * **Structural Semantic Hashing (SSH)**: Extracts public function signatures, classes, and local imports, hashing them deterministically for delta sync and alias tracking.
+     -> alvos: core.delta_manager / core.delta_sync, core.alias_tracker
+  L118: ## 5. Structural Semantic Alias Tracking (`core/alias_tracker.py`)
+     -> alvos: core.alias_tracker
+  L124: 1. Standard OS file watchers emit a `DELETE` event for `auth.py` followed by a `CREATE` event for `authentication.py`.
+     -> alvos: interface.watcher
+  L172: Under **Active-SDD #27**, the Dual-Hash mechanism is directly wired into session recovery through the **Deep History Node ($H^*$)**:
+     -> alvos: core.hsm_engine / agent.run_agent, core.delta_manager / core.delta_sync
+  L175: When an agent session is interrupted and later resumed via `HierarchicalStateMachine.resume_from_history_node(session_id, delta_manager)`:
+     -> alvos: core.delta_manager / core.delta_sync
+  L191: └─── YES ──► delta_manager.has_structural_change(file)?
+     -> alvos: core.delta_manager / core.delta_sync
+  L198: └── Auto-Redirect State ──► EXECUTION.RE_INDEX
+     -> alvos: core.hsm_engine / agent.run_agent
+  L201: When redirected to `EXECUTION.RE_INDEX`, the ingestion engine triggers an immediate re-parse of the modified AST, re-syncs SQLite WAL edges, and clears the stale flag before resuming development.
+     -> alvos: core.hsm_engine / agent.run_agent
+  L205: ## 7. Reactive Observability Integration: Cockpit 60fps Pulsing (`is_dirty = 1`)
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L207: Under **Active-SDD #28**, ingestion state changes are broadcast in real time to the Next.js Cockpit (`grafo-dashboard-web/`):
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L209: 1. Whenever `DeltaManager` or the File Watcher detects structural changes, the file is marked with `is_dirty = 1` in SQLite.
+     -> alvos: interface.watcher
+  L210: 2. The SSE telemetry channel (`/api/telemetry/stream`) emits a `DELTA_DETECTED` event containing the affected node identifier and timestamp.
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L211: 3. In `CodeGraphViewer.tsx`, the 2D Force-Directed Graph dynamically renders any node with `is_dirty = 1` with a **glowing amber/yellow pulsating aura at 60fps**.
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+
+[docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md] (12 ocorrências)
+  L101: ## 4. JIT Intent Classifier (`core/intent_classifier.py`)
+     -> alvos: core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter
+  L133: ## 5. Federated Knowledge Router (`core/federated_knowledge_router.py`)
+     -> alvos: core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter
+  L144: ### 5.2 Transition & Backward Compatibility Shim (`core/nozomio_router.py`)
+     -> alvos: core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter
+  L145: In earlier internal revisions, the router was named `nozomio_router.py`. To preserve 100% backward compatibility with legacy tooling, `core/nozomio_router.py` acts as a zero-overhead transition shim:
+     -> alvos: core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter
+  L147: # core/nozomio_router.py
+     -> alvos: core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter
+  L150: FederatedKnowledgeRouter as NozomioRouter,
+     -> alvos: core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter
+  L153: EXTERNAL_NOZOMIO_MCP = EXTERNAL_FEDERATED_MCP
+     -> alvos: core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter
+  L154: __all__ = ["FederatedKnowledgeRouter", "NozomioRouter", "EXTERNAL_FEDERATED_MCP", "EXTERNAL_NOZOMIO_MCP"]
+     -> alvos: core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter
+  L159: ## 6. Rate Governor Integration & Search Priority Triage (`core/rate_governor.py`)
+     -> alvos: core.rate_governor
+  L161: Under **Active-SDD #23 / #24**, heavy search routines and background graph clustering operations are integrated into the **Rate Governor Priority Queue**:
+     -> alvos: core.rate_governor
+  L168: | **Tier 2 (MEDIUM)** | Subagent background symbol lookups, auxiliary tool queries | `2` | **Frozen at $\ge 95\%$** moving window quota consumption. |
+     -> alvos: core.rate_governor
+  L169: | **Tier 3 (LOW)** | Background GraphRAG re-clustering, batch embedding extraction | `3` | **Frozen at $\ge 85\%$** moving window quota consumption. |
+     -> alvos: core.rate_governor
+
+[docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md] (32 ocorrências)
+  L3: > **Complete Operations Guide for Local IDEs, Remote VPS Hosting, Docker Containers, Tailscale Networking, FastAPI Telemetry Endpoints, and the Next.js Cockpit**
+     -> alvos: interface.telemetry_api / core.telemetry_schemas, grafo-dashboard-web / interface.telemetry_api
+  L22: | **`GRAFO_RPM_LIMIT`** | `int` | `60` | Requests Per Minute quota for sliding window rate governance (SDD-23). |
+     -> alvos: core.rate_governor
+  L23: | **`GRAFO_TPM_LIMIT`** | `int` | `40000` | Tokens Per Minute quota for sliding window rate governance (SDD-23). |
+     -> alvos: core.rate_governor
+  L24: | **`GRAFO_SLIDING_WINDOW_SEC`**| `int` | `60` | Duration in seconds of Rate Governor sliding usage window. |
+     -> alvos: core.rate_governor
+  L25: | **`GRAFO_GATING_MODE`** | `str` | `plan-only` | Autonomy gating mode: `plan-only`, `ask`, or `auto-approve` (SDD-24). |
+     -> alvos: core.gating_interceptor / core.security_guard
+  L60: - GRAFO_GATING_MODE=${GRAFO_GATING_MODE:-plan-only}
+     -> alvos: core.gating_interceptor / core.security_guard
+  L91: ## 4. Real-Time Telemetry & REST API (`interface/telemetry_api.py`)
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L93: In addition to FastMCP, Grafo Concierge exposes a high-performance **FastAPI Telemetry Server** for real-time observability dashboards (e.g., Next.js 16 Cockpit, Electron, or terminal observers):
+     -> alvos: interface.telemetry_api / core.telemetry_schemas, grafo-dashboard-web / interface.telemetry_api
+  L99: | **System Telemetry** | `GET` | `/api/telemetry/snapshot` | Consolidated snapshot of system state: dirty files, Janitor status, self-healing events, checkpoints. |
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L100: | **System Telemetry** | `GET` | `/api/telemetry/stream` | Persistent Server-Sent Events (SSE) stream emitting updates whenever volatile DB hash changes. |
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L102: | **Rate Governor** | `GET` | `/api/governor/metrics` | Real-time moving window quota occupancy (RPM/TPM), queue backlog, and freezing flags. |
+     -> alvos: core.rate_governor
+  L103: | **Rate Governor** | `POST` | `/api/governor/report` | Allows subagent executors to report actual tokens used post-LLM call to update sliding window metrics. |
+     -> alvos: core.rate_governor
+  L104: | **Adaptive Gating** | `GET` | `/api/gating/config` | Returns active security configuration, autonomy mode (`plan-only`/`ask`/`auto-approve`), and project root. |
+     -> alvos: core.gating_interceptor / core.security_guard
+  L105: | **Adaptive Gating** | `POST` | `/api/gating/config` | Dynamically updates monorepo autonomy mode with runtime boundary validation. |
+     -> alvos: core.gating_interceptor / core.security_guard
+  L106: | **HSM Engine** | `GET` | `/api/hsm/state/{session_id}` | Queries the active hierarchical qualified state (`PLANNING.SCOPING`) and History Node for a session. |
+     -> alvos: core.hsm_engine / agent.run_agent
+  L107: | **HSM Engine** | `POST` | `/api/hsm/transition` | Executes a sub-state transition, fires lifecycle hooks (`on_exit`/`on_enter`), and persists checkpoint. |
+     -> alvos: core.hsm_engine / agent.run_agent
+  L108: | **HSM Engine** | `POST` | `/api/hsm/resume/{session_id}` | Restores session from Deep History Node ($H^*$) with runtime dual-hash code drift validation. |
+     -> alvos: core.hsm_engine / agent.run_agent, core.delta_manager / core.delta_sync
+  L109: | **HSM Engine** | `GET` | `/api/hsm/tree` | Returns the complete hierarchical state tree topology as a serializable dictionary. |
+     -> alvos: core.hsm_engine / agent.run_agent
+  L111: | **Cognitive Memory** | `POST` | `/api/checkpoints/time-travel` | Triggers cognitive-relational time-travel rollback: restores state, purges future steps, marks dirty files. |
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L115: ### 4.2 Running the Telemetry API
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L118: # Start the FastAPI telemetry server via Uvicorn
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L119: uvicorn interface.telemetry_api:app --host 127.0.0.1 --port 8001 --reload
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L124: ## 5. Next.js 16 Passive Observability Cockpit (`grafo-dashboard-web/`)
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L126: Under **Active-SDD #28**, Grafo Concierge features a dedicated **Next.js 16 (App Router)** cockpit designed for real-time passive monitoring:
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L128: ### 5.1 Architecture & 2x2 Grid Layout
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L129: * **Top-Left (`CodeGraphViewer.tsx`)**: Interactive 2D Force-Directed Graph of files and AST dependency edges. Files with `is_dirty = 1` are highlighted with a 60fps pulsating amber glow.
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L130: * **Top-Right (`QuotaGauges.tsx`)**: High-precision circular gauges for RPM (60 limit) and TPM (40,000 limit) featuring dynamic color gradients (Cyan $\rightarrow$ Amber $\rightarrow$ Crimson) and freezing indicators (`L
+     -> alvos: core.rate_governor
+  L131: * **Bottom-Left (`HSMStateTree.tsx`)**: Interactive collapsible tree of the Hierarchical State Machine showing active super-states, sub-states, Deep History Nodes ($H^*$), and a 1-click **"Resume Session"** trigger.
+     -> alvos: core.hsm_engine / agent.run_agent
+  L132: * **Bottom-Right (`HealingFeed.tsx`)**: Real-time chronological audit terminal streaming Janitor reconciliation events, WAL transactions, and circuit breaker trip notifications.
+     -> alvos: core.hsm_engine / agent.run_agent
+  L134: ### 5.2 Unified Concurrent DX (`npm run dev:all`)
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L141: "dev:backend": "cd ../GrafoConcierge && python -m uvicorn interface.telemetry_api:app --host 127.0.0.1 --port 8001 --reload",
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L147: Simply run `npm run dev:all` to launch both the Next.js visual cockpit (`http://localhost:3000`) and the FastAPI telemetry server (`http://localhost:8001`) with synchronized terminal outputs.
+     -> alvos: interface.telemetry_api / core.telemetry_schemas, grafo-dashboard-web / interface.telemetry_api
+
+[docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md] (38 ocorrências)
+  L3: > **Complete Guide to Vector Reconciliation, Rate Governor Operations, HSM Deep History Recovery, Smart Checkpoint Pruning, Time-Travel Operations, and the 326-Test Master Verification Matrix**
+     -> alvos: core.hsm_engine / agent.run_agent, core.rate_governor, core.background_janitor (vs services.janitor), storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L20: ### 1.3 Smart Checkpoint Pruning (`core/background_janitor.py`)
+     -> alvos: core.background_janitor (vs services.janitor)
+  L22: * `janitor.prune_session_checkpoints(session_id=None, keep_limit=10)` executes a **Smart LRU per Session** algorithm.
+     -> alvos: core.background_janitor (vs services.janitor)
+  L25: * **Paginated Batch Elimination**: Safely purges intermediate obsolete checkpoints through `SerializedWriteQueue` with zero database lock contention on SQLite WAL.
+     -> alvos: storage.connection vs interface.queue_writer (produção usa storage.connection)
+  L34: ### 1.5 Real-Time Telemetry & SSE Streaming (`interface/telemetry_api.py`)
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L35: Provides continuous live telemetry for UI dashboards without high-overhead polling:
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L36: * Exposes `GET /api/telemetry/stream` (Server-Sent Events) yielding structured Pydantic v2 telemetry payloads whenever the volatile database hash changes.
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L37: * Exposes `GET /api/telemetry/snapshot` for instantaneous health audits and `POST /api/janitor/reconcile` for manual maintenance execution.
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L41: ## 2. Time-Travel Debugging & State Rollback
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L43: Using `AgnosticCheckpointer` and the durable `fsm_checkpoints` relational engine, external agents can navigate backwards in their execution timeline:
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L46: 3. `POST /api/checkpoints/time-travel`: Executes an atomic rollback to a specified target checkpoint, permanently purging subsequent checkpoints from the timeline and re-flagging modified files recorded in `dirty_files` 
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L52: The repository contains an exhaustive test matrix covering all survival slices, cognitive memory, hierarchical state machines, rate governance, and advanced retrieval systems (**326 tests collected across 47 suites**):
+     -> alvos: core.hsm_engine / agent.run_agent, Contagem desatualizada em README (real: 31 tools MCP, 478 testes pytest)
+  L62: | `test_rate_governor_priority.py` | `core/rate_governor.py` | Sliding window rate limits (60 RPM, 40k TPM), 3-tier priority queue, queue freezing at 85% (LOW) and 95% (MEDIUM), fast-path bypass under 50%, and anti-starv
+     -> alvos: core.rate_governor
+  L63: | `test_adaptive_gating.py` | `core/gating_interceptor.py` / `core/security_guard.py` | Granular boundary gating (`plan-only`, `ask`, `auto-approve`), project root confinement, path traversal sanitization, and command in
+     -> alvos: core.gating_interceptor / core.security_guard
+  L64: | `test_hierarchical_state_machine.py` | `core/hsm_engine.py` | HSM tree construction, qualified state transitions, Deep History Node ($H^*$) caching, and tool disclosure synchronization (Active-SDD #25). |
+     -> alvos: core.hsm_engine / agent.run_agent
+  L65: | `test_agent_hsm_coupling.py` | `core/runner.py` / `core/hsm_engine.py` | Primary agent runtime coupling to HSM, state advancement, circuit breaker protection (5-turn failure trip), and state recovery (Active-SDD #26). 
+     -> alvos: core.hsm_engine / agent.run_agent
+  L66: | `test_hsm_transition_hooks_and_delta.py` | `core/hsm_engine.py` / `core/delta_manager.py` | Hierarchical lifecycle hooks execution order (`on_exit` child $\rightarrow$ parent, `on_enter` parent $\rightarrow$ child), an
+     -> alvos: core.hsm_engine / agent.run_agent, core.delta_manager / core.delta_sync
+  L67: | `test_cognitive_routing_memory.py` | `core/intent_classifier.py` / `federated_knowledge_router.py` | JIT 3-tier triage (Regex < 1ms, SQLite entity lookup, Ollama SLM fallback), federated knowledge routing, and hybrid s
+     -> alvos: core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter
+  L69: | `test_durable_checkpoints_timetravel.py` | `core/checkpointer.py` / `storage` | Durable `fsm_checkpoints` SQLite table, non-serializable object sanitization, chronological future checkpoint purge, and dirty file re-fla
+     -> alvos: storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L70: | `test_multilang_parser.py` | `core/parser_factory.py` / `parsers` | Polyglot parsing for Python, TypeScript, and JavaScript (`.ts`, `.tsx`, `.js`, `.jsx`), Tree-sitter & lexical fallback, npm package filter, React hook
+     -> alvos: core.parser_factory / core.parsers.* (vs ingestion.parser)
+  L71: | `test_alias_tracker.py` | `core/alias_tracker.py` | Atomic file rename/move detection via SSH within 1-second window, cascading relational updates, 0-byte collision guard, and zombie prevention via purge timer (Active-
+     -> alvos: core.alias_tracker
+  L73: | `test_telemetry_api.py` | `interface/telemetry_api.py` | Master FastAPI 15-endpoint coverage, live SSE streaming channel (`text/event-stream`), and manual Janitor reconcile trigger. |
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L75: | `test_checkpoint_pruning.py` | `core/background_janitor.py` | Smart LRU checkpoint auto-poda: protects `"init"` (point-zero) and keeps $N$ recent steps. |
+     -> alvos: core.background_janitor (vs services.janitor)
+  L77: | `test_delta_sync_drift.py` | `core/delta_manager.py` | LBH Semantic Drift Guard & `DocstringStripper`: ignores comments/docstrings, catches logic changes. |
+     -> alvos: core.delta_manager / core.delta_sync
+  L80: | `test_delta_sync.py` | `core/delta_manager.py` | Dual-Hash (SSH + LBH) and Lazy Summarization JIT behavior. |
+     -> alvos: core.delta_manager / core.delta_sync
+  L84: | `test_e2e_concierge_integration.py` | Master E2E Pipeline | Full lifecycle integration, cascading data verification, and dual-hash sync. |
+     -> alvos: core.delta_manager / core.delta_sync
+  L88: | `test_probabilistic_retriever.py` | `core/probabilistic_retriever.py` | Zero-NumPy Thompson Sampling Beta(α,β) ranking via `random.betavariate()` and Bayesian feedback loop. |
+     -> alvos: core.probabilistic_retriever (import condicional em hybrid_search.py:252)
+  L89: | `test_chunk_cache.py` | `core/delta_manager.py` | Delta Chunk caching and invalidation across structural mutations. |
+     -> alvos: core.delta_manager / core.delta_sync
+  L94: | `test_watcher_ignore.py` | `interface/watcher.py` | Early-Exit ignore filtering (`.conciergeignore`, `pathspec`). |
+     -> alvos: interface.watcher
+  L95: | `test_revisor_critico.py` | `core/critical_revisor.py` | Self-correction loops, architectural compliance audit, and anti-hallucination verification. |
+     -> alvos: agents.revisor_critico / interface.action_hooks
+  L102: 1. **Detecting Freezes**: Query `GET /api/governor/metrics` or observe the **Quota Gauges** in the Next.js Cockpit. If RPM or TPM usage exceeds 85%, `low_priority_frozen` activates (`LOW_FROZEN`). At 95%, `medium_priorit
+     -> alvos: core.rate_governor, grafo-dashboard-web / interface.telemetry_api
+  L103: 2. **Impact**: Interactive user commands and primary agent turns (Tier 1 HIGH) continue uninterrupted. Background clustering (Tier 3 LOW) and subagent lookups (Tier 2 MEDIUM) are cleanly queued without throwing HTTP 429 
+     -> alvos: core.rate_governor
+  L106: ### Runbook 2: Recovering an Interrupted Agent Session via History Node ($H^*$)
+     -> alvos: core.hsm_engine / agent.run_agent
+  L107: 1. **Introspect Session State**: Call `GET /api/hsm/state/{session_id}` to retrieve current qualified state and last recorded History Node.
+     -> alvos: core.hsm_engine / agent.run_agent
+  L108: 2. **Execute Resume**: Call `POST /api/hsm/resume/{session_id}`.
+     -> alvos: core.hsm_engine / agent.run_agent
+  L111: * If external changes were made, the dual-hash validator flags `stale_detected = True` and auto-redirects the agent to `EXECUTION.RE_INDEX` to guarantee AST coherence.
+     -> alvos: core.hsm_engine / agent.run_agent, core.delta_manager / core.delta_sync
+  L114: 1. **Query Current Mode**: Call `GET /api/gating/config`. Default is `plan-only`.
+     -> alvos: core.gating_interceptor / core.security_guard
+  L115: 2. **Change Mode**: Send `POST /api/gating/config` with `{"mode": "ask"}` or `{"mode": "auto-approve"}`.
+     -> alvos: core.gating_interceptor / core.security_guard
+
+[docs-grafo-concierge/README.md] (24 ocorrências)
+  L11: | [**`01_ARCHITECTURE.md`**](01_ARCHITECTURE.md) | High-level system architecture, complete Pillars 1 to 22: Hierarchical State Machine (`core/hsm_engine.py`), Rate Governor quotas & 3-tier freezing (`core/rate_governor.
+     -> alvos: core.hsm_engine / agent.run_agent, core.rate_governor, core.gating_interceptor / core.security_guard, grafo-dashboard-web / interface.telemetry_api
+  L12: | [**`02_MCP_TOOLS_REFERENCE.md`**](02_MCP_TOOLS_REFERENCE.md) | Complete, exhaustive catalog of all **30 native MCP Tools** plus the **HSM Hierarchical State Disclosure Matrix (SDD-21 / SDD-25)** with runtime sensitivit
+     -> alvos: core.hsm_engine / agent.run_agent, core.gating_interceptor / core.security_guard
+  L13: | [**`03_COGNITIVE_MEMORY_AND_FACTS.md`**](03_COGNITIVE_MEMORY_AND_FACTS.md) | Deep dive into bi-temporal fact invalidation (`t_valid` / `t_invalid`), `SemanticExtractor` (ADD/UPDATE/DELETE/NOOP), Scoped Core Memory, Zer
+     -> alvos: core.hsm_engine / agent.run_agent, core.probabilistic_retriever (import condicional em hybrid_search.py:252)
+  L14: | [**`04_INGESTION_AND_AST.md`**](04_INGESTION_AND_AST.md) | Multilanguage AST Parsing (`ParserFactory` for Python, TypeScript & JavaScript), Structural Semantic Alias Tracking (`core/alias_tracker.py`), Early-Exit React
+     -> alvos: core.hsm_engine / agent.run_agent, core.delta_manager / core.delta_sync, core.alias_tracker, interface.watcher
+  L15: | [**`05_HYBRID_SEARCH_AND_ROUTING.md`**](05_HYBRID_SEARCH_AND_ROUTING.md) | Hybrid Search v4 tri-signal scoring, Query-Time Self-Healing, Local GraphRAG recursive multi-hop traversal with cycle guards, JIT Intent Classi
+     -> alvos: core.rate_governor, core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter
+  L16: | [**`06_DEPLOY_AND_CONFIGURATION.md`**](06_DEPLOY_AND_CONFIGURATION.md) | Environment variables reference, Unified Concurrent DX (`npm run dev:all`), all **15 FastAPI REST & SSE Telemetry Endpoints** (`/api/telemetry/*`
+     -> alvos: core.hsm_engine / agent.run_agent, core.gating_interceptor / core.security_guard, interface.telemetry_api / core.telemetry_schemas, grafo-dashboard-web / interface.telemetry_api
+  L17: | [**`07_MIGRATION_AND_OPERATIONS.md`**](07_MIGRATION_AND_OPERATIONS.md) | Background Janitor, Vector Reconciler, Hardware-Aware SLM Summarization, Smart Checkpoint Pruning, Cognitive Time-Travel, HSM Session Recovery ru
+     -> alvos: core.hsm_engine / agent.run_agent, core.background_janitor (vs services.janitor), storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L26: │            Next.js 16 Observability Cockpit (Grid 2x2)  │
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L34: │ - core/rate_governor.py (60s Quotas: 60 RPM / 40k TPM)  │
+     -> alvos: core.rate_governor
+  L35: │ - core/gating_interceptor.py (Adaptive Gating Intercept)│
+     -> alvos: core.gating_interceptor / core.security_guard
+  L36: │ - interface/telemetry_api.py (15 REST routes + SSE)     │
+     -> alvos: interface.telemetry_api / core.telemetry_schemas
+  L37: │ - grafo-dashboard-web/ (Passive Cockpit 2x2: ForceGraph,│
+     -> alvos: grafo-dashboard-web / interface.telemetry_api
+  L38: │   SVG Radial Gauges, HSM Inspector, Cyber Console Feed) │
+     -> alvos: core.hsm_engine / agent.run_agent
+  L44: │ - HierarchicalStateMachine (Super & Sub-States + H*)    │
+     -> alvos: core.hsm_engine / agent.run_agent
+  L45: │ - HermesAgentRunner (Cognitive Execution Loop + HSM)    │
+     -> alvos: core.hsm_engine / agent.run_agent
+  L47: │ - SerializedWriteQueue (Auto-Batching + Fallback WAL)   │
+     -> alvos: storage.connection vs interface.queue_writer (produção usa storage.connection)
+  L50: │ - GlobalMemoryAdapter (Hybrid Context: LTM + Last 3 STM)│
+     -> alvos: core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter
+  L51: │ - DeltaManager (SSH Signature & LBH Semantic Drift)     │
+     -> alvos: core.delta_manager / core.delta_sync
+  L53: │ - ParserFactory (Polyglot: Python, TS, TSX, JS, JSX)   │
+     -> alvos: core.parser_factory / core.parsers.* (vs ingestion.parser)
+  L57: │ - BackgroundJanitor (Hardware-Aware SLM + Smart LRU)    │
+     -> alvos: core.background_janitor (vs services.janitor)
+  L64: │ 📥 Ingestion & Watcher    │ │ 💾 Storage & Vector       │
+     -> alvos: interface.watcher
+  L65: │ - Early-Exit File Watcher │ │ - SQLite WAL Engine       │
+     -> alvos: interface.watcher
+  L66: │ - Polyglot Parser Factory │ │ - storage/relational_db.py│
+     -> alvos: core.parser_factory / core.parsers.* (vs ingestion.parser), storage.relational_db / core.checkpointer (ramo fsm_checkpoints)
+  L67: │ - Tree-sitter & Lexical   │ │ - ChromaDB / Qdrant       │
+     -> alvos: core.parser_factory / core.parsers.* (vs ingestion.parser)

@@ -1,0 +1,3092 @@
+{
+  "total_hits": 372,
+  "by_file": {
+    "README.md": [
+      {
+        "file": "README.md",
+        "line": 6,
+        "quote": "**The Open-Source Long-Term Memory (LTM), Hierarchical Cognitive Engine & Real-Time Cockpit for AI Agents, IDEs & Developer Environments**",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 11,
+        "quote": "[![Next.js 16](https://img.shields.io/badge/Cockpit-Next.js%2016-black)](grafo-dashboard-web/)",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 15,
+        "quote": "Concierge Graph is a high-performance, local-first cognitive memory server designed to eliminate LLM \"amnesia\", prevent context window pollution, isolate HTTP 429 quota exhaustion, and govern multi-agent autonomy. Operat",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.rate_governor",
+          "core.gating_interceptor / core.security_guard",
+          "grafo-dashboard-web / interface.telemetry_api",
+          "core.delta_manager / core.delta_sync",
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)",
+          "storage.connection vs interface.queue_writer (produção usa storage.connection)"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 28,
+        "quote": "1. **Zero-Lock Concurrency & Auto-Batching (`SerializedWriteQueue`)**: Channels all writes through a single-writer daemon on SQLite WAL. Features Adaptive Opportunistic Batching (draining up to 50 queued items in atomic ",
+        "targets": [
+          "storage.connection vs interface.queue_writer (produção usa storage.connection)"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 29,
+        "quote": "2. **Hierarchical State Machine & Deep History Nodes (`core/hsm_engine.py`)**: Models agent execution as an interactive state tree (`PLANNING`, `EXECUTION`, `MAINTENANCE`, `ERROR`) with hierarchical lifecycle hooks (`on_",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 30,
+        "quote": "3. **Priority Rate Governor (`core/rate_governor.py`)**: Sliding 60-second window quota regulator (60 RPM, 40,000 TPM) with a 3-tier priority queue (HIGH, MEDIUM, LOW). Reactively freezes background queues at 85% and 95%",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 31,
+        "quote": "4. **Adaptive Gating Interceptor & Security Guard (`core/gating_interceptor.py`, `core/security_guard.py`)**: Enforces granular monorepo boundaries with configurable autonomy levels (`plan-only`, `ask`, `auto-approve`), ",
+        "targets": [
+          "core.gating_interceptor / core.security_guard"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 32,
+        "quote": "5. **Dual-Hash Delta Sync (SSH + LBH Semantic Drift Guard)**: Combines Structural Signature Hashes (SSH) with Logical Body Hashes (LBH) using `DocstringStripper(ast.NodeTransformer)`. Catches internal logic changes (`is_",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 33,
+        "quote": "6. **Next.js 16 Passive Observability Cockpit (`grafo-dashboard-web/`)**: Real-time 2x2 monitoring grid featuring a 2D Force-Directed code dependency graph with 60fps pulsating amber nodes for dirty files, live RPM/TPM c",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 34,
+        "quote": "7. **Structural Semantic Alias Tracking (`core/alias_tracker.py`)**: Resolves file renames and moves atomically in $< 1\\text{s}$ using Structural Semantic Hashing (SSH). Cascades path updates across `ast_edges`, `files`,",
+        "targets": [
+          "core.alias_tracker"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 35,
+        "quote": "8. **Polyglot AST Parser Factory (`core/parser_factory.py`)**: Extends AST code intelligence to TypeScript and JavaScript (`.ts`, `.tsx`, `.js`, `.jsx`) via Tree-sitter and high-performance lexical fallback, automaticall",
+        "targets": [
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 37,
+        "quote": "10. **Progressive Tool Disclosure Governance (`core/mcp_governor.py`)**: Cognitive firewall enforcing two-layer tool visibility based on active HSM states. Passively filters tool discovery to eliminate prompt bloat and a",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 38,
+        "quote": "11. **Federated Knowledge Routing & Global Hybrid Memory Adapter**: JIT 3-tier Intent Classifier (Regex < 1ms, SQLite entities, Ollama SLM) routes queries between private `LOCAL_GRAPHRAG` (`is_private: True`) and public ",
+        "targets": [
+          "core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 39,
+        "quote": "12. **Master 15-Endpoint Telemetry REST API (`interface/telemetry_api.py`)**: Exposes FastAPI endpoints for live dashboard observability, providing structured Pydantic v2 telemetry snapshots, persistent Server-Sent Event",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.rate_governor",
+          "core.gating_interceptor / core.security_guard",
+          "interface.telemetry_api / core.telemetry_schemas",
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 40,
+        "quote": "13. **Zero-NumPy Native Bayesian Thompson Sampling (`core/probabilistic_retriever.py`)**: Executes probabilistic memory ranking via Python's built-in `random.betavariate()` with defensive input sanitization (`max(val, 1e",
+        "targets": [
+          "core.probabilistic_retriever (import condicional em hybrid_search.py:252)"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 41,
+        "quote": "14. **Smart Checkpoint Auto-Pruning (`BackgroundJanitor`)**: Prevents database bloat via a Smart LRU per Session algorithm that inviolably protects the initial `\"init\"` checkpoint for factory rollbacks while keeping the ",
+        "targets": [
+          "core.background_janitor (vs services.janitor)"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 50,
+        "quote": "| **HTTP 429 Quota Exhaustion Crashes** | **Priority Rate Governor (SDD-23)**: 60s sliding window automatically isolates traffic into HIGH/MEDIUM/LOW, freezing background tasks at 85%/95% to preserve user chat. |",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 51,
+        "quote": "| **Agent Infinite Loops & Stalls** | **HSM & 5-Turn Circuit Breaker (SDD-25/26)**: Hierarchical state tree limits turns per sub-state, tripping into `ERROR.PAUSE` before budget or context is blown. |",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 52,
+        "quote": "| **Silent Code Drift on Session Resume** | **Runtime Dual-Hash Delta Audit (SDD-27)**: Detects disk modifications made during downtime and auto-redirects agent to `EXECUTION.RE_INDEX`. |",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 53,
+        "quote": "| **Accidental Overwrites in Monorepos** | **Adaptive Gating Interceptor (SDD-24)**: Strict root confinement and gating modes (`plan-only`, `ask`, `auto-approve`) prevent out-of-scope mutations. |",
+        "targets": [
+          "core.gating_interceptor / core.security_guard"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 54,
+        "quote": "| **Blindness to Agent Internal State** | **Next.js 16 Passive Cockpit (SDD-28)**: Real-time 2x2 dashboard visualizes active HSM states, quota gauges, and dirty files at 60fps via SSE. |",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.rate_governor",
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 55,
+        "quote": "| **\"Database is Locked\" Concurrency Crashing** | **`SerializedWriteQueue` with Auto-Batching**: Single-writer daemon drains up to 50 writes per atomic transaction with Single-Item Fallback and sub-5ms concurrent reads. ",
+        "targets": [
+          "storage.connection vs interface.queue_writer (produção usa storage.connection)"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 56,
+        "quote": "| **Silent Semantic Drift & Token Waste** | **Dual-Hash Delta Sync (SSH + LBH)**: `DocstringStripper` ignores formatting and docstrings (zero AI token cost), detecting true logic alterations. |",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 57,
+        "quote": "| **File Renames Destroying Trajectories & Edges** | **Structural Semantic Alias Tracking**: 1-second atomic SSH buffer matches renames, migrating relations across SQLite WAL without graph rebuilds. |",
+        "targets": [
+          "core.alias_tracker"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 58,
+        "quote": "| **Single-Language Blind Spots** | **Polyglot Parser Factory**: Native Python AST plus Tree-sitter and lexical parsing for TypeScript/JavaScript/React (`.ts`, `.tsx`, `.js`, `.jsx`). |",
+        "targets": [
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 61,
+        "quote": "| **Linear Chat History Token Inflation** | **Global Memory Adapter**: Preserves only the last 3 immediate chat messages (STM) and replaces older history with a structured LTM substrate from the graph. |",
+        "targets": [
+          "core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 63,
+        "quote": "| **Proprietary SDK Lock-in** | **Native MCP Standard (30 Tools) + FastAPI SSE**: Operates via Model Context Protocol (JSON-RPC/SSE) and FastAPI REST/SSE for full IDE and dashboard integration. |",
+        "targets": [
+          "Contagem desatualizada em README (real: 31 tools MCP, 478 testes pytest)"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 69,
+        "quote": "* ⚡ **Unified Concurrent DX (`npm run dev:all`)**: Orchestrates both the Next.js 16 frontend (`grafo-dashboard-web`) and FastAPI/FastMCP backend concurrently with unified colored output via `concurrently`.",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 70,
+        "quote": "* 📊 **Real-Time SSE Telemetry Stream (`GET /api/telemetry/stream`)**: Pushes live state mutations (dirty files, rate governor updates, HSM transitions) to the cockpit with near-zero network overhead.",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.rate_governor",
+          "interface.telemetry_api / core.telemetry_schemas",
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 74,
+        "quote": "* 🎯 **Bayesian Thompson Sampling**: Real-time feedback loop (`concierge_feedback`) that dynamically adjusts search scoring weights based on agent reinforcement signals.",
+        "targets": [
+          "core.probabilistic_retriever (import condicional em hybrid_search.py:252)"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 95,
+        "quote": "│  FastAPI REST / SSE (Port 8001)",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 98,
+        "quote": "│ 📊 Real-Time Cockpit Next.js│",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 99,
+        "quote": "│  (2x2 Grid Observability)   │",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 105,
+        "quote": "* 📊 **Next.js 16 Cockpit (`grafo-dashboard-web/`)**: Receives low-latency Server-Sent Events showing real-time memory health, quota gauges, and HSM states.",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.rate_governor",
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 142,
+        "quote": "GRAFO_GATING_MODE=plan-only",
+        "targets": [
+          "core.gating_interceptor / core.security_guard"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 145,
+        "quote": "3. **Start Backend & Cockpit Concurrently**:",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 147,
+        "quote": "cd grafo-dashboard-web",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 149,
+        "quote": "npm run dev:all",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 151,
+        "quote": "* **Cockpit UI**: `http://localhost:3000`",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 152,
+        "quote": "* **Telemetry API**: `http://localhost:8001`",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 157,
+        "quote": "## 🔌 Core MCP Tools Reference (30 Tools)",
+        "targets": [
+          "Contagem desatualizada em README (real: 31 tools MCP, 478 testes pytest)"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 159,
+        "quote": "* **`concierge_mine`**: Ingests a directory with early-exit filtering, AST chunking, dual-hash checks (SSH + LBH), and L0/L1/L2 summarization.",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 162,
+        "quote": "* **`agent_save_checkpoint`**: Persists arbitrary AI agent state dictionaries into SQLite WAL (Smart LRU auto-prunable).",
+        "targets": [
+          "core.background_janitor (vs services.janitor)"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 164,
+        "quote": "* **`agent_list_checkpoints`**: Returns the chronological timeline of checkpoints for Time-Travel Debugging.",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 171,
+        "quote": "* **`concierge_feedback`**: Registers utility feedback for Bayesian Thompson Sampling optimization.",
+        "targets": [
+          "core.probabilistic_retriever (import condicional em hybrid_search.py:252)"
+        ]
+      },
+      {
+        "file": "README.md",
+        "line": 177,
+        "quote": "Concierge Graph features an exhaustive automated test suite covering all survival modules, HSM transitions, rate quotas, gating security, and E2E integration with **100% green status (326 tests collected across 47 suites",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.rate_governor",
+          "core.gating_interceptor / core.security_guard",
+          "Contagem desatualizada em README (real: 31 tools MCP, 478 testes pytest)"
+        ]
+      }
+    ],
+    "README.pt-BR.md": [
+      {
+        "file": "README.pt-BR.md",
+        "line": 6,
+        "quote": "**O Palácio de Memórias Cognitivas de Longo Prazo (LTM), Motor Hierárquico de Estados e Cockpit em Tempo Real para Agentes de IA, IDEs e Ambientes de Desenvolvimento**",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 11,
+        "quote": "[![Next.js 16](https://img.shields.io/badge/Cockpit-Next.js%2016-black)](grafo-dashboard-web/)",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 15,
+        "quote": "O Grafo Concierge é um servidor de memória cognitiva local-first de alta performance projetado para eliminar a \"amnésia\" dos LLMs, prevenir a poluição de janelas de contexto, isolar o esgotamento de cotas HTTP 429 e gove",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.rate_governor",
+          "core.gating_interceptor / core.security_guard",
+          "grafo-dashboard-web / interface.telemetry_api",
+          "core.delta_manager / core.delta_sync",
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)",
+          "storage.connection vs interface.queue_writer (produção usa storage.connection)"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 28,
+        "quote": "1. **Concorrência Zero-Lock e Auto-Batching (`SerializedWriteQueue`)**: Canaliza todas as escritas através de uma thread daemon dedicada no SQLite WAL. Possui Auto-Batching Adaptativo (agrupa até 50 operações da fila em ",
+        "targets": [
+          "storage.connection vs interface.queue_writer (produção usa storage.connection)"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 29,
+        "quote": "2. **Máquina de Estados Hierárquica e Deep History Nodes (`core/hsm_engine.py`)**: Modela a execução do agente em uma árvore de estados interativa (`PLANNING`, `EXECUTION`, `MAINTENANCE`, `ERROR`) com ganchos de ciclo de",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 30,
+        "quote": "3. **Rate Governor com Fila de Prioridades (`core/rate_governor.py`)**: Regulador de cotas em janela deslizante de 60 segundos (60 RPM, 40.000 TPM) com fila de 3 prioridades (HIGH, MEDIUM, LOW). Congela reativamente tare",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 31,
+        "quote": "4. **Adaptive Gating Interceptor e Security Guard (`core/gating_interceptor.py`, `core/security_guard.py`)**: Impõe réguas de fronteira no monorepo com níveis configuráveis de autonomia (`plan-only`, `ask`, `auto-approve",
+        "targets": [
+          "core.gating_interceptor / core.security_guard"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 32,
+        "quote": "5. **Sincronização Delta Dual-Hash (SSH + LBH Semantic Drift Guard)**: Combina o hash de assinaturas (SSH) com o hash de corpo lógico (LBH) via `DocstringStripper(ast.NodeTransformer)`. Detecta alterações de lógica real ",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 33,
+        "quote": "6. **Cockpit de Observabilidade Passiva Next.js 16 (`grafo-dashboard-web/`)**: Grid de monitoramento 2x2 em tempo real com visualizador de grafos de código 2D Force-Directed com nós pulsantes a 60fps para arquivos dirty,",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 34,
+        "quote": "7. **Rastreamento de Alias por Hash Estrutural (`core/alias_tracker.py`)**: Resolve renomeações e movimentações de arquivos atomicamente em $< 1\\text{s}$ via Structural Semantic Hashing (SSH). Propaga atualizações em cas",
+        "targets": [
+          "core.alias_tracker"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 35,
+        "quote": "8. **Fábrica de Parsers Multilíngue (`core/parser_factory.py`)**: Estende a inteligência AST para TypeScript e JavaScript (`.ts`, `.tsx`, `.js`, `.jsx`) via Tree-sitter e fallback léxico de alta performance, filtrando pa",
+        "targets": [
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 37,
+        "quote": "10. **Governança por Ocultação Progressiva de Ferramentas (`core/mcp_governor.py`)**: Firewall cognitivo que impõe controle em duas camadas com base no estado ativo da HSM. Oculta ferramentas de mutação/perigosas no plan",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 38,
+        "quote": "11. **Roteamento Federado de Conhecimento e Adaptador de Memória Global Híbrida**: Classificador JIT de intenção em 3 camadas (Regex < 1ms, entidades SQLite e SLM Ollama) que roteia consultas entre o `LOCAL_GRAPHRAG` pri",
+        "targets": [
+          "core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 39,
+        "quote": "12. **API REST e Telemetria Mestra com 15 Endpoints (`interface/telemetry_api.py`)**: Expõe rotas FastAPI para observabilidade ao vivo, fornecendo snapshots Pydantic v2, stream Server-Sent Events (`/api/telemetry/stream`",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.rate_governor",
+          "interface.telemetry_api / core.telemetry_schemas",
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 40,
+        "quote": "13. **Amostragem de Thompson Nativa Zero-NumPy (`core/probabilistic_retriever.py`)**: Substitui a biblioteca externa `numpy` pela função nativa `random.betavariate()` com sanitização defensiva (`max(val, 1e-5)`), economi",
+        "targets": [
+          "core.probabilistic_retriever (import condicional em hybrid_search.py:252)"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 41,
+        "quote": "14. **Auto-Poda Inteligente de Checkpoints (`BackgroundJanitor`)**: Algoritmo Smart LRU por sessão que evita o inchaço do banco relacional. Protege o checkpoint inicial `\"init\"` (ponto zero fundamental para hard resets),",
+        "targets": [
+          "core.background_janitor (vs services.janitor)"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 50,
+        "quote": "| **Travamentos por Esgotamento de Quotas HTTP 429** | **Rate Governor Prioritário (SDD-23)**: Janela de 60s isola tráfego em HIGH/MEDIUM/LOW, congelando tarefas de background a 85%/95% para preservar o chat. |",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 51,
+        "quote": "| **Loops Infinitos e Desorientação do Agente** | **HSM e Circuit Breaker de 5 Turnos (SDD-25/26)**: Árvore de estados limita turnos por sub-estado, disparando para `ERROR.PAUSE` antes de estourar custos. |",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 52,
+        "quote": "| **Deriva Silenciosa de Código no Resume** | **Auditoria de Delta Dual-Hash (SDD-27)**: Detecta mudanças feitas no disco durante paradas e auto-redireciona o agente para `EXECUTION.RE_INDEX`. |",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 53,
+        "quote": "| **Mutações Indesejadas em Monorepos** | **Adaptive Gating Interceptor (SDD-24)**: Confinamento na raiz do projeto e modos de autonomia (`plan-only`, `ask`, `auto-approve`) impedem edições fora de escopo. |",
+        "targets": [
+          "core.gating_interceptor / core.security_guard"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 54,
+        "quote": "| **Falta de Visibilidade do Estado do Agente** | **Cockpit Passivo Next.js 16 (SDD-28)**: Dashboard 2x2 em tempo real exibe nós ativos da HSM, gauges de cota e arquivos dirty a 60fps via SSE. |",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 55,
+        "quote": "| **Travamentos por \"Database is Locked\"** | **`SerializedWriteQueue` com Auto-Batching**: Fila serializada com lotes de até 50 itens, Fallback Atômico e leituras concorrentes ultrarrápidas (< 5ms). |",
+        "targets": [
+          "storage.connection vs interface.queue_writer (produção usa storage.connection)"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 56,
+        "quote": "| **Deriva Semântica Silenciosa e Desperdício de Tokens** | **Dual-Hash Delta Sync (SSH + LBH)**: `DocstringStripper` ignora formatações/docstrings (zero custo de token), mas detecta alterações reais de lógica. |",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 57,
+        "quote": "| **Renomeação de Arquivos Destruindo Trajetórias** | **Rastreamento de Alias por Hash Estrutural**: Buffer atômico de 1s via SSH detecta renomeações e propaga alterações sem reconstruir o grafo. |",
+        "targets": [
+          "core.alias_tracker"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 58,
+        "quote": "| **Ponto Cego em Projetos Multilinguagem** | **Fábrica de Parsers Multilíngue**: Suporte nativo a Python e TypeScript/JavaScript/React (`.ts`, `.tsx`, `.js`, `.jsx`) com filtro inteligente de pacotes npm. |",
+        "targets": [
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 61,
+        "quote": "| **Inchaço Linear do Histórico de Conversação** | **Adaptador de Memória Global Híbrida**: Preserva estritamente as últimas 3 mensagens do chat (STM) e substitui o histórico antigo por um bloco LTM estruturado do grafo.",
+        "targets": [
+          "core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 63,
+        "quote": "| **Bloqueio por SDK Proprietária** | **Padrão MCP Nativo (30 Ferramentas) + FastAPI SSE**: Opera via Model Context Protocol (JSON-RPC/SSE) e FastAPI REST/SSE para total integração com IDEs e dashboards. |",
+        "targets": [
+          "Contagem desatualizada em README (real: 31 tools MCP, 478 testes pytest)"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 69,
+        "quote": "* ⚡ **DX Concorrente Unificado (`npm run dev:all`)**: Inicia simultaneamente o frontend Next.js 16 (`grafo-dashboard-web`) e o backend FastAPI/FastMCP em um único terminal com logs coloridos via `concurrently`.",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 70,
+        "quote": "* 📊 **Stream de Telemetria SSE em Tempo Real (`GET /api/telemetry/stream`)**: Envia mutações de estado ao vivo (arquivos sujos, atualizações de cotas, transições da HSM) para o cockpit sem overhead de polling.",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "interface.telemetry_api / core.telemetry_schemas",
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 74,
+        "quote": "* 🎯 **Amostragem de Thompson Bayesiana**: Loop de feedback em tempo real (`concierge_feedback`) que ajusta dinamicamente os pesos de busca com base em reforço.",
+        "targets": [
+          "core.probabilistic_retriever (import condicional em hybrid_search.py:252)"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 95,
+        "quote": "│  FastAPI REST / SSE (Porta 8001)",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 98,
+        "quote": "│ 📊 Cockpit Next.js 16       │",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 99,
+        "quote": "│  (Observabilidade 2x2 Grid) │",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 105,
+        "quote": "* 📊 **Cockpit Next.js 16 (`grafo-dashboard-web/`)**: Recebe Server-Sent Events de baixa latência exibindo a saúde da memória, gauges de cota e estados ativos da HSM em tempo real.",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 142,
+        "quote": "GRAFO_GATING_MODE=plan-only",
+        "targets": [
+          "core.gating_interceptor / core.security_guard"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 145,
+        "quote": "3. **Iniciar Backend e Cockpit Concorrentemente**:",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 147,
+        "quote": "cd grafo-dashboard-web",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 149,
+        "quote": "npm run dev:all",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 151,
+        "quote": "* **Cockpit UI**: `http://localhost:3000`",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 152,
+        "quote": "* **API de Telemetria**: `http://localhost:8001`",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 157,
+        "quote": "## 🔌 Referência Rápida das Ferramentas MCP (30 Ferramentas)",
+        "targets": [
+          "Contagem desatualizada em README (real: 31 tools MCP, 478 testes pytest)"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 159,
+        "quote": "* **`concierge_mine`**: Ingestão de diretório com filtro early-exit, análise AST, dual-hash (SSH + LBH) e resumos L0/L1/L2.",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 162,
+        "quote": "* **`agent_save_checkpoint`**: Persistência de estados genéricos de agentes no SQLite WAL (com auto-poda Smart LRU).",
+        "targets": [
+          "core.background_janitor (vs services.janitor)"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 164,
+        "quote": "* **`agent_list_checkpoints`**: Linha do tempo cronológica de checkpoints para Time-Travel Debugging.",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 171,
+        "quote": "* **`concierge_feedback`**: Registra feedback de utilidade para otimização Bayesiana por Thompson Sampling.",
+        "targets": [
+          "core.probabilistic_retriever (import condicional em hybrid_search.py:252)"
+        ]
+      },
+      {
+        "file": "README.pt-BR.md",
+        "line": 177,
+        "quote": "O Grafo Concierge conta com uma suíte rigorosa de testes automatizados cobrindo todos os módulos de sobrevivência, transições da HSM, limites do rate governor, segurança de gating e integração E2E com **100% de status ve",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.rate_governor",
+          "core.gating_interceptor / core.security_guard"
+        ]
+      }
+    ],
+    "pyproject.toml": [
+      {
+        "file": "pyproject.toml",
+        "line": 51,
+        "quote": "\"watchdog>=4.0\",",
+        "targets": [
+          "interface.watcher"
+        ]
+      }
+    ],
+    "docs-grafo-concierge/01_ARCHITECTURE.md": [
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 12,
+        "quote": "1. **Serialized SQLite WAL Concurrency with Auto-Batching & Single-Item Fallback (`SerializedWriteQueue` / `ConciergeDatabaseManager`)**: Completely eliminates `database is locked` errors by channeling all writes (`INSER",
+        "targets": [
+          "storage.connection vs interface.queue_writer (produção usa storage.connection)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 13,
+        "quote": "2. **Dual-Hash Delta Sync: SSH & LBH Semantic Drift Guard (`DeltaManager` / `DocstringStripper`)**: Combines Structural Signature Hashing (SSH) for public signatures (`def`, `class`, `import`, `from`) with Logical Body H",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 14,
+        "quote": "3. **Lazy Summarization JIT & SLM Offloading (`BackgroundJanitor`)**: Postpones AI re-summarization until context is actively queried, delegating background processing to free local Small Language Models (SLMs via Ollama",
+        "targets": [
+          "core.gating_interceptor / core.security_guard",
+          "core.background_janitor (vs services.janitor)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 15,
+        "quote": "4. **Smart Checkpoint Pruning (`BackgroundJanitor.prune_session_checkpoints`)**: Implements an intelligent Smart LRU per Session algorithm that prevents database bloat in `state.db`. Inviolably protects the initial \"poin",
+        "targets": [
+          "core.background_janitor (vs services.janitor)",
+          "storage.connection vs interface.queue_writer (produção usa storage.connection)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 18,
+        "quote": "7. **Hardware-Aware Thermal Throttling & Rate Governor (`BackgroundJanitor.check_hardware_clearance`)**: Prevents CPU exhaustion and developer distraction by inspecting host CPU utilization ($<40\\%$) and active typing qu",
+        "targets": [
+          "core.rate_governor",
+          "core.background_janitor (vs services.janitor)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 19,
+        "quote": "8. **Real-Time Telemetry & SSE Streaming Layer (`interface/telemetry_api.py` / `core/telemetry_schemas.py`)**: Exposes structured Pydantic v2 schemas and low-latency Server-Sent Events (`/api/telemetry/stream`) alongside",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 20,
+        "quote": "9. **Zero-NumPy Native Bayesian Thompson Sampling (`core/probabilistic_retriever.py`)**: Replaces the 30MB external NumPy dependency with Python's built-in `random.betavariate()` and input parameter sanitization (`max(va",
+        "targets": [
+          "core.probabilistic_retriever (import condicional em hybrid_search.py:252)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 21,
+        "quote": "10. **Agnostic State Checkpointing & Time-Travel (`AgnosticCheckpointer`)**: Provides generic, agent-agnostic persistence for arbitrary AI state dictionaries stored as JSON blobs under composite primary keys (`agent_id`,",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 22,
+        "quote": "11. **Early-Exit Reactive Watcher (`ConciergeFileSystemHandler`)**: Filters file modification events against `.conciergeignore` / `pathspec` rules *before* hitting disk I/O, protecting the indexing pipeline from `node_mo",
+        "targets": [
+          "interface.watcher"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 24,
+        "quote": "13. **Structural Semantic Alias Tracking (`core/alias_tracker.py`)**: Resolves file renames and moves atomically in $< 1\\text{s}$ using Structural Semantic Hashing (SSH). Cascades path updates across `ast_edges`, `files`",
+        "targets": [
+          "core.alias_tracker"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 25,
+        "quote": "14. **Polyglot AST Parser Factory (`core/parser_factory.py`, `core/parsers/`)**: Extends codebase intelligence beyond Python to TypeScript and JavaScript (`.ts`, `.tsx`, `.js`, `.jsx`) via Tree-sitter and an ultra-fast l",
+        "targets": [
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 26,
+        "quote": "15. **Durable FSM Checkpoints & Cognitive Time-Travel (`storage/relational_db.py`, `core/checkpointer.py`)**: Persists resilient execution snapshots in `fsm_checkpoints` under `(session_id, checkpoint_id)`. Performs recu",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 28,
+        "quote": "17. **Federated Knowledge Routing & Global Hybrid Memory Adapter (`core/intent_classifier.py`, `core/federated_knowledge_router.py`, `core/global_memory_adapter.py`)**: JIT Intent Classifier in 3 layers (Regex < 1ms, SQL",
+        "targets": [
+          "core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 29,
+        "quote": "18. **Hierarchical State Machine Engine (`core/hsm_engine.py`)**: Replaces flat FSM with a recursive, tree-structured HSM model. Organizes agent cognitive flow into canonical Super-States (`PLANNING`, `EXECUTION`, `MAINT",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 30,
+        "quote": "19. **Strict Lifecycle Hooks & History Node ($H^*$) Delta Verification (`core/hsm_engine.py`)**: Dispatches `on_enter` and `on_exit` hooks in strict hierarchical order (sub-state exit $\\to$ super-state exit; super-state ",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 31,
+        "quote": "20. **Cognitive Loop Runner Coupling & Circuit Breaker (`agent/run_agent.py`)**: Couples `HermesAgentRunner` with the HSM engine. Automatically initializes sessions from the latest History Node or defaults to `PLANNING.D",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 32,
+        "quote": "21. **Rate Governor Quotas & Multi-Tier Priority Queuing (`core/rate_governor.py`)**: Enforces high-precision 60-second sliding window quotas (60 RPM / 40,000 TPM) with a 3-tier priority request queue (`HIGH` for interac",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 33,
+        "quote": "22. **Real-Time Passive Observability Cockpit (`grafo-dashboard-web/`)**: Next.js 16 (App Router) + React 19 + Tailwind CSS v4 dashboard operating under a strict **100% Zero-Mutation UI** paradigm. Receives sub-second te",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.gating_interceptor / core.security_guard",
+          "interface.telemetry_api / core.telemetry_schemas",
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 42,
+        "quote": "│            Next.js 16 Observability Cockpit (Grid 2x2)  │",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 48,
+        "quote": "│ 🌐 INTERFACE & GOVERNANCE LAYER (interface/, core/mcp_governor.py, core/rate_governor.py)   │",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 51,
+        "quote": "│ - rate_governor.py (RateGovernor): 60s Sliding Quotas (60 RPM/40k TPM) & Priority Freezing  │",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 52,
+        "quote": "│ - gating_interceptor.py & security_guard.py: Adaptive Gating Interceptor (ask/auto/auton) │",
+        "targets": [
+          "core.gating_interceptor / core.security_guard"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 53,
+        "quote": "│ - telemetry_api.py: 15 REST routes (/api/telemetry/*, /api/governor/*, /api/hsm/*) & SSE    │",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 54,
+        "quote": "│ - watcher.py: Early-Exit Reactive File Watcher (pathspec / .conciergeignore)                │",
+        "targets": [
+          "interface.watcher"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 55,
+        "quote": "│ - queue_writer.py (SerializedWriteQueue): Single-Writer Daemon + Adaptive Auto-Batching     │",
+        "targets": [
+          "storage.connection vs interface.queue_writer (produção usa storage.connection)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 62,
+        "quote": "│ - hsm_engine.py (HierarchicalStateMachine): Recursive HSM, Super/Sub-States, Hooks & H* Node│",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 63,
+        "quote": "│ - run_agent.py (HermesAgentRunner): Cognitive Execution Loop + 5-turn Circuit Breaker       │",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 68,
+        "quote": "│ - alias_tracker.py: Atomic File Rename & Move Detection via Structural Semantic Hash (SSH) │",
+        "targets": [
+          "core.alias_tracker"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 69,
+        "quote": "│ - parser_factory.py: Polyglot parser dispatcher (.py, .ts, .tsx, .js, .jsx)                 │",
+        "targets": [
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 70,
+        "quote": "│ - delta_manager.py: Dual Hash (SSH Signature + LBH Semantic Drift) & DocstringStripper      │",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 73,
+        "quote": "│ - checkpointer.py: Durable FSM & Agent Checkpoints with chronological Time-Travel           │",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 74,
+        "quote": "│ - background_janitor.py: Hardware-aware Thermal Governor, Smart LRU Pruning & Local SLM    │",
+        "targets": [
+          "core.background_janitor (vs services.janitor)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 78,
+        "quote": "│ - probabilistic_retriever.py: Zero-NumPy Thompson Sampling via native random.betavariate()   │",
+        "targets": [
+          "core.probabilistic_retriever (import condicional em hybrid_search.py:252)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 87,
+        "quote": "│ - FileParser: Tree-sitter AST & Tags     │   │ - Bidirectional Vector Reconciliation            │",
+        "targets": [
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 97,
+        "quote": "│ │ - connection.py: SerializedWriteQueue + ConnMgr  │ │ - base_backend.py: Abstract Interface  │ │",
+        "targets": [
+          "storage.connection vs interface.queue_writer (produção usa storage.connection)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 110,
+        "quote": "### 3.1 `SerializedWriteQueue` (Adaptive Auto-Batching & Single-Item Fallback)",
+        "targets": [
+          "storage.connection vs interface.queue_writer (produção usa storage.connection)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 135,
+        "quote": "-- 1. Files & Dual-Hash Delta Sync (SSH + LBH)",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 140,
+        "quote": "body_hash    TEXT,             -- SHA-256 of AST body without docstrings (LBH)",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 160,
+        "quote": "-- 4. Agnostic State Checkpoints & Time-Travel Timeline (Smart LRU Prunable)",
+        "targets": [
+          "core.background_janitor (vs services.janitor)",
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 282,
+        "quote": "-- 13. Durable FSM Checkpoints & Time-Travel (Active-SDD #20)",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 283,
+        "quote": "CREATE TABLE IF NOT EXISTS fsm_checkpoints (",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 291,
+        "quote": "CREATE INDEX IF NOT EXISTS idx_fsm_checkpoints_session_created",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 292,
+        "quote": "ON fsm_checkpoints(session_id, created_at ASC);",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 299,
+        "quote": "### 5.1 Dual-Hash Delta Manager: SSH & LBH Semantic Drift Guard",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 301,
+        "quote": "* `DeltaManager.calculate_lbh(content)` parses the code AST, traverses it with `DocstringStripper(ast.NodeTransformer)` to strip all docstrings from functions/classes/modules, dumps the clean AST via `ast.dump(tree, anno",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 303,
+        "quote": "* If SSH changes **OR** LBH changes: File is marked `is_dirty = 1` and community is marked `is_dirty = 1`.",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 334,
+        "quote": "### 5.4 Agnostic Checkpointer & Smart Checkpoint Pruning",
+        "targets": [
+          "core.background_janitor (vs services.janitor)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 336,
+        "quote": "* `BackgroundJanitor.prune_session_checkpoints(session_id, keep_limit=10)` executes Smart LRU pruning: protects checkpoint `\"init\"` (point-zero) while keeping the $N$ most recent entries and purging stale intermediate re",
+        "targets": [
+          "core.background_janitor (vs services.janitor)",
+          "storage.connection vs interface.queue_writer (produção usa storage.connection)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 339,
+        "quote": "### 5.5 Hardware-Aware Thermal Throttling & Rate Governor",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 340,
+        "quote": "* `BackgroundJanitor.check_hardware_clearance(max_cpu_percent=40.0, quiet_period_seconds=180.0)` verifies host health before launching local SLMs (Ollama):",
+        "targets": [
+          "core.background_janitor (vs services.janitor)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 345,
+        "quote": "### 5.6 Real-Time SSE Telemetry & Health Stream",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 346,
+        "quote": "* `interface/telemetry_api.py` provides FastAPI endpoints for dashboard integrations:",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 347,
+        "quote": "* `GET /api/telemetry/snapshot`: Complete JSON snapshot of dirty files, Janitor status, self-healing events, and agent checkpoints using Pydantic v2 schemas.",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 348,
+        "quote": "* `GET /api/telemetry/stream`: High-efficiency Server-Sent Events (SSE) streaming state changes every 2 seconds with automatic reconnection support.",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 351,
+        "quote": "### 5.7 Zero-NumPy Native Bayesian Thompson Sampling",
+        "targets": [
+          "core.probabilistic_retriever (import condicional em hybrid_search.py:252)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 352,
+        "quote": "* `core/probabilistic_retriever.py` uses Python's standard `random.betavariate()` instead of external NumPy packages (~30MB savings):",
+        "targets": [
+          "core.probabilistic_retriever (import condicional em hybrid_search.py:252)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 360,
+        "quote": "### 5.8 Structural Semantic Alias Tracking (`core/alias_tracker.py`)",
+        "targets": [
+          "core.alias_tracker"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 361,
+        "quote": "* Solves the **File Rename & Move Anomaly**: When developers rename files (e.g. `auth_service.py` $\\rightarrow$ `authentication.py`), standard watchers trigger a `DELETE` followed by a `CREATE`, which naive systems treat",
+        "targets": [
+          "interface.watcher"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 367,
+        "quote": "### 5.9 Polyglot AST Parser Factory (`core/parser_factory.py` & `core/parsers/`)",
+        "targets": [
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 370,
+        "quote": "* `.ts`, `.tsx`, `.js`, `.jsx` $\\rightarrow$ `TsJsParser` (Tree-sitter with high-performance regex fallback)",
+        "targets": [
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 377,
+        "quote": "### 5.10 Durable FSM Checkpoints & Cognitive Time-Travel (`core/checkpointer.py`)",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 378,
+        "quote": "* Extends agent state preservation beyond lightweight dictionaries into durable SQLite relational persistence (`storage/relational_db.py`).",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 380,
+        "quote": "* **Time-Travel Rollback Execution**: `execute_time_travel(session_id, target_checkpoint_id)`:",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 381,
+        "quote": "1. Loads the target state snapshot from `fsm_checkpoints`.",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 383,
+        "quote": "3. Re-flags any rolled-back files recorded in `dirty_files` as `is_dirty = 1` in SQLite WAL, instructing the watcher and Janitor to re-synchronize local graph state.",
+        "targets": [
+          "interface.watcher"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 390,
+        "quote": "* `PLANNING`, `DISCOVERY`: Only `READ_ONLY` tools + `get_telemetry_snapshot`.",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 394,
+        "quote": "### 5.12 Federated Knowledge Routing & Global Hybrid Memory Adapter (`core/`)",
+        "targets": [
+          "core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 400,
+        "quote": "* **GlobalMemoryAdapter (`core/global_memory_adapter.py`)**: Compiles a hybrid context payload: preserves the last 3 immediate chat messages (Short-Term Memory) for conversational continuity, while replacing older chat h",
+        "targets": [
+          "core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 402,
+        "quote": "### 5.13 Hierarchical State Machine (HSM) Engine (`core/hsm_engine.py`)",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 403,
+        "quote": "* Replaces naive, flat FSMs with a recursive, tree-structured HSM model (`HierarchicalStateMachine` and `HSMNode`).",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 408,
+        "quote": "* Sub-states: `CODE_GEN`, `TDD_GREEN`, `REFACTORING`, `RE_INDEX`.",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 418,
+        "quote": "### 5.14 State Transition Lifecycle Hooks & History Node ($H^*$) Delta Verification",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 423,
+        "quote": "* **Deep History Node ($H^*$)**:",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 427,
+        "quote": "* Before restoring execution context, the engine executes an active audit comparing current workspace files against recorded hashes in SQLite WAL using `DeltaManager` (Dual-Hash: SSH + LBH).",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 428,
+        "quote": "* If out-of-band file edits (stale code) are detected, it dynamically intercepts the restoration and redirects the session to `EXECUTION.RE_INDEX`, triggering graph re-synchronization before code generation resumes.",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 430,
+        "quote": "### 5.15 Cognitive Runner Coupling & Circuit Breaker (`agent/run_agent.py`)",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 431,
+        "quote": "* Couples `HermesAgentRunner` with the HSM engine as the core brain of the cognitive execution loop:",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 433,
+        "quote": "* **Cognitive Circuit Breaker (Anti-Loop Guard)**:",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 435,
+        "quote": "* When `turn_count >= 5` (configurable via `max_turns`), the Circuit Breaker trips:",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 436,
+        "quote": "1. Emits a warning event to the telemetry stream.",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 439,
+        "quote": "### 5.16 Rate Governor Quotas & Multi-Tier Priority Queuing (`core/rate_governor.py`)",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 440,
+        "quote": "* **60-Second Sliding Window Quotas**: Continuously measures rolling consumption:",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 441,
+        "quote": "* **RPM (Requests per Minute)**: Default quota = 60 req/min.",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 442,
+        "quote": "* **TPM (Tokens per Minute)**: Default quota = 40,000 tok/min.",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 450,
+        "quote": "* 🟡 **`LOW_FROZEN` (≥ 85%)**: Suspends `LOW` priority queue to protect interactive performance.",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 451,
+        "quote": "* 🟠 **`MEDIUM_FROZEN` (≥ 95%)**: Suspends `MEDIUM` subagents, dedicating remaining quota strictly to `HIGH` priority Hermes turns until the sliding window drains.",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 453,
+        "quote": "### 5.17 Adaptive Gating & Security Guard (`core/gating_interceptor.py`, `core/security_guard.py`)",
+        "targets": [
+          "core.gating_interceptor / core.security_guard"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 455,
+        "quote": "* `ask`: Strict human-in-the-loop gating for all mutating operations.",
+        "targets": [
+          "core.gating_interceptor / core.security_guard"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 457,
+        "quote": "* `autonomous`: Full autonomy within the allowed bounds of the current HSM state.",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 460,
+        "quote": "### 5.18 Real-Time Passive Observability Cockpit (`grafo-dashboard-web/`)",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 461,
+        "quote": "* Built with Next.js 16 (App Router), React 19, and Tailwind CSS v4 under a **100% Zero-Mutation UI** paradigm:",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 462,
+        "quote": "* **Real-time SSE Stream**: Connects to `/api/telemetry/stream` (FastAPI), hydrating state instantly on load via `/api/telemetry/snapshot`, `/api/governor/metrics`, and `/api/hsm/tree` without network polling.",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 463,
+        "quote": "* **2x2 Grid Cockpit Layout**:",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 464,
+        "quote": "1. **Top-Left — CodeGraphViewer (`components/topology/CodeGraphViewer.tsx`)**: 2D Force-Directed Graph with directory community grouping and a 60fps sinusoidal pulsating yellow aura for files with `is_dirty = 1`.",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 465,
+        "quote": "2. **Top-Right — QuotaGauges (`components/governor/QuotaGauges.tsx`)**: Semicircular SVG radial gauges for RPM/TPM with smooth `stroke-dashoffset` transitions and reactive freezing badges.",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 466,
+        "quote": "3. **Bottom-Left — HSMStateInspector (`components/hsm/HSMStateInspector.tsx`)**: Visual hierarchy tree, active state highlight, Deep History Node card, and 5-turn Circuit Breaker dots.",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/01_ARCHITECTURE.md",
+        "line": 467,
+        "quote": "4. **Bottom-Right — LiveEventFeed (`components/telemetry/LiveEventFeed.tsx`)**: Cyber console with auto-scroll toggle, ISO 8601 UTC to local browser time formatting (`HH:mm:ss.SSS`), and category badges (`[WAL]`, `[JANIT",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.gating_interceptor / core.security_guard",
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      }
+    ],
+    "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md": [
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 1,
+        "quote": "# 🔌 MCP Tools Reference — Complete 30 Tools Catalog (v4.2.0)",
+        "targets": [
+          "Contagem desatualizada em README (real: 31 tools MCP, 478 testes pytest)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 34,
+        "quote": "├── 💾 Session Checkpointing & Time-Travel (3 tools)",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 35,
+        "quote": "│   ├── agent_save_checkpoint            [Smart LRU Prunable]",
+        "targets": [
+          "core.background_janitor (vs services.janitor)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 111,
+        "quote": "Executes directory ingestion: scans filesystem with early-exit filtering, performs dual-hash delta checks (SSH + LBH), Tree-sitter AST chunking, prompt armoring, summarization, embedding, and garbage collection.",
+        "targets": [
+          "core.delta_manager / core.delta_sync",
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 202,
+        "quote": "## 5. Session Checkpointing & Time-Travel",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 205,
+        "quote": "Persists arbitrary agent state dictionaries as JSON blobs in SQLite WAL under a composite primary key `(agent_id, session_id, checkpoint_id)` via `AgnosticCheckpointer`. Checkpoints are automatically prunable by `Backgro",
+        "targets": [
+          "core.background_janitor (vs services.janitor)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 209,
+        "quote": "* `checkpoint_id` (`str`, required): Identifier of the step/checkpoint (e.g. `init`, `step_1`, `pre_refactor`).",
+        "targets": [
+          "core.background_janitor (vs services.janitor)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 222,
+        "quote": "Lists the complete chronological history of checkpoints recorded for an agent session, enabling Time-Travel navigation and rollback capabilities.",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 248,
+        "quote": "Registers utility feedback for a semantic fact to tune Thompson Sampling weights.",
+        "targets": [
+          "core.probabilistic_retriever (import condicional em hybrid_search.py:252)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 304,
+        "quote": "## 9. Progressive Tool Disclosure & Hierarchical State Machine (HSM) Security Matrix (Active-SDD #21 / #25)",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 306,
+        "quote": "To prevent LLM context window pollution and protect the codebase against inadvertent modifications during early research phases, Grafo Concierge implements **Progressive Tool Disclosure** through the `MCPToolGovernor` (`",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 317,
+        "quote": "│ Filters returned tools by HSM     │       │ Validates session permission      │",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 333,
+        "quote": "### 9.3 Hierarchical State Machine (HSM) Disclosure Matrix",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 340,
+        "quote": "| **`EXECUTION`** | `CODE_GEN`<br>`TDD_GREEN`<br>`REFACTORING`<br>`RE_INDEX` | `READ_ONLY`<br>`LOCAL_MUTATION` | Modifying files, running incremental commits (`concierge_commit`), creating checkpoints (`agent_save_checkp",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 342,
+        "quote": "| **`STALL`** | `AWAITING_HUMAN`<br>`CONTEXT_FULL`<br>`ERROR_PAUSE` | `READ_ONLY` | Safe mitigation state when Circuit Breaker trips (turn $\\ge 5$) or when human guidance is required. |",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 345,
+        "quote": "### 9.4 Lifecycle Hooks, Deep History Node ($H^*$) & Circuit Breaker",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 351,
+        "quote": "* **Deep History Node ($H^*$)**:",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 354,
+        "quote": "* Checks Dual-Hash delta drift during `resume_from_history_node()`; redirects to `EXECUTION.RE_INDEX` if files changed out-of-band.",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 355,
+        "quote": "* **Cognitive Circuit Breaker**:",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 360,
+        "quote": "Agents, orchestrators, and the Next.js Cockpit interact with the HSM via dedicated FastAPI endpoints:",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 364,
+        "quote": "| **`/api/hsm/state/{session_id}`** | `GET` | `{\"current_full_path\": \"EXECUTION.CODE_GEN\", \"history_node\": [...]}` | Queries the active qualified state path and History Node for a session. |",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 365,
+        "quote": "| **`/api/hsm/transition`** | `POST` | `{\"session_id\": \"s1\", \"target_state\": \"EXECUTION.TDD_GREEN\"}` | Executes a state transition, firing exit/enter hooks and updating the tool disclosure filter. |",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 366,
+        "quote": "| **`/api/hsm/resume/{session_id}`** | `POST` | `{\"status\": \"resumed\", \"state\": \"EXECUTION.CODE_GEN\"}` | Restores session from History Node after auditing codebase drift. |",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 367,
+        "quote": "| **`/api/hsm/tree`** | `GET` | `{\"state_tree\": {...}}` | Returns the entire canonical HSM topology tree for UI rendering. |",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md",
+        "line": 368,
+        "quote": "| **`/api/gating/config`** | `GET` / `POST` | `{\"mode\": \"ask\" \\| \"auto_read\" \\| \"autonomous\"}` | Inspects or toggles the runtime adaptive gating autonomy mode. |",
+        "targets": [
+          "core.gating_interceptor / core.security_guard"
+        ]
+      }
+    ],
+    "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md": [
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 3,
+        "quote": "> **Architectural Deep-Dive into Bi-Temporal Persistence, Scoped Core Memory, and Bayesian Thompson Sampling**",
+        "targets": [
+          "core.probabilistic_retriever (import condicional em hybrid_search.py:252)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 14,
+        "quote": "Grafo Concierge solves these challenges through **Bi-Temporal Fact Invalidation**, **LLM-Driven Semantic Consolidation (`SemanticExtractor`)**, **Scoped Core Memory**, and **Bayesian Thompson Sampling**.",
+        "targets": [
+          "core.probabilistic_retriever (import condicional em hybrid_search.py:252)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 141,
+        "quote": "## 5. Bayesian Thompson Sampling & Reinforcement (`probabilistic_retriever.py`)",
+        "targets": [
+          "core.probabilistic_retriever (import condicional em hybrid_search.py:252)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 143,
+        "quote": "To prevent the retrieval engine from getting stuck in local optima (repeatedly recalling the same high-similarity memory even when newer or alternative memories are more helpful), Grafo Concierge implements **Thompson Sa",
+        "targets": [
+          "core.probabilistic_retriever (import condicional em hybrid_search.py:252)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 159,
+        "quote": "│        Thompson Sampling Beta Multiplier (0.0 to 1.0)  │",
+        "targets": [
+          "core.probabilistic_retriever (import condicional em hybrid_search.py:252)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 201,
+        "quote": "## 6. Durable FSM Checkpoints & Cognitive Time-Travel (`core/checkpointer.py`)",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 205,
+        "quote": "### 6.1 Relational Schema (`storage/relational_db.py`)",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 207,
+        "quote": "CREATE TABLE IF NOT EXISTS fsm_checkpoints (",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 215,
+        "quote": "CREATE INDEX IF NOT EXISTS idx_fsm_checkpoints_session_created",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 216,
+        "quote": "ON fsm_checkpoints(session_id, created_at ASC);",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 227,
+        "quote": "### 6.3 Time-Travel Rollback Workflow",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 228,
+        "quote": "When an agent or developer triggers a rollback (`POST /api/checkpoints/time-travel`):",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 229,
+        "quote": "1. **Target Snapshot Retrieval**: Fetches `target_checkpoint_id` from `fsm_checkpoints` for the given `session_id`.",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 232,
+        "quote": "DELETE FROM fsm_checkpoints WHERE session_id = ? AND created_at > ?;",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 234,
+        "quote": "3. **Dirty File Synchronization**: Parses the `dirty_files` array stored in the snapshot and executes `UPDATE files SET is_dirty = 1 WHERE path IN (...)`, instructing the file watcher and background Janitor to immediatel",
+        "targets": [
+          "interface.watcher"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 238,
+        "quote": "## 7. Hierarchical Global Memory Adapter (`core/global_memory_adapter.py`)",
+        "targets": [
+          "core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 240,
+        "quote": "Under **Active-SDD #22**, the `GlobalMemoryAdapter` eliminates the quadratic token bloat caused by linear raw chat histories while preserving conversational naturalness.",
+        "targets": [
+          "core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 281,
+        "quote": "## 8. HSM State Context & Deep History Node ($H^*$) Coupling (`core/hsm_engine.py`)",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 292,
+        "quote": "turn_count: int             # Consecutive turns in current sub-state (Circuit Breaker)",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 297,
+        "quote": "* Whenever the agent saves a progress checkpoint via `agent_save_checkpoint`, the HSM engine binds the durable `fsm_checkpoints` entry with the qualified state path.",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 298,
+        "quote": "* The **Deep History Node ($H^*$)** records this tuple in SQLite memory.",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md",
+        "line": 300,
+        "quote": "1. The durable variable state snapshot from `fsm_checkpoints`.",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      }
+    ],
+    "docs-grafo-concierge/04_INGESTION_AND_AST.md": [
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 1,
+        "quote": "# 📥 Ingestion Engine, Tree-sitter AST & Dual-Hash Delta Sync (v4.2.0)",
+        "targets": [
+          "core.delta_manager / core.delta_sync",
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 3,
+        "quote": "> **Architectural Specification for Early-Exit Watchers, Multi-Language Tree-sitter AST Parsing, Structural Signature Hashing (SSH), Logical Body Hashing (LBH), Alias Tracking, Deep History Delta Validation, and Reactive",
+        "targets": [
+          "core.delta_manager / core.delta_sync",
+          "core.alias_tracker",
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)",
+          "interface.watcher"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 13,
+        "quote": "│ 1. WATCHER   │ ─► │ 2. DELTA    │ ─► │ 3. PARSE     │ ─► │ 4. CHUNK    │",
+        "targets": [
+          "interface.watcher"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 14,
+        "quote": "│ Early-Exit   │    │ SSH + LBH   │    │ Tree-sitter  │    │ Delta Cache │",
+        "targets": [
+          "core.delta_manager / core.delta_sync",
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 25,
+        "quote": "## 2. Early-Exit Reactive Watcher (`interface/watcher.py`)",
+        "targets": [
+          "interface.watcher"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 27,
+        "quote": "To ensure zero latency and zero wasted I/O on large developer repositories containing thousands of transient files (`node_modules`, `.git`, `.venv`, build artifacts), the `ConciergeFileSystemHandler` implements an **Earl",
+        "targets": [
+          "interface.watcher"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 35,
+        "quote": "## 3. Dual-Hash Delta Sync: SSH & LBH Semantic Drift Guard (`core/delta_manager.py`)",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 39,
+        "quote": "Grafo Concierge resolves both problems with a **Dual-Hash Architecture**:",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 52,
+        "quote": "### 3.2 Logical Body Hashing (LBH) via `DocstringStripper`",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 55,
+        "quote": "2. `DocstringStripper(ast.NodeTransformer)` inspects `FunctionDef`, `AsyncFunctionDef`, `ClassDef`, and `Module` nodes. If the first statement in the body is an `ast.Expr` containing a string literal constant (`ast.Const",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 57,
+        "quote": "class DocstringStripper(ast.NodeTransformer):",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 71,
+        "quote": "| Change Type | SSH Changed? | LBH Changed? | Action in SQLite (`files` / `communities`) | Token Cost |",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 80,
+        "quote": "## 4. Multi-Language AST Parsing via Tree-sitter & `ParserFactory`",
+        "targets": [
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 82,
+        "quote": "Under **Active-SDD #19**, Grafo Concierge introduces the **Polyglot Parser Factory** (`core/parser_factory.py`), enabling deep AST comprehension across both backend (Python) and frontend (TypeScript/JavaScript/React) mod",
+        "targets": [
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 84,
+        "quote": "### 4.1 Parser Factory Dispatch (`core/parser_factory.py`)",
+        "targets": [
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 102,
+        "quote": "1. **Tree-sitter TS/TSX Grammar**: Native AST traversal when Tree-sitter bindings are present.",
+        "targets": [
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 108,
+        "quote": "* **Structural Semantic Hashing (SSH)**: Extracts public function signatures, classes, and local imports, hashing them deterministically for delta sync and alias tracking.",
+        "targets": [
+          "core.delta_manager / core.delta_sync",
+          "core.alias_tracker"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 118,
+        "quote": "## 5. Structural Semantic Alias Tracking (`core/alias_tracker.py`)",
+        "targets": [
+          "core.alias_tracker"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 124,
+        "quote": "1. Standard OS file watchers emit a `DELETE` event for `auth.py` followed by a `CREATE` event for `authentication.py`.",
+        "targets": [
+          "interface.watcher"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 172,
+        "quote": "Under **Active-SDD #27**, the Dual-Hash mechanism is directly wired into session recovery through the **Deep History Node ($H^*$)**:",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 175,
+        "quote": "When an agent session is interrupted and later resumed via `HierarchicalStateMachine.resume_from_history_node(session_id, delta_manager)`:",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 191,
+        "quote": "└─── YES ──► delta_manager.has_structural_change(file)?",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 198,
+        "quote": "└── Auto-Redirect State ──► EXECUTION.RE_INDEX",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 201,
+        "quote": "When redirected to `EXECUTION.RE_INDEX`, the ingestion engine triggers an immediate re-parse of the modified AST, re-syncs SQLite WAL edges, and clears the stale flag before resuming development.",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 205,
+        "quote": "## 7. Reactive Observability Integration: Cockpit 60fps Pulsing (`is_dirty = 1`)",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 207,
+        "quote": "Under **Active-SDD #28**, ingestion state changes are broadcast in real time to the Next.js Cockpit (`grafo-dashboard-web/`):",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 209,
+        "quote": "1. Whenever `DeltaManager` or the File Watcher detects structural changes, the file is marked with `is_dirty = 1` in SQLite.",
+        "targets": [
+          "interface.watcher"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 210,
+        "quote": "2. The SSE telemetry channel (`/api/telemetry/stream`) emits a `DELTA_DETECTED` event containing the affected node identifier and timestamp.",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/04_INGESTION_AND_AST.md",
+        "line": 211,
+        "quote": "3. In `CodeGraphViewer.tsx`, the 2D Force-Directed Graph dynamically renders any node with `is_dirty = 1` with a **glowing amber/yellow pulsating aura at 60fps**.",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      }
+    ],
+    "docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md": [
+      {
+        "file": "docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md",
+        "line": 101,
+        "quote": "## 4. JIT Intent Classifier (`core/intent_classifier.py`)",
+        "targets": [
+          "core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md",
+        "line": 133,
+        "quote": "## 5. Federated Knowledge Router (`core/federated_knowledge_router.py`)",
+        "targets": [
+          "core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md",
+        "line": 144,
+        "quote": "### 5.2 Transition & Backward Compatibility Shim (`core/nozomio_router.py`)",
+        "targets": [
+          "core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md",
+        "line": 145,
+        "quote": "In earlier internal revisions, the router was named `nozomio_router.py`. To preserve 100% backward compatibility with legacy tooling, `core/nozomio_router.py` acts as a zero-overhead transition shim:",
+        "targets": [
+          "core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md",
+        "line": 147,
+        "quote": "# core/nozomio_router.py",
+        "targets": [
+          "core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md",
+        "line": 150,
+        "quote": "FederatedKnowledgeRouter as NozomioRouter,",
+        "targets": [
+          "core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md",
+        "line": 153,
+        "quote": "EXTERNAL_NOZOMIO_MCP = EXTERNAL_FEDERATED_MCP",
+        "targets": [
+          "core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md",
+        "line": 154,
+        "quote": "__all__ = [\"FederatedKnowledgeRouter\", \"NozomioRouter\", \"EXTERNAL_FEDERATED_MCP\", \"EXTERNAL_NOZOMIO_MCP\"]",
+        "targets": [
+          "core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md",
+        "line": 159,
+        "quote": "## 6. Rate Governor Integration & Search Priority Triage (`core/rate_governor.py`)",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md",
+        "line": 161,
+        "quote": "Under **Active-SDD #23 / #24**, heavy search routines and background graph clustering operations are integrated into the **Rate Governor Priority Queue**:",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md",
+        "line": 168,
+        "quote": "| **Tier 2 (MEDIUM)** | Subagent background symbol lookups, auxiliary tool queries | `2` | **Frozen at $\\ge 95\\%$** moving window quota consumption. |",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md",
+        "line": 169,
+        "quote": "| **Tier 3 (LOW)** | Background GraphRAG re-clustering, batch embedding extraction | `3` | **Frozen at $\\ge 85\\%$** moving window quota consumption. |",
+        "targets": [
+          "core.rate_governor"
+        ]
+      }
+    ],
+    "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md": [
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 3,
+        "quote": "> **Complete Operations Guide for Local IDEs, Remote VPS Hosting, Docker Containers, Tailscale Networking, FastAPI Telemetry Endpoints, and the Next.js Cockpit**",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas",
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 22,
+        "quote": "| **`GRAFO_RPM_LIMIT`** | `int` | `60` | Requests Per Minute quota for sliding window rate governance (SDD-23). |",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 23,
+        "quote": "| **`GRAFO_TPM_LIMIT`** | `int` | `40000` | Tokens Per Minute quota for sliding window rate governance (SDD-23). |",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 24,
+        "quote": "| **`GRAFO_SLIDING_WINDOW_SEC`**| `int` | `60` | Duration in seconds of Rate Governor sliding usage window. |",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 25,
+        "quote": "| **`GRAFO_GATING_MODE`** | `str` | `plan-only` | Autonomy gating mode: `plan-only`, `ask`, or `auto-approve` (SDD-24). |",
+        "targets": [
+          "core.gating_interceptor / core.security_guard"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 60,
+        "quote": "- GRAFO_GATING_MODE=${GRAFO_GATING_MODE:-plan-only}",
+        "targets": [
+          "core.gating_interceptor / core.security_guard"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 91,
+        "quote": "## 4. Real-Time Telemetry & REST API (`interface/telemetry_api.py`)",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 93,
+        "quote": "In addition to FastMCP, Grafo Concierge exposes a high-performance **FastAPI Telemetry Server** for real-time observability dashboards (e.g., Next.js 16 Cockpit, Electron, or terminal observers):",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas",
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 99,
+        "quote": "| **System Telemetry** | `GET` | `/api/telemetry/snapshot` | Consolidated snapshot of system state: dirty files, Janitor status, self-healing events, checkpoints. |",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 100,
+        "quote": "| **System Telemetry** | `GET` | `/api/telemetry/stream` | Persistent Server-Sent Events (SSE) stream emitting updates whenever volatile DB hash changes. |",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 102,
+        "quote": "| **Rate Governor** | `GET` | `/api/governor/metrics` | Real-time moving window quota occupancy (RPM/TPM), queue backlog, and freezing flags. |",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 103,
+        "quote": "| **Rate Governor** | `POST` | `/api/governor/report` | Allows subagent executors to report actual tokens used post-LLM call to update sliding window metrics. |",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 104,
+        "quote": "| **Adaptive Gating** | `GET` | `/api/gating/config` | Returns active security configuration, autonomy mode (`plan-only`/`ask`/`auto-approve`), and project root. |",
+        "targets": [
+          "core.gating_interceptor / core.security_guard"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 105,
+        "quote": "| **Adaptive Gating** | `POST` | `/api/gating/config` | Dynamically updates monorepo autonomy mode with runtime boundary validation. |",
+        "targets": [
+          "core.gating_interceptor / core.security_guard"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 106,
+        "quote": "| **HSM Engine** | `GET` | `/api/hsm/state/{session_id}` | Queries the active hierarchical qualified state (`PLANNING.SCOPING`) and History Node for a session. |",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 107,
+        "quote": "| **HSM Engine** | `POST` | `/api/hsm/transition` | Executes a sub-state transition, fires lifecycle hooks (`on_exit`/`on_enter`), and persists checkpoint. |",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 108,
+        "quote": "| **HSM Engine** | `POST` | `/api/hsm/resume/{session_id}` | Restores session from Deep History Node ($H^*$) with runtime dual-hash code drift validation. |",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 109,
+        "quote": "| **HSM Engine** | `GET` | `/api/hsm/tree` | Returns the complete hierarchical state tree topology as a serializable dictionary. |",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 111,
+        "quote": "| **Cognitive Memory** | `POST` | `/api/checkpoints/time-travel` | Triggers cognitive-relational time-travel rollback: restores state, purges future steps, marks dirty files. |",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 115,
+        "quote": "### 4.2 Running the Telemetry API",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 118,
+        "quote": "# Start the FastAPI telemetry server via Uvicorn",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 119,
+        "quote": "uvicorn interface.telemetry_api:app --host 127.0.0.1 --port 8001 --reload",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 124,
+        "quote": "## 5. Next.js 16 Passive Observability Cockpit (`grafo-dashboard-web/`)",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 126,
+        "quote": "Under **Active-SDD #28**, Grafo Concierge features a dedicated **Next.js 16 (App Router)** cockpit designed for real-time passive monitoring:",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 128,
+        "quote": "### 5.1 Architecture & 2x2 Grid Layout",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 129,
+        "quote": "* **Top-Left (`CodeGraphViewer.tsx`)**: Interactive 2D Force-Directed Graph of files and AST dependency edges. Files with `is_dirty = 1` are highlighted with a 60fps pulsating amber glow.",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 130,
+        "quote": "* **Top-Right (`QuotaGauges.tsx`)**: High-precision circular gauges for RPM (60 limit) and TPM (40,000 limit) featuring dynamic color gradients (Cyan $\\rightarrow$ Amber $\\rightarrow$ Crimson) and freezing indicators (`L",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 131,
+        "quote": "* **Bottom-Left (`HSMStateTree.tsx`)**: Interactive collapsible tree of the Hierarchical State Machine showing active super-states, sub-states, Deep History Nodes ($H^*$), and a 1-click **\"Resume Session\"** trigger.",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 132,
+        "quote": "* **Bottom-Right (`HealingFeed.tsx`)**: Real-time chronological audit terminal streaming Janitor reconciliation events, WAL transactions, and circuit breaker trip notifications.",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 134,
+        "quote": "### 5.2 Unified Concurrent DX (`npm run dev:all`)",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 141,
+        "quote": "\"dev:backend\": \"cd ../GrafoConcierge && python -m uvicorn interface.telemetry_api:app --host 127.0.0.1 --port 8001 --reload\",",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md",
+        "line": 147,
+        "quote": "Simply run `npm run dev:all` to launch both the Next.js visual cockpit (`http://localhost:3000`) and the FastAPI telemetry server (`http://localhost:8001`) with synchronized terminal outputs.",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas",
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      }
+    ],
+    "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md": [
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 3,
+        "quote": "> **Complete Guide to Vector Reconciliation, Rate Governor Operations, HSM Deep History Recovery, Smart Checkpoint Pruning, Time-Travel Operations, and the 326-Test Master Verification Matrix**",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.rate_governor",
+          "core.background_janitor (vs services.janitor)",
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 20,
+        "quote": "### 1.3 Smart Checkpoint Pruning (`core/background_janitor.py`)",
+        "targets": [
+          "core.background_janitor (vs services.janitor)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 22,
+        "quote": "* `janitor.prune_session_checkpoints(session_id=None, keep_limit=10)` executes a **Smart LRU per Session** algorithm.",
+        "targets": [
+          "core.background_janitor (vs services.janitor)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 25,
+        "quote": "* **Paginated Batch Elimination**: Safely purges intermediate obsolete checkpoints through `SerializedWriteQueue` with zero database lock contention on SQLite WAL.",
+        "targets": [
+          "storage.connection vs interface.queue_writer (produção usa storage.connection)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 34,
+        "quote": "### 1.5 Real-Time Telemetry & SSE Streaming (`interface/telemetry_api.py`)",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 35,
+        "quote": "Provides continuous live telemetry for UI dashboards without high-overhead polling:",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 36,
+        "quote": "* Exposes `GET /api/telemetry/stream` (Server-Sent Events) yielding structured Pydantic v2 telemetry payloads whenever the volatile database hash changes.",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 37,
+        "quote": "* Exposes `GET /api/telemetry/snapshot` for instantaneous health audits and `POST /api/janitor/reconcile` for manual maintenance execution.",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 41,
+        "quote": "## 2. Time-Travel Debugging & State Rollback",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 43,
+        "quote": "Using `AgnosticCheckpointer` and the durable `fsm_checkpoints` relational engine, external agents can navigate backwards in their execution timeline:",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 46,
+        "quote": "3. `POST /api/checkpoints/time-travel`: Executes an atomic rollback to a specified target checkpoint, permanently purging subsequent checkpoints from the timeline and re-flagging modified files recorded in `dirty_files` ",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 52,
+        "quote": "The repository contains an exhaustive test matrix covering all survival slices, cognitive memory, hierarchical state machines, rate governance, and advanced retrieval systems (**326 tests collected across 47 suites**):",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "Contagem desatualizada em README (real: 31 tools MCP, 478 testes pytest)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 62,
+        "quote": "| `test_rate_governor_priority.py` | `core/rate_governor.py` | Sliding window rate limits (60 RPM, 40k TPM), 3-tier priority queue, queue freezing at 85% (LOW) and 95% (MEDIUM), fast-path bypass under 50%, and anti-starv",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 63,
+        "quote": "| `test_adaptive_gating.py` | `core/gating_interceptor.py` / `core/security_guard.py` | Granular boundary gating (`plan-only`, `ask`, `auto-approve`), project root confinement, path traversal sanitization, and command in",
+        "targets": [
+          "core.gating_interceptor / core.security_guard"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 64,
+        "quote": "| `test_hierarchical_state_machine.py` | `core/hsm_engine.py` | HSM tree construction, qualified state transitions, Deep History Node ($H^*$) caching, and tool disclosure synchronization (Active-SDD #25). |",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 65,
+        "quote": "| `test_agent_hsm_coupling.py` | `core/runner.py` / `core/hsm_engine.py` | Primary agent runtime coupling to HSM, state advancement, circuit breaker protection (5-turn failure trip), and state recovery (Active-SDD #26). ",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 66,
+        "quote": "| `test_hsm_transition_hooks_and_delta.py` | `core/hsm_engine.py` / `core/delta_manager.py` | Hierarchical lifecycle hooks execution order (`on_exit` child $\\rightarrow$ parent, `on_enter` parent $\\rightarrow$ child), an",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 67,
+        "quote": "| `test_cognitive_routing_memory.py` | `core/intent_classifier.py` / `federated_knowledge_router.py` | JIT 3-tier triage (Regex < 1ms, SQLite entity lookup, Ollama SLM fallback), federated knowledge routing, and hybrid s",
+        "targets": [
+          "core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 69,
+        "quote": "| `test_durable_checkpoints_timetravel.py` | `core/checkpointer.py` / `storage` | Durable `fsm_checkpoints` SQLite table, non-serializable object sanitization, chronological future checkpoint purge, and dirty file re-fla",
+        "targets": [
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 70,
+        "quote": "| `test_multilang_parser.py` | `core/parser_factory.py` / `parsers` | Polyglot parsing for Python, TypeScript, and JavaScript (`.ts`, `.tsx`, `.js`, `.jsx`), Tree-sitter & lexical fallback, npm package filter, React hook",
+        "targets": [
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 71,
+        "quote": "| `test_alias_tracker.py` | `core/alias_tracker.py` | Atomic file rename/move detection via SSH within 1-second window, cascading relational updates, 0-byte collision guard, and zombie prevention via purge timer (Active-",
+        "targets": [
+          "core.alias_tracker"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 73,
+        "quote": "| `test_telemetry_api.py` | `interface/telemetry_api.py` | Master FastAPI 15-endpoint coverage, live SSE streaming channel (`text/event-stream`), and manual Janitor reconcile trigger. |",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 75,
+        "quote": "| `test_checkpoint_pruning.py` | `core/background_janitor.py` | Smart LRU checkpoint auto-poda: protects `\"init\"` (point-zero) and keeps $N$ recent steps. |",
+        "targets": [
+          "core.background_janitor (vs services.janitor)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 77,
+        "quote": "| `test_delta_sync_drift.py` | `core/delta_manager.py` | LBH Semantic Drift Guard & `DocstringStripper`: ignores comments/docstrings, catches logic changes. |",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 80,
+        "quote": "| `test_delta_sync.py` | `core/delta_manager.py` | Dual-Hash (SSH + LBH) and Lazy Summarization JIT behavior. |",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 84,
+        "quote": "| `test_e2e_concierge_integration.py` | Master E2E Pipeline | Full lifecycle integration, cascading data verification, and dual-hash sync. |",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 88,
+        "quote": "| `test_probabilistic_retriever.py` | `core/probabilistic_retriever.py` | Zero-NumPy Thompson Sampling Beta(α,β) ranking via `random.betavariate()` and Bayesian feedback loop. |",
+        "targets": [
+          "core.probabilistic_retriever (import condicional em hybrid_search.py:252)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 89,
+        "quote": "| `test_chunk_cache.py` | `core/delta_manager.py` | Delta Chunk caching and invalidation across structural mutations. |",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 94,
+        "quote": "| `test_watcher_ignore.py` | `interface/watcher.py` | Early-Exit ignore filtering (`.conciergeignore`, `pathspec`). |",
+        "targets": [
+          "interface.watcher"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 95,
+        "quote": "| `test_revisor_critico.py` | `core/critical_revisor.py` | Self-correction loops, architectural compliance audit, and anti-hallucination verification. |",
+        "targets": [
+          "agents.revisor_critico / interface.action_hooks"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 102,
+        "quote": "1. **Detecting Freezes**: Query `GET /api/governor/metrics` or observe the **Quota Gauges** in the Next.js Cockpit. If RPM or TPM usage exceeds 85%, `low_priority_frozen` activates (`LOW_FROZEN`). At 95%, `medium_priorit",
+        "targets": [
+          "core.rate_governor",
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 103,
+        "quote": "2. **Impact**: Interactive user commands and primary agent turns (Tier 1 HIGH) continue uninterrupted. Background clustering (Tier 3 LOW) and subagent lookups (Tier 2 MEDIUM) are cleanly queued without throwing HTTP 429 ",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 106,
+        "quote": "### Runbook 2: Recovering an Interrupted Agent Session via History Node ($H^*$)",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 107,
+        "quote": "1. **Introspect Session State**: Call `GET /api/hsm/state/{session_id}` to retrieve current qualified state and last recorded History Node.",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 108,
+        "quote": "2. **Execute Resume**: Call `POST /api/hsm/resume/{session_id}`.",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 111,
+        "quote": "* If external changes were made, the dual-hash validator flags `stale_detected = True` and auto-redirects the agent to `EXECUTION.RE_INDEX` to guarantee AST coherence.",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 114,
+        "quote": "1. **Query Current Mode**: Call `GET /api/gating/config`. Default is `plan-only`.",
+        "targets": [
+          "core.gating_interceptor / core.security_guard"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md",
+        "line": 115,
+        "quote": "2. **Change Mode**: Send `POST /api/gating/config` with `{\"mode\": \"ask\"}` or `{\"mode\": \"auto-approve\"}`.",
+        "targets": [
+          "core.gating_interceptor / core.security_guard"
+        ]
+      }
+    ],
+    "docs-grafo-concierge/README.md": [
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 11,
+        "quote": "| [**`01_ARCHITECTURE.md`**](01_ARCHITECTURE.md) | High-level system architecture, complete Pillars 1 to 22: Hierarchical State Machine (`core/hsm_engine.py`), Rate Governor quotas & 3-tier freezing (`core/rate_governor.",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.rate_governor",
+          "core.gating_interceptor / core.security_guard",
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 12,
+        "quote": "| [**`02_MCP_TOOLS_REFERENCE.md`**](02_MCP_TOOLS_REFERENCE.md) | Complete, exhaustive catalog of all **30 native MCP Tools** plus the **HSM Hierarchical State Disclosure Matrix (SDD-21 / SDD-25)** with runtime sensitivit",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.gating_interceptor / core.security_guard"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 13,
+        "quote": "| [**`03_COGNITIVE_MEMORY_AND_FACTS.md`**](03_COGNITIVE_MEMORY_AND_FACTS.md) | Deep dive into bi-temporal fact invalidation (`t_valid` / `t_invalid`), `SemanticExtractor` (ADD/UPDATE/DELETE/NOOP), Scoped Core Memory, Zer",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.probabilistic_retriever (import condicional em hybrid_search.py:252)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 14,
+        "quote": "| [**`04_INGESTION_AND_AST.md`**](04_INGESTION_AND_AST.md) | Multilanguage AST Parsing (`ParserFactory` for Python, TypeScript & JavaScript), Structural Semantic Alias Tracking (`core/alias_tracker.py`), Early-Exit React",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.delta_manager / core.delta_sync",
+          "core.alias_tracker",
+          "interface.watcher"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 15,
+        "quote": "| [**`05_HYBRID_SEARCH_AND_ROUTING.md`**](05_HYBRID_SEARCH_AND_ROUTING.md) | Hybrid Search v4 tri-signal scoring, Query-Time Self-Healing, Local GraphRAG recursive multi-hop traversal with cycle guards, JIT Intent Classi",
+        "targets": [
+          "core.rate_governor",
+          "core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 16,
+        "quote": "| [**`06_DEPLOY_AND_CONFIGURATION.md`**](06_DEPLOY_AND_CONFIGURATION.md) | Environment variables reference, Unified Concurrent DX (`npm run dev:all`), all **15 FastAPI REST & SSE Telemetry Endpoints** (`/api/telemetry/*`",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.gating_interceptor / core.security_guard",
+          "interface.telemetry_api / core.telemetry_schemas",
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 17,
+        "quote": "| [**`07_MIGRATION_AND_OPERATIONS.md`**](07_MIGRATION_AND_OPERATIONS.md) | Background Janitor, Vector Reconciler, Hardware-Aware SLM Summarization, Smart Checkpoint Pruning, Cognitive Time-Travel, HSM Session Recovery ru",
+        "targets": [
+          "core.hsm_engine / agent.run_agent",
+          "core.background_janitor (vs services.janitor)",
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 26,
+        "quote": "│            Next.js 16 Observability Cockpit (Grid 2x2)  │",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 34,
+        "quote": "│ - core/rate_governor.py (60s Quotas: 60 RPM / 40k TPM)  │",
+        "targets": [
+          "core.rate_governor"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 35,
+        "quote": "│ - core/gating_interceptor.py (Adaptive Gating Intercept)│",
+        "targets": [
+          "core.gating_interceptor / core.security_guard"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 36,
+        "quote": "│ - interface/telemetry_api.py (15 REST routes + SSE)     │",
+        "targets": [
+          "interface.telemetry_api / core.telemetry_schemas"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 37,
+        "quote": "│ - grafo-dashboard-web/ (Passive Cockpit 2x2: ForceGraph,│",
+        "targets": [
+          "grafo-dashboard-web / interface.telemetry_api"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 38,
+        "quote": "│   SVG Radial Gauges, HSM Inspector, Cyber Console Feed) │",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 44,
+        "quote": "│ - HierarchicalStateMachine (Super & Sub-States + H*)    │",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 45,
+        "quote": "│ - HermesAgentRunner (Cognitive Execution Loop + HSM)    │",
+        "targets": [
+          "core.hsm_engine / agent.run_agent"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 47,
+        "quote": "│ - SerializedWriteQueue (Auto-Batching + Fallback WAL)   │",
+        "targets": [
+          "storage.connection vs interface.queue_writer (produção usa storage.connection)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 50,
+        "quote": "│ - GlobalMemoryAdapter (Hybrid Context: LTM + Last 3 STM)│",
+        "targets": [
+          "core.intent_classifier / core.federated_knowledge_router / core.global_memory_adapter"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 51,
+        "quote": "│ - DeltaManager (SSH Signature & LBH Semantic Drift)     │",
+        "targets": [
+          "core.delta_manager / core.delta_sync"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 53,
+        "quote": "│ - ParserFactory (Polyglot: Python, TS, TSX, JS, JSX)   │",
+        "targets": [
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 57,
+        "quote": "│ - BackgroundJanitor (Hardware-Aware SLM + Smart LRU)    │",
+        "targets": [
+          "core.background_janitor (vs services.janitor)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 64,
+        "quote": "│ 📥 Ingestion & Watcher    │ │ 💾 Storage & Vector       │",
+        "targets": [
+          "interface.watcher"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 65,
+        "quote": "│ - Early-Exit File Watcher │ │ - SQLite WAL Engine       │",
+        "targets": [
+          "interface.watcher"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 66,
+        "quote": "│ - Polyglot Parser Factory │ │ - storage/relational_db.py│",
+        "targets": [
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)",
+          "storage.relational_db / core.checkpointer (ramo fsm_checkpoints)"
+        ]
+      },
+      {
+        "file": "docs-grafo-concierge/README.md",
+        "line": 67,
+        "quote": "│ - Tree-sitter & Lexical   │ │ - ChromaDB / Qdrant       │",
+        "targets": [
+          "core.parser_factory / core.parsers.* (vs ingestion.parser)"
+        ]
+      }
+    ]
+  }
+}

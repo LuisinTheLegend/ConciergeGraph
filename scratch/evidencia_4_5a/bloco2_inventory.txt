@@ -1,0 +1,226 @@
+=== BLOCO 2: INVENTÁRIO POR MÓDULO (NÃO ALCANÇÁVEIS EM TEMPO DE CARGA) ===
+Total de testes coletados (pytest): 478
+
+[agent] (agent/__init__.py, 13L / 9 non-empty, status=UNREACHABLE)
+  Símbolos top-level: []
+  Importadores produção: [{'importer': 'agent', 'importer_path': 'agent/__init__.py', 'line': 11, 'kind': 'load', 'ann_only': False, 'raw': 'from agent.run_agent import CognitiveAgentRunner, HermesAgentRunner (parent pkg agent)'}, {'importer': 'agent.run_agent', 'importer_path': 'agent/run_agent.py', 'line': 23, 'kind': 'load', 'ann_only': False, 'raw': 'from agent.agent_prompts import DynamicPromptBuilder (parent pkg agent)'}]
+  Testes (0 em 0 arquivos): 
+  Menções docs (130): README.md:6, README.md:15, README.md:29, README.md:51, README.md:52, README.md:54, README.md:74, README.md:103, README.md:106, README.md:162, README.md:163, README.md:164...
+  Menções walkthrough.md (apenas referência): 31
+
+[agent.agent_prompts] (agent/agent_prompts.py, 176L / 146 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['DynamicPromptBuilder']
+  Importadores produção: [{'importer': 'agent.run_agent', 'importer_path': 'agent/run_agent.py', 'line': 23, 'kind': 'load', 'ann_only': False, 'raw': 'from agent.agent_prompts import DynamicPromptBuilder'}]
+  Testes (13 em 1 arquivos): tests/test_agent_hsm_coupling.py(13, mixed=True, live=4)
+  Menções docs (0): 
+  Menções walkthrough.md (apenas referência): 2
+
+[agent.run_agent] (agent/run_agent.py, 266L / 237 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['CognitiveAgentRunner']
+  Importadores produção: [{'importer': 'agent', 'importer_path': 'agent/__init__.py', 'line': 11, 'kind': 'load', 'ann_only': False, 'raw': 'from agent.run_agent import CognitiveAgentRunner, HermesAgentRunner'}]
+  Testes (13 em 1 arquivos): tests/test_agent_hsm_coupling.py(13, mixed=True, live=4)
+  Menções docs (3): docs-grafo-concierge/01_ARCHITECTURE.md:31, docs-grafo-concierge/01_ARCHITECTURE.md:63, docs-grafo-concierge/01_ARCHITECTURE.md:430
+  Menções walkthrough.md (apenas referência): 5
+
+[agents] (agents/__init__.py, 14L / 10 non-empty, status=REACHABLE_PEP562_LAZY)
+  Símbolos top-level: []
+  Importadores produção: [{'importer': 'agents', 'importer_path': 'agents/__init__.py', 'line': 10, 'kind': 'load', 'ann_only': False, 'raw': 'from agents.revisor_critico import RevisorCritico (parent pkg agents)'}, {'importer': 'interface.action_hooks', 'importer_path': 'interface/action_hooks.py', 'line': 32, 'kind': 'load', 'ann_only': False, 'raw': 'from agents.revisor_critico import RevisorCritico (parent pkg agents)'}]
+  Testes (0 em 0 arquivos): 
+  Menções docs (18): README.md:6, README.md:106, AGENTS.md:13, pyproject.toml:11, pyproject.toml:19, docs-grafo-concierge/01_ARCHITECTURE.md:3, docs-grafo-concierge/01_ARCHITECTURE.md:32, docs-grafo-concierge/01_ARCHITECTURE.md:337, docs-grafo-concierge/01_ARCHITECTURE.md:446, docs-grafo-concierge/01_ARCHITECTURE.md:451, docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md:3, docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md:360...
+  Menções walkthrough.md (apenas referência): 6
+
+[agents.revisor_critico] (agents/revisor_critico.py, 610L / 492 non-empty, status=REACHABLE_PEP562_LAZY)
+  Símbolos top-level: ['AuditResult', 'RerankResult', 'RevisorCritico']
+  Importadores produção: [{'importer': 'agents', 'importer_path': 'agents/__init__.py', 'line': 10, 'kind': 'load', 'ann_only': False, 'raw': 'from agents.revisor_critico import RevisorCritico'}, {'importer': 'interface.action_hooks', 'importer_path': 'interface/action_hooks.py', 'line': 32, 'kind': 'load', 'ann_only': False, 'raw': 'from agents.revisor_critico import RevisorCritico'}]
+  Testes (11 em 3 arquivos): tests/colossus_benchmark.py(0, mixed=True, live=5), tests/stress_test_v2_setup.py(0, mixed=True, live=4), tests/test_revisor_critico.py(11, mixed=True, live=1)
+  Menções docs (1): docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:95
+  Menções walkthrough.md (apenas referência): 4
+
+[core.alias_tracker] (core/alias_tracker.py, 259L / 225 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['AliasTracker']
+  Importadores produção: []
+  Testes (4 em 1 arquivos): tests/test_alias_tracker.py(4, mixed=True, live=1)
+  Menções docs (12): README.md:34, README.pt-BR.md:34, docs-grafo-concierge/01_ARCHITECTURE.md:24, docs-grafo-concierge/01_ARCHITECTURE.md:68, docs-grafo-concierge/01_ARCHITECTURE.md:360, docs-grafo-concierge/01_ARCHITECTURE.md:362, docs-grafo-concierge/04_INGESTION_AND_AST.md:118, docs-grafo-concierge/04_INGESTION_AND_AST.md:129, docs-grafo-concierge/04_INGESTION_AND_AST.md:166, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:71, docs-grafo-concierge/README.md:14, docs-grafo-concierge/README.md:52
+  Menções walkthrough.md (apenas referência): 1
+
+[core.background_janitor] (core/background_janitor.py, 290L / 234 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['BackgroundJanitor']
+  Importadores produção: [{'importer': 'core.janitor', 'importer_path': 'core/janitor.py', 'line': 10, 'kind': 'load', 'ann_only': False, 'raw': 'from core.background_janitor import BackgroundJanitor'}]
+  Testes (7 em 4 arquivos): tests/test_checkpoint_pruning.py(1, mixed=True, live=3), tests/test_e2e_concierge_integration.py(1, mixed=True, live=7), tests/test_graph_rag_frugal.py(2, mixed=True, live=2), tests/test_graph_rag_janitor.py(3, mixed=True, live=5)
+  Menções docs (14): README.md:41, README.pt-BR.md:41, docs-grafo-concierge/01_ARCHITECTURE.md:14, docs-grafo-concierge/01_ARCHITECTURE.md:15, docs-grafo-concierge/01_ARCHITECTURE.md:18, docs-grafo-concierge/01_ARCHITECTURE.md:74, docs-grafo-concierge/01_ARCHITECTURE.md:336, docs-grafo-concierge/01_ARCHITECTURE.md:340, docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md:205, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:14, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:20, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:27...
+  Menções walkthrough.md (apenas referência): 21
+
+[core.delta_manager] (core/delta_manager.py, 265L / 222 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['DocstringStripper', 'DeltaManager']
+  Importadores produção: [{'importer': 'core.delta_sync', 'importer_path': 'core/delta_sync.py', 'line': 10, 'kind': 'load', 'ann_only': False, 'raw': 'from core.delta_manager import DeltaManager, DocstringStripper'}]
+  Testes (15 em 3 arquivos): tests/test_delta_sync.py(4, mixed=True, live=2), tests/test_e2e_concierge_integration.py(1, mixed=True, live=7), tests/test_ssh_language_coverage.py(10, mixed=False, live=0)
+  Menções docs (22): README.md:32, README.md:56, README.pt-BR.md:32, README.pt-BR.md:56, docs-grafo-concierge/01_ARCHITECTURE.md:13, docs-grafo-concierge/01_ARCHITECTURE.md:70, docs-grafo-concierge/01_ARCHITECTURE.md:300, docs-grafo-concierge/01_ARCHITECTURE.md:301, docs-grafo-concierge/01_ARCHITECTURE.md:427, docs-grafo-concierge/04_INGESTION_AND_AST.md:35, docs-grafo-concierge/04_INGESTION_AND_AST.md:42, docs-grafo-concierge/04_INGESTION_AND_AST.md:52...
+  Menções walkthrough.md (apenas referência): 23
+
+[core.delta_sync] (core/delta_sync.py, 12L / 8 non-empty, status=UNREACHABLE)
+  Símbolos top-level: []
+  Importadores produção: []
+  Testes (4 em 1 arquivos): tests/test_delta_sync_drift.py(4, mixed=False, live=0)
+  Menções docs (2): docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:77, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:80
+  Menções walkthrough.md (apenas referência): 7
+
+[core.dependencies] (core/dependencies.py, 39L / 31 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['AgentDependencies']
+  Importadores produção: []
+  Testes (3 em 1 arquivos): tests/test_dependency_injection.py(3, mixed=False, live=0)
+  Menções docs (12): README.md:167, pyproject.toml:37, pyproject.toml:55, docs-grafo-concierge/01_ARCHITECTURE.md:23, docs-grafo-concierge/01_ARCHITECTURE.md:25, docs-grafo-concierge/01_ARCHITECTURE.md:76, docs-grafo-concierge/01_ARCHITECTURE.md:120, docs-grafo-concierge/01_ARCHITECTURE.md:374, docs-grafo-concierge/04_INGESTION_AND_AST.md:107, docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md:86, docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md:129, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:86
+  Menções walkthrough.md (apenas referência): 0
+
+[core.federated_knowledge_router] (core/federated_knowledge_router.py, 100L / 79 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['FederatedKnowledgeRouter']
+  Importadores produção: [{'importer': 'core.nozomio_router', 'importer_path': 'core/nozomio_router.py', 'line': 8, 'kind': 'load', 'ann_only': False, 'raw': 'from core.federated_knowledge_router import FederatedKnowledgeRouter, FederatedKnowledgeRouter, EXTERNAL_FEDERATED_MCP'}]
+  Testes (3 em 1 arquivos): tests/test_cognitive_routing_memory.py(3, mixed=True, live=1)
+  Menções docs (12): docs-grafo-concierge/01_ARCHITECTURE.md:28, docs-grafo-concierge/01_ARCHITECTURE.md:66, docs-grafo-concierge/01_ARCHITECTURE.md:399, docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md:266, docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md:133, docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md:135, docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md:148, docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md:149, docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md:150, docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md:154, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:67, docs-grafo-concierge/README.md:49
+  Menções walkthrough.md (apenas referência): 1
+
+[core.gating_interceptor] (core/gating_interceptor.py, 176L / 146 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['GatingViolationException', 'GatingInterceptor']
+  Importadores produção: [{'importer': 'interface.telemetry_api', 'importer_path': 'interface/telemetry_api.py', 'line': 42, 'kind': 'load', 'ann_only': False, 'raw': 'from core.gating_interceptor import GatingInterceptor'}]
+  Testes (26 em 2 arquivos): tests/test_adaptive_gating.py(13, mixed=True, live=1), tests/test_agent_hsm_coupling.py(13, mixed=True, live=4)
+  Menções docs (7): README.md:31, README.pt-BR.md:31, docs-grafo-concierge/01_ARCHITECTURE.md:52, docs-grafo-concierge/01_ARCHITECTURE.md:453, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:63, docs-grafo-concierge/README.md:11, docs-grafo-concierge/README.md:35
+  Menções walkthrough.md (apenas referência): 2
+
+[core.global_memory_adapter] (core/global_memory_adapter.py, 85L / 65 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['GlobalMemoryAdapter']
+  Importadores produção: []
+  Testes (3 em 1 arquivos): tests/test_cognitive_routing_memory.py(3, mixed=True, live=1)
+  Menções docs (8): README.md:38, README.pt-BR.md:38, docs-grafo-concierge/01_ARCHITECTURE.md:28, docs-grafo-concierge/01_ARCHITECTURE.md:67, docs-grafo-concierge/01_ARCHITECTURE.md:400, docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md:238, docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md:240, docs-grafo-concierge/README.md:50
+  Menções walkthrough.md (apenas referência): 0
+
+[core.hsm_engine] (core/hsm_engine.py, 511L / 430 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['IllegalHSMTransitionError', 'HSMNode', 'HierarchicalStateMachine']
+  Importadores produção: [{'importer': 'interface.telemetry_api', 'importer_path': 'interface/telemetry_api.py', 'line': 79, 'kind': 'deferred', 'ann_only': False, 'raw': 'from core.hsm_engine import HierarchicalStateMachine'}]
+  Testes (76 em 3 arquivos): tests/test_agent_hsm_coupling.py(13, mixed=True, live=4), tests/test_hierarchical_state_machine.py(43, mixed=True, live=4), tests/test_hsm_transition_hooks_and_delta.py(20, mixed=True, live=2)
+  Menções docs (16): README.md:29, README.pt-BR.md:29, docs-grafo-concierge/01_ARCHITECTURE.md:29, docs-grafo-concierge/01_ARCHITECTURE.md:30, docs-grafo-concierge/01_ARCHITECTURE.md:62, docs-grafo-concierge/01_ARCHITECTURE.md:402, docs-grafo-concierge/01_ARCHITECTURE.md:403, docs-grafo-concierge/02_MCP_TOOLS_REFERENCE.md:306, docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md:281, docs-grafo-concierge/04_INGESTION_AND_AST.md:170, docs-grafo-concierge/04_INGESTION_AND_AST.md:175, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:64...
+  Menções walkthrough.md (apenas referência): 6
+
+[core.intent_classifier] (core/intent_classifier.py, 98L / 82 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['IntentClassifier']
+  Importadores produção: []
+  Testes (3 em 1 arquivos): tests/test_cognitive_routing_memory.py(3, mixed=True, live=1)
+  Menções docs (7): docs-grafo-concierge/01_ARCHITECTURE.md:28, docs-grafo-concierge/01_ARCHITECTURE.md:65, docs-grafo-concierge/01_ARCHITECTURE.md:395, docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md:101, docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md:103, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:67, docs-grafo-concierge/README.md:48
+  Menções walkthrough.md (apenas referência): 0
+
+[core.janitor] (core/janitor.py, 12L / 8 non-empty, status=UNREACHABLE)
+  Símbolos top-level: []
+  Importadores produção: []
+  Testes (0 em 0 arquivos): 
+  Menções docs (40): README.md:41, README.md:42, README.pt-BR.md:41, README.pt-BR.md:42, docs-grafo-concierge/01_ARCHITECTURE.md:14, docs-grafo-concierge/01_ARCHITECTURE.md:15, docs-grafo-concierge/01_ARCHITECTURE.md:16, docs-grafo-concierge/01_ARCHITECTURE.md:18, docs-grafo-concierge/01_ARCHITECTURE.md:33, docs-grafo-concierge/01_ARCHITECTURE.md:74, docs-grafo-concierge/01_ARCHITECTURE.md:85, docs-grafo-concierge/01_ARCHITECTURE.md:86...
+  Menções walkthrough.md (apenas referência): 26
+
+[core.nozomio_router] (core/nozomio_router.py, 21L / 17 non-empty, status=UNREACHABLE)
+  Símbolos top-level: []
+  Importadores produção: []
+  Testes (0 em 0 arquivos): 
+  Menções docs (3): docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md:144, docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md:145, docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md:147
+  Menções walkthrough.md (apenas referência): 0
+
+[core.parser_factory] (core/parser_factory.py, 80L / 62 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['ParserFactory']
+  Importadores produção: []
+  Testes (8 em 1 arquivos): tests/test_multilang_parser.py(8, mixed=False, live=0)
+  Menções docs (14): README.md:35, README.pt-BR.md:35, docs-grafo-concierge/01_ARCHITECTURE.md:25, docs-grafo-concierge/01_ARCHITECTURE.md:69, docs-grafo-concierge/01_ARCHITECTURE.md:367, docs-grafo-concierge/01_ARCHITECTURE.md:368, docs-grafo-concierge/04_INGESTION_AND_AST.md:80, docs-grafo-concierge/04_INGESTION_AND_AST.md:82, docs-grafo-concierge/04_INGESTION_AND_AST.md:84, docs-grafo-concierge/04_INGESTION_AND_AST.md:85, docs-grafo-concierge/04_INGESTION_AND_AST.md:88, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:70...
+  Menções walkthrough.md (apenas referência): 0
+
+[core.parsers] (core/parsers/__init__.py, 20L / 16 non-empty, status=UNREACHABLE)
+  Símbolos top-level: []
+  Importadores produção: [{'importer': 'core.parser_factory', 'importer_path': 'core/parser_factory.py', 'line': 16, 'kind': 'load', 'ann_only': True, 'raw': 'from core.parsers.base import BaseASTParser (parent pkg core.parsers)'}, {'importer': 'core.parser_factory', 'importer_path': 'core/parser_factory.py', 'line': 17, 'kind': 'load', 'ann_only': False, 'raw': 'from core.parsers.python_parser import PythonASTParser (parent pkg core.parsers)'}, {'importer': 'core.parser_factory', 'importer_path': 'core/parser_factory.py', 'line': 18, 'kind': 'load', 'ann_only': False, 'raw': 'from core.parsers.ts_js_parser import TSJSASTParser (parent pkg core.parsers)'}, {'importer': 'core.parsers', 'importer_path': 'core/parsers/__init__.py', 'line': 12, 'kind': 'load', 'ann_only': False, 'raw': 'from core.parsers.base import BaseASTParser (parent pkg core.parsers)'}, {'importer': 'core.parsers', 'importer_path': 'core/parsers/__init__.py', 'line': 13, 'kind': 'load', 'ann_only': False, 'raw': 'from core.parsers.python_parser import PythonASTParser (parent pkg core.parsers)'}, {'importer': 'core.parsers', 'importer_path': 'core/parsers/__init__.py', 'line': 14, 'kind': 'load', 'ann_only': False, 'raw': 'from core.parsers.ts_js_parser import TSJSASTParser (parent pkg core.parsers)'}, {'importer': 'core.parsers.python_parser', 'importer_path': 'core/parsers/python_parser.py', 'line': 16, 'kind': 'load', 'ann_only': False, 'raw': 'from core.parsers.base import BaseASTParser (parent pkg core.parsers)'}, {'importer': 'core.parsers.ts_js_parser', 'importer_path': 'core/parsers/ts_js_parser.py', 'line': 25, 'kind': 'load', 'ann_only': False, 'raw': 'from core.parsers.base import BaseASTParser (parent pkg core.parsers)'}]
+  Testes (0 em 0 arquivos): 
+  Menções docs (6): README.pt-BR.md:35, README.pt-BR.md:58, docs-grafo-concierge/01_ARCHITECTURE.md:25, docs-grafo-concierge/01_ARCHITECTURE.md:367, docs-grafo-concierge/04_INGESTION_AND_AST.md:100, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:70
+  Menções walkthrough.md (apenas referência): 0
+
+[core.parsers.base] (core/parsers/base.py, 41L / 32 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['BaseASTParser']
+  Importadores produção: [{'importer': 'core.parser_factory', 'importer_path': 'core/parser_factory.py', 'line': 16, 'kind': 'load', 'ann_only': True, 'raw': 'from core.parsers.base import BaseASTParser'}, {'importer': 'core.parsers', 'importer_path': 'core/parsers/__init__.py', 'line': 12, 'kind': 'load', 'ann_only': False, 'raw': 'from core.parsers.base import BaseASTParser'}, {'importer': 'core.parsers.python_parser', 'importer_path': 'core/parsers/python_parser.py', 'line': 16, 'kind': 'load', 'ann_only': False, 'raw': 'from core.parsers.base import BaseASTParser'}, {'importer': 'core.parsers.ts_js_parser', 'importer_path': 'core/parsers/ts_js_parser.py', 'line': 25, 'kind': 'load', 'ann_only': False, 'raw': 'from core.parsers.base import BaseASTParser'}]
+  Testes (0 em 0 arquivos): 
+  Menções docs (0): 
+  Menções walkthrough.md (apenas referência): 0
+
+[core.parsers.python_parser] (core/parsers/python_parser.py, 90L / 75 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['PythonASTParser']
+  Importadores produção: [{'importer': 'core.parser_factory', 'importer_path': 'core/parser_factory.py', 'line': 17, 'kind': 'load', 'ann_only': False, 'raw': 'from core.parsers.python_parser import PythonASTParser'}, {'importer': 'core.parsers', 'importer_path': 'core/parsers/__init__.py', 'line': 13, 'kind': 'load', 'ann_only': False, 'raw': 'from core.parsers.python_parser import PythonASTParser'}]
+  Testes (8 em 1 arquivos): tests/test_multilang_parser.py(8, mixed=False, live=0)
+  Menções docs (0): 
+  Menções walkthrough.md (apenas referência): 0
+
+[core.parsers.ts_js_parser] (core/parsers/ts_js_parser.py, 265L / 214 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['TSJSASTParser']
+  Importadores produção: [{'importer': 'core.parser_factory', 'importer_path': 'core/parser_factory.py', 'line': 18, 'kind': 'load', 'ann_only': False, 'raw': 'from core.parsers.ts_js_parser import TSJSASTParser'}, {'importer': 'core.parsers', 'importer_path': 'core/parsers/__init__.py', 'line': 14, 'kind': 'load', 'ann_only': False, 'raw': 'from core.parsers.ts_js_parser import TSJSASTParser'}]
+  Testes (8 em 1 arquivos): tests/test_multilang_parser.py(8, mixed=False, live=0)
+  Menções docs (1): docs-grafo-concierge/04_INGESTION_AND_AST.md:100
+  Menções walkthrough.md (apenas referência): 0
+
+[core.rate_governor] (core/rate_governor.py, 280L / 230 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['PriorityRequest', 'RateGovernor']
+  Importadores produção: [{'importer': 'interface.telemetry_api', 'importer_path': 'interface/telemetry_api.py', 'line': 44, 'kind': 'load', 'ann_only': False, 'raw': 'from core.rate_governor import RateGovernor'}]
+  Testes (21 em 2 arquivos): tests/test_agent_hsm_coupling.py(13, mixed=True, live=4), tests/test_rate_governor_priority.py(8, mixed=False, live=0)
+  Menções docs (12): README.md:30, README.pt-BR.md:30, docs-grafo-concierge/01_ARCHITECTURE.md:32, docs-grafo-concierge/01_ARCHITECTURE.md:48, docs-grafo-concierge/01_ARCHITECTURE.md:51, docs-grafo-concierge/01_ARCHITECTURE.md:439, docs-grafo-concierge/01_ARCHITECTURE.md:443, docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md:159, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:62, docs-grafo-concierge/README.md:11, docs-grafo-concierge/README.md:34, docs-grafo-concierge/README.md:46
+  Menções walkthrough.md (apenas referência): 21
+
+[core.search_engine] (core/search_engine.py, 61L / 49 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['HybridSearchEngine']
+  Importadores produção: []
+  Testes (3 em 2 arquivos): tests/test_e2e_concierge_integration.py(1, mixed=True, live=7), tests/test_vector_reconciler.py(2, mixed=True, live=2)
+  Menções docs (7): docs-grafo-concierge/01_ARCHITECTURE.md:16, docs-grafo-concierge/01_ARCHITECTURE.md:71, docs-grafo-concierge/01_ARCHITECTURE.md:307, docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md:19, docs-grafo-concierge/05_HYBRID_SEARCH_AND_ROUTING.md:23, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:82, docs-grafo-concierge/README.md:54
+  Menções walkthrough.md (apenas referência): 2
+
+[core.security_guard] (core/security_guard.py, 136L / 112 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['SecurityGuard']
+  Importadores produção: [{'importer': 'core.gating_interceptor', 'importer_path': 'core/gating_interceptor.py', 'line': 26, 'kind': 'load', 'ann_only': True, 'raw': 'from core.security_guard import SecurityGuard'}, {'importer': 'interface.telemetry_api', 'importer_path': 'interface/telemetry_api.py', 'line': 45, 'kind': 'load', 'ann_only': False, 'raw': 'from core.security_guard import SecurityGuard'}]
+  Testes (26 em 2 arquivos): tests/test_adaptive_gating.py(13, mixed=True, live=1), tests/test_agent_hsm_coupling.py(13, mixed=True, live=4)
+  Menções docs (7): README.md:31, README.pt-BR.md:31, docs-grafo-concierge/01_ARCHITECTURE.md:52, docs-grafo-concierge/01_ARCHITECTURE.md:453, docs-grafo-concierge/01_ARCHITECTURE.md:458, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:63, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:116
+  Menções walkthrough.md (apenas referência): 17
+
+[core.telemetry_schemas] (core/telemetry_schemas.py, 82L / 64 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['DirtyFileSchema', 'SelfHealingEventSchema', 'JanitorStatusSchema', 'CheckpointSchema', 'AgentSessionSchema', 'TelemetryPayloadSchema']
+  Importadores produção: [{'importer': 'interface.telemetry_api', 'importer_path': 'interface/telemetry_api.py', 'line': 46, 'kind': 'load', 'ann_only': False, 'raw': 'from core.telemetry_schemas import AgentSessionSchema, CheckpointSchema, DirtyFileSchema, JanitorStatusSchema, TelemetryPayloadSchema'}]
+  Testes (0 em 0 arquivos): 
+  Menções docs (1): docs-grafo-concierge/01_ARCHITECTURE.md:19
+  Menções walkthrough.md (apenas referência): 2
+
+[core.vector_reconciler] (core/vector_reconciler.py, 55L / 42 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['VectorReconciler']
+  Importadores produção: [{'importer': 'interface.telemetry_api', 'importer_path': 'interface/telemetry_api.py', 'line': 271, 'kind': 'deferred', 'ann_only': False, 'raw': 'from core.vector_reconciler import VectorReconciler'}]
+  Testes (3 em 2 arquivos): tests/test_e2e_concierge_integration.py(1, mixed=True, live=7), tests/test_vector_reconciler.py(2, mixed=True, live=2)
+  Menções docs (6): docs-grafo-concierge/01_ARCHITECTURE.md:16, docs-grafo-concierge/01_ARCHITECTURE.md:75, docs-grafo-concierge/01_ARCHITECTURE.md:309, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:9, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:82, docs-grafo-concierge/README.md:55
+  Menções walkthrough.md (apenas referência): 21
+
+[interface.action_hooks] (interface/action_hooks.py, 261L / 219 non-empty, status=REACHABLE_PEP562_LAZY)
+  Símbolos top-level: ['ActionHooks']
+  Importadores produção: [{'importer': 'interface', 'importer_path': 'interface/__init__.py', 'line': 23, 'kind': 'pep562_getattr', 'ann_only': False, 'raw': 'from interface.action_hooks import ActionHooks'}]
+  Testes (27 em 3 arquivos): tests/stress_test_v2_setup.py(0, mixed=True, live=4), tests/test_governor_wiring.py(5, mixed=True, live=5), tests/test_interface_contracts.py(22, mixed=True, live=5)
+  Menções docs (0): 
+  Menções walkthrough.md (apenas referência): 0
+
+[interface.queue_writer] (interface/queue_writer.py, 304L / 271 non-empty, status=REACHABLE_ANNOTATION_ONLY_RUNTIME)
+  Símbolos top-level: ['SerializedWriteQueue']
+  Importadores produção: [{'importer': 'core.database', 'importer_path': 'core/database.py', 'line': 18, 'kind': 'load', 'ann_only': True, 'raw': 'from interface.queue_writer import SerializedWriteQueue'}]
+  Testes (46 em 13 arquivos): tests/test_agent_checkpointer.py(4, mixed=True, live=3), tests/test_checkpoint_pruning.py(1, mixed=True, live=3), tests/test_concurrency_stress.py(2, mixed=True, live=3), tests/test_delta_sync.py(4, mixed=True, live=2), tests/test_e2e_concierge_integration.py(1, mixed=True, live=7), tests/test_graph_rag_frugal.py(2, mixed=True, live=2), tests/test_graph_rag_janitor.py(3, mixed=True, live=5), tests/test_graph_rag_loops.py(3, mixed=True, live=3), tests/test_mcp_server_extensions.py(3, mixed=True, live=7), tests/test_queue_writer_batching.py(2, mixed=True, live=1), tests/test_queue_writer_resilience.py(14, mixed=True, live=1), tests/test_telemetry_api.py(5, mixed=True, live=1), tests/test_vector_reconciler.py(2, mixed=True, live=2)
+  Menções docs (14): README.md:28, README.md:55, README.pt-BR.md:28, README.pt-BR.md:55, docs-grafo-concierge/01_ARCHITECTURE.md:12, docs-grafo-concierge/01_ARCHITECTURE.md:15, docs-grafo-concierge/01_ARCHITECTURE.md:55, docs-grafo-concierge/01_ARCHITECTURE.md:97, docs-grafo-concierge/01_ARCHITECTURE.md:110, docs-grafo-concierge/01_ARCHITECTURE.md:336, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:25, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:76...
+  Menções walkthrough.md (apenas referência): 10
+
+[interface.telemetry_api] (interface/telemetry_api.py, 595L / 481 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['get_hsm_service', 'get_db_manager', 'set_db_manager', '_build_telemetry_payload', '_hash_payload', 'get_telemetry_snapshot', 'trigger_janitor_reconcile', 'TimeTravelRequest', 'list_session_checkpoints', 'trigger_time_travel', 'FSMStateUpdateRequest', 'update_mcp_session_state', 'get_mcp_session_state', 'TokenReportPayload', 'get_governor_metrics', 'report_token_usage', 'GatingModePayload', 'get_gating_config', 'update_gating_config', 'HSMTransitionRequest', 'get_hsm_state', 'trigger_hsm_transition', 'resume_session_hsm', 'get_hsm_tree', '_telemetry_event_generator', 'telemetry_stream']
+  Importadores produção: []
+  Testes (61 em 5 arquivos): tests/test_durable_checkpoints_timetravel.py(3, mixed=True, live=2), tests/test_governor_wiring.py(5, mixed=True, live=5), tests/test_hierarchical_state_machine.py(43, mixed=True, live=4), tests/test_progressive_tool_disclosure.py(5, mixed=True, live=1), tests/test_telemetry_api.py(5, mixed=True, live=1)
+  Menções docs (12): README.md:39, README.pt-BR.md:39, docs-grafo-concierge/01_ARCHITECTURE.md:19, docs-grafo-concierge/01_ARCHITECTURE.md:53, docs-grafo-concierge/01_ARCHITECTURE.md:346, docs-grafo-concierge/01_ARCHITECTURE.md:390, docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md:91, docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md:119, docs-grafo-concierge/06_DEPLOY_AND_CONFIGURATION.md:141, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:34, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:73, docs-grafo-concierge/README.md:36
+  Menções walkthrough.md (apenas referência): 17
+
+[interface.watcher] (interface/watcher.py, 243L / 203 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['ConciergeFileSystemHandler']
+  Importadores produção: []
+  Testes (4 em 1 arquivos): tests/test_watcher_ignore.py(4, mixed=True, live=1)
+  Menções docs (15): docs-grafo-concierge/01_ARCHITECTURE.md:22, docs-grafo-concierge/01_ARCHITECTURE.md:54, docs-grafo-concierge/01_ARCHITECTURE.md:361, docs-grafo-concierge/01_ARCHITECTURE.md:383, docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md:234, docs-grafo-concierge/04_INGESTION_AND_AST.md:3, docs-grafo-concierge/04_INGESTION_AND_AST.md:13, docs-grafo-concierge/04_INGESTION_AND_AST.md:25, docs-grafo-concierge/04_INGESTION_AND_AST.md:27, docs-grafo-concierge/04_INGESTION_AND_AST.md:124, docs-grafo-concierge/04_INGESTION_AND_AST.md:209, docs-grafo-concierge/07_MIGRATION_AND_OPERATIONS.md:94...
+  Menções walkthrough.md (apenas referência): 2
+
+[storage.relational_db] (storage/relational_db.py, 35L / 29 non-empty, status=UNREACHABLE)
+  Símbolos top-level: ['init_fsm_checkpoints_schema']
+  Importadores produção: []
+  Testes (0 em 0 arquivos): 
+  Menções docs (4): docs-grafo-concierge/01_ARCHITECTURE.md:26, docs-grafo-concierge/01_ARCHITECTURE.md:378, docs-grafo-concierge/03_COGNITIVE_MEMORY_AND_FACTS.md:205, docs-grafo-concierge/README.md:66
+  Menções walkthrough.md (apenas referência): 6

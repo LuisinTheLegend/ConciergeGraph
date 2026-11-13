@@ -1,0 +1,39 @@
+=== BLOCO 5 (GRANULAR): INSPEÇÃO POR TESTE INDIVIDUAL EM ARQUIVOS MISTOS ===
+[tests/test_adaptive_gating.py] (13 testes) -> dormant_only=11, mixed=2, live_only=0, qw=0 | dorm=['core.gating_interceptor', 'core.security_guard'] | live=['core']
+[tests/test_agent_checkpointer.py] (4 testes) -> dormant_only=0, mixed=0, live_only=0, qw=4 | dorm=['interface.queue_writer'] | live=['core.checkpointer', 'core.database', 'interface']
+[tests/test_agent_hsm_coupling.py] (13 testes) -> dormant_only=0, mixed=13, live_only=0, qw=0 | dorm=['agent.agent_prompts', 'agent.run_agent', 'core.gating_interceptor', 'core.hsm_engine', 'core.rate_governor', 'core.security_guard'] | live=['core.checkpointer', 'core.database', 'core.mcp_governor', 'main']
+[tests/test_alias_tracker.py] (4 testes) -> dormant_only=0, mixed=4, live_only=0, qw=0 | dorm=['core.alias_tracker'] | live=['core.database']
+[tests/test_checkpoint_pruning.py] (1 testes) -> dormant_only=0, mixed=1, live_only=0, qw=0 | dorm=['core.background_janitor', 'interface.queue_writer'] | live=['core.checkpointer', 'core.database', 'interface']
+[tests/test_cognitive_routing_memory.py] (3 testes) -> dormant_only=0, mixed=3, live_only=0, qw=0 | dorm=['core.federated_knowledge_router', 'core.global_memory_adapter', 'core.intent_classifier'] | live=['core.database']
+[tests/test_concurrency_stress.py] (2 testes) -> dormant_only=0, mixed=0, live_only=0, qw=2 | dorm=['interface.queue_writer'] | live=['core.database', 'interface', 'storage.schema']
+[tests/test_delta_sync.py] (4 testes) -> dormant_only=0, mixed=4, live_only=0, qw=0 | dorm=['core.delta_manager', 'interface.queue_writer'] | live=['core.database', 'interface']
+[tests/test_delta_sync_drift.py] (4 testes) -> dormant_only=4, mixed=0, live_only=0, qw=0 | dorm=['core.delta_sync'] | live=[]
+[tests/test_dependency_injection.py] (3 testes) -> dormant_only=3, mixed=0, live_only=0, qw=0 | dorm=['core.dependencies'] | live=[]
+[tests/test_durable_checkpoints_timetravel.py] (3 testes) -> dormant_only=0, mixed=3, live_only=0, qw=0 | dorm=['interface.telemetry_api'] | live=['core.checkpointer', 'core.database']
+[tests/test_e2e_concierge_integration.py] (1 testes) -> dormant_only=0, mixed=1, live_only=0, qw=0 | dorm=['core.background_janitor', 'core.delta_manager', 'core.search_engine', 'core.vector_reconciler', 'interface.queue_writer'] | live=['core.checkpointer', 'core.database', 'core.graph_rag', 'core.middleware', 'interface', 'interface.mcp_server', 'storage.schema']
+[tests/test_governor_wiring.py] (5 testes) -> dormant_only=1, mixed=3, live_only=1, qw=0 | dorm=['interface.action_hooks', 'interface.telemetry_api'] | live=['core', 'core.mcp_governor', 'interface', 'interface.mcp_server', 'storage.store']
+    (PRESERVAR - só vivo) tests/test_governor_wiring.py::test_t1_mcp_server_import_does_not_drag_agents_or_action_hooks
+[tests/test_graph_rag_frugal.py] (2 testes) -> dormant_only=0, mixed=2, live_only=0, qw=0 | dorm=['core.background_janitor', 'interface.queue_writer'] | live=['core.database', 'core.graph_rag']
+[tests/test_graph_rag_janitor.py] (3 testes) -> dormant_only=0, mixed=3, live_only=0, qw=0 | dorm=['core.background_janitor', 'interface.queue_writer'] | live=['core.database', 'core.graph_rag', 'interface', 'main', 'storage.schema']
+[tests/test_graph_rag_loops.py] (3 testes) -> dormant_only=0, mixed=0, live_only=0, qw=3 | dorm=['interface.queue_writer'] | live=['core.database', 'core.graph_rag', 'storage.schema']
+[tests/test_hierarchical_state_machine.py] (43 testes) -> dormant_only=32, mixed=11, live_only=0, qw=0 | dorm=['core.hsm_engine', 'interface.telemetry_api'] | live=['core.checkpointer', 'core.database', 'core.mcp_governor', 'main']
+[tests/test_hsm_transition_hooks_and_delta.py] (20 testes) -> dormant_only=8, mixed=12, live_only=0, qw=0 | dorm=['core.hsm_engine'] | live=['core.checkpointer', 'core.database']
+[tests/test_interface_contracts.py] (22 testes) -> dormant_only=0, mixed=17, live_only=5, qw=0 | dorm=['interface.action_hooks'] | live=['core.middleware', 'interface', 'interface.cli', 'interface.mcp_server', 'storage.store']
+    (PRESERVAR - só vivo) tests/test_interface_contracts.py::TestMCPToolRegistration::test_all_required_tools_registered
+    (PRESERVAR - só vivo) tests/test_interface_contracts.py::TestMCPToolRegistration::test_server_name_is_grafo_concierge
+    (PRESERVAR - só vivo) tests/test_interface_contracts.py::TestMCPToolRegistration::test_status_has_no_chromadb_component
+    (PRESERVAR - só vivo) tests/test_interface_contracts.py::TestMCPToolRegistration::test_status_has_no_embedding_component
+    (PRESERVAR - só vivo) tests/test_interface_contracts.py::TestMCPToolRegistration::test_status_has_sqlite_component
+[tests/test_mcp_server_extensions.py] (3 testes) -> dormant_only=0, mixed=0, live_only=0, qw=3 | dorm=['interface.queue_writer'] | live=['core.checkpointer', 'core.database', 'core.graph_rag', 'core.middleware', 'interface', 'interface.mcp_server', 'storage.schema']
+[tests/test_multilang_parser.py] (8 testes) -> dormant_only=7, mixed=1, live_only=0, qw=0 | dorm=['core.parser_factory', 'core.parsers.python_parser', 'core.parsers.ts_js_parser'] | live=[]
+[tests/test_progressive_tool_disclosure.py] (5 testes) -> dormant_only=0, mixed=5, live_only=0, qw=0 | dorm=['interface.telemetry_api'] | live=['core.mcp_governor']
+[tests/test_queue_writer_batching.py] (2 testes) -> dormant_only=0, mixed=0, live_only=0, qw=2 | dorm=['interface.queue_writer'] | live=['core.database']
+[tests/test_queue_writer_resilience.py] (14 testes) -> dormant_only=0, mixed=0, live_only=0, qw=14 | dorm=['interface.queue_writer'] | live=['core.database']
+[tests/test_rate_governor_priority.py] (8 testes) -> dormant_only=8, mixed=0, live_only=0, qw=0 | dorm=['core.rate_governor'] | live=[]
+[tests/test_revisor_critico.py] (11 testes) -> dormant_only=9, mixed=2, live_only=0, qw=0 | dorm=['agents.revisor_critico'] | live=['core.config']
+[tests/test_ssh_language_coverage.py] (10 testes) -> dormant_only=10, mixed=0, live_only=0, qw=0 | dorm=['core.delta_manager'] | live=[]
+[tests/test_telemetry_api.py] (5 testes) -> dormant_only=0, mixed=5, live_only=0, qw=0 | dorm=['interface.queue_writer', 'interface.telemetry_api'] | live=['core.database']
+[tests/test_vector_reconciler.py] (2 testes) -> dormant_only=0, mixed=0, live_only=2, qw=0 | dorm=['core.search_engine', 'core.vector_reconciler', 'interface.queue_writer'] | live=['core.database', 'interface']
+    (PRESERVAR - só vivo) tests/test_vector_reconciler.py::TestVectorReconciliationAndSelfHealing::test_background_reconciler_should_delete_orphans_from_vector_db
+    (PRESERVAR - só vivo) tests/test_vector_reconciler.py::TestVectorReconciliationAndSelfHealing::test_should_filter_out_orphan_vectors_at_query_time
+[tests/test_watcher_ignore.py] (4 testes) -> dormant_only=4, mixed=0, live_only=0, qw=0 | dorm=['interface.watcher'] | live=['interface']

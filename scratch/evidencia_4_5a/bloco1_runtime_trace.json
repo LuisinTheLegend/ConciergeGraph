@@ -1,0 +1,326 @@
+{
+  "tools_registered_count": 31,
+  "tools_registered": [
+    "concierge_register",
+    "concierge_list_projects",
+    "concierge_mine",
+    "concierge_search",
+    "concierge_commit",
+    "concierge_set_state",
+    "concierge_wakeup",
+    "concierge_resume",
+    "concierge_load",
+    "concierge_status",
+    "search_symbols",
+    "get_implementations",
+    "get_callers",
+    "concierge_store_fact",
+    "concierge_list_facts",
+    "concierge_set_memory",
+    "concierge_get_memory",
+    "concierge_feedback",
+    "get_full_topology",
+    "delete_project",
+    "update_project",
+    "add_reference_wing",
+    "remove_reference_wing",
+    "find_similar",
+    "get_trajectories",
+    "count_embeddings",
+    "reset_collection",
+    "concierge_get_call_chain",
+    "agent_save_checkpoint",
+    "agent_get_checkpoint",
+    "agent_list_checkpoints"
+  ],
+  "tools_results": {
+    "concierge_set_state": {
+      "ok": true,
+      "result_preview": "{'success': True, 'session_id': 'default', 'active_state': 'MAINTENANCE'}"
+    },
+    "concierge_register": {
+      "ok": true,
+      "result_preview": "{'success': True, 'project_uuid': 'dfe7f2a2-c07e-46ee-9ff7-8c9ec075204f', 'folder_name': 'sample_proj', 'wing': 'core', 'privacy_level': 'PUBLIC', 'duration_seconds': 0.016}"
+    },
+    "concierge_list_projects": {
+      "ok": true,
+      "result_preview": "{'projects': {'sample_proj': {'uuid': 'dfe7f2a2-c07e-46ee-9ff7-8c9ec075204f', 'updated_at': '2026-11-13'}, 'ref_proj': {'uuid': 'f1b01272-9c0c-4fce-aa5c-30688e60bb5c', 'updated_at': '2026-11-13'}}, 'success': True, 'duration_seconds': 0.0}"
+    },
+    "concierge_mine": {
+      "ok": true,
+      "result_preview": "{'files_processed': 2, 'categories': {'code': 2}, 'nodes_created': 4, 'embeddings_stored': 0, 'embeddings_failed': 4, 'embeddings_repaired': 0, 'tags_applied': [], 'files_skipped': 0, 'files_deleted': 0, 'summaries_generated': 0, 'errors': ['4 chunks without vectors (probable cause: model unavailabl"
+    },
+    "concierge_status": {
+      "ok": true,
+      "result_preview": "{'success': True, 'system': 'Grafo Concierge v3.8.0', 'components': {'sqlite': {'status': 'healthy', 'total_projects': 2}, 'janitor': {'status': 'idle', 'total_runs': 0}}, 'duration_seconds': 0.002}"
+    },
+    "concierge_wakeup": {
+      "ok": true,
+      "result_preview": "{'project': {'uuid': 'dfe7f2a2-c07e-46ee-9ff7-8c9ec075204f', 'folder_name': 'sample_proj', 'primary_wing': 'core', 'privacy_level': 'PUBLIC', 'summary': 'Sample', 'created_at': '2026-11-13 02:17:07', 'updated_at': '2026-11-13 02:17:07'}, 'resume': 'Sample', 'reference_wings': [], 'recent_commits': ["
+    },
+    "concierge_resume": {
+      "ok": true,
+      "result_preview": "{'success': True, 'project_uuid': 'sample_proj', 'folder_name': 'sample_proj', 'primary_wing': 'core', 'resume': 'Sample', 'stats': {'nodes': 0, 'nodes_by_type': {}, 'edges': 0, 'commits': 0, 'last_commit_at': None, 'trajectories': 0, 'trajectories_active': 0}, 'duration_seconds': 0.001}"
+    },
+    "concierge_search": {
+      "ok": true,
+      "result_preview": "{'success': True, 'query': 'helper', 'project_uuid': 'dfe7f2a2-c07e-46ee-9ff7-8c9ec075204f', 'results_count': 3, 'results': [{'node_id': 2, 'label': 'app.py::helper', 'summary': None, 'node_type': 'FUNCTION', 'tags': None, 'hybrid_score': 0.3, 'vector_score': 0.0, 'fts_score': 1.0, 'recency_score': "
+    },
+    "find_similar": {
+      "ok": true,
+      "result_preview": "{'success': True, 'project_uuid': 'dfe7f2a2-c07e-46ee-9ff7-8c9ec075204f', 'similar_projects': [], 'duration_seconds': 0.003}"
+    },
+    "concierge_load": {
+      "ok": true,
+      "result_preview": "{'success': False, 'error': '%d format: a real number is required, not str', 'duration_seconds': 0.002}"
+    },
+    "concierge_commit": {
+      "ok": true,
+      "result_preview": "{'success': False, 'error': 'FOREIGN KEY constraint failed', 'duration_seconds': 0.003}"
+    },
+    "get_trajectories": {
+      "ok": true,
+      "result_preview": "{'success': True, 'project_uuid': 'dfe7f2a2-c07e-46ee-9ff7-8c9ec075204f', 'trajectories': [], 'duration_seconds': 0.001}"
+    },
+    "concierge_store_fact": {
+      "ok": true,
+      "result_preview": "{'success': True, 'scope_type': 'session', 'scope_id': 's45a', 'decisions': [{'fact': 'Runtime uses SQLite WAL', 'action': 'ADD', 'target_id': None, 'fact_id': 1}], 'duration_seconds': 0.938}"
+    },
+    "concierge_list_facts": {
+      "ok": true,
+      "result_preview": "{'success': True, 'scope_type': 'session', 'scope_id': 's45a', 'facts_count': 1, 'facts': [{'id': 1, 'scope_type': 'session', 'scope_id': 's45a', 'fact_statement': 'Runtime uses SQLite WAL', 't_valid': '2026-11-13 02:17:07', 't_invalid': None, 'utility_alpha': 1.0, 'utility_beta': 1.0, 'created_at':"
+    },
+    "concierge_set_memory": {
+      "ok": true,
+      "result_preview": "{'success': True, 'memory_id': 1, 'scope_type': 'session', 'scope_id': 's45a', 'block_label': 'notes', 'duration_seconds': 0.003}"
+    },
+    "concierge_get_memory": {
+      "ok": true,
+      "result_preview": "{'success': True, 'scope_type': 'session', 'scope_id': 's45a', 'block_label': 'notes', 'blocks': [{'id': 1, 'scope_type': 'session', 'scope_id': 's45a', 'block_label': 'notes', 'content': 'block-v1', 'updated_at': '2026-11-13 02:17:08'}], 'duration_seconds': 0.002}"
+    },
+    "concierge_feedback": {
+      "ok": true,
+      "result_preview": "{'success': True, 'fact_id': 1, 'was_useful': True, 'updated_field': 'utility_alpha', 'message': 'utility_alpha incremented for fact 1.', 'duration_seconds': 0.004}"
+    },
+    "search_symbols": {
+      "ok": true,
+      "result_preview": "{'success': True, 'symbols': [{'id': 2, 'label': 'app.py::helper', 'node_type': 'FUNCTION', 'file_path': 'app.py::helper', 'summary': None}, {'id': 4, 'label': 'app.py::<module>', 'node_type': 'MODULE', 'file_path': 'app.py::<module>', 'summary': None}, {'id': 3, 'label': 'app.py::run_flow', 'node_t"
+    },
+    "get_implementations": {
+      "ok": true,
+      "result_preview": "{'success': True, 'symbol_id': '2', 'label': 'app.py::helper', 'type': 'function', 'implementation': 'def helper(x: int) -> int:\\n    return x + 1', 'project_uuid': 'dfe7f2a2-c07e-46ee-9ff7-8c9ec075204f', 'duration_seconds': 0.0}"
+    },
+    "get_callers": {
+      "ok": true,
+      "result_preview": "{'success': True, 'symbol_id': '2', 'callers': [{'id': 4, 'label': 'app.py::<module>', 'node_type': 'MODULE', 'relation_type': 'contains'}, {'id': 3, 'label': 'app.py::run_flow', 'node_type': 'FUNCTION', 'relation_type': 'calls'}], 'duration_seconds': 0.0}"
+    },
+    "concierge_get_call_chain": {
+      "ok": true,
+      "result_preview": "[]"
+    },
+    "get_full_topology": {
+      "ok": true,
+      "result_preview": "{'success': True, 'nodes': [{'node_id': 1, 'name': '<root>', 'node_type': 'FACT'}, {'node_id': 2, 'name': 'app.py::helper', 'node_type': 'FUNCTION'}, {'node_id': 3, 'name': 'app.py::run_flow', 'node_type': 'FUNCTION'}, {'node_id': 4, 'name': 'app.py::<module>', 'node_type': 'MODULE'}, {'node_id': 5,"
+    },
+    "count_embeddings": {
+      "ok": true,
+      "result_preview": "{'success': True, 'project_uuid': 'dfe7f2a2-c07e-46ee-9ff7-8c9ec075204f', 'count': 0, 'duration_seconds': 0.001}"
+    },
+    "update_project": {
+      "ok": true,
+      "result_preview": "{'success': True, 'project_uuid': 'dfe7f2a2-c07e-46ee-9ff7-8c9ec075204f', 'updated_fields': ['summary'], 'duration_seconds': 0.005}"
+    },
+    "add_reference_wing": {
+      "ok": true,
+      "result_preview": "{'success': True, 'project_uuid': 'dfe7f2a2-c07e-46ee-9ff7-8c9ec075204f', 'wing_name': 'test', 'duration_seconds': 0.004}"
+    },
+    "remove_reference_wing": {
+      "ok": true,
+      "result_preview": "{'success': True, 'project_uuid': 'dfe7f2a2-c07e-46ee-9ff7-8c9ec075204f', 'wing_name': 'test', 'duration_seconds': 0.004}"
+    },
+    "agent_save_checkpoint": {
+      "ok": true,
+      "result_preview": "{\"success\": false, \"message\": \"Failed to save checkpoint 'ckpt-1' for agent 'agent-45a': no such table: fsm_checkpoints\"}"
+    },
+    "agent_get_checkpoint": {
+      "ok": true,
+      "result_preview": "{}"
+    },
+    "agent_list_checkpoints": {
+      "ok": true,
+      "result_preview": "[]"
+    },
+    "reset_collection": {
+      "ok": true,
+      "result_preview": "{'success': False, 'duration_seconds': 0.003}"
+    },
+    "delete_project": {
+      "ok": true,
+      "result_preview": "{'success': True, 'project_uuid': 'f1b01272-9c0c-4fce-aa5c-30688e60bb5c', 'duration_seconds': 0.005}"
+    }
+  },
+  "snap_before": [],
+  "snap_after_import_main": [
+    "main"
+  ],
+  "snap_after_bootstrap": [
+    "core",
+    "core.checkpointer",
+    "core.config",
+    "core.database",
+    "core.graph_rag",
+    "core.hybrid_search",
+    "core.mcp_governor",
+    "core.memory_extractor",
+    "core.middleware",
+    "core.project_index",
+    "ingestion",
+    "ingestion.crawler",
+    "ingestion.orchestrator",
+    "ingestion.parser",
+    "ingestion.summarizer",
+    "interface",
+    "interface.mcp_server",
+    "interface.queue_writer",
+    "main",
+    "services",
+    "services.janitor",
+    "storage",
+    "storage.base_backend",
+    "storage.connection",
+    "storage.logic",
+    "storage.schema",
+    "storage.semantic_logic",
+    "storage.store",
+    "storage.vector_store"
+  ],
+  "snap_after_tools": [
+    "core",
+    "core.checkpointer",
+    "core.config",
+    "core.database",
+    "core.graph_rag",
+    "core.hybrid_search",
+    "core.mcp_governor",
+    "core.memory_extractor",
+    "core.middleware",
+    "core.project_index",
+    "core.vector_backend",
+    "ingestion",
+    "ingestion.crawler",
+    "ingestion.orchestrator",
+    "ingestion.parser",
+    "ingestion.summarizer",
+    "interface",
+    "interface.mcp_server",
+    "interface.queue_writer",
+    "main",
+    "services",
+    "services.janitor",
+    "storage",
+    "storage.base_backend",
+    "storage.connection",
+    "storage.logic",
+    "storage.schema",
+    "storage.semantic_logic",
+    "storage.store",
+    "storage.vector_store"
+  ],
+  "cli_import_mods": [
+    "core",
+    "core.config",
+    "core.hybrid_search",
+    "core.memory_extractor",
+    "core.middleware",
+    "core.project_index",
+    "ingestion",
+    "ingestion.crawler",
+    "ingestion.orchestrator",
+    "ingestion.parser",
+    "ingestion.summarizer",
+    "interface",
+    "interface.cli",
+    "interface.mcp_server",
+    "services",
+    "services.janitor",
+    "storage",
+    "storage.base_backend",
+    "storage.connection",
+    "storage.logic",
+    "storage.schema",
+    "storage.semantic_logic",
+    "storage.store",
+    "storage.vector_store"
+  ],
+  "cli_exec_mods": [
+    "core",
+    "core.config",
+    "core.hybrid_search",
+    "core.memory_extractor",
+    "core.middleware",
+    "core.project_index",
+    "ingestion",
+    "ingestion.crawler",
+    "ingestion.orchestrator",
+    "ingestion.parser",
+    "ingestion.summarizer",
+    "interface",
+    "interface.cli",
+    "interface.mcp_server",
+    "services",
+    "services.janitor",
+    "storage",
+    "storage.base_backend",
+    "storage.connection",
+    "storage.logic",
+    "storage.schema",
+    "storage.semantic_logic",
+    "storage.store",
+    "storage.vector_store"
+  ],
+  "runtime_union": [
+    "core",
+    "core.checkpointer",
+    "core.config",
+    "core.database",
+    "core.graph_rag",
+    "core.hybrid_search",
+    "core.mcp_governor",
+    "core.memory_extractor",
+    "core.middleware",
+    "core.project_index",
+    "core.vector_backend",
+    "ingestion",
+    "ingestion.crawler",
+    "ingestion.orchestrator",
+    "ingestion.parser",
+    "ingestion.summarizer",
+    "interface",
+    "interface.cli",
+    "interface.mcp_server",
+    "interface.queue_writer",
+    "main",
+    "services",
+    "services.janitor",
+    "storage",
+    "storage.base_backend",
+    "storage.connection",
+    "storage.logic",
+    "storage.schema",
+    "storage.semantic_logic",
+    "storage.store",
+    "storage.vector_store"
+  ],
+  "comparison": {
+    "in_static_reachable_not_in_runtime": [
+      "agents",
+      "agents.revisor_critico",
+      "core.probabilistic_retriever",
+      "interface.action_hooks"
+    ],
+    "in_runtime_not_in_static_load_or_deferred": [
+      "interface.queue_writer"
+    ],
+    "static_unreachable_loaded_at_runtime": []
+  }
+}

@@ -1,0 +1,561 @@
+{
+  "total_collected": 478,
+  "affected_files": [
+    {
+      "test_file": "tests/colossus_benchmark.py",
+      "test_count": 0,
+      "dormant_imported": [
+        "agents.revisor_critico"
+      ],
+      "live_imported": [
+        "core.hybrid_search",
+        "core.project_index",
+        "ingestion",
+        "services.janitor",
+        "storage"
+      ],
+      "touches_class_i": true,
+      "touches_class_ii": false,
+      "touches_queue_writer": false,
+      "pure_dormant_only": false,
+      "test_defs_count": 0
+    },
+    {
+      "test_file": "tests/stress_test_v2_setup.py",
+      "test_count": 0,
+      "dormant_imported": [
+        "agents.revisor_critico",
+        "interface.action_hooks"
+      ],
+      "live_imported": [
+        "core.middleware",
+        "ingestion.orchestrator",
+        "ingestion.summarizer",
+        "storage"
+      ],
+      "touches_class_i": true,
+      "touches_class_ii": false,
+      "touches_queue_writer": false,
+      "pure_dormant_only": false,
+      "test_defs_count": 0
+    },
+    {
+      "test_file": "tests/test_adaptive_gating.py",
+      "test_count": 13,
+      "dormant_imported": [
+        "core.gating_interceptor",
+        "core.security_guard"
+      ],
+      "live_imported": [
+        "core"
+      ],
+      "touches_class_i": true,
+      "touches_class_ii": false,
+      "touches_queue_writer": false,
+      "pure_dormant_only": false,
+      "test_defs_count": 13
+    },
+    {
+      "test_file": "tests/test_agent_checkpointer.py",
+      "test_count": 4,
+      "dormant_imported": [
+        "interface.queue_writer"
+      ],
+      "live_imported": [
+        "core.checkpointer",
+        "core.database",
+        "interface"
+      ],
+      "touches_class_i": false,
+      "touches_class_ii": false,
+      "touches_queue_writer": true,
+      "pure_dormant_only": false,
+      "test_defs_count": 4
+    },
+    {
+      "test_file": "tests/test_agent_hsm_coupling.py",
+      "test_count": 13,
+      "dormant_imported": [
+        "agent.agent_prompts",
+        "agent.run_agent",
+        "core.gating_interceptor",
+        "core.hsm_engine",
+        "core.rate_governor",
+        "core.security_guard"
+      ],
+      "live_imported": [
+        "core.checkpointer",
+        "core.database",
+        "core.mcp_governor",
+        "main"
+      ],
+      "touches_class_i": true,
+      "touches_class_ii": false,
+      "touches_queue_writer": false,
+      "pure_dormant_only": false,
+      "test_defs_count": 13
+    },
+    {
+      "test_file": "tests/test_alias_tracker.py",
+      "test_count": 4,
+      "dormant_imported": [
+        "core.alias_tracker"
+      ],
+      "live_imported": [
+        "core.database"
+      ],
+      "touches_class_i": false,
+      "touches_class_ii": true,
+      "touches_queue_writer": false,
+      "pure_dormant_only": false,
+      "test_defs_count": 4
+    },
+    {
+      "test_file": "tests/test_checkpoint_pruning.py",
+      "test_count": 1,
+      "dormant_imported": [
+        "core.background_janitor",
+        "interface.queue_writer"
+      ],
+      "live_imported": [
+        "core.checkpointer",
+        "core.database",
+        "interface"
+      ],
+      "touches_class_i": true,
+      "touches_class_ii": false,
+      "touches_queue_writer": true,
+      "pure_dormant_only": false,
+      "test_defs_count": 1
+    },
+    {
+      "test_file": "tests/test_cognitive_routing_memory.py",
+      "test_count": 3,
+      "dormant_imported": [
+        "core.federated_knowledge_router",
+        "core.global_memory_adapter",
+        "core.intent_classifier"
+      ],
+      "live_imported": [
+        "core.database"
+      ],
+      "touches_class_i": true,
+      "touches_class_ii": false,
+      "touches_queue_writer": false,
+      "pure_dormant_only": false,
+      "test_defs_count": 3
+    },
+    {
+      "test_file": "tests/test_concurrency_stress.py",
+      "test_count": 2,
+      "dormant_imported": [
+        "interface.queue_writer"
+      ],
+      "live_imported": [
+        "core.database",
+        "interface",
+        "storage.schema"
+      ],
+      "touches_class_i": false,
+      "touches_class_ii": false,
+      "touches_queue_writer": true,
+      "pure_dormant_only": false,
+      "test_defs_count": 2
+    },
+    {
+      "test_file": "tests/test_delta_sync.py",
+      "test_count": 4,
+      "dormant_imported": [
+        "core.delta_manager",
+        "interface.queue_writer"
+      ],
+      "live_imported": [
+        "core.database",
+        "interface"
+      ],
+      "touches_class_i": false,
+      "touches_class_ii": true,
+      "touches_queue_writer": true,
+      "pure_dormant_only": false,
+      "test_defs_count": 4
+    },
+    {
+      "test_file": "tests/test_delta_sync_drift.py",
+      "test_count": 4,
+      "dormant_imported": [
+        "core.delta_sync"
+      ],
+      "live_imported": [],
+      "touches_class_i": false,
+      "touches_class_ii": true,
+      "touches_queue_writer": false,
+      "pure_dormant_only": true,
+      "test_defs_count": 4
+    },
+    {
+      "test_file": "tests/test_dependency_injection.py",
+      "test_count": 3,
+      "dormant_imported": [
+        "core.dependencies"
+      ],
+      "live_imported": [],
+      "touches_class_i": true,
+      "touches_class_ii": false,
+      "touches_queue_writer": false,
+      "pure_dormant_only": true,
+      "test_defs_count": 3
+    },
+    {
+      "test_file": "tests/test_durable_checkpoints_timetravel.py",
+      "test_count": 3,
+      "dormant_imported": [
+        "interface.telemetry_api"
+      ],
+      "live_imported": [
+        "core.checkpointer",
+        "core.database"
+      ],
+      "touches_class_i": true,
+      "touches_class_ii": false,
+      "touches_queue_writer": false,
+      "pure_dormant_only": false,
+      "test_defs_count": 3
+    },
+    {
+      "test_file": "tests/test_e2e_concierge_integration.py",
+      "test_count": 1,
+      "dormant_imported": [
+        "core.background_janitor",
+        "core.delta_manager",
+        "core.search_engine",
+        "core.vector_reconciler",
+        "interface.queue_writer"
+      ],
+      "live_imported": [
+        "core.checkpointer",
+        "core.database",
+        "core.graph_rag",
+        "core.middleware",
+        "interface",
+        "interface.mcp_server",
+        "storage.schema"
+      ],
+      "touches_class_i": true,
+      "touches_class_ii": true,
+      "touches_queue_writer": true,
+      "pure_dormant_only": false,
+      "test_defs_count": 1
+    },
+    {
+      "test_file": "tests/test_governor_wiring.py",
+      "test_count": 5,
+      "dormant_imported": [
+        "interface.action_hooks",
+        "interface.telemetry_api"
+      ],
+      "live_imported": [
+        "core",
+        "core.mcp_governor",
+        "interface",
+        "interface.mcp_server",
+        "storage.store"
+      ],
+      "touches_class_i": true,
+      "touches_class_ii": false,
+      "touches_queue_writer": false,
+      "pure_dormant_only": false,
+      "test_defs_count": 5
+    },
+    {
+      "test_file": "tests/test_graph_rag_frugal.py",
+      "test_count": 2,
+      "dormant_imported": [
+        "core.background_janitor",
+        "interface.queue_writer"
+      ],
+      "live_imported": [
+        "core.database",
+        "core.graph_rag"
+      ],
+      "touches_class_i": true,
+      "touches_class_ii": false,
+      "touches_queue_writer": true,
+      "pure_dormant_only": false,
+      "test_defs_count": 2
+    },
+    {
+      "test_file": "tests/test_graph_rag_janitor.py",
+      "test_count": 3,
+      "dormant_imported": [
+        "core.background_janitor",
+        "interface.queue_writer"
+      ],
+      "live_imported": [
+        "core.database",
+        "core.graph_rag",
+        "interface",
+        "main",
+        "storage.schema"
+      ],
+      "touches_class_i": true,
+      "touches_class_ii": false,
+      "touches_queue_writer": true,
+      "pure_dormant_only": false,
+      "test_defs_count": 3
+    },
+    {
+      "test_file": "tests/test_graph_rag_loops.py",
+      "test_count": 3,
+      "dormant_imported": [
+        "interface.queue_writer"
+      ],
+      "live_imported": [
+        "core.database",
+        "core.graph_rag",
+        "storage.schema"
+      ],
+      "touches_class_i": false,
+      "touches_class_ii": false,
+      "touches_queue_writer": true,
+      "pure_dormant_only": false,
+      "test_defs_count": 3
+    },
+    {
+      "test_file": "tests/test_hierarchical_state_machine.py",
+      "test_count": 43,
+      "dormant_imported": [
+        "core.hsm_engine",
+        "interface.telemetry_api"
+      ],
+      "live_imported": [
+        "core.checkpointer",
+        "core.database",
+        "core.mcp_governor",
+        "main"
+      ],
+      "touches_class_i": true,
+      "touches_class_ii": false,
+      "touches_queue_writer": false,
+      "pure_dormant_only": false,
+      "test_defs_count": 43
+    },
+    {
+      "test_file": "tests/test_hsm_transition_hooks_and_delta.py",
+      "test_count": 20,
+      "dormant_imported": [
+        "core.hsm_engine"
+      ],
+      "live_imported": [
+        "core.checkpointer",
+        "core.database"
+      ],
+      "touches_class_i": true,
+      "touches_class_ii": false,
+      "touches_queue_writer": false,
+      "pure_dormant_only": false,
+      "test_defs_count": 20
+    },
+    {
+      "test_file": "tests/test_interface_contracts.py",
+      "test_count": 22,
+      "dormant_imported": [
+        "interface.action_hooks"
+      ],
+      "live_imported": [
+        "core.middleware",
+        "interface",
+        "interface.cli",
+        "interface.mcp_server",
+        "storage.store"
+      ],
+      "touches_class_i": true,
+      "touches_class_ii": false,
+      "touches_queue_writer": false,
+      "pure_dormant_only": false,
+      "test_defs_count": 22
+    },
+    {
+      "test_file": "tests/test_mcp_server_extensions.py",
+      "test_count": 3,
+      "dormant_imported": [
+        "interface.queue_writer"
+      ],
+      "live_imported": [
+        "core.checkpointer",
+        "core.database",
+        "core.graph_rag",
+        "core.middleware",
+        "interface",
+        "interface.mcp_server",
+        "storage.schema"
+      ],
+      "touches_class_i": false,
+      "touches_class_ii": false,
+      "touches_queue_writer": true,
+      "pure_dormant_only": false,
+      "test_defs_count": 3
+    },
+    {
+      "test_file": "tests/test_multilang_parser.py",
+      "test_count": 8,
+      "dormant_imported": [
+        "core.parser_factory",
+        "core.parsers.python_parser",
+        "core.parsers.ts_js_parser"
+      ],
+      "live_imported": [],
+      "touches_class_i": false,
+      "touches_class_ii": true,
+      "touches_queue_writer": false,
+      "pure_dormant_only": true,
+      "test_defs_count": 8
+    },
+    {
+      "test_file": "tests/test_progressive_tool_disclosure.py",
+      "test_count": 5,
+      "dormant_imported": [
+        "interface.telemetry_api"
+      ],
+      "live_imported": [
+        "core.mcp_governor"
+      ],
+      "touches_class_i": true,
+      "touches_class_ii": false,
+      "touches_queue_writer": false,
+      "pure_dormant_only": false,
+      "test_defs_count": 5
+    },
+    {
+      "test_file": "tests/test_queue_writer_batching.py",
+      "test_count": 2,
+      "dormant_imported": [
+        "interface.queue_writer"
+      ],
+      "live_imported": [
+        "core.database"
+      ],
+      "touches_class_i": false,
+      "touches_class_ii": false,
+      "touches_queue_writer": true,
+      "pure_dormant_only": false,
+      "test_defs_count": 2
+    },
+    {
+      "test_file": "tests/test_queue_writer_resilience.py",
+      "test_count": 14,
+      "dormant_imported": [
+        "interface.queue_writer"
+      ],
+      "live_imported": [
+        "core.database"
+      ],
+      "touches_class_i": false,
+      "touches_class_ii": false,
+      "touches_queue_writer": true,
+      "pure_dormant_only": false,
+      "test_defs_count": 14
+    },
+    {
+      "test_file": "tests/test_rate_governor_priority.py",
+      "test_count": 8,
+      "dormant_imported": [
+        "core.rate_governor"
+      ],
+      "live_imported": [],
+      "touches_class_i": true,
+      "touches_class_ii": false,
+      "touches_queue_writer": false,
+      "pure_dormant_only": true,
+      "test_defs_count": 8
+    },
+    {
+      "test_file": "tests/test_revisor_critico.py",
+      "test_count": 11,
+      "dormant_imported": [
+        "agents.revisor_critico"
+      ],
+      "live_imported": [
+        "core.config"
+      ],
+      "touches_class_i": true,
+      "touches_class_ii": false,
+      "touches_queue_writer": false,
+      "pure_dormant_only": false,
+      "test_defs_count": 11
+    },
+    {
+      "test_file": "tests/test_ssh_language_coverage.py",
+      "test_count": 10,
+      "dormant_imported": [
+        "core.delta_manager"
+      ],
+      "live_imported": [],
+      "touches_class_i": false,
+      "touches_class_ii": true,
+      "touches_queue_writer": false,
+      "pure_dormant_only": true,
+      "test_defs_count": 2
+    },
+    {
+      "test_file": "tests/test_telemetry_api.py",
+      "test_count": 5,
+      "dormant_imported": [
+        "interface.queue_writer",
+        "interface.telemetry_api"
+      ],
+      "live_imported": [
+        "core.database"
+      ],
+      "touches_class_i": true,
+      "touches_class_ii": false,
+      "touches_queue_writer": true,
+      "pure_dormant_only": false,
+      "test_defs_count": 5
+    },
+    {
+      "test_file": "tests/test_vector_reconciler.py",
+      "test_count": 2,
+      "dormant_imported": [
+        "core.search_engine",
+        "core.vector_reconciler",
+        "interface.queue_writer"
+      ],
+      "live_imported": [
+        "core.database",
+        "interface"
+      ],
+      "touches_class_i": false,
+      "touches_class_ii": true,
+      "touches_queue_writer": true,
+      "pure_dormant_only": false,
+      "test_defs_count": 2
+    },
+    {
+      "test_file": "tests/test_watcher_ignore.py",
+      "test_count": 4,
+      "dormant_imported": [
+        "interface.watcher"
+      ],
+      "live_imported": [
+        "interface"
+      ],
+      "touches_class_i": true,
+      "touches_class_ii": false,
+      "touches_queue_writer": false,
+      "pure_dormant_only": false,
+      "test_defs_count": 4
+    }
+  ],
+  "summary": {
+    "files_importing_any_non_load_incl_qw": 32,
+    "tests_in_files_any_non_load_incl_qw": 225,
+    "files_importing_dormant_excl_qw": 26,
+    "tests_in_files_dormant_excl_qw": 197,
+    "files_importing_only_qw": 6,
+    "tests_in_files_only_qw": 28,
+    "scenario_i_files_count": 20,
+    "scenario_i_tests_upper_bound": 165,
+    "scenario_i_ii_files_count": 26,
+    "scenario_i_ii_tests_upper_bound": 197
+  }
+}

@@ -1,0 +1,47 @@
+=== BLOCO 5: IMPACTO EM TESTES E CI (Total pytest=478) ===
+Resumo: {
+  "files_importing_any_non_load_incl_qw": 32,
+  "tests_in_files_any_non_load_incl_qw": 225,
+  "files_importing_dormant_excl_qw": 26,
+  "tests_in_files_dormant_excl_qw": 197,
+  "files_importing_only_qw": 6,
+  "tests_in_files_only_qw": 28,
+  "scenario_i_files_count": 20,
+  "scenario_i_tests_upper_bound": 165,
+  "scenario_i_ii_files_count": 26,
+  "scenario_i_ii_tests_upper_bound": 197
+}
+
+--- ARQUIVOS DE TESTE AFETADOS ---
+  - tests/colossus_benchmark.py: 0 testes | pure_dormant=False | I=True II=False QW=False | dormant=['agents.revisor_critico'] | live=['core.hybrid_search', 'core.project_index', 'ingestion', 'services.janitor', 'storage']
+  - tests/stress_test_v2_setup.py: 0 testes | pure_dormant=False | I=True II=False QW=False | dormant=['agents.revisor_critico', 'interface.action_hooks'] | live=['core.middleware', 'ingestion.orchestrator', 'ingestion.summarizer', 'storage']
+  - tests/test_adaptive_gating.py: 13 testes | pure_dormant=False | I=True II=False QW=False | dormant=['core.gating_interceptor', 'core.security_guard'] | live=['core']
+  - tests/test_agent_checkpointer.py: 4 testes | pure_dormant=False | I=False II=False QW=True | dormant=['interface.queue_writer'] | live=['core.checkpointer', 'core.database', 'interface']
+  - tests/test_agent_hsm_coupling.py: 13 testes | pure_dormant=False | I=True II=False QW=False | dormant=['agent.agent_prompts', 'agent.run_agent', 'core.gating_interceptor', 'core.hsm_engine', 'core.rate_governor', 'core.security_guard'] | live=['core.checkpointer', 'core.database', 'core.mcp_governor', 'main']
+  - tests/test_alias_tracker.py: 4 testes | pure_dormant=False | I=False II=True QW=False | dormant=['core.alias_tracker'] | live=['core.database']
+  - tests/test_checkpoint_pruning.py: 1 testes | pure_dormant=False | I=True II=False QW=True | dormant=['core.background_janitor', 'interface.queue_writer'] | live=['core.checkpointer', 'core.database', 'interface']
+  - tests/test_cognitive_routing_memory.py: 3 testes | pure_dormant=False | I=True II=False QW=False | dormant=['core.federated_knowledge_router', 'core.global_memory_adapter', 'core.intent_classifier'] | live=['core.database']
+  - tests/test_concurrency_stress.py: 2 testes | pure_dormant=False | I=False II=False QW=True | dormant=['interface.queue_writer'] | live=['core.database', 'interface', 'storage.schema']
+  - tests/test_delta_sync.py: 4 testes | pure_dormant=False | I=False II=True QW=True | dormant=['core.delta_manager', 'interface.queue_writer'] | live=['core.database', 'interface']
+  - tests/test_delta_sync_drift.py: 4 testes | pure_dormant=True | I=False II=True QW=False | dormant=['core.delta_sync'] | live=[]
+  - tests/test_dependency_injection.py: 3 testes | pure_dormant=True | I=True II=False QW=False | dormant=['core.dependencies'] | live=[]
+  - tests/test_durable_checkpoints_timetravel.py: 3 testes | pure_dormant=False | I=True II=False QW=False | dormant=['interface.telemetry_api'] | live=['core.checkpointer', 'core.database']
+  - tests/test_e2e_concierge_integration.py: 1 testes | pure_dormant=False | I=True II=True QW=True | dormant=['core.background_janitor', 'core.delta_manager', 'core.search_engine', 'core.vector_reconciler', 'interface.queue_writer'] | live=['core.checkpointer', 'core.database', 'core.graph_rag', 'core.middleware', 'interface', 'interface.mcp_server', 'storage.schema']
+  - tests/test_governor_wiring.py: 5 testes | pure_dormant=False | I=True II=False QW=False | dormant=['interface.action_hooks', 'interface.telemetry_api'] | live=['core', 'core.mcp_governor', 'interface', 'interface.mcp_server', 'storage.store']
+  - tests/test_graph_rag_frugal.py: 2 testes | pure_dormant=False | I=True II=False QW=True | dormant=['core.background_janitor', 'interface.queue_writer'] | live=['core.database', 'core.graph_rag']
+  - tests/test_graph_rag_janitor.py: 3 testes | pure_dormant=False | I=True II=False QW=True | dormant=['core.background_janitor', 'interface.queue_writer'] | live=['core.database', 'core.graph_rag', 'interface', 'main', 'storage.schema']
+  - tests/test_graph_rag_loops.py: 3 testes | pure_dormant=False | I=False II=False QW=True | dormant=['interface.queue_writer'] | live=['core.database', 'core.graph_rag', 'storage.schema']
+  - tests/test_hierarchical_state_machine.py: 43 testes | pure_dormant=False | I=True II=False QW=False | dormant=['core.hsm_engine', 'interface.telemetry_api'] | live=['core.checkpointer', 'core.database', 'core.mcp_governor', 'main']
+  - tests/test_hsm_transition_hooks_and_delta.py: 20 testes | pure_dormant=False | I=True II=False QW=False | dormant=['core.hsm_engine'] | live=['core.checkpointer', 'core.database']
+  - tests/test_interface_contracts.py: 22 testes | pure_dormant=False | I=True II=False QW=False | dormant=['interface.action_hooks'] | live=['core.middleware', 'interface', 'interface.cli', 'interface.mcp_server', 'storage.store']
+  - tests/test_mcp_server_extensions.py: 3 testes | pure_dormant=False | I=False II=False QW=True | dormant=['interface.queue_writer'] | live=['core.checkpointer', 'core.database', 'core.graph_rag', 'core.middleware', 'interface', 'interface.mcp_server', 'storage.schema']
+  - tests/test_multilang_parser.py: 8 testes | pure_dormant=True | I=False II=True QW=False | dormant=['core.parser_factory', 'core.parsers.python_parser', 'core.parsers.ts_js_parser'] | live=[]
+  - tests/test_progressive_tool_disclosure.py: 5 testes | pure_dormant=False | I=True II=False QW=False | dormant=['interface.telemetry_api'] | live=['core.mcp_governor']
+  - tests/test_queue_writer_batching.py: 2 testes | pure_dormant=False | I=False II=False QW=True | dormant=['interface.queue_writer'] | live=['core.database']
+  - tests/test_queue_writer_resilience.py: 14 testes | pure_dormant=False | I=False II=False QW=True | dormant=['interface.queue_writer'] | live=['core.database']
+  - tests/test_rate_governor_priority.py: 8 testes | pure_dormant=True | I=True II=False QW=False | dormant=['core.rate_governor'] | live=[]
+  - tests/test_revisor_critico.py: 11 testes | pure_dormant=False | I=True II=False QW=False | dormant=['agents.revisor_critico'] | live=['core.config']
+  - tests/test_ssh_language_coverage.py: 10 testes | pure_dormant=True | I=False II=True QW=False | dormant=['core.delta_manager'] | live=[]
+  - tests/test_telemetry_api.py: 5 testes | pure_dormant=False | I=True II=False QW=True | dormant=['interface.queue_writer', 'interface.telemetry_api'] | live=['core.database']
+  - tests/test_vector_reconciler.py: 2 testes | pure_dormant=False | I=False II=True QW=True | dormant=['core.search_engine', 'core.vector_reconciler', 'interface.queue_writer'] | live=['core.database', 'interface']
+  - tests/test_watcher_ignore.py: 4 testes | pure_dormant=False | I=True II=False QW=False | dormant=['interface.watcher'] | live=['interface']

@@ -1,0 +1,2402 @@
+{
+  "total_modules": 63,
+  "roots": [
+    "main",
+    "interface.cli"
+  ],
+  "counts": {
+    "REACHABLE_LOAD": 2,
+    "REACHABLE_DEFERRED": 29,
+    "REACHABLE_ANNOTATION_ONLY_RUNTIME": 1,
+    "REACHABLE_PEP562_LAZY": 3,
+    "REACHABLE_TYPE_CHECKING": 0,
+    "UNREACHABLE": 28
+  },
+  "lines": {
+    "REACHABLE_LOAD": 806,
+    "REACHABLE_DEFERRED": 13499,
+    "REACHABLE_ANNOTATION_ONLY_RUNTIME": 304,
+    "REACHABLE_PEP562_LAZY": 885,
+    "REACHABLE_TYPE_CHECKING": 0,
+    "UNREACHABLE": 4306,
+    "TOTAL_ALL": 19800
+  },
+  "modules": {
+    "agent": {
+      "path": "agent/__init__.py",
+      "total_lines": 13,
+      "non_empty_lines": 9,
+      "status": "UNREACHABLE",
+      "importers": [
+        {
+          "importer": "agent",
+          "importer_path": "agent/__init__.py",
+          "line": 11,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from agent.run_agent import CognitiveAgentRunner, HermesAgentRunner (parent pkg agent)"
+        },
+        {
+          "importer": "agent.run_agent",
+          "importer_path": "agent/run_agent.py",
+          "line": 23,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from agent.agent_prompts import DynamicPromptBuilder (parent pkg agent)"
+        }
+      ]
+    },
+    "agent.agent_prompts": {
+      "path": "agent/agent_prompts.py",
+      "total_lines": 176,
+      "non_empty_lines": 146,
+      "status": "UNREACHABLE",
+      "importers": [
+        {
+          "importer": "agent.run_agent",
+          "importer_path": "agent/run_agent.py",
+          "line": 23,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from agent.agent_prompts import DynamicPromptBuilder"
+        }
+      ]
+    },
+    "agent.run_agent": {
+      "path": "agent/run_agent.py",
+      "total_lines": 266,
+      "non_empty_lines": 237,
+      "status": "UNREACHABLE",
+      "importers": [
+        {
+          "importer": "agent",
+          "importer_path": "agent/__init__.py",
+          "line": 11,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from agent.run_agent import CognitiveAgentRunner, HermesAgentRunner"
+        }
+      ]
+    },
+    "agents": {
+      "path": "agents/__init__.py",
+      "total_lines": 14,
+      "non_empty_lines": 10,
+      "status": "REACHABLE_PEP562_LAZY",
+      "importers": [
+        {
+          "importer": "agents",
+          "importer_path": "agents/__init__.py",
+          "line": 10,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from agents.revisor_critico import RevisorCritico (parent pkg agents)"
+        },
+        {
+          "importer": "interface.action_hooks",
+          "importer_path": "interface/action_hooks.py",
+          "line": 32,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from agents.revisor_critico import RevisorCritico (parent pkg agents)"
+        }
+      ]
+    },
+    "agents.revisor_critico": {
+      "path": "agents/revisor_critico.py",
+      "total_lines": 610,
+      "non_empty_lines": 492,
+      "status": "REACHABLE_PEP562_LAZY",
+      "importers": [
+        {
+          "importer": "agents",
+          "importer_path": "agents/__init__.py",
+          "line": 10,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from agents.revisor_critico import RevisorCritico"
+        },
+        {
+          "importer": "interface.action_hooks",
+          "importer_path": "interface/action_hooks.py",
+          "line": 32,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from agents.revisor_critico import RevisorCritico"
+        }
+      ]
+    },
+    "core": {
+      "path": "core/__init__.py",
+      "total_lines": 23,
+      "non_empty_lines": 19,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "agents.revisor_critico",
+          "importer_path": "agents/revisor_critico.py",
+          "line": 46,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.config import ConciergeConfig, DEFAULT_CONFIG (parent pkg core)"
+        },
+        {
+          "importer": "core",
+          "importer_path": "core/__init__.py",
+          "line": 13,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.config import ConciergeConfig (parent pkg core)"
+        },
+        {
+          "importer": "core",
+          "importer_path": "core/__init__.py",
+          "line": 14,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.project_index import ProjectIndex (parent pkg core)"
+        },
+        {
+          "importer": "core",
+          "importer_path": "core/__init__.py",
+          "line": 15,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.hybrid_search import HybridSearchEngine (parent pkg core)"
+        },
+        {
+          "importer": "core",
+          "importer_path": "core/__init__.py",
+          "line": 16,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.middleware import GrafoConcierge (parent pkg core)"
+        },
+        {
+          "importer": "core.delta_sync",
+          "importer_path": "core/delta_sync.py",
+          "line": 10,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.delta_manager import DeltaManager, DocstringStripper (parent pkg core)"
+        },
+        {
+          "importer": "core.gating_interceptor",
+          "importer_path": "core/gating_interceptor.py",
+          "line": 26,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from core.security_guard import SecurityGuard (parent pkg core)"
+        },
+        {
+          "importer": "core.hybrid_search",
+          "importer_path": "core/hybrid_search.py",
+          "line": 38,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.config import ConciergeConfig, DEFAULT_CONFIG (parent pkg core)"
+        },
+        {
+          "importer": "core.hybrid_search",
+          "importer_path": "core/hybrid_search.py",
+          "line": 39,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from core.project_index import ProjectIndex (parent pkg core)"
+        },
+        {
+          "importer": "core.hybrid_search",
+          "importer_path": "core/hybrid_search.py",
+          "line": 252,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.probabilistic_retriever import ThompsonRetriever (parent pkg core)"
+        },
+        {
+          "importer": "core.janitor",
+          "importer_path": "core/janitor.py",
+          "line": 10,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.background_janitor import BackgroundJanitor (parent pkg core)"
+        },
+        {
+          "importer": "core.middleware",
+          "importer_path": "core/middleware.py",
+          "line": 39,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.config import ConciergeConfig, DEFAULT_CONFIG (parent pkg core)"
+        },
+        {
+          "importer": "core.middleware",
+          "importer_path": "core/middleware.py",
+          "line": 40,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.project_index import ProjectIndex (parent pkg core)"
+        },
+        {
+          "importer": "core.middleware",
+          "importer_path": "core/middleware.py",
+          "line": 41,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.hybrid_search import HybridSearchEngine (parent pkg core)"
+        },
+        {
+          "importer": "core.middleware",
+          "importer_path": "core/middleware.py",
+          "line": 42,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.memory_extractor import SemanticExtractor (parent pkg core)"
+        },
+        {
+          "importer": "core.middleware",
+          "importer_path": "core/middleware.py",
+          "line": 566,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.vector_backend import QdrantVectorStore (parent pkg core)"
+        },
+        {
+          "importer": "core.nozomio_router",
+          "importer_path": "core/nozomio_router.py",
+          "line": 8,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.federated_knowledge_router import FederatedKnowledgeRouter, FederatedKnowledgeRouter, EXTERNAL_FEDERATED_MCP (parent pkg core)"
+        },
+        {
+          "importer": "core.parser_factory",
+          "importer_path": "core/parser_factory.py",
+          "line": 16,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from core.parsers.base import BaseASTParser (parent pkg core)"
+        },
+        {
+          "importer": "core.parser_factory",
+          "importer_path": "core/parser_factory.py",
+          "line": 17,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.parsers.python_parser import PythonASTParser (parent pkg core)"
+        },
+        {
+          "importer": "core.parser_factory",
+          "importer_path": "core/parser_factory.py",
+          "line": 18,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.parsers.ts_js_parser import TSJSASTParser (parent pkg core)"
+        },
+        {
+          "importer": "core.parsers",
+          "importer_path": "core/parsers/__init__.py",
+          "line": 12,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.parsers.base import BaseASTParser (parent pkg core)"
+        },
+        {
+          "importer": "core.parsers",
+          "importer_path": "core/parsers/__init__.py",
+          "line": 13,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.parsers.python_parser import PythonASTParser (parent pkg core)"
+        },
+        {
+          "importer": "core.parsers",
+          "importer_path": "core/parsers/__init__.py",
+          "line": 14,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.parsers.ts_js_parser import TSJSASTParser (parent pkg core)"
+        },
+        {
+          "importer": "core.parsers.python_parser",
+          "importer_path": "core/parsers/python_parser.py",
+          "line": 16,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.parsers.base import BaseASTParser (parent pkg core)"
+        },
+        {
+          "importer": "core.parsers.ts_js_parser",
+          "importer_path": "core/parsers/ts_js_parser.py",
+          "line": 25,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.parsers.base import BaseASTParser (parent pkg core)"
+        },
+        {
+          "importer": "core.project_index",
+          "importer_path": "core/project_index.py",
+          "line": 25,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.config import ConciergeConfig, DEFAULT_CONFIG (parent pkg core)"
+        },
+        {
+          "importer": "interface.action_hooks",
+          "importer_path": "interface/action_hooks.py",
+          "line": 31,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from core.middleware import GrafoConcierge (parent pkg core)"
+        },
+        {
+          "importer": "interface.cli",
+          "importer_path": "interface/cli.py",
+          "line": 57,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.middleware import GrafoConcierge (parent pkg core)"
+        },
+        {
+          "importer": "interface.cli",
+          "importer_path": "interface/cli.py",
+          "line": 87,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.vector_backend import QdrantVectorStore (parent pkg core)"
+        },
+        {
+          "importer": "interface.mcp_server",
+          "importer_path": "interface/mcp_server.py",
+          "line": 49,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from core.middleware import GrafoConcierge (parent pkg core)"
+        },
+        {
+          "importer": "interface.mcp_server",
+          "importer_path": "interface/mcp_server.py",
+          "line": 151,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.mcp_governor import get_shared_governor (parent pkg core)"
+        },
+        {
+          "importer": "interface.mcp_server",
+          "importer_path": "interface/mcp_server.py",
+          "line": 162,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.database import ConciergeDatabaseManager (parent pkg core)"
+        },
+        {
+          "importer": "interface.mcp_server",
+          "importer_path": "interface/mcp_server.py",
+          "line": 166,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.checkpointer import AgnosticCheckpointer (parent pkg core)"
+        },
+        {
+          "importer": "interface.mcp_server",
+          "importer_path": "interface/mcp_server.py",
+          "line": 170,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.graph_rag import GraphRAGEngine (parent pkg core)"
+        },
+        {
+          "importer": "interface.telemetry_api",
+          "importer_path": "interface/telemetry_api.py",
+          "line": 41,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from core.database import ConciergeDatabaseManager (parent pkg core)"
+        },
+        {
+          "importer": "interface.telemetry_api",
+          "importer_path": "interface/telemetry_api.py",
+          "line": 42,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.gating_interceptor import GatingInterceptor (parent pkg core)"
+        },
+        {
+          "importer": "interface.telemetry_api",
+          "importer_path": "interface/telemetry_api.py",
+          "line": 43,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.mcp_governor import MCPToolGovernor, get_shared_governor (parent pkg core)"
+        },
+        {
+          "importer": "interface.telemetry_api",
+          "importer_path": "interface/telemetry_api.py",
+          "line": 44,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.rate_governor import RateGovernor (parent pkg core)"
+        },
+        {
+          "importer": "interface.telemetry_api",
+          "importer_path": "interface/telemetry_api.py",
+          "line": 45,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.security_guard import SecurityGuard (parent pkg core)"
+        },
+        {
+          "importer": "interface.telemetry_api",
+          "importer_path": "interface/telemetry_api.py",
+          "line": 46,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.telemetry_schemas import AgentSessionSchema, CheckpointSchema, DirtyFileSchema, JanitorStatusSchema, TelemetryPayloadSchema (parent pkg core)"
+        },
+        {
+          "importer": "interface.telemetry_api",
+          "importer_path": "interface/telemetry_api.py",
+          "line": 78,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.checkpointer import AgnosticCheckpointer (parent pkg core)"
+        },
+        {
+          "importer": "interface.telemetry_api",
+          "importer_path": "interface/telemetry_api.py",
+          "line": 79,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.hsm_engine import HierarchicalStateMachine (parent pkg core)"
+        },
+        {
+          "importer": "interface.telemetry_api",
+          "importer_path": "interface/telemetry_api.py",
+          "line": 271,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.vector_reconciler import VectorReconciler (parent pkg core)"
+        },
+        {
+          "importer": "interface.telemetry_api",
+          "importer_path": "interface/telemetry_api.py",
+          "line": 331,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.checkpointer import AgnosticCheckpointer (parent pkg core)"
+        },
+        {
+          "importer": "main",
+          "importer_path": "main.py",
+          "line": 259,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.vector_backend import QdrantVectorStore (parent pkg core)"
+        },
+        {
+          "importer": "main",
+          "importer_path": "main.py",
+          "line": 311,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.middleware import GrafoConcierge (parent pkg core)"
+        },
+        {
+          "importer": "storage.logic",
+          "importer_path": "storage/logic.py",
+          "line": 28,
+          "kind": "type_checking",
+          "ann_only": false,
+          "raw": "from core.config import ConciergeConfig (parent pkg core)"
+        },
+        {
+          "importer": "storage.store",
+          "importer_path": "storage/store.py",
+          "line": 29,
+          "kind": "type_checking",
+          "ann_only": false,
+          "raw": "from core.config import ConciergeConfig (parent pkg core)"
+        }
+      ]
+    },
+    "core.alias_tracker": {
+      "path": "core/alias_tracker.py",
+      "total_lines": 259,
+      "non_empty_lines": 225,
+      "status": "UNREACHABLE",
+      "importers": []
+    },
+    "core.background_janitor": {
+      "path": "core/background_janitor.py",
+      "total_lines": 290,
+      "non_empty_lines": 234,
+      "status": "UNREACHABLE",
+      "importers": [
+        {
+          "importer": "core.janitor",
+          "importer_path": "core/janitor.py",
+          "line": 10,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.background_janitor import BackgroundJanitor"
+        }
+      ]
+    },
+    "core.checkpointer": {
+      "path": "core/checkpointer.py",
+      "total_lines": 269,
+      "non_empty_lines": 235,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "interface.mcp_server",
+          "importer_path": "interface/mcp_server.py",
+          "line": 166,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.checkpointer import AgnosticCheckpointer"
+        },
+        {
+          "importer": "interface.telemetry_api",
+          "importer_path": "interface/telemetry_api.py",
+          "line": 78,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.checkpointer import AgnosticCheckpointer"
+        },
+        {
+          "importer": "interface.telemetry_api",
+          "importer_path": "interface/telemetry_api.py",
+          "line": 331,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.checkpointer import AgnosticCheckpointer"
+        }
+      ]
+    },
+    "core.config": {
+      "path": "core/config.py",
+      "total_lines": 169,
+      "non_empty_lines": 136,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "agents.revisor_critico",
+          "importer_path": "agents/revisor_critico.py",
+          "line": 46,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.config import ConciergeConfig, DEFAULT_CONFIG"
+        },
+        {
+          "importer": "core",
+          "importer_path": "core/__init__.py",
+          "line": 13,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.config import ConciergeConfig"
+        },
+        {
+          "importer": "core.hybrid_search",
+          "importer_path": "core/hybrid_search.py",
+          "line": 38,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.config import ConciergeConfig, DEFAULT_CONFIG"
+        },
+        {
+          "importer": "core.middleware",
+          "importer_path": "core/middleware.py",
+          "line": 39,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.config import ConciergeConfig, DEFAULT_CONFIG"
+        },
+        {
+          "importer": "core.project_index",
+          "importer_path": "core/project_index.py",
+          "line": 25,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.config import ConciergeConfig, DEFAULT_CONFIG"
+        },
+        {
+          "importer": "storage.logic",
+          "importer_path": "storage/logic.py",
+          "line": 28,
+          "kind": "type_checking",
+          "ann_only": false,
+          "raw": "from core.config import ConciergeConfig"
+        },
+        {
+          "importer": "storage.store",
+          "importer_path": "storage/store.py",
+          "line": 29,
+          "kind": "type_checking",
+          "ann_only": false,
+          "raw": "from core.config import ConciergeConfig"
+        }
+      ]
+    },
+    "core.database": {
+      "path": "core/database.py",
+      "total_lines": 66,
+      "non_empty_lines": 54,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "interface.mcp_server",
+          "importer_path": "interface/mcp_server.py",
+          "line": 162,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.database import ConciergeDatabaseManager"
+        },
+        {
+          "importer": "interface.telemetry_api",
+          "importer_path": "interface/telemetry_api.py",
+          "line": 41,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from core.database import ConciergeDatabaseManager"
+        }
+      ]
+    },
+    "core.delta_manager": {
+      "path": "core/delta_manager.py",
+      "total_lines": 265,
+      "non_empty_lines": 222,
+      "status": "UNREACHABLE",
+      "importers": [
+        {
+          "importer": "core.delta_sync",
+          "importer_path": "core/delta_sync.py",
+          "line": 10,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.delta_manager import DeltaManager, DocstringStripper"
+        }
+      ]
+    },
+    "core.delta_sync": {
+      "path": "core/delta_sync.py",
+      "total_lines": 12,
+      "non_empty_lines": 8,
+      "status": "UNREACHABLE",
+      "importers": []
+    },
+    "core.dependencies": {
+      "path": "core/dependencies.py",
+      "total_lines": 39,
+      "non_empty_lines": 31,
+      "status": "UNREACHABLE",
+      "importers": []
+    },
+    "core.federated_knowledge_router": {
+      "path": "core/federated_knowledge_router.py",
+      "total_lines": 100,
+      "non_empty_lines": 79,
+      "status": "UNREACHABLE",
+      "importers": [
+        {
+          "importer": "core.nozomio_router",
+          "importer_path": "core/nozomio_router.py",
+          "line": 8,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.federated_knowledge_router import FederatedKnowledgeRouter, FederatedKnowledgeRouter, EXTERNAL_FEDERATED_MCP"
+        }
+      ]
+    },
+    "core.gating_interceptor": {
+      "path": "core/gating_interceptor.py",
+      "total_lines": 176,
+      "non_empty_lines": 146,
+      "status": "UNREACHABLE",
+      "importers": [
+        {
+          "importer": "interface.telemetry_api",
+          "importer_path": "interface/telemetry_api.py",
+          "line": 42,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.gating_interceptor import GatingInterceptor"
+        }
+      ]
+    },
+    "core.global_memory_adapter": {
+      "path": "core/global_memory_adapter.py",
+      "total_lines": 85,
+      "non_empty_lines": 65,
+      "status": "UNREACHABLE",
+      "importers": []
+    },
+    "core.graph_rag": {
+      "path": "core/graph_rag.py",
+      "total_lines": 410,
+      "non_empty_lines": 352,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "interface.mcp_server",
+          "importer_path": "interface/mcp_server.py",
+          "line": 170,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.graph_rag import GraphRAGEngine"
+        }
+      ]
+    },
+    "core.hsm_engine": {
+      "path": "core/hsm_engine.py",
+      "total_lines": 511,
+      "non_empty_lines": 430,
+      "status": "UNREACHABLE",
+      "importers": [
+        {
+          "importer": "interface.telemetry_api",
+          "importer_path": "interface/telemetry_api.py",
+          "line": 79,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.hsm_engine import HierarchicalStateMachine"
+        }
+      ]
+    },
+    "core.hybrid_search": {
+      "path": "core/hybrid_search.py",
+      "total_lines": 308,
+      "non_empty_lines": 252,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "core",
+          "importer_path": "core/__init__.py",
+          "line": 15,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.hybrid_search import HybridSearchEngine"
+        },
+        {
+          "importer": "core.middleware",
+          "importer_path": "core/middleware.py",
+          "line": 41,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.hybrid_search import HybridSearchEngine"
+        }
+      ]
+    },
+    "core.intent_classifier": {
+      "path": "core/intent_classifier.py",
+      "total_lines": 98,
+      "non_empty_lines": 82,
+      "status": "UNREACHABLE",
+      "importers": []
+    },
+    "core.janitor": {
+      "path": "core/janitor.py",
+      "total_lines": 12,
+      "non_empty_lines": 8,
+      "status": "UNREACHABLE",
+      "importers": []
+    },
+    "core.mcp_governor": {
+      "path": "core/mcp_governor.py",
+      "total_lines": 206,
+      "non_empty_lines": 176,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "interface.mcp_server",
+          "importer_path": "interface/mcp_server.py",
+          "line": 151,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.mcp_governor import get_shared_governor"
+        },
+        {
+          "importer": "interface.telemetry_api",
+          "importer_path": "interface/telemetry_api.py",
+          "line": 43,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.mcp_governor import MCPToolGovernor, get_shared_governor"
+        }
+      ]
+    },
+    "core.memory_extractor": {
+      "path": "core/memory_extractor.py",
+      "total_lines": 245,
+      "non_empty_lines": 205,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "core.middleware",
+          "importer_path": "core/middleware.py",
+          "line": 42,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.memory_extractor import SemanticExtractor"
+        }
+      ]
+    },
+    "core.middleware": {
+      "path": "core/middleware.py",
+      "total_lines": 767,
+      "non_empty_lines": 626,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "core",
+          "importer_path": "core/__init__.py",
+          "line": 16,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.middleware import GrafoConcierge"
+        },
+        {
+          "importer": "interface.action_hooks",
+          "importer_path": "interface/action_hooks.py",
+          "line": 31,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from core.middleware import GrafoConcierge"
+        },
+        {
+          "importer": "interface.cli",
+          "importer_path": "interface/cli.py",
+          "line": 57,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.middleware import GrafoConcierge"
+        },
+        {
+          "importer": "interface.mcp_server",
+          "importer_path": "interface/mcp_server.py",
+          "line": 49,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from core.middleware import GrafoConcierge"
+        },
+        {
+          "importer": "main",
+          "importer_path": "main.py",
+          "line": 311,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.middleware import GrafoConcierge"
+        }
+      ]
+    },
+    "core.nozomio_router": {
+      "path": "core/nozomio_router.py",
+      "total_lines": 21,
+      "non_empty_lines": 17,
+      "status": "UNREACHABLE",
+      "importers": []
+    },
+    "core.parser_factory": {
+      "path": "core/parser_factory.py",
+      "total_lines": 80,
+      "non_empty_lines": 62,
+      "status": "UNREACHABLE",
+      "importers": []
+    },
+    "core.parsers": {
+      "path": "core/parsers/__init__.py",
+      "total_lines": 20,
+      "non_empty_lines": 16,
+      "status": "UNREACHABLE",
+      "importers": [
+        {
+          "importer": "core.parser_factory",
+          "importer_path": "core/parser_factory.py",
+          "line": 16,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from core.parsers.base import BaseASTParser (parent pkg core.parsers)"
+        },
+        {
+          "importer": "core.parser_factory",
+          "importer_path": "core/parser_factory.py",
+          "line": 17,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.parsers.python_parser import PythonASTParser (parent pkg core.parsers)"
+        },
+        {
+          "importer": "core.parser_factory",
+          "importer_path": "core/parser_factory.py",
+          "line": 18,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.parsers.ts_js_parser import TSJSASTParser (parent pkg core.parsers)"
+        },
+        {
+          "importer": "core.parsers",
+          "importer_path": "core/parsers/__init__.py",
+          "line": 12,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.parsers.base import BaseASTParser (parent pkg core.parsers)"
+        },
+        {
+          "importer": "core.parsers",
+          "importer_path": "core/parsers/__init__.py",
+          "line": 13,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.parsers.python_parser import PythonASTParser (parent pkg core.parsers)"
+        },
+        {
+          "importer": "core.parsers",
+          "importer_path": "core/parsers/__init__.py",
+          "line": 14,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.parsers.ts_js_parser import TSJSASTParser (parent pkg core.parsers)"
+        },
+        {
+          "importer": "core.parsers.python_parser",
+          "importer_path": "core/parsers/python_parser.py",
+          "line": 16,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.parsers.base import BaseASTParser (parent pkg core.parsers)"
+        },
+        {
+          "importer": "core.parsers.ts_js_parser",
+          "importer_path": "core/parsers/ts_js_parser.py",
+          "line": 25,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.parsers.base import BaseASTParser (parent pkg core.parsers)"
+        }
+      ]
+    },
+    "core.parsers.base": {
+      "path": "core/parsers/base.py",
+      "total_lines": 41,
+      "non_empty_lines": 32,
+      "status": "UNREACHABLE",
+      "importers": [
+        {
+          "importer": "core.parser_factory",
+          "importer_path": "core/parser_factory.py",
+          "line": 16,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from core.parsers.base import BaseASTParser"
+        },
+        {
+          "importer": "core.parsers",
+          "importer_path": "core/parsers/__init__.py",
+          "line": 12,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.parsers.base import BaseASTParser"
+        },
+        {
+          "importer": "core.parsers.python_parser",
+          "importer_path": "core/parsers/python_parser.py",
+          "line": 16,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.parsers.base import BaseASTParser"
+        },
+        {
+          "importer": "core.parsers.ts_js_parser",
+          "importer_path": "core/parsers/ts_js_parser.py",
+          "line": 25,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.parsers.base import BaseASTParser"
+        }
+      ]
+    },
+    "core.parsers.python_parser": {
+      "path": "core/parsers/python_parser.py",
+      "total_lines": 90,
+      "non_empty_lines": 75,
+      "status": "UNREACHABLE",
+      "importers": [
+        {
+          "importer": "core.parser_factory",
+          "importer_path": "core/parser_factory.py",
+          "line": 17,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.parsers.python_parser import PythonASTParser"
+        },
+        {
+          "importer": "core.parsers",
+          "importer_path": "core/parsers/__init__.py",
+          "line": 13,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.parsers.python_parser import PythonASTParser"
+        }
+      ]
+    },
+    "core.parsers.ts_js_parser": {
+      "path": "core/parsers/ts_js_parser.py",
+      "total_lines": 265,
+      "non_empty_lines": 214,
+      "status": "UNREACHABLE",
+      "importers": [
+        {
+          "importer": "core.parser_factory",
+          "importer_path": "core/parser_factory.py",
+          "line": 18,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.parsers.ts_js_parser import TSJSASTParser"
+        },
+        {
+          "importer": "core.parsers",
+          "importer_path": "core/parsers/__init__.py",
+          "line": 14,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.parsers.ts_js_parser import TSJSASTParser"
+        }
+      ]
+    },
+    "core.probabilistic_retriever": {
+      "path": "core/probabilistic_retriever.py",
+      "total_lines": 108,
+      "non_empty_lines": 89,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "core.hybrid_search",
+          "importer_path": "core/hybrid_search.py",
+          "line": 252,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.probabilistic_retriever import ThompsonRetriever"
+        }
+      ]
+    },
+    "core.project_index": {
+      "path": "core/project_index.py",
+      "total_lines": 222,
+      "non_empty_lines": 175,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "core",
+          "importer_path": "core/__init__.py",
+          "line": 14,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.project_index import ProjectIndex"
+        },
+        {
+          "importer": "core.hybrid_search",
+          "importer_path": "core/hybrid_search.py",
+          "line": 39,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from core.project_index import ProjectIndex"
+        },
+        {
+          "importer": "core.middleware",
+          "importer_path": "core/middleware.py",
+          "line": 40,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.project_index import ProjectIndex"
+        }
+      ]
+    },
+    "core.rate_governor": {
+      "path": "core/rate_governor.py",
+      "total_lines": 280,
+      "non_empty_lines": 230,
+      "status": "UNREACHABLE",
+      "importers": [
+        {
+          "importer": "interface.telemetry_api",
+          "importer_path": "interface/telemetry_api.py",
+          "line": 44,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.rate_governor import RateGovernor"
+        }
+      ]
+    },
+    "core.search_engine": {
+      "path": "core/search_engine.py",
+      "total_lines": 61,
+      "non_empty_lines": 49,
+      "status": "UNREACHABLE",
+      "importers": []
+    },
+    "core.security_guard": {
+      "path": "core/security_guard.py",
+      "total_lines": 136,
+      "non_empty_lines": 112,
+      "status": "UNREACHABLE",
+      "importers": [
+        {
+          "importer": "core.gating_interceptor",
+          "importer_path": "core/gating_interceptor.py",
+          "line": 26,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from core.security_guard import SecurityGuard"
+        },
+        {
+          "importer": "interface.telemetry_api",
+          "importer_path": "interface/telemetry_api.py",
+          "line": 45,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.security_guard import SecurityGuard"
+        }
+      ]
+    },
+    "core.telemetry_schemas": {
+      "path": "core/telemetry_schemas.py",
+      "total_lines": 82,
+      "non_empty_lines": 64,
+      "status": "UNREACHABLE",
+      "importers": [
+        {
+          "importer": "interface.telemetry_api",
+          "importer_path": "interface/telemetry_api.py",
+          "line": 46,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from core.telemetry_schemas import AgentSessionSchema, CheckpointSchema, DirtyFileSchema, JanitorStatusSchema, TelemetryPayloadSchema"
+        }
+      ]
+    },
+    "core.vector_backend": {
+      "path": "core/vector_backend.py",
+      "total_lines": 471,
+      "non_empty_lines": 416,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "core.middleware",
+          "importer_path": "core/middleware.py",
+          "line": 566,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.vector_backend import QdrantVectorStore"
+        },
+        {
+          "importer": "interface.cli",
+          "importer_path": "interface/cli.py",
+          "line": 87,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.vector_backend import QdrantVectorStore"
+        },
+        {
+          "importer": "main",
+          "importer_path": "main.py",
+          "line": 259,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.vector_backend import QdrantVectorStore"
+        }
+      ]
+    },
+    "core.vector_reconciler": {
+      "path": "core/vector_reconciler.py",
+      "total_lines": 55,
+      "non_empty_lines": 42,
+      "status": "UNREACHABLE",
+      "importers": [
+        {
+          "importer": "interface.telemetry_api",
+          "importer_path": "interface/telemetry_api.py",
+          "line": 271,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from core.vector_reconciler import VectorReconciler"
+        }
+      ]
+    },
+    "ingestion": {
+      "path": "ingestion/__init__.py",
+      "total_lines": 25,
+      "non_empty_lines": 23,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "agents.revisor_critico",
+          "importer_path": "agents/revisor_critico.py",
+          "line": 47,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from ingestion.summarizer import LLMAdapter (parent pkg ingestion)"
+        },
+        {
+          "importer": "core.middleware",
+          "importer_path": "core/middleware.py",
+          "line": 45,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from ingestion.orchestrator import IngestionManager (parent pkg ingestion)"
+        },
+        {
+          "importer": "ingestion",
+          "importer_path": "ingestion/__init__.py",
+          "line": 10,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from ingestion.crawler import ProjectCrawler, CrawlReport, CrawlResult (parent pkg ingestion)"
+        },
+        {
+          "importer": "ingestion",
+          "importer_path": "ingestion/__init__.py",
+          "line": 11,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from ingestion.parser import FileParser, ParsedChunk (parent pkg ingestion)"
+        },
+        {
+          "importer": "ingestion",
+          "importer_path": "ingestion/__init__.py",
+          "line": 12,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from ingestion.summarizer import ZoomSummarizer, SummaryResult (parent pkg ingestion)"
+        },
+        {
+          "importer": "ingestion",
+          "importer_path": "ingestion/__init__.py",
+          "line": 13,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from ingestion.orchestrator import IngestionManager, IngestionResult (parent pkg ingestion)"
+        },
+        {
+          "importer": "ingestion.orchestrator",
+          "importer_path": "ingestion/orchestrator.py",
+          "line": 46,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from ingestion.crawler import ProjectCrawler, CrawlReport, CrawlResult, FileCategory (parent pkg ingestion)"
+        },
+        {
+          "importer": "ingestion.orchestrator",
+          "importer_path": "ingestion/orchestrator.py",
+          "line": 47,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from ingestion.parser import FileParser, ParsedChunk (parent pkg ingestion)"
+        },
+        {
+          "importer": "ingestion.orchestrator",
+          "importer_path": "ingestion/orchestrator.py",
+          "line": 48,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from ingestion.summarizer import ZoomSummarizer, SummaryResult, ZoomLevel (parent pkg ingestion)"
+        },
+        {
+          "importer": "ingestion.orchestrator",
+          "importer_path": "ingestion/orchestrator.py",
+          "line": 624,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from ingestion.parser import ChunkType (parent pkg ingestion)"
+        },
+        {
+          "importer": "ingestion.parser",
+          "importer_path": "ingestion/parser.py",
+          "line": 28,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from ingestion.crawler import CrawlResult, FileCategory (parent pkg ingestion)"
+        },
+        {
+          "importer": "ingestion.summarizer",
+          "importer_path": "ingestion/summarizer.py",
+          "line": 40,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from ingestion.parser import ParsedChunk (parent pkg ingestion)"
+        },
+        {
+          "importer": "interface.cli",
+          "importer_path": "interface/cli.py",
+          "line": 55,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from ingestion import IngestionManager, ZoomSummarizer"
+        },
+        {
+          "importer": "interface.cli",
+          "importer_path": "interface/cli.py",
+          "line": 56,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from ingestion.summarizer import LLMAdapter (parent pkg ingestion)"
+        },
+        {
+          "importer": "main",
+          "importer_path": "main.py",
+          "line": 277,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from ingestion import ZoomSummarizer"
+        },
+        {
+          "importer": "main",
+          "importer_path": "main.py",
+          "line": 278,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from ingestion.summarizer import LLMAdapter (parent pkg ingestion)"
+        },
+        {
+          "importer": "main",
+          "importer_path": "main.py",
+          "line": 292,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from ingestion import IngestionManager"
+        },
+        {
+          "importer": "services.janitor",
+          "importer_path": "services/janitor.py",
+          "line": 37,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from ingestion.orchestrator import IngestionManager (parent pkg ingestion)"
+        }
+      ]
+    },
+    "ingestion.crawler": {
+      "path": "ingestion/crawler.py",
+      "total_lines": 722,
+      "non_empty_lines": 595,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "ingestion",
+          "importer_path": "ingestion/__init__.py",
+          "line": 10,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from ingestion.crawler import ProjectCrawler, CrawlReport, CrawlResult"
+        },
+        {
+          "importer": "ingestion.orchestrator",
+          "importer_path": "ingestion/orchestrator.py",
+          "line": 46,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from ingestion.crawler import ProjectCrawler, CrawlReport, CrawlResult, FileCategory"
+        },
+        {
+          "importer": "ingestion.parser",
+          "importer_path": "ingestion/parser.py",
+          "line": 28,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from ingestion.crawler import CrawlResult, FileCategory"
+        }
+      ]
+    },
+    "ingestion.orchestrator": {
+      "path": "ingestion/orchestrator.py",
+      "total_lines": 1098,
+      "non_empty_lines": 927,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "core.middleware",
+          "importer_path": "core/middleware.py",
+          "line": 45,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from ingestion.orchestrator import IngestionManager"
+        },
+        {
+          "importer": "ingestion",
+          "importer_path": "ingestion/__init__.py",
+          "line": 13,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from ingestion.orchestrator import IngestionManager, IngestionResult"
+        },
+        {
+          "importer": "services.janitor",
+          "importer_path": "services/janitor.py",
+          "line": 37,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from ingestion.orchestrator import IngestionManager"
+        }
+      ]
+    },
+    "ingestion.parser": {
+      "path": "ingestion/parser.py",
+      "total_lines": 984,
+      "non_empty_lines": 854,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "ingestion",
+          "importer_path": "ingestion/__init__.py",
+          "line": 11,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from ingestion.parser import FileParser, ParsedChunk"
+        },
+        {
+          "importer": "ingestion.orchestrator",
+          "importer_path": "ingestion/orchestrator.py",
+          "line": 47,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from ingestion.parser import FileParser, ParsedChunk"
+        },
+        {
+          "importer": "ingestion.orchestrator",
+          "importer_path": "ingestion/orchestrator.py",
+          "line": 624,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from ingestion.parser import ChunkType"
+        },
+        {
+          "importer": "ingestion.summarizer",
+          "importer_path": "ingestion/summarizer.py",
+          "line": 40,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from ingestion.parser import ParsedChunk"
+        }
+      ]
+    },
+    "ingestion.summarizer": {
+      "path": "ingestion/summarizer.py",
+      "total_lines": 1042,
+      "non_empty_lines": 872,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "agents.revisor_critico",
+          "importer_path": "agents/revisor_critico.py",
+          "line": 47,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from ingestion.summarizer import LLMAdapter"
+        },
+        {
+          "importer": "ingestion",
+          "importer_path": "ingestion/__init__.py",
+          "line": 12,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from ingestion.summarizer import ZoomSummarizer, SummaryResult"
+        },
+        {
+          "importer": "ingestion.orchestrator",
+          "importer_path": "ingestion/orchestrator.py",
+          "line": 48,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from ingestion.summarizer import ZoomSummarizer, SummaryResult, ZoomLevel"
+        },
+        {
+          "importer": "interface.cli",
+          "importer_path": "interface/cli.py",
+          "line": 56,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from ingestion.summarizer import LLMAdapter"
+        },
+        {
+          "importer": "main",
+          "importer_path": "main.py",
+          "line": 278,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from ingestion.summarizer import LLMAdapter"
+        }
+      ]
+    },
+    "interface": {
+      "path": "interface/__init__.py",
+      "total_lines": 25,
+      "non_empty_lines": 19,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "core.database",
+          "importer_path": "core/database.py",
+          "line": 18,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from interface.queue_writer import SerializedWriteQueue (parent pkg interface)"
+        },
+        {
+          "importer": "interface",
+          "importer_path": "interface/__init__.py",
+          "line": 12,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from interface.mcp_server import GrafoConciergeServer (parent pkg interface)"
+        },
+        {
+          "importer": "interface",
+          "importer_path": "interface/__init__.py",
+          "line": 23,
+          "kind": "pep562_getattr",
+          "ann_only": false,
+          "raw": "from interface.action_hooks import ActionHooks (parent pkg interface)"
+        },
+        {
+          "importer": "main",
+          "importer_path": "main.py",
+          "line": 322,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from interface.mcp_server import GrafoConciergeServer (parent pkg interface)"
+        }
+      ]
+    },
+    "interface.action_hooks": {
+      "path": "interface/action_hooks.py",
+      "total_lines": 261,
+      "non_empty_lines": 219,
+      "status": "REACHABLE_PEP562_LAZY",
+      "importers": [
+        {
+          "importer": "interface",
+          "importer_path": "interface/__init__.py",
+          "line": 23,
+          "kind": "pep562_getattr",
+          "ann_only": false,
+          "raw": "from interface.action_hooks import ActionHooks"
+        }
+      ]
+    },
+    "interface.cli": {
+      "path": "interface/cli.py",
+      "total_lines": 394,
+      "non_empty_lines": 318,
+      "status": "REACHABLE_LOAD",
+      "importers": []
+    },
+    "interface.mcp_server": {
+      "path": "interface/mcp_server.py",
+      "total_lines": 1801,
+      "non_empty_lines": 1561,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "interface",
+          "importer_path": "interface/__init__.py",
+          "line": 12,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from interface.mcp_server import GrafoConciergeServer"
+        },
+        {
+          "importer": "main",
+          "importer_path": "main.py",
+          "line": 322,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from interface.mcp_server import GrafoConciergeServer"
+        }
+      ]
+    },
+    "interface.queue_writer": {
+      "path": "interface/queue_writer.py",
+      "total_lines": 304,
+      "non_empty_lines": 271,
+      "status": "REACHABLE_ANNOTATION_ONLY_RUNTIME",
+      "importers": [
+        {
+          "importer": "core.database",
+          "importer_path": "core/database.py",
+          "line": 18,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from interface.queue_writer import SerializedWriteQueue"
+        }
+      ]
+    },
+    "interface.telemetry_api": {
+      "path": "interface/telemetry_api.py",
+      "total_lines": 595,
+      "non_empty_lines": 481,
+      "status": "UNREACHABLE",
+      "importers": []
+    },
+    "interface.watcher": {
+      "path": "interface/watcher.py",
+      "total_lines": 243,
+      "non_empty_lines": 203,
+      "status": "UNREACHABLE",
+      "importers": []
+    },
+    "main": {
+      "path": "main.py",
+      "total_lines": 412,
+      "non_empty_lines": 332,
+      "status": "REACHABLE_LOAD",
+      "importers": []
+    },
+    "services": {
+      "path": "services/__init__.py",
+      "total_lines": 13,
+      "non_empty_lines": 10,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "interface.cli",
+          "importer_path": "interface/cli.py",
+          "line": 232,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from services.janitor import JanitorService, MaintenanceReport (parent pkg services)"
+        },
+        {
+          "importer": "interface.mcp_server",
+          "importer_path": "interface/mcp_server.py",
+          "line": 50,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from services import JanitorService"
+        },
+        {
+          "importer": "main",
+          "importer_path": "main.py",
+          "line": 302,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from services import JanitorService"
+        },
+        {
+          "importer": "services",
+          "importer_path": "services/__init__.py",
+          "line": 8,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from services.janitor import JanitorService, MaintenanceReport (parent pkg services)"
+        }
+      ]
+    },
+    "services.janitor": {
+      "path": "services/janitor.py",
+      "total_lines": 735,
+      "non_empty_lines": 618,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "interface.cli",
+          "importer_path": "interface/cli.py",
+          "line": 232,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from services.janitor import JanitorService, MaintenanceReport"
+        },
+        {
+          "importer": "services",
+          "importer_path": "services/__init__.py",
+          "line": 8,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from services.janitor import JanitorService, MaintenanceReport"
+        }
+      ]
+    },
+    "storage": {
+      "path": "storage/__init__.py",
+      "total_lines": 31,
+      "non_empty_lines": 28,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "core.hybrid_search",
+          "importer_path": "core/hybrid_search.py",
+          "line": 40,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from storage.store import SqliteStore (parent pkg storage)"
+        },
+        {
+          "importer": "core.hybrid_search",
+          "importer_path": "core/hybrid_search.py",
+          "line": 41,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from storage.vector_store import ChromaVectorStore, EmbeddingManager (parent pkg storage)"
+        },
+        {
+          "importer": "core.memory_extractor",
+          "importer_path": "core/memory_extractor.py",
+          "line": 16,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.semantic_logic import insert_semantic_fact, invalidate_semantic_fact, get_active_semantic_facts (parent pkg storage)"
+        },
+        {
+          "importer": "core.middleware",
+          "importer_path": "core/middleware.py",
+          "line": 43,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from storage.store import SqliteStore (parent pkg storage)"
+        },
+        {
+          "importer": "core.middleware",
+          "importer_path": "core/middleware.py",
+          "line": 44,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from storage.vector_store import ChromaVectorStore, EmbeddingManager (parent pkg storage)"
+        },
+        {
+          "importer": "core.middleware",
+          "importer_path": "core/middleware.py",
+          "line": 538,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from storage.semantic_logic import insert_semantic_fact (parent pkg storage)"
+        },
+        {
+          "importer": "core.middleware",
+          "importer_path": "core/middleware.py",
+          "line": 617,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from storage.semantic_logic import get_active_semantic_facts (parent pkg storage)"
+        },
+        {
+          "importer": "core.middleware",
+          "importer_path": "core/middleware.py",
+          "line": 688,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from storage.semantic_logic import update_memory_utility (parent pkg storage)"
+        },
+        {
+          "importer": "core.project_index",
+          "importer_path": "core/project_index.py",
+          "line": 24,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from storage.store import SqliteStore (parent pkg storage)"
+        },
+        {
+          "importer": "core.vector_backend",
+          "importer_path": "core/vector_backend.py",
+          "line": 30,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.base_backend import BaseVectorBackend, VectorSearchResult (parent pkg storage)"
+        },
+        {
+          "importer": "ingestion.crawler",
+          "importer_path": "ingestion/crawler.py",
+          "line": 31,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage import SqliteStore"
+        },
+        {
+          "importer": "ingestion.orchestrator",
+          "importer_path": "ingestion/orchestrator.py",
+          "line": 45,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from storage import SqliteStore, ChromaVectorStore, EmbeddingManager"
+        },
+        {
+          "importer": "ingestion.summarizer",
+          "importer_path": "ingestion/summarizer.py",
+          "line": 39,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from storage import SqliteStore"
+        },
+        {
+          "importer": "interface.cli",
+          "importer_path": "interface/cli.py",
+          "line": 54,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from storage import SqliteStore, EmbeddingManager, EmbeddingTier, ChromaVectorStore"
+        },
+        {
+          "importer": "main",
+          "importer_path": "main.py",
+          "line": 247,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from storage import SqliteStore"
+        },
+        {
+          "importer": "main",
+          "importer_path": "main.py",
+          "line": 251,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from storage import EmbeddingManager, EmbeddingTier"
+        },
+        {
+          "importer": "main",
+          "importer_path": "main.py",
+          "line": 268,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from storage import ChromaVectorStore"
+        },
+        {
+          "importer": "services.janitor",
+          "importer_path": "services/janitor.py",
+          "line": 36,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from storage import SqliteStore, ChromaVectorStore"
+        },
+        {
+          "importer": "storage",
+          "importer_path": "storage/__init__.py",
+          "line": 13,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.store import SqliteStore (parent pkg storage)"
+        },
+        {
+          "importer": "storage",
+          "importer_path": "storage/__init__.py",
+          "line": 14,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.connection import ConnectionManager, SerializedWriteQueue (parent pkg storage)"
+        },
+        {
+          "importer": "storage",
+          "importer_path": "storage/__init__.py",
+          "line": 15,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.schema import SchemaManager (parent pkg storage)"
+        },
+        {
+          "importer": "storage",
+          "importer_path": "storage/__init__.py",
+          "line": 16,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.logic import GraphLogic (parent pkg storage)"
+        },
+        {
+          "importer": "storage",
+          "importer_path": "storage/__init__.py",
+          "line": 17,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.base_backend import BaseVectorBackend, EmbeddingTier, VectorSearchResult (parent pkg storage)"
+        },
+        {
+          "importer": "storage",
+          "importer_path": "storage/__init__.py",
+          "line": 18,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.vector_store import ChromaVectorStore, EmbeddingManager (parent pkg storage)"
+        },
+        {
+          "importer": "storage.logic",
+          "importer_path": "storage/logic.py",
+          "line": 25,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.schema import VALID_STATUSES (parent pkg storage)"
+        },
+        {
+          "importer": "storage.store",
+          "importer_path": "storage/store.py",
+          "line": 26,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.connection import ConnectionManager (parent pkg storage)"
+        },
+        {
+          "importer": "storage.store",
+          "importer_path": "storage/store.py",
+          "line": 30,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.schema import SchemaManager, VALID_NODE_TYPES, VALID_PRIVACY_LEVELS, VALID_STATUSES (parent pkg storage)"
+        },
+        {
+          "importer": "storage.store",
+          "importer_path": "storage/store.py",
+          "line": 31,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.logic import GraphLogic, TrajectoryNotFoundError, InvalidTransitionError (parent pkg storage)"
+        },
+        {
+          "importer": "storage.vector_store",
+          "importer_path": "storage/vector_store.py",
+          "line": 57,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.base_backend import BaseVectorBackend, EmbeddingTier, VectorSearchResult (parent pkg storage)"
+        }
+      ]
+    },
+    "storage.base_backend": {
+      "path": "storage/base_backend.py",
+      "total_lines": 241,
+      "non_empty_lines": 189,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "core.vector_backend",
+          "importer_path": "core/vector_backend.py",
+          "line": 30,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.base_backend import BaseVectorBackend, VectorSearchResult"
+        },
+        {
+          "importer": "storage",
+          "importer_path": "storage/__init__.py",
+          "line": 17,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.base_backend import BaseVectorBackend, EmbeddingTier, VectorSearchResult"
+        },
+        {
+          "importer": "storage.vector_store",
+          "importer_path": "storage/vector_store.py",
+          "line": 57,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.base_backend import BaseVectorBackend, EmbeddingTier, VectorSearchResult"
+        }
+      ]
+    },
+    "storage.connection": {
+      "path": "storage/connection.py",
+      "total_lines": 488,
+      "non_empty_lines": 410,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "storage",
+          "importer_path": "storage/__init__.py",
+          "line": 14,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.connection import ConnectionManager, SerializedWriteQueue"
+        },
+        {
+          "importer": "storage.store",
+          "importer_path": "storage/store.py",
+          "line": 26,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.connection import ConnectionManager"
+        }
+      ]
+    },
+    "storage.logic": {
+      "path": "storage/logic.py",
+      "total_lines": 759,
+      "non_empty_lines": 619,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "storage",
+          "importer_path": "storage/__init__.py",
+          "line": 16,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.logic import GraphLogic"
+        },
+        {
+          "importer": "storage.store",
+          "importer_path": "storage/store.py",
+          "line": 31,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.logic import GraphLogic, TrajectoryNotFoundError, InvalidTransitionError"
+        }
+      ]
+    },
+    "storage.relational_db": {
+      "path": "storage/relational_db.py",
+      "total_lines": 35,
+      "non_empty_lines": 29,
+      "status": "UNREACHABLE",
+      "importers": []
+    },
+    "storage.schema": {
+      "path": "storage/schema.py",
+      "total_lines": 520,
+      "non_empty_lines": 446,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "storage",
+          "importer_path": "storage/__init__.py",
+          "line": 15,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.schema import SchemaManager"
+        },
+        {
+          "importer": "storage.logic",
+          "importer_path": "storage/logic.py",
+          "line": 25,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.schema import VALID_STATUSES"
+        },
+        {
+          "importer": "storage.store",
+          "importer_path": "storage/store.py",
+          "line": 30,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.schema import SchemaManager, VALID_NODE_TYPES, VALID_PRIVACY_LEVELS, VALID_STATUSES"
+        }
+      ]
+    },
+    "storage.semantic_logic": {
+      "path": "storage/semantic_logic.py",
+      "total_lines": 125,
+      "non_empty_lines": 101,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "core.memory_extractor",
+          "importer_path": "core/memory_extractor.py",
+          "line": 16,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.semantic_logic import insert_semantic_fact, invalidate_semantic_fact, get_active_semantic_facts"
+        },
+        {
+          "importer": "core.middleware",
+          "importer_path": "core/middleware.py",
+          "line": 538,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from storage.semantic_logic import insert_semantic_fact"
+        },
+        {
+          "importer": "core.middleware",
+          "importer_path": "core/middleware.py",
+          "line": 617,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from storage.semantic_logic import get_active_semantic_facts"
+        },
+        {
+          "importer": "core.middleware",
+          "importer_path": "core/middleware.py",
+          "line": 688,
+          "kind": "deferred",
+          "ann_only": false,
+          "raw": "from storage.semantic_logic import update_memory_utility"
+        }
+      ]
+    },
+    "storage.store": {
+      "path": "storage/store.py",
+      "total_lines": 854,
+      "non_empty_lines": 718,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "core.hybrid_search",
+          "importer_path": "core/hybrid_search.py",
+          "line": 40,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from storage.store import SqliteStore"
+        },
+        {
+          "importer": "core.middleware",
+          "importer_path": "core/middleware.py",
+          "line": 43,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from storage.store import SqliteStore"
+        },
+        {
+          "importer": "core.project_index",
+          "importer_path": "core/project_index.py",
+          "line": 24,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from storage.store import SqliteStore"
+        },
+        {
+          "importer": "storage",
+          "importer_path": "storage/__init__.py",
+          "line": 13,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.store import SqliteStore"
+        }
+      ]
+    },
+    "storage.vector_store": {
+      "path": "storage/vector_store.py",
+      "total_lines": 772,
+      "non_empty_lines": 635,
+      "status": "REACHABLE_DEFERRED",
+      "importers": [
+        {
+          "importer": "core.hybrid_search",
+          "importer_path": "core/hybrid_search.py",
+          "line": 41,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from storage.vector_store import ChromaVectorStore, EmbeddingManager"
+        },
+        {
+          "importer": "core.middleware",
+          "importer_path": "core/middleware.py",
+          "line": 44,
+          "kind": "load",
+          "ann_only": true,
+          "raw": "from storage.vector_store import ChromaVectorStore, EmbeddingManager"
+        },
+        {
+          "importer": "storage",
+          "importer_path": "storage/__init__.py",
+          "line": 18,
+          "kind": "load",
+          "ann_only": false,
+          "raw": "from storage.vector_store import ChromaVectorStore, EmbeddingManager"
+        }
+      ]
+    }
+  },
+  "utility_script_bootstrap_core_memory": {
+    "direct_edges": [
+      [
+        "storage",
+        20,
+        "load",
+        "from storage import SqliteStore",
+        false
+      ]
+    ],
+    "reachable_modules": [
+      "storage",
+      "storage.base_backend",
+      "storage.connection",
+      "storage.logic",
+      "storage.schema",
+      "storage.store",
+      "storage.vector_store"
+    ]
+  },
+  "dynamic_import_scans": [
+    {
+      "file": "agent/agent_prompts.py",
+      "line": 112,
+      "tag": "getattr_call",
+      "code": "matrix = getattr(self.mcp_governor, \"TOOL_DISCLOSURE_MATRIX\", {})"
+    },
+    {
+      "file": "agent/run_agent.py",
+      "line": 50,
+      "tag": "getattr_call",
+      "code": "mcp_gov = getattr(hsm_engine, \"mcp_governor\", None)"
+    },
+    {
+      "file": "agent/run_agent.py",
+      "line": 236,
+      "tag": "getattr_call",
+      "code": "gov = getattr(self.hsm, \"mcp_governor\", None)"
+    },
+    {
+      "file": "core/checkpointer.py",
+      "line": 109,
+      "tag": "getattr_call",
+      "code": "write_fn = getattr(self.db, \"execute_write\", getattr(self.db, \"write_query\", None))"
+    },
+    {
+      "file": "core/checkpointer.py",
+      "line": 135,
+      "tag": "getattr_call",
+      "code": "write_fn = getattr(self.db, \"write_query\", getattr(self.db, \"execute_write\", None))"
+    },
+    {
+      "file": "core/checkpointer.py",
+      "line": 167,
+      "tag": "getattr_call",
+      "code": "read_fn = getattr(self.db, \"read_query\")"
+    },
+    {
+      "file": "core/checkpointer.py",
+      "line": 202,
+      "tag": "getattr_call",
+      "code": "read_fn = getattr(self.db, \"read_query\")"
+    },
+    {
+      "file": "core/checkpointer.py",
+      "line": 217,
+      "tag": "getattr_call",
+      "code": "write_fn = getattr(self.db, \"execute_write\", getattr(self.db, \"write_query\", None))"
+    },
+    {
+      "file": "core/mcp_governor.py",
+      "line": 163,
+      "tag": "getattr_call",
+      "code": "tool_name = getattr(tool, \"name\", None)"
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "line": 215,
+      "tag": "getattr_call",
+      "code": "summarizer_enabled = bool(self._summarizer and getattr(self._summarizer, \"is_enabled\", True))"
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "line": 416,
+      "tag": "getattr_call",
+      "code": "or not getattr(self._summarizer._llm, \"is_enabled\", True)"
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "line": 534,
+      "tag": "getattr_call",
+      "code": "if getattr(res, \"summary\", None) and not getattr(res, \"is_dumb_summary\", False):"
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "line": 536,
+      "tag": "getattr_call",
+      "code": "if getattr(res, \"detected_tags\", None):"
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "line": 748,
+      "tag": "getattr_call",
+      "code": "calls = getattr(chunk, \"calls\", [])"
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "line": 901,
+      "tag": "getattr_call",
+      "code": "if not getattr(self._vector, \"_available\", True):"
+    },
+    {
+      "file": "ingestion/orchestrator.py",
+      "line": 943,
+      "tag": "getattr_call",
+      "code": "BATCH_SIZE = getattr(self._vector, \"BATCH_SIZE\", 64)"
+    },
+    {
+      "file": "ingestion/summarizer.py",
+      "line": 426,
+      "tag": "getattr_call",
+      "code": "return bool(getattr(self._llm, \"is_enabled\", True))"
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "line": 183,
+      "tag": "getattr_call",
+      "code": "cfg = getattr(self._gc, \"config\", None)"
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "line": 184,
+      "tag": "getattr_call",
+      "code": "api_key = (getattr(cfg, \"api_key\", None) if cfg else None) or os.environ.get(\"GRAFO_API_KEY\")"
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "line": 1744,
+      "tag": "getattr_call",
+      "code": "save_fn = getattr(checkpointer, \"save_checkpoint_detailed\", None)"
+    },
+    {
+      "file": "interface/mcp_server.py",
+      "line": 1751,
+      "tag": "getattr_call",
+      "code": "raw_err = getattr(checkpointer, \"last_error\", None)"
+    },
+    {
+      "file": "interface/watcher.py",
+      "line": 173,
+      "tag": "getattr_call",
+      "code": "if new_hash and getattr(self.alias_tracker, \"is_valid_hash\", lambda h: True)(new_hash):"
+    },
+    {
+      "file": "interface/watcher.py",
+      "line": 219,
+      "tag": "getattr_call",
+      "code": "and getattr(self.alias_tracker, \"is_valid_hash\", lambda h: True)(structural_hash)"
+    },
+    {
+      "file": "main.py",
+      "line": 128,
+      "tag": "getattr_call",
+      "code": "if exc_val is not None and getattr(exc_val, \"args\", None):"
+    },
+    {
+      "file": "main.py",
+      "line": 158,
+      "tag": "getattr_call",
+      "code": "numeric_level = getattr(logging, level, logging.INFO)"
+    },
+    {
+      "file": "main.py",
+      "line": 161,
+      "tag": "getattr_call",
+      "code": "if not getattr(current_factory, \"_grafo_secret_redacting\", False):"
+    },
+    {
+      "file": "main.py",
+      "line": 179,
+      "tag": "getattr_call",
+      "code": "if getattr(existing_h, \"_grafo_log_handler\", False):"
+    },
+    {
+      "file": "services/janitor.py",
+      "line": 175,
+      "tag": "getattr_call",
+      "code": "elapsed = time.monotonic() - getattr(self, \"_mine_timestamp\", 0.0)"
+    },
+    {
+      "file": "storage/connection.py",
+      "line": 441,
+      "tag": "getattr_call",
+      "code": "conn = getattr(self._local, \"conn\", None)"
+    },
+    {
+      "file": "storage/relational_db.py",
+      "line": 31,
+      "tag": "getattr_call",
+      "code": "write_fn = getattr(db_manager, \"execute_write\", getattr(db_manager, \"write_query\", None))"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 45,
+      "tag": "importlib",
+      "code": "import importlib.util"
+    },
+    {
+      "file": "storage/vector_store.py",
+      "line": 49,
+      "tag": "importlib",
+      "code": "importlib.util.find_spec(\"sentence_transformers\") is not None"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+=== BLOCO 1 (RUNTIME TRACE): DIFF DE sys.modules ===
+Ferramentas MCP registradas: 31
+Módulos após import main: 1 -> ['main']
+Módulos após main.bootstrap(): 29 -> ['core', 'core.checkpointer', 'core.config', 'core.database', 'core.graph_rag', 'core.hybrid_search', 'core.mcp_governor', 'core.memory_extractor', 'core.middleware', 'core.project_index', 'ingestion', 'ingestion.crawler', 'ingestion.orchestrator', 'ingestion.parser', 'ingestion.summarizer', 'interface', 'interface.mcp_server', 'interface.queue_writer', 'main', 'services', 'services.janitor', 'storage', 'storage.base_backend', 'storage.connection', 'storage.logic', 'storage.schema', 'storage.semantic_logic', 'storage.store', 'storage.vector_store']
+Módulos após exercitar ferramentas MCP: 30 -> ['core', 'core.checkpointer', 'core.config', 'core.database', 'core.graph_rag', 'core.hybrid_search', 'core.mcp_governor', 'core.memory_extractor', 'core.middleware', 'core.project_index', 'core.vector_backend', 'ingestion', 'ingestion.crawler', 'ingestion.orchestrator', 'ingestion.parser', 'ingestion.summarizer', 'interface', 'interface.mcp_server', 'interface.queue_writer', 'main', 'services', 'services.janitor', 'storage', 'storage.base_backend', 'storage.connection', 'storage.logic', 'storage.schema', 'storage.semantic_logic', 'storage.store', 'storage.vector_store']
+Módulos após import interface.cli: 24 -> ['core', 'core.config', 'core.hybrid_search', 'core.memory_extractor', 'core.middleware', 'core.project_index', 'ingestion', 'ingestion.crawler', 'ingestion.orchestrator', 'ingestion.parser', 'ingestion.summarizer', 'interface', 'interface.cli', 'interface.mcp_server', 'services', 'services.janitor', 'storage', 'storage.base_backend', 'storage.connection', 'storage.logic', 'storage.schema', 'storage.semantic_logic', 'storage.store', 'storage.vector_store']
+Módulos após CLI `status`: 24 -> ['core', 'core.config', 'core.hybrid_search', 'core.memory_extractor', 'core.middleware', 'core.project_index', 'ingestion', 'ingestion.crawler', 'ingestion.orchestrator', 'ingestion.parser', 'ingestion.summarizer', 'interface', 'interface.cli', 'interface.mcp_server', 'services', 'services.janitor', 'storage', 'storage.base_backend', 'storage.connection', 'storage.logic', 'storage.schema', 'storage.semantic_logic', 'storage.store', 'storage.vector_store']
+União runtime (MCP + CLI): 31 módulos
+
+--- RESULTADOS DAS FERRAMENTAS MCP ---
+  - concierge_register: ok=True | {'success': True, 'project_uuid': 'dfe7f2a2-c07e-46ee-9ff7-8c9ec075204f', 'folder_name': 'sample_proj', 'wing': 'core', 'privacy_level': 'PUBLIC', 'duration_seconds': 0.016}
+  - concierge_list_projects: ok=True | {'projects': {'sample_proj': {'uuid': 'dfe7f2a2-c07e-46ee-9ff7-8c9ec075204f', 'updated_at': '2026-11-13'}, 'ref_proj': {'uuid': 'f1b01272-9c0c-4fce-aa5c-30688e60bb5c', 'updated_at': '2026-11-13'}}, 'success': True, 'duration_seconds': 0.0}
+  - concierge_mine: ok=True | {'files_processed': 2, 'categories': {'code': 2}, 'nodes_created': 4, 'embeddings_stored': 0, 'embeddings_failed': 4, 'embeddings_repaired': 0, 'tags_applied': [], 'files_skipped': 0, 'files_deleted': 0, 'summaries_generated': 0, 'errors': ['4 chunks without vectors (probable cause: model unavailabl
+  - concierge_search: ok=True | {'success': True, 'query': 'helper', 'project_uuid': 'dfe7f2a2-c07e-46ee-9ff7-8c9ec075204f', 'results_count': 3, 'results': [{'node_id': 2, 'label': 'app.py::helper', 'summary': None, 'node_type': 'FUNCTION', 'tags': None, 'hybrid_score': 0.3, 'vector_score': 0.0, 'fts_score': 1.0, 'recency_score': 
+  - concierge_commit: ok=True | {'success': False, 'error': 'FOREIGN KEY constraint failed', 'duration_seconds': 0.003}
+  - concierge_set_state: ok=True | {'success': True, 'session_id': 'default', 'active_state': 'MAINTENANCE'}
+  - concierge_wakeup: ok=True | {'project': {'uuid': 'dfe7f2a2-c07e-46ee-9ff7-8c9ec075204f', 'folder_name': 'sample_proj', 'primary_wing': 'core', 'privacy_level': 'PUBLIC', 'summary': 'Sample', 'created_at': '2026-11-13 02:17:07', 'updated_at': '2026-11-13 02:17:07'}, 'resume': 'Sample', 'reference_wings': [], 'recent_commits': [
+  - concierge_resume: ok=True | {'success': True, 'project_uuid': 'sample_proj', 'folder_name': 'sample_proj', 'primary_wing': 'core', 'resume': 'Sample', 'stats': {'nodes': 0, 'nodes_by_type': {}, 'edges': 0, 'commits': 0, 'last_commit_at': None, 'trajectories': 0, 'trajectories_active': 0}, 'duration_seconds': 0.001}
+  - concierge_load: ok=True | {'success': False, 'error': '%d format: a real number is required, not str', 'duration_seconds': 0.002}
+  - concierge_status: ok=True | {'success': True, 'system': 'Grafo Concierge v3.8.0', 'components': {'sqlite': {'status': 'healthy', 'total_projects': 2}, 'janitor': {'status': 'idle', 'total_runs': 0}}, 'duration_seconds': 0.002}
+  - search_symbols: ok=True | {'success': True, 'symbols': [{'id': 2, 'label': 'app.py::helper', 'node_type': 'FUNCTION', 'file_path': 'app.py::helper', 'summary': None}, {'id': 4, 'label': 'app.py::<module>', 'node_type': 'MODULE', 'file_path': 'app.py::<module>', 'summary': None}, {'id': 3, 'label': 'app.py::run_flow', 'node_t
+  - get_implementations: ok=True | {'success': True, 'symbol_id': '2', 'label': 'app.py::helper', 'type': 'function', 'implementation': 'def helper(x: int) -> int:\n    return x + 1', 'project_uuid': 'dfe7f2a2-c07e-46ee-9ff7-8c9ec075204f', 'duration_seconds': 0.0}
+  - get_callers: ok=True | {'success': True, 'symbol_id': '2', 'callers': [{'id': 4, 'label': 'app.py::<module>', 'node_type': 'MODULE', 'relation_type': 'contains'}, {'id': 3, 'label': 'app.py::run_flow', 'node_type': 'FUNCTION', 'relation_type': 'calls'}], 'duration_seconds': 0.0}
+  - concierge_store_fact: ok=True | {'success': True, 'scope_type': 'session', 'scope_id': 's45a', 'decisions': [{'fact': 'Runtime uses SQLite WAL', 'action': 'ADD', 'target_id': None, 'fact_id': 1}], 'duration_seconds': 0.938}
+  - concierge_list_facts: ok=True | {'success': True, 'scope_type': 'session', 'scope_id': 's45a', 'facts_count': 1, 'facts': [{'id': 1, 'scope_type': 'session', 'scope_id': 's45a', 'fact_statement': 'Runtime uses SQLite WAL', 't_valid': '2026-11-13 02:17:07', 't_invalid': None, 'utility_alpha': 1.0, 'utility_beta': 1.0, 'created_at':
+  - concierge_set_memory: ok=True | {'success': True, 'memory_id': 1, 'scope_type': 'session', 'scope_id': 's45a', 'block_label': 'notes', 'duration_seconds': 0.003}
+  - concierge_get_memory: ok=True | {'success': True, 'scope_type': 'session', 'scope_id': 's45a', 'block_label': 'notes', 'blocks': [{'id': 1, 'scope_type': 'session', 'scope_id': 's45a', 'block_label': 'notes', 'content': 'block-v1', 'updated_at': '2026-11-13 02:17:08'}], 'duration_seconds': 0.002}
+  - concierge_feedback: ok=True | {'success': True, 'fact_id': 1, 'was_useful': True, 'updated_field': 'utility_alpha', 'message': 'utility_alpha incremented for fact 1.', 'duration_seconds': 0.004}
+  - get_full_topology: ok=True | {'success': True, 'nodes': [{'node_id': 1, 'name': '<root>', 'node_type': 'FACT'}, {'node_id': 2, 'name': 'app.py::helper', 'node_type': 'FUNCTION'}, {'node_id': 3, 'name': 'app.py::run_flow', 'node_type': 'FUNCTION'}, {'node_id': 4, 'name': 'app.py::<module>', 'node_type': 'MODULE'}, {'node_id': 5,
+  - delete_project: ok=True | {'success': True, 'project_uuid': 'f1b01272-9c0c-4fce-aa5c-30688e60bb5c', 'duration_seconds': 0.005}
+  - update_project: ok=True | {'success': True, 'project_uuid': 'dfe7f2a2-c07e-46ee-9ff7-8c9ec075204f', 'updated_fields': ['summary'], 'duration_seconds': 0.005}
+  - add_reference_wing: ok=True | {'success': True, 'project_uuid': 'dfe7f2a2-c07e-46ee-9ff7-8c9ec075204f', 'wing_name': 'test', 'duration_seconds': 0.004}
+  - remove_reference_wing: ok=True | {'success': True, 'project_uuid': 'dfe7f2a2-c07e-46ee-9ff7-8c9ec075204f', 'wing_name': 'test', 'duration_seconds': 0.004}
+  - find_similar: ok=True | {'success': True, 'project_uuid': 'dfe7f2a2-c07e-46ee-9ff7-8c9ec075204f', 'similar_projects': [], 'duration_seconds': 0.003}
+  - get_trajectories: ok=True | {'success': True, 'project_uuid': 'dfe7f2a2-c07e-46ee-9ff7-8c9ec075204f', 'trajectories': [], 'duration_seconds': 0.001}
+  - count_embeddings: ok=True | {'success': True, 'project_uuid': 'dfe7f2a2-c07e-46ee-9ff7-8c9ec075204f', 'count': 0, 'duration_seconds': 0.001}
+  - reset_collection: ok=True | {'success': False, 'duration_seconds': 0.003}
+  - concierge_get_call_chain: ok=True | []
+  - agent_save_checkpoint: ok=True | {"success": false, "message": "Failed to save checkpoint 'ckpt-1' for agent 'agent-45a': no such table: fsm_checkpoints"}
+  - agent_get_checkpoint: ok=True | {}
+  - agent_list_checkpoints: ok=True | []
+
+--- COMPARAÇÃO RUNTIME vs GRAFO ESTÁTICO ---
+Alcançáveis no grafo estático MAS NÃO carregados no runtime (4): ['agents', 'agents.revisor_critico', 'core.probabilistic_retriever', 'interface.action_hooks']
+Carregados no runtime fora de LOAD+DEFERRED (1): ['interface.queue_writer']
+Não alcançáveis estáticos carregados no runtime (0): []
+
+Nota CLI returncode: import=0, status=0

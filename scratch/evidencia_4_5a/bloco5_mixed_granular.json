@@ -1,0 +1,478 @@
+[
+  {
+    "test_file": "tests/test_adaptive_gating.py",
+    "collected": 13,
+    "dormant_imported": [
+      "core.gating_interceptor",
+      "core.security_guard"
+    ],
+    "live_imported": [
+      "core"
+    ],
+    "dormant_only_tests": 11,
+    "mixed_tests": 2,
+    "live_only_tests": 0,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_agent_checkpointer.py",
+    "collected": 4,
+    "dormant_imported": [
+      "interface.queue_writer"
+    ],
+    "live_imported": [
+      "core.checkpointer",
+      "core.database",
+      "interface"
+    ],
+    "dormant_only_tests": 0,
+    "mixed_tests": 0,
+    "live_only_tests": 0,
+    "qw_tests": 4
+  },
+  {
+    "test_file": "tests/test_agent_hsm_coupling.py",
+    "collected": 13,
+    "dormant_imported": [
+      "agent.agent_prompts",
+      "agent.run_agent",
+      "core.gating_interceptor",
+      "core.hsm_engine",
+      "core.rate_governor",
+      "core.security_guard"
+    ],
+    "live_imported": [
+      "core.checkpointer",
+      "core.database",
+      "core.mcp_governor",
+      "main"
+    ],
+    "dormant_only_tests": 0,
+    "mixed_tests": 13,
+    "live_only_tests": 0,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_alias_tracker.py",
+    "collected": 4,
+    "dormant_imported": [
+      "core.alias_tracker"
+    ],
+    "live_imported": [
+      "core.database"
+    ],
+    "dormant_only_tests": 0,
+    "mixed_tests": 4,
+    "live_only_tests": 0,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_checkpoint_pruning.py",
+    "collected": 1,
+    "dormant_imported": [
+      "core.background_janitor",
+      "interface.queue_writer"
+    ],
+    "live_imported": [
+      "core.checkpointer",
+      "core.database",
+      "interface"
+    ],
+    "dormant_only_tests": 0,
+    "mixed_tests": 1,
+    "live_only_tests": 0,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_cognitive_routing_memory.py",
+    "collected": 3,
+    "dormant_imported": [
+      "core.federated_knowledge_router",
+      "core.global_memory_adapter",
+      "core.intent_classifier"
+    ],
+    "live_imported": [
+      "core.database"
+    ],
+    "dormant_only_tests": 0,
+    "mixed_tests": 3,
+    "live_only_tests": 0,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_concurrency_stress.py",
+    "collected": 2,
+    "dormant_imported": [
+      "interface.queue_writer"
+    ],
+    "live_imported": [
+      "core.database",
+      "interface",
+      "storage.schema"
+    ],
+    "dormant_only_tests": 0,
+    "mixed_tests": 0,
+    "live_only_tests": 0,
+    "qw_tests": 2
+  },
+  {
+    "test_file": "tests/test_delta_sync.py",
+    "collected": 4,
+    "dormant_imported": [
+      "core.delta_manager",
+      "interface.queue_writer"
+    ],
+    "live_imported": [
+      "core.database",
+      "interface"
+    ],
+    "dormant_only_tests": 0,
+    "mixed_tests": 4,
+    "live_only_tests": 0,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_delta_sync_drift.py",
+    "collected": 4,
+    "dormant_imported": [
+      "core.delta_sync"
+    ],
+    "live_imported": [],
+    "dormant_only_tests": 4,
+    "mixed_tests": 0,
+    "live_only_tests": 0,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_dependency_injection.py",
+    "collected": 3,
+    "dormant_imported": [
+      "core.dependencies"
+    ],
+    "live_imported": [],
+    "dormant_only_tests": 3,
+    "mixed_tests": 0,
+    "live_only_tests": 0,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_durable_checkpoints_timetravel.py",
+    "collected": 3,
+    "dormant_imported": [
+      "interface.telemetry_api"
+    ],
+    "live_imported": [
+      "core.checkpointer",
+      "core.database"
+    ],
+    "dormant_only_tests": 0,
+    "mixed_tests": 3,
+    "live_only_tests": 0,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_e2e_concierge_integration.py",
+    "collected": 1,
+    "dormant_imported": [
+      "core.background_janitor",
+      "core.delta_manager",
+      "core.search_engine",
+      "core.vector_reconciler",
+      "interface.queue_writer"
+    ],
+    "live_imported": [
+      "core.checkpointer",
+      "core.database",
+      "core.graph_rag",
+      "core.middleware",
+      "interface",
+      "interface.mcp_server",
+      "storage.schema"
+    ],
+    "dormant_only_tests": 0,
+    "mixed_tests": 1,
+    "live_only_tests": 0,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_governor_wiring.py",
+    "collected": 5,
+    "dormant_imported": [
+      "interface.action_hooks",
+      "interface.telemetry_api"
+    ],
+    "live_imported": [
+      "core",
+      "core.mcp_governor",
+      "interface",
+      "interface.mcp_server",
+      "storage.store"
+    ],
+    "dormant_only_tests": 1,
+    "mixed_tests": 3,
+    "live_only_tests": 1,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_graph_rag_frugal.py",
+    "collected": 2,
+    "dormant_imported": [
+      "core.background_janitor",
+      "interface.queue_writer"
+    ],
+    "live_imported": [
+      "core.database",
+      "core.graph_rag"
+    ],
+    "dormant_only_tests": 0,
+    "mixed_tests": 2,
+    "live_only_tests": 0,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_graph_rag_janitor.py",
+    "collected": 3,
+    "dormant_imported": [
+      "core.background_janitor",
+      "interface.queue_writer"
+    ],
+    "live_imported": [
+      "core.database",
+      "core.graph_rag",
+      "interface",
+      "main",
+      "storage.schema"
+    ],
+    "dormant_only_tests": 0,
+    "mixed_tests": 3,
+    "live_only_tests": 0,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_graph_rag_loops.py",
+    "collected": 3,
+    "dormant_imported": [
+      "interface.queue_writer"
+    ],
+    "live_imported": [
+      "core.database",
+      "core.graph_rag",
+      "storage.schema"
+    ],
+    "dormant_only_tests": 0,
+    "mixed_tests": 0,
+    "live_only_tests": 0,
+    "qw_tests": 3
+  },
+  {
+    "test_file": "tests/test_hierarchical_state_machine.py",
+    "collected": 43,
+    "dormant_imported": [
+      "core.hsm_engine",
+      "interface.telemetry_api"
+    ],
+    "live_imported": [
+      "core.checkpointer",
+      "core.database",
+      "core.mcp_governor",
+      "main"
+    ],
+    "dormant_only_tests": 32,
+    "mixed_tests": 11,
+    "live_only_tests": 0,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_hsm_transition_hooks_and_delta.py",
+    "collected": 20,
+    "dormant_imported": [
+      "core.hsm_engine"
+    ],
+    "live_imported": [
+      "core.checkpointer",
+      "core.database"
+    ],
+    "dormant_only_tests": 8,
+    "mixed_tests": 12,
+    "live_only_tests": 0,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_interface_contracts.py",
+    "collected": 22,
+    "dormant_imported": [
+      "interface.action_hooks"
+    ],
+    "live_imported": [
+      "core.middleware",
+      "interface",
+      "interface.cli",
+      "interface.mcp_server",
+      "storage.store"
+    ],
+    "dormant_only_tests": 0,
+    "mixed_tests": 17,
+    "live_only_tests": 5,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_mcp_server_extensions.py",
+    "collected": 3,
+    "dormant_imported": [
+      "interface.queue_writer"
+    ],
+    "live_imported": [
+      "core.checkpointer",
+      "core.database",
+      "core.graph_rag",
+      "core.middleware",
+      "interface",
+      "interface.mcp_server",
+      "storage.schema"
+    ],
+    "dormant_only_tests": 0,
+    "mixed_tests": 0,
+    "live_only_tests": 0,
+    "qw_tests": 3
+  },
+  {
+    "test_file": "tests/test_multilang_parser.py",
+    "collected": 8,
+    "dormant_imported": [
+      "core.parser_factory",
+      "core.parsers.python_parser",
+      "core.parsers.ts_js_parser"
+    ],
+    "live_imported": [],
+    "dormant_only_tests": 7,
+    "mixed_tests": 1,
+    "live_only_tests": 0,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_progressive_tool_disclosure.py",
+    "collected": 5,
+    "dormant_imported": [
+      "interface.telemetry_api"
+    ],
+    "live_imported": [
+      "core.mcp_governor"
+    ],
+    "dormant_only_tests": 0,
+    "mixed_tests": 5,
+    "live_only_tests": 0,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_queue_writer_batching.py",
+    "collected": 2,
+    "dormant_imported": [
+      "interface.queue_writer"
+    ],
+    "live_imported": [
+      "core.database"
+    ],
+    "dormant_only_tests": 0,
+    "mixed_tests": 0,
+    "live_only_tests": 0,
+    "qw_tests": 2
+  },
+  {
+    "test_file": "tests/test_queue_writer_resilience.py",
+    "collected": 14,
+    "dormant_imported": [
+      "interface.queue_writer"
+    ],
+    "live_imported": [
+      "core.database"
+    ],
+    "dormant_only_tests": 0,
+    "mixed_tests": 0,
+    "live_only_tests": 0,
+    "qw_tests": 14
+  },
+  {
+    "test_file": "tests/test_rate_governor_priority.py",
+    "collected": 8,
+    "dormant_imported": [
+      "core.rate_governor"
+    ],
+    "live_imported": [],
+    "dormant_only_tests": 8,
+    "mixed_tests": 0,
+    "live_only_tests": 0,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_revisor_critico.py",
+    "collected": 11,
+    "dormant_imported": [
+      "agents.revisor_critico"
+    ],
+    "live_imported": [
+      "core.config"
+    ],
+    "dormant_only_tests": 9,
+    "mixed_tests": 2,
+    "live_only_tests": 0,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_ssh_language_coverage.py",
+    "collected": 10,
+    "dormant_imported": [
+      "core.delta_manager"
+    ],
+    "live_imported": [],
+    "dormant_only_tests": 10,
+    "mixed_tests": 0,
+    "live_only_tests": 0,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_telemetry_api.py",
+    "collected": 5,
+    "dormant_imported": [
+      "interface.queue_writer",
+      "interface.telemetry_api"
+    ],
+    "live_imported": [
+      "core.database"
+    ],
+    "dormant_only_tests": 0,
+    "mixed_tests": 5,
+    "live_only_tests": 0,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_vector_reconciler.py",
+    "collected": 2,
+    "dormant_imported": [
+      "core.search_engine",
+      "core.vector_reconciler",
+      "interface.queue_writer"
+    ],
+    "live_imported": [
+      "core.database",
+      "interface"
+    ],
+    "dormant_only_tests": 0,
+    "mixed_tests": 0,
+    "live_only_tests": 2,
+    "qw_tests": 0
+  },
+  {
+    "test_file": "tests/test_watcher_ignore.py",
+    "collected": 4,
+    "dormant_imported": [
+      "interface.watcher"
+    ],
+    "live_imported": [
+      "interface"
+    ],
+    "dormant_only_tests": 4,
+    "mixed_tests": 0,
+    "live_only_tests": 0,
+    "qw_tests": 0
+  }
+]

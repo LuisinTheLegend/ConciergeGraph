@@ -1,0 +1,127 @@
+=== BLOCO 1 (ESTÁTICO): GRAFO DE IMPORTS AST ===
+Total de módulos de produção descobertos: 63
+Raízes de produção: main, interface.cli
+
+Contagem por categoria:
+  REACHABLE_LOAD: 2 módulos (806 linhas totais)
+  REACHABLE_DEFERRED: 29 módulos (13499 linhas totais)
+  REACHABLE_ANNOTATION_ONLY_RUNTIME: 1 módulos (304 linhas totais)
+  REACHABLE_PEP562_LAZY: 3 módulos (885 linhas totais)
+  REACHABLE_TYPE_CHECKING: 0 módulos (0 linhas totais)
+  UNREACHABLE: 28 módulos (4306 linhas totais)
+  TOTAL GERAL: 63 módulos (19800 linhas totais)
+
+--- LISTA COMPLETA POR STATUS ---
+
+[REACHABLE_LOAD]
+  - interface.cli                       | interface/cli.py                         |  394L | importadores: (nenhum)
+  - main                                | main.py                                  |  412L | importadores: (nenhum)
+
+[REACHABLE_DEFERRED]
+  - core                                | core/__init__.py                         |   23L | importadores: agents/revisor_critico.py:46(load), core/__init__.py:13(load), core/__init__.py:14(load), core/__init__.py:15(load), core/__init__.py:16(load), core/delta_sync.py:10(load), core/gating_interceptor.py:26(load:ann), core/hybrid_search.py:38(load), core/hybrid_search.py:39(load:ann), core/hybrid_search.py:252(deferred), core/janitor.py:10(load), core/middleware.py:39(load), core/middleware.py:40(load), core/middleware.py:41(load), core/middleware.py:42(load), core/middleware.py:566(deferred), core/nozomio_router.py:8(load), core/parser_factory.py:16(load:ann), core/parser_factory.py:17(load), core/parser_factory.py:18(load), core/parsers/__init__.py:12(load), core/parsers/__init__.py:13(load), core/parsers/__init__.py:14(load), core/parsers/python_parser.py:16(load), core/parsers/ts_js_parser.py:25(load), core/project_index.py:25(load), interface/action_hooks.py:31(load:ann), interface/cli.py:57(deferred), interface/cli.py:87(deferred), interface/mcp_server.py:49(load:ann), interface/mcp_server.py:151(deferred), interface/mcp_server.py:162(deferred), interface/mcp_server.py:166(deferred), interface/mcp_server.py:170(deferred), interface/telemetry_api.py:41(load:ann), interface/telemetry_api.py:42(load), interface/telemetry_api.py:43(load), interface/telemetry_api.py:44(load), interface/telemetry_api.py:45(load), interface/telemetry_api.py:46(load), interface/telemetry_api.py:78(deferred), interface/telemetry_api.py:79(deferred), interface/telemetry_api.py:271(deferred), interface/telemetry_api.py:331(deferred), main.py:259(deferred), main.py:311(deferred), storage/logic.py:28(type_checking), storage/store.py:29(type_checking)
+  - core.checkpointer                   | core/checkpointer.py                     |  269L | importadores: interface/mcp_server.py:166(deferred), interface/telemetry_api.py:78(deferred), interface/telemetry_api.py:331(deferred)
+  - core.config                         | core/config.py                           |  169L | importadores: agents/revisor_critico.py:46(load), core/__init__.py:13(load), core/hybrid_search.py:38(load), core/middleware.py:39(load), core/project_index.py:25(load), storage/logic.py:28(type_checking), storage/store.py:29(type_checking)
+  - core.database                       | core/database.py                         |   66L | importadores: interface/mcp_server.py:162(deferred), interface/telemetry_api.py:41(load:ann)
+  - core.graph_rag                      | core/graph_rag.py                        |  410L | importadores: interface/mcp_server.py:170(deferred)
+  - core.hybrid_search                  | core/hybrid_search.py                    |  308L | importadores: core/__init__.py:15(load), core/middleware.py:41(load)
+  - core.mcp_governor                   | core/mcp_governor.py                     |  206L | importadores: interface/mcp_server.py:151(deferred), interface/telemetry_api.py:43(load)
+  - core.memory_extractor               | core/memory_extractor.py                 |  245L | importadores: core/middleware.py:42(load)
+  - core.middleware                     | core/middleware.py                       |  767L | importadores: core/__init__.py:16(load), interface/action_hooks.py:31(load:ann), interface/cli.py:57(deferred), interface/mcp_server.py:49(load:ann), main.py:311(deferred)
+  - core.probabilistic_retriever        | core/probabilistic_retriever.py          |  108L | importadores: core/hybrid_search.py:252(deferred)
+  - core.project_index                  | core/project_index.py                    |  222L | importadores: core/__init__.py:14(load), core/hybrid_search.py:39(load:ann), core/middleware.py:40(load)
+  - core.vector_backend                 | core/vector_backend.py                   |  471L | importadores: core/middleware.py:566(deferred), interface/cli.py:87(deferred), main.py:259(deferred)
+  - ingestion                           | ingestion/__init__.py                    |   25L | importadores: agents/revisor_critico.py:47(load:ann), core/middleware.py:45(load:ann), ingestion/__init__.py:10(load), ingestion/__init__.py:11(load), ingestion/__init__.py:12(load), ingestion/__init__.py:13(load), ingestion/orchestrator.py:46(load), ingestion/orchestrator.py:47(load), ingestion/orchestrator.py:48(load), ingestion/orchestrator.py:624(deferred), ingestion/parser.py:28(load), ingestion/summarizer.py:40(load:ann), interface/cli.py:55(deferred), interface/cli.py:56(deferred), main.py:277(deferred), main.py:278(deferred), main.py:292(deferred), services/janitor.py:37(load:ann)
+  - ingestion.crawler                   | ingestion/crawler.py                     |  722L | importadores: ingestion/__init__.py:10(load), ingestion/orchestrator.py:46(load), ingestion/parser.py:28(load)
+  - ingestion.orchestrator              | ingestion/orchestrator.py                | 1098L | importadores: core/middleware.py:45(load:ann), ingestion/__init__.py:13(load), services/janitor.py:37(load:ann)
+  - ingestion.parser                    | ingestion/parser.py                      |  984L | importadores: ingestion/__init__.py:11(load), ingestion/orchestrator.py:47(load), ingestion/orchestrator.py:624(deferred), ingestion/summarizer.py:40(load:ann)
+  - ingestion.summarizer                | ingestion/summarizer.py                  | 1042L | importadores: agents/revisor_critico.py:47(load:ann), ingestion/__init__.py:12(load), ingestion/orchestrator.py:48(load), interface/cli.py:56(deferred), main.py:278(deferred)
+  - interface                           | interface/__init__.py                    |   25L | importadores: core/database.py:18(load:ann), interface/__init__.py:12(load), interface/__init__.py:23(pep562_getattr), main.py:322(deferred)
+  - interface.mcp_server                | interface/mcp_server.py                  | 1801L | importadores: interface/__init__.py:12(load), main.py:322(deferred)
+  - services                            | services/__init__.py                     |   13L | importadores: interface/cli.py:232(deferred), interface/mcp_server.py:50(load:ann), main.py:302(deferred), services/__init__.py:8(load)
+  - services.janitor                    | services/janitor.py                      |  735L | importadores: interface/cli.py:232(deferred), services/__init__.py:8(load)
+  - storage                             | storage/__init__.py                      |   31L | importadores: core/hybrid_search.py:40(load:ann), core/hybrid_search.py:41(load:ann), core/memory_extractor.py:16(load), core/middleware.py:43(load:ann), core/middleware.py:44(load:ann), core/middleware.py:538(deferred), core/middleware.py:617(deferred), core/middleware.py:688(deferred), core/project_index.py:24(load:ann), core/vector_backend.py:30(load), ingestion/crawler.py:31(load), ingestion/orchestrator.py:45(load:ann), ingestion/summarizer.py:39(load:ann), interface/cli.py:54(deferred), main.py:247(deferred), main.py:251(deferred), main.py:268(deferred), services/janitor.py:36(load:ann), storage/__init__.py:13(load), storage/__init__.py:14(load), storage/__init__.py:15(load), storage/__init__.py:16(load), storage/__init__.py:17(load), storage/__init__.py:18(load), storage/logic.py:25(load), storage/store.py:26(load), storage/store.py:30(load), storage/store.py:31(load), storage/vector_store.py:57(load)
+  - storage.base_backend                | storage/base_backend.py                  |  241L | importadores: core/vector_backend.py:30(load), storage/__init__.py:17(load), storage/vector_store.py:57(load)
+  - storage.connection                  | storage/connection.py                    |  488L | importadores: storage/__init__.py:14(load), storage/store.py:26(load)
+  - storage.logic                       | storage/logic.py                         |  759L | importadores: storage/__init__.py:16(load), storage/store.py:31(load)
+  - storage.schema                      | storage/schema.py                        |  520L | importadores: storage/__init__.py:15(load), storage/logic.py:25(load), storage/store.py:30(load)
+  - storage.semantic_logic              | storage/semantic_logic.py                |  125L | importadores: core/memory_extractor.py:16(load), core/middleware.py:538(deferred), core/middleware.py:617(deferred), core/middleware.py:688(deferred)
+  - storage.store                       | storage/store.py                         |  854L | importadores: core/hybrid_search.py:40(load:ann), core/middleware.py:43(load:ann), core/project_index.py:24(load:ann), storage/__init__.py:13(load)
+  - storage.vector_store                | storage/vector_store.py                  |  772L | importadores: core/hybrid_search.py:41(load:ann), core/middleware.py:44(load:ann), storage/__init__.py:18(load)
+
+[REACHABLE_ANNOTATION_ONLY_RUNTIME]
+  - interface.queue_writer              | interface/queue_writer.py                |  304L | importadores: core/database.py:18(load:ann)
+
+[REACHABLE_PEP562_LAZY]
+  - agents                              | agents/__init__.py                       |   14L | importadores: agents/__init__.py:10(load), interface/action_hooks.py:32(load)
+  - agents.revisor_critico              | agents/revisor_critico.py                |  610L | importadores: agents/__init__.py:10(load), interface/action_hooks.py:32(load)
+  - interface.action_hooks              | interface/action_hooks.py                |  261L | importadores: interface/__init__.py:23(pep562_getattr)
+
+[REACHABLE_TYPE_CHECKING]
+
+[UNREACHABLE]
+  - agent                               | agent/__init__.py                        |   13L | importadores: agent/__init__.py:11(load), agent/run_agent.py:23(load)
+  - agent.agent_prompts                 | agent/agent_prompts.py                   |  176L | importadores: agent/run_agent.py:23(load)
+  - agent.run_agent                     | agent/run_agent.py                       |  266L | importadores: agent/__init__.py:11(load)
+  - core.alias_tracker                  | core/alias_tracker.py                    |  259L | importadores: (nenhum)
+  - core.background_janitor             | core/background_janitor.py               |  290L | importadores: core/janitor.py:10(load)
+  - core.delta_manager                  | core/delta_manager.py                    |  265L | importadores: core/delta_sync.py:10(load)
+  - core.delta_sync                     | core/delta_sync.py                       |   12L | importadores: (nenhum)
+  - core.dependencies                   | core/dependencies.py                     |   39L | importadores: (nenhum)
+  - core.federated_knowledge_router     | core/federated_knowledge_router.py       |  100L | importadores: core/nozomio_router.py:8(load)
+  - core.gating_interceptor             | core/gating_interceptor.py               |  176L | importadores: interface/telemetry_api.py:42(load)
+  - core.global_memory_adapter          | core/global_memory_adapter.py            |   85L | importadores: (nenhum)
+  - core.hsm_engine                     | core/hsm_engine.py                       |  511L | importadores: interface/telemetry_api.py:79(deferred)
+  - core.intent_classifier              | core/intent_classifier.py                |   98L | importadores: (nenhum)
+  - core.janitor                        | core/janitor.py                          |   12L | importadores: (nenhum)
+  - core.nozomio_router                 | core/nozomio_router.py                   |   21L | importadores: (nenhum)
+  - core.parser_factory                 | core/parser_factory.py                   |   80L | importadores: (nenhum)
+  - core.parsers                        | core/parsers/__init__.py                 |   20L | importadores: core/parser_factory.py:16(load:ann), core/parser_factory.py:17(load), core/parser_factory.py:18(load), core/parsers/__init__.py:12(load), core/parsers/__init__.py:13(load), core/parsers/__init__.py:14(load), core/parsers/python_parser.py:16(load), core/parsers/ts_js_parser.py:25(load)
+  - core.parsers.base                   | core/parsers/base.py                     |   41L | importadores: core/parser_factory.py:16(load:ann), core/parsers/__init__.py:12(load), core/parsers/python_parser.py:16(load), core/parsers/ts_js_parser.py:25(load)
+  - core.parsers.python_parser          | core/parsers/python_parser.py            |   90L | importadores: core/parser_factory.py:17(load), core/parsers/__init__.py:13(load)
+  - core.parsers.ts_js_parser           | core/parsers/ts_js_parser.py             |  265L | importadores: core/parser_factory.py:18(load), core/parsers/__init__.py:14(load)
+  - core.rate_governor                  | core/rate_governor.py                    |  280L | importadores: interface/telemetry_api.py:44(load)
+  - core.search_engine                  | core/search_engine.py                    |   61L | importadores: (nenhum)
+  - core.security_guard                 | core/security_guard.py                   |  136L | importadores: core/gating_interceptor.py:26(load:ann), interface/telemetry_api.py:45(load)
+  - core.telemetry_schemas              | core/telemetry_schemas.py                |   82L | importadores: interface/telemetry_api.py:46(load)
+  - core.vector_reconciler              | core/vector_reconciler.py                |   55L | importadores: interface/telemetry_api.py:271(deferred)
+  - interface.telemetry_api             | interface/telemetry_api.py               |  595L | importadores: (nenhum)
+  - interface.watcher                   | interface/watcher.py                     |  243L | importadores: (nenhum)
+  - storage.relational_db               | storage/relational_db.py                 |   35L | importadores: (nenhum)
+
+--- SCRIPT UTILITÁRIO (scripts/bootstrap_core_memory.py) ---
+  Imports diretos: [('storage', 20, 'load', 'from storage import SqliteStore', False)]
+  Alcançáveis: ['storage', 'storage.base_backend', 'storage.connection', 'storage.logic', 'storage.schema', 'storage.store', 'storage.vector_store']
+
+--- SCANNER DE IMPORTS DINÂMICOS E STRINGS ---
+  [getattr_call] agent/agent_prompts.py:112 -> matrix = getattr(self.mcp_governor, "TOOL_DISCLOSURE_MATRIX", {})
+  [getattr_call] agent/run_agent.py:50 -> mcp_gov = getattr(hsm_engine, "mcp_governor", None)
+  [getattr_call] agent/run_agent.py:236 -> gov = getattr(self.hsm, "mcp_governor", None)
+  [getattr_call] core/checkpointer.py:109 -> write_fn = getattr(self.db, "execute_write", getattr(self.db, "write_query", None))
+  [getattr_call] core/checkpointer.py:135 -> write_fn = getattr(self.db, "write_query", getattr(self.db, "execute_write", None))
+  [getattr_call] core/checkpointer.py:167 -> read_fn = getattr(self.db, "read_query")
+  [getattr_call] core/checkpointer.py:202 -> read_fn = getattr(self.db, "read_query")
+  [getattr_call] core/checkpointer.py:217 -> write_fn = getattr(self.db, "execute_write", getattr(self.db, "write_query", None))
+  [getattr_call] core/mcp_governor.py:163 -> tool_name = getattr(tool, "name", None)
+  [getattr_call] ingestion/orchestrator.py:215 -> summarizer_enabled = bool(self._summarizer and getattr(self._summarizer, "is_enabled", True))
+  [getattr_call] ingestion/orchestrator.py:416 -> or not getattr(self._summarizer._llm, "is_enabled", True)
+  [getattr_call] ingestion/orchestrator.py:534 -> if getattr(res, "summary", None) and not getattr(res, "is_dumb_summary", False):
+  [getattr_call] ingestion/orchestrator.py:536 -> if getattr(res, "detected_tags", None):
+  [getattr_call] ingestion/orchestrator.py:748 -> calls = getattr(chunk, "calls", [])
+  [getattr_call] ingestion/orchestrator.py:901 -> if not getattr(self._vector, "_available", True):
+  [getattr_call] ingestion/orchestrator.py:943 -> BATCH_SIZE = getattr(self._vector, "BATCH_SIZE", 64)
+  [getattr_call] ingestion/summarizer.py:426 -> return bool(getattr(self._llm, "is_enabled", True))
+  [getattr_call] interface/mcp_server.py:183 -> cfg = getattr(self._gc, "config", None)
+  [getattr_call] interface/mcp_server.py:184 -> api_key = (getattr(cfg, "api_key", None) if cfg else None) or os.environ.get("GRAFO_API_KEY")
+  [getattr_call] interface/mcp_server.py:1744 -> save_fn = getattr(checkpointer, "save_checkpoint_detailed", None)
+  [getattr_call] interface/mcp_server.py:1751 -> raw_err = getattr(checkpointer, "last_error", None)
+  [getattr_call] interface/watcher.py:173 -> if new_hash and getattr(self.alias_tracker, "is_valid_hash", lambda h: True)(new_hash):
+  [getattr_call] interface/watcher.py:219 -> and getattr(self.alias_tracker, "is_valid_hash", lambda h: True)(structural_hash)
+  [getattr_call] main.py:128 -> if exc_val is not None and getattr(exc_val, "args", None):
+  [getattr_call] main.py:158 -> numeric_level = getattr(logging, level, logging.INFO)
+  [getattr_call] main.py:161 -> if not getattr(current_factory, "_grafo_secret_redacting", False):
+  [getattr_call] main.py:179 -> if getattr(existing_h, "_grafo_log_handler", False):
+  [getattr_call] services/janitor.py:175 -> elapsed = time.monotonic() - getattr(self, "_mine_timestamp", 0.0)
+  [getattr_call] storage/connection.py:441 -> conn = getattr(self._local, "conn", None)
+  [getattr_call] storage/relational_db.py:31 -> write_fn = getattr(db_manager, "execute_write", getattr(db_manager, "write_query", None))
+  [importlib] storage/vector_store.py:45 -> import importlib.util
+  [importlib] storage/vector_store.py:49 -> importlib.util.find_spec("sentence_transformers") is not None
