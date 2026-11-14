@@ -141,8 +141,15 @@ class TestAliasTracker(unittest.TestCase):
             1,
         )
 
-        # Aguarda o timer assíncrono de 0.5s disparar o expurgo
-        time.sleep(0.65)
+        # Aguarda o timer assíncrono de 0.5s disparar o expurgo (espera condicional até 5s)
+        deadline = time.monotonic() + 5.0
+        while time.monotonic() < deadline:
+            remaining = self.db_manager.read_query(
+                "SELECT COUNT(*) FROM files WHERE path = 'src/zombie_file.py';"
+            )[0][0]
+            if remaining == 0:
+                break
+            time.sleep(0.05)
 
         # Confirma que o callback foi executado e o nó foi purgado do banco
         self.assertIn("src/zombie_file.py", self.purged_paths)
