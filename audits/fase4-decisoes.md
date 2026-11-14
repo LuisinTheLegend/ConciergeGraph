@@ -94,3 +94,20 @@
 
 8. **Rodada 4.5 (Planejado, Não Autorizado):**
    - Movimentação do motor Delta/Survival dormente e de seus módulos associados para quarentena isolada em `archive/v4-experimental`.
+
+---
+
+## 3. Decisões para Quarentena e Higiene (Rodada 4.5c-bis — 2026-11-14)
+
+Registros oficiais das decisões do Luis que orientam a `4.5c-bis` e a futura execução da `4.5d`:
+
+- **Escolha A — `enable_probabilistic=True` após quarentena de `core/probabilistic_retriever.py` (DECIDIDA):**
+  - Quando `core/probabilistic_retriever.py` for movido para quarentena na `4.5d`, qualquer chamada com `enable_probabilistic=True` deve levantar erro explícito (`NotImplementedError` com mensagem clara em português explicando que a busca probabilística foi arquivada na V4), **sem fallback silencioso**.
+  - A implementação no código de produção ocorrerá apenas na `4.5d` junto da quarentena (nada alterado na `4.5c-bis`).
+
+- **Escolha B — Destino de `interface/queue_writer.py` (ABERTA):**
+  - Continua **EM ABERTO** a decisão entre manter `interface/queue_writer.py` em `interface/`, movê-lo para `storage/`, ou consolidá-lo com `storage/connection.py`. Aguarda definição do Luis antes da `4.5d` (ou sub-rodada correspondente).
+
+- **Exclusão de arquivos não rastreados / pré-existentes de commit (DECIDIDA):**
+  - Por decisão explícita do Luis na `4.5c-bis`, permanecem fora de commit os arquivos `audits/egm/analise-completa-*.md`, `scratch/prompt_4_5b_verbatim.md` e os dois arquivos pré-existentes modificados em `scratch/` (`scratch/build_4_5a_bis_docs.py` e `scratch/inv_4_5a_bis_bloco1.py`).
+

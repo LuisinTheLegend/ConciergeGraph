@@ -1,0 +1,1094 @@
+=== TASK 1 PROOFS (a), (b), (c) ===
+
+--- CASE (b): Fixed test leaves zero build/ or *.egg-info ---
+Before test: {'build_exists': False, 'build_lib_exists': False, 'egg_info': []}
+$ C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe -m pytest tests/test_wheel_integrity.py -v --tb=short
+exit_code=0
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_wheel_integrity.py::test_wheel_contains_all_live_modules_and_entrypoints PASSED [100%]
+
+============================== warnings summary ===============================
+tests/test_wheel_integrity.py::test_wheel_contains_all_live_modules_and_entrypoints
+  C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\setuptools\config\_apply_pyprojecttoml.py:82: SetuptoolsDeprecationWarning: `project.license` as a TOML table is deprecated
+  !!
+  
+          ********************************************************************************
+          Please use a simple string containing a SPDX expression for `project.license`. You can also use `project.license-files`. (Both options available on setuptools>=77.0.0).
+  
+          By 2027-Feb-18, you need to update your project and remove deprecated calls
+          or your builds will no longer be supported.
+  
+          See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+          ********************************************************************************
+  
+  !!
+    corresp(dist, value, root_dir)
+
+tests/test_wheel_integrity.py::test_wheel_contains_all_live_modules_and_entrypoints
+  C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\setuptools\config\_apply_pyprojecttoml.py:61: SetuptoolsDeprecationWarning: License classifiers are deprecated.
+  !!
+  
+          ********************************************************************************
+          Please consider removing the following classifiers in favor of a SPDX license expression:
+  
+          License :: OSI Approved :: MIT License
+  
+          See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+          ********************************************************************************
+  
+  !!
+    dist._finalize_license_expression()
+
+tests/test_wheel_integrity.py::test_wheel_contains_all_live_modules_and_entrypoints
+  C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\setuptools\dist.py:765: SetuptoolsDeprecationWarning: License classifiers are deprecated.
+  !!
+  
+          ********************************************************************************
+          Please consider removing the following classifiers in favor of a SPDX license expression:
+  
+          License :: OSI Approved :: MIT License
+  
+          See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+          ********************************************************************************
+  
+  !!
+    self._finalize_license_expression()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 3 warnings in 2.41s ========================
+After test:  {'build_exists': False, 'build_lib_exists': False, 'egg_info': []}
+
+--- SETUP: Create build/lib/ on repo root ---
+$ C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe -c from setuptools import build_meta; print(build_meta.build_wheel('C:\\Users\\guial\\AppData\\Local\\Temp\\tmp2yfo8tf3'))
+exit_code=0
+running bdist_wheel
+running build
+running build_py
+creating build\lib
+copying main.py -> build\lib
+creating build\lib\agent
+copying agent\agent_prompts.py -> build\lib\agent
+copying agent\run_agent.py -> build\lib\agent
+copying agent\__init__.py -> build\lib\agent
+creating build\lib\agents
+copying agents\revisor_critico.py -> build\lib\agents
+copying agents\__init__.py -> build\lib\agents
+creating build\lib\core
+copying core\alias_tracker.py -> build\lib\core
+copying core\background_janitor.py -> build\lib\core
+copying core\checkpointer.py -> build\lib\core
+copying core\config.py -> build\lib\core
+copying core\database.py -> build\lib\core
+copying core\delta_manager.py -> build\lib\core
+copying core\delta_sync.py -> build\lib\core
+copying core\dependencies.py -> build\lib\core
+copying core\federated_knowledge_router.py -> build\lib\core
+copying core\gating_interceptor.py -> build\lib\core
+copying core\global_memory_adapter.py -> build\lib\core
+copying core\graph_rag.py -> build\lib\core
+copying core\hsm_engine.py -> build\lib\core
+copying core\hybrid_search.py -> build\lib\core
+copying core\intent_classifier.py -> build\lib\core
+copying core\janitor.py -> build\lib\core
+copying core\mcp_governor.py -> build\lib\core
+copying core\memory_extractor.py -> build\lib\core
+copying core\middleware.py -> build\lib\core
+copying core\nozomio_router.py -> build\lib\core
+copying core\parser_factory.py -> build\lib\core
+copying core\probabilistic_retriever.py -> build\lib\core
+copying core\project_index.py -> build\lib\core
+copying core\rate_governor.py -> build\lib\core
+copying core\search_engine.py -> build\lib\core
+copying core\security_guard.py -> build\lib\core
+copying core\telemetry_schemas.py -> build\lib\core
+copying core\vector_backend.py -> build\lib\core
+copying core\vector_reconciler.py -> build\lib\core
+copying core\__init__.py -> build\lib\core
+creating build\lib\ingestion
+copying ingestion\crawler.py -> build\lib\ingestion
+copying ingestion\orchestrator.py -> build\lib\ingestion
+copying ingestion\parser.py -> build\lib\ingestion
+copying ingestion\summarizer.py -> build\lib\ingestion
+copying ingestion\__init__.py -> build\lib\ingestion
+creating build\lib\interface
+copying interface\action_hooks.py -> build\lib\interface
+copying interface\cli.py -> build\lib\interface
+copying interface\mcp_server.py -> build\lib\interface
+copying interface\queue_writer.py -> build\lib\interface
+copying interface\telemetry_api.py -> build\lib\interface
+copying interface\watcher.py -> build\lib\interface
+copying interface\__init__.py -> build\lib\interface
+creating build\lib\scripts
+copying scripts\bootstrap_core_memory.py -> build\lib\scripts
+creating build\lib\services
+copying services\janitor.py -> build\lib\services
+copying services\__init__.py -> build\lib\services
+creating build\lib\storage
+copying storage\base_backend.py -> build\lib\storage
+copying storage\connection.py -> build\lib\storage
+copying storage\logic.py -> build\lib\storage
+copying storage\relational_db.py -> build\lib\storage
+copying storage\schema.py -> build\lib\storage
+copying storage\semantic_logic.py -> build\lib\storage
+copying storage\store.py -> build\lib\storage
+copying storage\vector_store.py -> build\lib\storage
+copying storage\__init__.py -> build\lib\storage
+creating build\lib\core\parsers
+copying core\parsers\base.py -> build\lib\core\parsers
+copying core\parsers\python_parser.py -> build\lib\core\parsers
+copying core\parsers\ts_js_parser.py -> build\lib\core\parsers
+copying core\parsers\__init__.py -> build\lib\core\parsers
+running egg_info
+creating concierge_graph.egg-info
+writing concierge_graph.egg-info\PKG-INFO
+writing dependency_links to concierge_graph.egg-info\dependency_links.txt
+writing entry points to concierge_graph.egg-info\entry_points.txt
+writing requirements to concierge_graph.egg-info\requires.txt
+writing top-level names to concierge_graph.egg-info\top_level.txt
+writing manifest file 'concierge_graph.egg-info\SOURCES.txt'
+reading manifest file 'concierge_graph.egg-info\SOURCES.txt'
+adding license file 'LICENSE'
+writing manifest file 'concierge_graph.egg-info\SOURCES.txt'
+installing to build\bdist.win-amd64\wheel
+running install
+running install_lib
+creating build\bdist.win-amd64\wheel
+creating build\bdist.win-amd64\wheel\agent
+copying build\lib\agent\agent_prompts.py -> build\bdist.win-amd64\wheel\.\agent
+copying build\lib\agent\run_agent.py -> build\bdist.win-amd64\wheel\.\agent
+copying build\lib\agent\__init__.py -> build\bdist.win-amd64\wheel\.\agent
+creating build\bdist.win-amd64\wheel\agents
+copying build\lib\agents\revisor_critico.py -> build\bdist.win-amd64\wheel\.\agents
+copying build\lib\agents\__init__.py -> build\bdist.win-amd64\wheel\.\agents
+creating build\bdist.win-amd64\wheel\core
+copying build\lib\core\alias_tracker.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\background_janitor.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\checkpointer.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\config.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\database.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\delta_manager.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\delta_sync.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\dependencies.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\federated_knowledge_router.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\gating_interceptor.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\global_memory_adapter.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\graph_rag.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\hsm_engine.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\hybrid_search.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\intent_classifier.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\janitor.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\mcp_governor.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\memory_extractor.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\middleware.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\nozomio_router.py -> build\bdist.win-amd64\wheel\.\core
+creating build\bdist.win-amd64\wheel\core\parsers
+copying build\lib\core\parsers\base.py -> build\bdist.win-amd64\wheel\.\core\parsers
+copying build\lib\core\parsers\python_parser.py -> build\bdist.win-amd64\wheel\.\core\parsers
+copying build\lib\core\parsers\ts_js_parser.py -> build\bdist.win-amd64\wheel\.\core\parsers
+copying build\lib\core\parsers\__init__.py -> build\bdist.win-amd64\wheel\.\core\parsers
+copying build\lib\core\parser_factory.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\probabilistic_retriever.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\project_index.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\rate_governor.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\search_engine.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\security_guard.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\telemetry_schemas.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\vector_backend.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\vector_reconciler.py -> build\bdist.win-amd64\wheel\.\core
+copying build\lib\core\__init__.py -> build\bdist.win-amd64\wheel\.\core
+creating build\bdist.win-amd64\wheel\ingestion
+copying build\lib\ingestion\crawler.py -> build\bdist.win-amd64\wheel\.\ingestion
+copying build\lib\ingestion\orchestrator.py -> build\bdist.win-amd64\wheel\.\ingestion
+copying build\lib\ingestion\parser.py -> build\bdist.win-amd64\wheel\.\ingestion
+copying build\lib\ingestion\summarizer.py -> build\bdist.win-amd64\wheel\.\ingestion
+copying build\lib\ingestion\__init__.py -> build\bdist.win-amd64\wheel\.\ingestion
+creating build\bdist.win-amd64\wheel\interface
+copying build\lib\interface\action_hooks.py -> build\bdist.win-amd64\wheel\.\interface
+copying build\lib\interface\cli.py -> build\bdist.win-amd64\wheel\.\interface
+copying build\lib\interface\mcp_server.py -> build\bdist.win-amd64\wheel\.\interface
+copying build\lib\interface\queue_writer.py -> build\bdist.win-amd64\wheel\.\interface
+copying build\lib\interface\telemetry_api.py -> build\bdist.win-amd64\wheel\.\interface
+copying build\lib\interface\watcher.py -> build\bdist.win-amd64\wheel\.\interface
+copying build\lib\interface\__init__.py -> build\bdist.win-amd64\wheel\.\interface
+copying build\lib\main.py -> build\bdist.win-amd64\wheel\.
+creating build\bdist.win-amd64\wheel\scripts
+copying build\lib\scripts\bootstrap_core_memory.py -> build\bdist.win-amd64\wheel\.\scripts
+creating build\bdist.win-amd64\wheel\services
+copying build\lib\services\janitor.py -> build\bdist.win-amd64\wheel\.\services
+copying build\lib\services\__init__.py -> build\bdist.win-amd64\wheel\.\services
+creating build\bdist.win-amd64\wheel\storage
+copying build\lib\storage\base_backend.py -> build\bdist.win-amd64\wheel\.\storage
+copying build\lib\storage\connection.py -> build\bdist.win-amd64\wheel\.\storage
+copying build\lib\storage\logic.py -> build\bdist.win-amd64\wheel\.\storage
+copying build\lib\storage\relational_db.py -> build\bdist.win-amd64\wheel\.\storage
+copying build\lib\storage\schema.py -> build\bdist.win-amd64\wheel\.\storage
+copying build\lib\storage\semantic_logic.py -> build\bdist.win-amd64\wheel\.\storage
+copying build\lib\storage\store.py -> build\bdist.win-amd64\wheel\.\storage
+copying build\lib\storage\vector_store.py -> build\bdist.win-amd64\wheel\.\storage
+copying build\lib\storage\__init__.py -> build\bdist.win-amd64\wheel\.\storage
+running install_egg_info
+Copying concierge_graph.egg-info to build\bdist.win-amd64\wheel\.\concierge_graph-3.8.2-py3.12.egg-info
+running install_scripts
+creating build\bdist.win-amd64\wheel\concierge_graph-3.8.2.dist-info\WHEEL
+creating 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmp2yfo8tf3\\.tmp-80xt36rb\\concierge_graph-3.8.2-py3-none-any.whl' and adding 'build\\bdist.win-amd64\\wheel' to it
+adding 'main.py'
+adding 'agent/__init__.py'
+adding 'agent/agent_prompts.py'
+adding 'agent/run_agent.py'
+adding 'agents/__init__.py'
+adding 'agents/revisor_critico.py'
+adding 'concierge_graph-3.8.2.dist-info/licenses/LICENSE'
+adding 'core/__init__.py'
+adding 'core/alias_tracker.py'
+adding 'core/background_janitor.py'
+adding 'core/checkpointer.py'
+adding 'core/config.py'
+adding 'core/database.py'
+adding 'core/delta_manager.py'
+adding 'core/delta_sync.py'
+adding 'core/dependencies.py'
+adding 'core/federated_knowledge_router.py'
+adding 'core/gating_interceptor.py'
+adding 'core/global_memory_adapter.py'
+adding 'core/graph_rag.py'
+adding 'core/hsm_engine.py'
+adding 'core/hybrid_search.py'
+adding 'core/intent_classifier.py'
+adding 'core/janitor.py'
+adding 'core/mcp_governor.py'
+adding 'core/memory_extractor.py'
+adding 'core/middleware.py'
+adding 'core/nozomio_router.py'
+adding 'core/parser_factory.py'
+adding 'core/probabilistic_retriever.py'
+adding 'core/project_index.py'
+adding 'core/rate_governor.py'
+adding 'core/search_engine.py'
+adding 'core/security_guard.py'
+adding 'core/telemetry_schemas.py'
+adding 'core/vector_backend.py'
+adding 'core/vector_reconciler.py'
+adding 'core/parsers/__init__.py'
+adding 'core/parsers/base.py'
+adding 'core/parsers/python_parser.py'
+adding 'core/parsers/ts_js_parser.py'
+adding 'ingestion/__init__.py'
+adding 'ingestion/crawler.py'
+adding 'ingestion/orchestrator.py'
+adding 'ingestion/parser.py'
+adding 'ingestion/summarizer.py'
+adding 'interface/__init__.py'
+adding 'interface/action_hooks.py'
+adding 'interface/cli.py'
+adding 'interface/mcp_server.py'
+adding 'interface/queue_writer.py'
+adding 'interface/telemetry_api.py'
+adding 'interface/watcher.py'
+adding 'scripts/bootstrap_core_memory.py'
+adding 'services/__init__.py'
+adding 'services/janitor.py'
+adding 'storage/__init__.py'
+adding 'storage/base_backend.py'
+adding 'storage/connection.py'
+adding 'storage/logic.py'
+adding 'storage/relational_db.py'
+adding 'storage/schema.py'
+adding 'storage/semantic_logic.py'
+adding 'storage/store.py'
+adding 'storage/vector_store.py'
+adding 'concierge_graph-3.8.2.dist-info/METADATA'
+adding 'concierge_graph-3.8.2.dist-info/WHEEL'
+adding 'concierge_graph-3.8.2.dist-info/entry_points.txt'
+adding 'concierge_graph-3.8.2.dist-info/top_level.txt'
+adding 'concierge_graph-3.8.2.dist-info/RECORD'
+removing build\bdist.win-amd64\wheel
+concierge_graph-3.8.2-py3-none-any.whl
+
+[stderr]
+C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\setuptools\config\_apply_pyprojecttoml.py:82: SetuptoolsDeprecationWarning: `project.license` as a TOML table is deprecated
+!!
+
+        ********************************************************************************
+        Please use a simple string containing a SPDX expression for `project.license`. You can also use `project.license-files`. (Both options available on setuptools>=77.0.0).
+
+        By 2027-Feb-18, you need to update your project and remove deprecated calls
+        or your builds will no longer be supported.
+
+        See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+        ********************************************************************************
+
+!!
+  corresp(dist, value, root_dir)
+C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\setuptools\config\_apply_pyprojecttoml.py:61: SetuptoolsDeprecationWarning: License classifiers are deprecated.
+!!
+
+        ********************************************************************************
+        Please consider removing the following classifiers in favor of a SPDX license expression:
+
+        License :: OSI Approved :: MIT License
+
+        See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+        ********************************************************************************
+
+!!
+  dist._finalize_license_expression()
+C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\setuptools\dist.py:765: SetuptoolsDeprecationWarning: License classifiers are deprecated.
+!!
+
+        ********************************************************************************
+        Please consider removing the following classifiers in favor of a SPDX license expression:
+
+        License :: OSI Approved :: MIT License
+
+        See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+        ********************************************************************************
+
+!!
+  self._finalize_license_expression()
+Root state after build_wheel: {'build_exists': True, 'build_lib_exists': True, 'egg_info': ['concierge_graph.egg-info']}
+build/lib/services exists: True, build/lib/storage exists: True
+
+--- CASE (c): Old test (f66259c) under M1 ('services*' removed) with build/ present ---
+$ C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe -m pytest tests/_tmp_old_wheel_4_5c_bis.py -v --tb=short
+exit_code=0
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/_tmp_old_wheel_4_5c_bis.py::test_wheel_contains_all_live_modules_and_entrypoints PASSED [100%]
+
+============================== warnings summary ===============================
+tests/_tmp_old_wheel_4_5c_bis.py::test_wheel_contains_all_live_modules_and_entrypoints
+  C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\setuptools\config\_apply_pyprojecttoml.py:82: SetuptoolsDeprecationWarning: `project.license` as a TOML table is deprecated
+  !!
+  
+          ********************************************************************************
+          Please use a simple string containing a SPDX expression for `project.license`. You can also use `project.license-files`. (Both options available on setuptools>=77.0.0).
+  
+          By 2027-Feb-18, you need to update your project and remove deprecated calls
+          or your builds will no longer be supported.
+  
+          See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+          ********************************************************************************
+  
+  !!
+    corresp(dist, value, root_dir)
+
+tests/_tmp_old_wheel_4_5c_bis.py::test_wheel_contains_all_live_modules_and_entrypoints
+  C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\setuptools\config\_apply_pyprojecttoml.py:61: SetuptoolsDeprecationWarning: License classifiers are deprecated.
+  !!
+  
+          ********************************************************************************
+          Please consider removing the following classifiers in favor of a SPDX license expression:
+  
+          License :: OSI Approved :: MIT License
+  
+          See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+          ********************************************************************************
+  
+  !!
+    dist._finalize_license_expression()
+
+tests/_tmp_old_wheel_4_5c_bis.py::test_wheel_contains_all_live_modules_and_entrypoints
+  C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\setuptools\dist.py:765: SetuptoolsDeprecationWarning: License classifiers are deprecated.
+  !!
+  
+          ********************************************************************************
+          Please consider removing the following classifiers in favor of a SPDX license expression:
+  
+          License :: OSI Approved :: MIT License
+  
+          See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+          ********************************************************************************
+  
+  !!
+    self._finalize_license_expression()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 3 warnings in 3.62s ========================
+OBSERVED CASE (c) EXIT CODE: 0
+
+--- CASE (a): Fixed test under M1 ('services*' removed) with build/lib/ present ---
+$ C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe -m pytest tests/test_wheel_integrity.py -v --tb=short
+exit_code=1
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_wheel_integrity.py::test_wheel_contains_all_live_modules_and_entrypoints FAILED [100%]
+
+================================== FAILURES ===================================
+____________ test_wheel_contains_all_live_modules_and_entrypoints _____________
+C:\Nexus-Memory\GrafoConcierge\tests\test_wheel_integrity.py:107: in test_wheel_contains_all_live_modules_and_entrypoints
+    assert mod_path in names, f"Módulo vivo ausente no wheel: {mod_path}"
+E   AssertionError: Módulo vivo ausente no wheel: services/__init__.py
+E   assert 'services/__init__.py' in {'agent/__init__.py', 'agent/agent_prompts.py', 'agent/run_agent.py', 'agents/__init__.py', 'agents/revisor_critico.py', 'concierge_graph-3.8.2.dist-info/METADATA', ...}
+------------------------------ Captured log call ------------------------------
+INFO     root:dist.py:1044 running bdist_wheel
+INFO     root:dist.py:1044 running build
+INFO     root:dist.py:1044 running build_py
+INFO     root:dir_util.py:58 creating build\lib
+INFO     root:file_util.py:128 copying main.py -> build\lib
+INFO     root:dir_util.py:58 creating build\lib\agent
+INFO     root:file_util.py:128 copying agent\agent_prompts.py -> build\lib\agent
+INFO     root:file_util.py:128 copying agent\run_agent.py -> build\lib\agent
+INFO     root:file_util.py:128 copying agent\__init__.py -> build\lib\agent
+INFO     root:dir_util.py:58 creating build\lib\agents
+INFO     root:file_util.py:128 copying agents\revisor_critico.py -> build\lib\agents
+INFO     root:file_util.py:128 copying agents\__init__.py -> build\lib\agents
+INFO     root:dir_util.py:58 creating build\lib\core
+INFO     root:file_util.py:128 copying core\alias_tracker.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\background_janitor.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\checkpointer.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\config.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\database.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\delta_manager.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\delta_sync.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\dependencies.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\federated_knowledge_router.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\gating_interceptor.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\global_memory_adapter.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\graph_rag.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\hsm_engine.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\hybrid_search.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\intent_classifier.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\janitor.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\mcp_governor.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\memory_extractor.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\middleware.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\nozomio_router.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\parser_factory.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\probabilistic_retriever.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\project_index.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\rate_governor.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\search_engine.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\security_guard.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\telemetry_schemas.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\vector_backend.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\vector_reconciler.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\__init__.py -> build\lib\core
+INFO     root:dir_util.py:58 creating build\lib\ingestion
+INFO     root:file_util.py:128 copying ingestion\crawler.py -> build\lib\ingestion
+INFO     root:file_util.py:128 copying ingestion\orchestrator.py -> build\lib\ingestion
+INFO     root:file_util.py:128 copying ingestion\parser.py -> build\lib\ingestion
+INFO     root:file_util.py:128 copying ingestion\summarizer.py -> build\lib\ingestion
+INFO     root:file_util.py:128 copying ingestion\__init__.py -> build\lib\ingestion
+INFO     root:dir_util.py:58 creating build\lib\interface
+INFO     root:file_util.py:128 copying interface\action_hooks.py -> build\lib\interface
+INFO     root:file_util.py:128 copying interface\cli.py -> build\lib\interface
+INFO     root:file_util.py:128 copying interface\mcp_server.py -> build\lib\interface
+INFO     root:file_util.py:128 copying interface\queue_writer.py -> build\lib\interface
+INFO     root:file_util.py:128 copying interface\telemetry_api.py -> build\lib\interface
+INFO     root:file_util.py:128 copying interface\watcher.py -> build\lib\interface
+INFO     root:file_util.py:128 copying interface\__init__.py -> build\lib\interface
+INFO     root:dir_util.py:58 creating build\lib\scripts
+INFO     root:file_util.py:128 copying scripts\bootstrap_core_memory.py -> build\lib\scripts
+INFO     root:dir_util.py:58 creating build\lib\storage
+INFO     root:file_util.py:128 copying storage\base_backend.py -> build\lib\storage
+INFO     root:file_util.py:128 copying storage\connection.py -> build\lib\storage
+INFO     root:file_util.py:128 copying storage\logic.py -> build\lib\storage
+INFO     root:file_util.py:128 copying storage\relational_db.py -> build\lib\storage
+INFO     root:file_util.py:128 copying storage\schema.py -> build\lib\storage
+INFO     root:file_util.py:128 copying storage\semantic_logic.py -> build\lib\storage
+INFO     root:file_util.py:128 copying storage\store.py -> build\lib\storage
+INFO     root:file_util.py:128 copying storage\vector_store.py -> build\lib\storage
+INFO     root:file_util.py:128 copying storage\__init__.py -> build\lib\storage
+INFO     root:dir_util.py:58 creating build\lib\core\parsers
+INFO     root:file_util.py:128 copying core\parsers\base.py -> build\lib\core\parsers
+INFO     root:file_util.py:128 copying core\parsers\python_parser.py -> build\lib\core\parsers
+INFO     root:file_util.py:128 copying core\parsers\ts_js_parser.py -> build\lib\core\parsers
+INFO     root:file_util.py:128 copying core\parsers\__init__.py -> build\lib\core\parsers
+INFO     root:dist.py:1044 running egg_info
+INFO     root:dir_util.py:58 creating concierge_graph.egg-info
+INFO     root:egg_info.py:680 writing concierge_graph.egg-info\PKG-INFO
+INFO     root:egg_info.py:311 writing dependency_links to concierge_graph.egg-info\dependency_links.txt
+INFO     root:egg_info.py:311 writing entry points to concierge_graph.egg-info\entry_points.txt
+INFO     root:egg_info.py:311 writing requirements to concierge_graph.egg-info\requires.txt
+INFO     root:egg_info.py:311 writing top-level names to concierge_graph.egg-info\top_level.txt
+INFO     root:util.py:249 writing manifest file 'concierge_graph.egg-info\SOURCES.txt'
+INFO     root:sdist.py:206 reading manifest file 'concierge_graph.egg-info\SOURCES.txt'
+INFO     root:egg_info.py:630 adding license file 'LICENSE'
+INFO     root:util.py:249 writing manifest file 'concierge_graph.egg-info\SOURCES.txt'
+INFO     root:bdist_wheel.py:487 installing to build\bdist.win-amd64\wheel
+INFO     root:dist.py:1044 running install
+INFO     root:dist.py:1044 running install_lib
+INFO     root:dir_util.py:58 creating build\bdist.win-amd64\wheel
+INFO     root:dir_util.py:58 creating build\bdist.win-amd64\wheel\agent
+INFO     root:file_util.py:128 copying build\lib\agent\agent_prompts.py -> build\bdist.win-amd64\wheel\.\agent
+INFO     root:file_util.py:128 copying build\lib\agent\run_agent.py -> build\bdist.win-amd64\wheel\.\agent
+INFO     root:file_util.py:128 copying build\lib\agent\__init__.py -> build\bdist.win-amd64\wheel\.\agent
+INFO     root:dir_util.py:58 creating build\bdist.win-amd64\wheel\agents
+INFO     root:file_util.py:128 copying build\lib\agents\revisor_critico.py -> build\bdist.win-amd64\wheel\.\agents
+INFO     root:file_util.py:128 copying build\lib\agents\__init__.py -> build\bdist.win-amd64\wheel\.\agents
+INFO     root:dir_util.py:58 creating build\bdist.win-amd64\wheel\core
+INFO     root:file_util.py:128 copying build\lib\core\alias_tracker.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\background_janitor.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\checkpointer.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\config.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\database.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\delta_manager.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\delta_sync.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\dependencies.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\federated_knowledge_router.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\gating_interceptor.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\global_memory_adapter.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\graph_rag.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\hsm_engine.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\hybrid_search.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\intent_classifier.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\janitor.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\mcp_governor.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\memory_extractor.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\middleware.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\nozomio_router.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:dir_util.py:58 creating build\bdist.win-amd64\wheel\core\parsers
+INFO     root:file_util.py:128 copying build\lib\core\parsers\base.py -> build\bdist.win-amd64\wheel\.\core\parsers
+INFO     root:file_util.py:128 copying build\lib\core\parsers\python_parser.py -> build\bdist.win-amd64\wheel\.\core\parsers
+INFO     root:file_util.py:128 copying build\lib\core\parsers\ts_js_parser.py -> build\bdist.win-amd64\wheel\.\core\parsers
+INFO     root:file_util.py:128 copying build\lib\core\parsers\__init__.py -> build\bdist.win-amd64\wheel\.\core\parsers
+INFO     root:file_util.py:128 copying build\lib\core\parser_factory.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\probabilistic_retriever.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\project_index.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\rate_governor.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\search_engine.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\security_guard.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\telemetry_schemas.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\vector_backend.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\vector_reconciler.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\__init__.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:dir_util.py:58 creating build\bdist.win-amd64\wheel\ingestion
+INFO     root:file_util.py:128 copying build\lib\ingestion\crawler.py -> build\bdist.win-amd64\wheel\.\ingestion
+INFO     root:file_util.py:128 copying build\lib\ingestion\orchestrator.py -> build\bdist.win-amd64\wheel\.\ingestion
+INFO     root:file_util.py:128 copying build\lib\ingestion\parser.py -> build\bdist.win-amd64\wheel\.\ingestion
+INFO     root:file_util.py:128 copying build\lib\ingestion\summarizer.py -> build\bdist.win-amd64\wheel\.\ingestion
+INFO     root:file_util.py:128 copying build\lib\ingestion\__init__.py -> build\bdist.win-amd64\wheel\.\ingestion
+INFO     root:dir_util.py:58 creating build\bdist.win-amd64\wheel\interface
+INFO     root:file_util.py:128 copying build\lib\interface\action_hooks.py -> build\bdist.win-amd64\wheel\.\interface
+INFO     root:file_util.py:128 copying build\lib\interface\cli.py -> build\bdist.win-amd64\wheel\.\interface
+INFO     root:file_util.py:128 copying build\lib\interface\mcp_server.py -> build\bdist.win-amd64\wheel\.\interface
+INFO     root:file_util.py:128 copying build\lib\interface\queue_writer.py -> build\bdist.win-amd64\wheel\.\interface
+INFO     root:file_util.py:128 copying build\lib\interface\telemetry_api.py -> build\bdist.win-amd64\wheel\.\interface
+INFO     root:file_util.py:128 copying build\lib\interface\watcher.py -> build\bdist.win-amd64\wheel\.\interface
+INFO     root:file_util.py:128 copying build\lib\interface\__init__.py -> build\bdist.win-amd64\wheel\.\interface
+INFO     root:file_util.py:128 copying build\lib\main.py -> build\bdist.win-amd64\wheel\.
+INFO     root:dir_util.py:58 creating build\bdist.win-amd64\wheel\scripts
+INFO     root:file_util.py:128 copying build\lib\scripts\bootstrap_core_memory.py -> build\bdist.win-amd64\wheel\.\scripts
+INFO     root:dir_util.py:58 creating build\bdist.win-amd64\wheel\storage
+INFO     root:file_util.py:128 copying build\lib\storage\base_backend.py -> build\bdist.win-amd64\wheel\.\storage
+INFO     root:file_util.py:128 copying build\lib\storage\connection.py -> build\bdist.win-amd64\wheel\.\storage
+INFO     root:file_util.py:128 copying build\lib\storage\logic.py -> build\bdist.win-amd64\wheel\.\storage
+INFO     root:file_util.py:128 copying build\lib\storage\relational_db.py -> build\bdist.win-amd64\wheel\.\storage
+INFO     root:file_util.py:128 copying build\lib\storage\schema.py -> build\bdist.win-amd64\wheel\.\storage
+INFO     root:file_util.py:128 copying build\lib\storage\semantic_logic.py -> build\bdist.win-amd64\wheel\.\storage
+INFO     root:file_util.py:128 copying build\lib\storage\store.py -> build\bdist.win-amd64\wheel\.\storage
+INFO     root:file_util.py:128 copying build\lib\storage\vector_store.py -> build\bdist.win-amd64\wheel\.\storage
+INFO     root:file_util.py:128 copying build\lib\storage\__init__.py -> build\bdist.win-amd64\wheel\.\storage
+INFO     root:dist.py:1044 running install_egg_info
+INFO     root:util.py:249 Copying concierge_graph.egg-info to build\bdist.win-amd64\wheel\.\concierge_graph-3.8.2-py3.12.egg-info
+INFO     root:dist.py:1044 running install_scripts
+INFO     root:bdist_wheel.py:558 creating build\bdist.win-amd64\wheel\concierge_graph-3.8.2.dist-info\WHEEL
+INFO     wheel:wheelfile.py:158 creating 'C:\\Users\\guial\\AppData\\Local\\Temp\\pytest-of-guial\\pytest-358\\test_wheel_contains_all_live_m0\\dist\\.tmp-7i9lrwed\\concierge_graph-3.8.2-py3-none-any.whl' and adding 'build\\bdist.win-amd64\\wheel' to it
+INFO     wheel:wheelfile.py:218 adding 'main.py'
+INFO     wheel:wheelfile.py:218 adding 'agent/__init__.py'
+INFO     wheel:wheelfile.py:218 adding 'agent/agent_prompts.py'
+INFO     wheel:wheelfile.py:218 adding 'agent/run_agent.py'
+INFO     wheel:wheelfile.py:218 adding 'agents/__init__.py'
+INFO     wheel:wheelfile.py:218 adding 'agents/revisor_critico.py'
+INFO     wheel:wheelfile.py:218 adding 'concierge_graph-3.8.2.dist-info/licenses/LICENSE'
+INFO     wheel:wheelfile.py:218 adding 'core/__init__.py'
+INFO     wheel:wheelfile.py:218 adding 'core/alias_tracker.py'
+INFO     wheel:wheelfile.py:218 adding 'core/background_janitor.py'
+INFO     wheel:wheelfile.py:218 adding 'core/checkpointer.py'
+INFO     wheel:wheelfile.py:218 adding 'core/config.py'
+INFO     wheel:wheelfile.py:218 adding 'core/database.py'
+INFO     wheel:wheelfile.py:218 adding 'core/delta_manager.py'
+INFO     wheel:wheelfile.py:218 adding 'core/delta_sync.py'
+INFO     wheel:wheelfile.py:218 adding 'core/dependencies.py'
+INFO     wheel:wheelfile.py:218 adding 'core/federated_knowledge_router.py'
+INFO     wheel:wheelfile.py:218 adding 'core/gating_interceptor.py'
+INFO     wheel:wheelfile.py:218 adding 'core/global_memory_adapter.py'
+INFO     wheel:wheelfile.py:218 adding 'core/graph_rag.py'
+INFO     wheel:wheelfile.py:218 adding 'core/hsm_engine.py'
+INFO     wheel:wheelfile.py:218 adding 'core/hybrid_search.py'
+INFO     wheel:wheelfile.py:218 adding 'core/intent_classifier.py'
+INFO     wheel:wheelfile.py:218 adding 'core/janitor.py'
+INFO     wheel:wheelfile.py:218 adding 'core/mcp_governor.py'
+INFO     wheel:wheelfile.py:218 adding 'core/memory_extractor.py'
+INFO     wheel:wheelfile.py:218 adding 'core/middleware.py'
+INFO     wheel:wheelfile.py:218 adding 'core/nozomio_router.py'
+INFO     wheel:wheelfile.py:218 adding 'core/parser_factory.py'
+INFO     wheel:wheelfile.py:218 adding 'core/probabilistic_retriever.py'
+INFO     wheel:wheelfile.py:218 adding 'core/project_index.py'
+INFO     wheel:wheelfile.py:218 adding 'core/rate_governor.py'
+INFO     wheel:wheelfile.py:218 adding 'core/search_engine.py'
+INFO     wheel:wheelfile.py:218 adding 'core/security_guard.py'
+INFO     wheel:wheelfile.py:218 adding 'core/telemetry_schemas.py'
+INFO     wheel:wheelfile.py:218 adding 'core/vector_backend.py'
+INFO     wheel:wheelfile.py:218 adding 'core/vector_reconciler.py'
+INFO     wheel:wheelfile.py:218 adding 'core/parsers/__init__.py'
+INFO     wheel:wheelfile.py:218 adding 'core/parsers/base.py'
+INFO     wheel:wheelfile.py:218 adding 'core/parsers/python_parser.py'
+INFO     wheel:wheelfile.py:218 adding 'core/parsers/ts_js_parser.py'
+INFO     wheel:wheelfile.py:218 adding 'ingestion/__init__.py'
+INFO     wheel:wheelfile.py:218 adding 'ingestion/crawler.py'
+INFO     wheel:wheelfile.py:218 adding 'ingestion/orchestrator.py'
+INFO     wheel:wheelfile.py:218 adding 'ingestion/parser.py'
+INFO     wheel:wheelfile.py:218 adding 'ingestion/summarizer.py'
+INFO     wheel:wheelfile.py:218 adding 'interface/__init__.py'
+INFO     wheel:wheelfile.py:218 adding 'interface/action_hooks.py'
+INFO     wheel:wheelfile.py:218 adding 'interface/cli.py'
+INFO     wheel:wheelfile.py:218 adding 'interface/mcp_server.py'
+INFO     wheel:wheelfile.py:218 adding 'interface/queue_writer.py'
+INFO     wheel:wheelfile.py:218 adding 'interface/telemetry_api.py'
+INFO     wheel:wheelfile.py:218 adding 'interface/watcher.py'
+INFO     wheel:wheelfile.py:218 adding 'scripts/bootstrap_core_memory.py'
+INFO     wheel:wheelfile.py:218 adding 'storage/__init__.py'
+INFO     wheel:wheelfile.py:218 adding 'storage/base_backend.py'
+INFO     wheel:wheelfile.py:218 adding 'storage/connection.py'
+INFO     wheel:wheelfile.py:218 adding 'storage/logic.py'
+INFO     wheel:wheelfile.py:218 adding 'storage/relational_db.py'
+INFO     wheel:wheelfile.py:218 adding 'storage/schema.py'
+INFO     wheel:wheelfile.py:218 adding 'storage/semantic_logic.py'
+INFO     wheel:wheelfile.py:218 adding 'storage/store.py'
+INFO     wheel:wheelfile.py:218 adding 'storage/vector_store.py'
+INFO     wheel:wheelfile.py:218 adding 'concierge_graph-3.8.2.dist-info/METADATA'
+INFO     wheel:wheelfile.py:218 adding 'concierge_graph-3.8.2.dist-info/WHEEL'
+INFO     wheel:wheelfile.py:218 adding 'concierge_graph-3.8.2.dist-info/entry_points.txt'
+INFO     wheel:wheelfile.py:218 adding 'concierge_graph-3.8.2.dist-info/top_level.txt'
+INFO     wheel:wheelfile.py:218 adding 'concierge_graph-3.8.2.dist-info/RECORD'
+INFO     root:bdist_wheel.py:535 removing build\bdist.win-amd64\wheel
+============================== warnings summary ===============================
+tests/test_wheel_integrity.py::test_wheel_contains_all_live_modules_and_entrypoints
+  C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\setuptools\config\_apply_pyprojecttoml.py:82: SetuptoolsDeprecationWarning: `project.license` as a TOML table is deprecated
+  !!
+  
+          ********************************************************************************
+          Please use a simple string containing a SPDX expression for `project.license`. You can also use `project.license-files`. (Both options available on setuptools>=77.0.0).
+  
+          By 2027-Feb-18, you need to update your project and remove deprecated calls
+          or your builds will no longer be supported.
+  
+          See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+          ********************************************************************************
+  
+  !!
+    corresp(dist, value, root_dir)
+
+tests/test_wheel_integrity.py::test_wheel_contains_all_live_modules_and_entrypoints
+  C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\setuptools\config\_apply_pyprojecttoml.py:61: SetuptoolsDeprecationWarning: License classifiers are deprecated.
+  !!
+  
+          ********************************************************************************
+          Please consider removing the following classifiers in favor of a SPDX license expression:
+  
+          License :: OSI Approved :: MIT License
+  
+          See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+          ********************************************************************************
+  
+  !!
+    dist._finalize_license_expression()
+
+tests/test_wheel_integrity.py::test_wheel_contains_all_live_modules_and_entrypoints
+  C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\setuptools\dist.py:765: SetuptoolsDeprecationWarning: License classifiers are deprecated.
+  !!
+  
+          ********************************************************************************
+          Please consider removing the following classifiers in favor of a SPDX license expression:
+  
+          License :: OSI Approved :: MIT License
+  
+          See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+          ********************************************************************************
+  
+  !!
+    self._finalize_license_expression()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_wheel_integrity.py::test_wheel_contains_all_live_modules_and_entrypoints
+======================== 1 failed, 3 warnings in 3.51s ========================
+
+--- CASE (a): Fixed test under M2 ('storage*' removed) with build/lib/ present ---
+$ C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe -m pytest tests/test_wheel_integrity.py -v --tb=short
+exit_code=1
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_wheel_integrity.py::test_wheel_contains_all_live_modules_and_entrypoints FAILED [100%]
+
+================================== FAILURES ===================================
+____________ test_wheel_contains_all_live_modules_and_entrypoints _____________
+C:\Nexus-Memory\GrafoConcierge\tests\test_wheel_integrity.py:107: in test_wheel_contains_all_live_modules_and_entrypoints
+    assert mod_path in names, f"Módulo vivo ausente no wheel: {mod_path}"
+E   AssertionError: Módulo vivo ausente no wheel: storage/__init__.py
+E   assert 'storage/__init__.py' in {'agent/__init__.py', 'agent/agent_prompts.py', 'agent/run_agent.py', 'agents/__init__.py', 'agents/revisor_critico.py', 'concierge_graph-3.8.2.dist-info/METADATA', ...}
+------------------------------ Captured log call ------------------------------
+INFO     root:dist.py:1044 running bdist_wheel
+INFO     root:dist.py:1044 running build
+INFO     root:dist.py:1044 running build_py
+INFO     root:dir_util.py:58 creating build\lib
+INFO     root:file_util.py:128 copying main.py -> build\lib
+INFO     root:dir_util.py:58 creating build\lib\agent
+INFO     root:file_util.py:128 copying agent\agent_prompts.py -> build\lib\agent
+INFO     root:file_util.py:128 copying agent\run_agent.py -> build\lib\agent
+INFO     root:file_util.py:128 copying agent\__init__.py -> build\lib\agent
+INFO     root:dir_util.py:58 creating build\lib\agents
+INFO     root:file_util.py:128 copying agents\revisor_critico.py -> build\lib\agents
+INFO     root:file_util.py:128 copying agents\__init__.py -> build\lib\agents
+INFO     root:dir_util.py:58 creating build\lib\core
+INFO     root:file_util.py:128 copying core\alias_tracker.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\background_janitor.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\checkpointer.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\config.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\database.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\delta_manager.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\delta_sync.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\dependencies.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\federated_knowledge_router.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\gating_interceptor.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\global_memory_adapter.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\graph_rag.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\hsm_engine.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\hybrid_search.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\intent_classifier.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\janitor.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\mcp_governor.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\memory_extractor.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\middleware.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\nozomio_router.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\parser_factory.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\probabilistic_retriever.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\project_index.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\rate_governor.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\search_engine.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\security_guard.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\telemetry_schemas.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\vector_backend.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\vector_reconciler.py -> build\lib\core
+INFO     root:file_util.py:128 copying core\__init__.py -> build\lib\core
+INFO     root:dir_util.py:58 creating build\lib\ingestion
+INFO     root:file_util.py:128 copying ingestion\crawler.py -> build\lib\ingestion
+INFO     root:file_util.py:128 copying ingestion\orchestrator.py -> build\lib\ingestion
+INFO     root:file_util.py:128 copying ingestion\parser.py -> build\lib\ingestion
+INFO     root:file_util.py:128 copying ingestion\summarizer.py -> build\lib\ingestion
+INFO     root:file_util.py:128 copying ingestion\__init__.py -> build\lib\ingestion
+INFO     root:dir_util.py:58 creating build\lib\interface
+INFO     root:file_util.py:128 copying interface\action_hooks.py -> build\lib\interface
+INFO     root:file_util.py:128 copying interface\cli.py -> build\lib\interface
+INFO     root:file_util.py:128 copying interface\mcp_server.py -> build\lib\interface
+INFO     root:file_util.py:128 copying interface\queue_writer.py -> build\lib\interface
+INFO     root:file_util.py:128 copying interface\telemetry_api.py -> build\lib\interface
+INFO     root:file_util.py:128 copying interface\watcher.py -> build\lib\interface
+INFO     root:file_util.py:128 copying interface\__init__.py -> build\lib\interface
+INFO     root:dir_util.py:58 creating build\lib\scripts
+INFO     root:file_util.py:128 copying scripts\bootstrap_core_memory.py -> build\lib\scripts
+INFO     root:dir_util.py:58 creating build\lib\services
+INFO     root:file_util.py:128 copying services\janitor.py -> build\lib\services
+INFO     root:file_util.py:128 copying services\__init__.py -> build\lib\services
+INFO     root:dir_util.py:58 creating build\lib\core\parsers
+INFO     root:file_util.py:128 copying core\parsers\base.py -> build\lib\core\parsers
+INFO     root:file_util.py:128 copying core\parsers\python_parser.py -> build\lib\core\parsers
+INFO     root:file_util.py:128 copying core\parsers\ts_js_parser.py -> build\lib\core\parsers
+INFO     root:file_util.py:128 copying core\parsers\__init__.py -> build\lib\core\parsers
+INFO     root:dist.py:1044 running egg_info
+INFO     root:dir_util.py:58 creating concierge_graph.egg-info
+INFO     root:egg_info.py:680 writing concierge_graph.egg-info\PKG-INFO
+INFO     root:egg_info.py:311 writing dependency_links to concierge_graph.egg-info\dependency_links.txt
+INFO     root:egg_info.py:311 writing entry points to concierge_graph.egg-info\entry_points.txt
+INFO     root:egg_info.py:311 writing requirements to concierge_graph.egg-info\requires.txt
+INFO     root:egg_info.py:311 writing top-level names to concierge_graph.egg-info\top_level.txt
+INFO     root:util.py:249 writing manifest file 'concierge_graph.egg-info\SOURCES.txt'
+INFO     root:sdist.py:206 reading manifest file 'concierge_graph.egg-info\SOURCES.txt'
+INFO     root:egg_info.py:630 adding license file 'LICENSE'
+INFO     root:util.py:249 writing manifest file 'concierge_graph.egg-info\SOURCES.txt'
+INFO     root:bdist_wheel.py:487 installing to build\bdist.win-amd64\wheel
+INFO     root:dist.py:1044 running install
+INFO     root:dist.py:1044 running install_lib
+INFO     root:dir_util.py:58 creating build\bdist.win-amd64\wheel
+INFO     root:dir_util.py:58 creating build\bdist.win-amd64\wheel\agent
+INFO     root:file_util.py:128 copying build\lib\agent\agent_prompts.py -> build\bdist.win-amd64\wheel\.\agent
+INFO     root:file_util.py:128 copying build\lib\agent\run_agent.py -> build\bdist.win-amd64\wheel\.\agent
+INFO     root:file_util.py:128 copying build\lib\agent\__init__.py -> build\bdist.win-amd64\wheel\.\agent
+INFO     root:dir_util.py:58 creating build\bdist.win-amd64\wheel\agents
+INFO     root:file_util.py:128 copying build\lib\agents\revisor_critico.py -> build\bdist.win-amd64\wheel\.\agents
+INFO     root:file_util.py:128 copying build\lib\agents\__init__.py -> build\bdist.win-amd64\wheel\.\agents
+INFO     root:dir_util.py:58 creating build\bdist.win-amd64\wheel\core
+INFO     root:file_util.py:128 copying build\lib\core\alias_tracker.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\background_janitor.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\checkpointer.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\config.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\database.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\delta_manager.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\delta_sync.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\dependencies.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\federated_knowledge_router.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\gating_interceptor.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\global_memory_adapter.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\graph_rag.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\hsm_engine.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\hybrid_search.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\intent_classifier.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\janitor.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\mcp_governor.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\memory_extractor.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\middleware.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\nozomio_router.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:dir_util.py:58 creating build\bdist.win-amd64\wheel\core\parsers
+INFO     root:file_util.py:128 copying build\lib\core\parsers\base.py -> build\bdist.win-amd64\wheel\.\core\parsers
+INFO     root:file_util.py:128 copying build\lib\core\parsers\python_parser.py -> build\bdist.win-amd64\wheel\.\core\parsers
+INFO     root:file_util.py:128 copying build\lib\core\parsers\ts_js_parser.py -> build\bdist.win-amd64\wheel\.\core\parsers
+INFO     root:file_util.py:128 copying build\lib\core\parsers\__init__.py -> build\bdist.win-amd64\wheel\.\core\parsers
+INFO     root:file_util.py:128 copying build\lib\core\parser_factory.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\probabilistic_retriever.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\project_index.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\rate_governor.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\search_engine.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\security_guard.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\telemetry_schemas.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\vector_backend.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\vector_reconciler.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:file_util.py:128 copying build\lib\core\__init__.py -> build\bdist.win-amd64\wheel\.\core
+INFO     root:dir_util.py:58 creating build\bdist.win-amd64\wheel\ingestion
+INFO     root:file_util.py:128 copying build\lib\ingestion\crawler.py -> build\bdist.win-amd64\wheel\.\ingestion
+INFO     root:file_util.py:128 copying build\lib\ingestion\orchestrator.py -> build\bdist.win-amd64\wheel\.\ingestion
+INFO     root:file_util.py:128 copying build\lib\ingestion\parser.py -> build\bdist.win-amd64\wheel\.\ingestion
+INFO     root:file_util.py:128 copying build\lib\ingestion\summarizer.py -> build\bdist.win-amd64\wheel\.\ingestion
+INFO     root:file_util.py:128 copying build\lib\ingestion\__init__.py -> build\bdist.win-amd64\wheel\.\ingestion
+INFO     root:dir_util.py:58 creating build\bdist.win-amd64\wheel\interface
+INFO     root:file_util.py:128 copying build\lib\interface\action_hooks.py -> build\bdist.win-amd64\wheel\.\interface
+INFO     root:file_util.py:128 copying build\lib\interface\cli.py -> build\bdist.win-amd64\wheel\.\interface
+INFO     root:file_util.py:128 copying build\lib\interface\mcp_server.py -> build\bdist.win-amd64\wheel\.\interface
+INFO     root:file_util.py:128 copying build\lib\interface\queue_writer.py -> build\bdist.win-amd64\wheel\.\interface
+INFO     root:file_util.py:128 copying build\lib\interface\telemetry_api.py -> build\bdist.win-amd64\wheel\.\interface
+INFO     root:file_util.py:128 copying build\lib\interface\watcher.py -> build\bdist.win-amd64\wheel\.\interface
+INFO     root:file_util.py:128 copying build\lib\interface\__init__.py -> build\bdist.win-amd64\wheel\.\interface
+INFO     root:file_util.py:128 copying build\lib\main.py -> build\bdist.win-amd64\wheel\.
+INFO     root:dir_util.py:58 creating build\bdist.win-amd64\wheel\scripts
+INFO     root:file_util.py:128 copying build\lib\scripts\bootstrap_core_memory.py -> build\bdist.win-amd64\wheel\.\scripts
+INFO     root:dir_util.py:58 creating build\bdist.win-amd64\wheel\services
+INFO     root:file_util.py:128 copying build\lib\services\janitor.py -> build\bdist.win-amd64\wheel\.\services
+INFO     root:file_util.py:128 copying build\lib\services\__init__.py -> build\bdist.win-amd64\wheel\.\services
+INFO     root:dist.py:1044 running install_egg_info
+INFO     root:util.py:249 Copying concierge_graph.egg-info to build\bdist.win-amd64\wheel\.\concierge_graph-3.8.2-py3.12.egg-info
+INFO     root:dist.py:1044 running install_scripts
+INFO     root:bdist_wheel.py:558 creating build\bdist.win-amd64\wheel\concierge_graph-3.8.2.dist-info\WHEEL
+INFO     wheel:wheelfile.py:158 creating 'C:\\Users\\guial\\AppData\\Local\\Temp\\pytest-of-guial\\pytest-359\\test_wheel_contains_all_live_m0\\dist\\.tmp-lolk6ip2\\concierge_graph-3.8.2-py3-none-any.whl' and adding 'build\\bdist.win-amd64\\wheel' to it
+INFO     wheel:wheelfile.py:218 adding 'main.py'
+INFO     wheel:wheelfile.py:218 adding 'agent/__init__.py'
+INFO     wheel:wheelfile.py:218 adding 'agent/agent_prompts.py'
+INFO     wheel:wheelfile.py:218 adding 'agent/run_agent.py'
+INFO     wheel:wheelfile.py:218 adding 'agents/__init__.py'
+INFO     wheel:wheelfile.py:218 adding 'agents/revisor_critico.py'
+INFO     wheel:wheelfile.py:218 adding 'concierge_graph-3.8.2.dist-info/licenses/LICENSE'
+INFO     wheel:wheelfile.py:218 adding 'core/__init__.py'
+INFO     wheel:wheelfile.py:218 adding 'core/alias_tracker.py'
+INFO     wheel:wheelfile.py:218 adding 'core/background_janitor.py'
+INFO     wheel:wheelfile.py:218 adding 'core/checkpointer.py'
+INFO     wheel:wheelfile.py:218 adding 'core/config.py'
+INFO     wheel:wheelfile.py:218 adding 'core/database.py'
+INFO     wheel:wheelfile.py:218 adding 'core/delta_manager.py'
+INFO     wheel:wheelfile.py:218 adding 'core/delta_sync.py'
+INFO     wheel:wheelfile.py:218 adding 'core/dependencies.py'
+INFO     wheel:wheelfile.py:218 adding 'core/federated_knowledge_router.py'
+INFO     wheel:wheelfile.py:218 adding 'core/gating_interceptor.py'
+INFO     wheel:wheelfile.py:218 adding 'core/global_memory_adapter.py'
+INFO     wheel:wheelfile.py:218 adding 'core/graph_rag.py'
+INFO     wheel:wheelfile.py:218 adding 'core/hsm_engine.py'
+INFO     wheel:wheelfile.py:218 adding 'core/hybrid_search.py'
+INFO     wheel:wheelfile.py:218 adding 'core/intent_classifier.py'
+INFO     wheel:wheelfile.py:218 adding 'core/janitor.py'
+INFO     wheel:wheelfile.py:218 adding 'core/mcp_governor.py'
+INFO     wheel:wheelfile.py:218 adding 'core/memory_extractor.py'
+INFO     wheel:wheelfile.py:218 adding 'core/middleware.py'
+INFO     wheel:wheelfile.py:218 adding 'core/nozomio_router.py'
+INFO     wheel:wheelfile.py:218 adding 'core/parser_factory.py'
+INFO     wheel:wheelfile.py:218 adding 'core/probabilistic_retriever.py'
+INFO     wheel:wheelfile.py:218 adding 'core/project_index.py'
+INFO     wheel:wheelfile.py:218 adding 'core/rate_governor.py'
+INFO     wheel:wheelfile.py:218 adding 'core/search_engine.py'
+INFO     wheel:wheelfile.py:218 adding 'core/security_guard.py'
+INFO     wheel:wheelfile.py:218 adding 'core/telemetry_schemas.py'
+INFO     wheel:wheelfile.py:218 adding 'core/vector_backend.py'
+INFO     wheel:wheelfile.py:218 adding 'core/vector_reconciler.py'
+INFO     wheel:wheelfile.py:218 adding 'core/parsers/__init__.py'
+INFO     wheel:wheelfile.py:218 adding 'core/parsers/base.py'
+INFO     wheel:wheelfile.py:218 adding 'core/parsers/python_parser.py'
+INFO     wheel:wheelfile.py:218 adding 'core/parsers/ts_js_parser.py'
+INFO     wheel:wheelfile.py:218 adding 'ingestion/__init__.py'
+INFO     wheel:wheelfile.py:218 adding 'ingestion/crawler.py'
+INFO     wheel:wheelfile.py:218 adding 'ingestion/orchestrator.py'
+INFO     wheel:wheelfile.py:218 adding 'ingestion/parser.py'
+INFO     wheel:wheelfile.py:218 adding 'ingestion/summarizer.py'
+INFO     wheel:wheelfile.py:218 adding 'interface/__init__.py'
+INFO     wheel:wheelfile.py:218 adding 'interface/action_hooks.py'
+INFO     wheel:wheelfile.py:218 adding 'interface/cli.py'
+INFO     wheel:wheelfile.py:218 adding 'interface/mcp_server.py'
+INFO     wheel:wheelfile.py:218 adding 'interface/queue_writer.py'
+INFO     wheel:wheelfile.py:218 adding 'interface/telemetry_api.py'
+INFO     wheel:wheelfile.py:218 adding 'interface/watcher.py'
+INFO     wheel:wheelfile.py:218 adding 'scripts/bootstrap_core_memory.py'
+INFO     wheel:wheelfile.py:218 adding 'services/__init__.py'
+INFO     wheel:wheelfile.py:218 adding 'services/janitor.py'
+INFO     wheel:wheelfile.py:218 adding 'concierge_graph-3.8.2.dist-info/METADATA'
+INFO     wheel:wheelfile.py:218 adding 'concierge_graph-3.8.2.dist-info/WHEEL'
+INFO     wheel:wheelfile.py:218 adding 'concierge_graph-3.8.2.dist-info/entry_points.txt'
+INFO     wheel:wheelfile.py:218 adding 'concierge_graph-3.8.2.dist-info/top_level.txt'
+INFO     wheel:wheelfile.py:218 adding 'concierge_graph-3.8.2.dist-info/RECORD'
+INFO     root:bdist_wheel.py:535 removing build\bdist.win-amd64\wheel
+============================== warnings summary ===============================
+tests/test_wheel_integrity.py::test_wheel_contains_all_live_modules_and_entrypoints
+  C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\setuptools\config\_apply_pyprojecttoml.py:82: SetuptoolsDeprecationWarning: `project.license` as a TOML table is deprecated
+  !!
+  
+          ********************************************************************************
+          Please use a simple string containing a SPDX expression for `project.license`. You can also use `project.license-files`. (Both options available on setuptools>=77.0.0).
+  
+          By 2027-Feb-18, you need to update your project and remove deprecated calls
+          or your builds will no longer be supported.
+  
+          See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+          ********************************************************************************
+  
+  !!
+    corresp(dist, value, root_dir)
+
+tests/test_wheel_integrity.py::test_wheel_contains_all_live_modules_and_entrypoints
+  C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\setuptools\config\_apply_pyprojecttoml.py:61: SetuptoolsDeprecationWarning: License classifiers are deprecated.
+  !!
+  
+          ********************************************************************************
+          Please consider removing the following classifiers in favor of a SPDX license expression:
+  
+          License :: OSI Approved :: MIT License
+  
+          See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+          ********************************************************************************
+  
+  !!
+    dist._finalize_license_expression()
+
+tests/test_wheel_integrity.py::test_wheel_contains_all_live_modules_and_entrypoints
+  C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\setuptools\dist.py:765: SetuptoolsDeprecationWarning: License classifiers are deprecated.
+  !!
+  
+          ********************************************************************************
+          Please consider removing the following classifiers in favor of a SPDX license expression:
+  
+          License :: OSI Approved :: MIT License
+  
+          See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+          ********************************************************************************
+  
+  !!
+    self._finalize_license_expression()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_wheel_integrity.py::test_wheel_contains_all_live_modules_and_entrypoints
+======================== 1 failed, 3 warnings in 3.46s ========================
+
+--- CASE (a): Fixed test AFTER restoring pyproject.toml ---
+$ C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe -m pytest tests/test_wheel_integrity.py -v --tb=short
+exit_code=0
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_wheel_integrity.py::test_wheel_contains_all_live_modules_and_entrypoints PASSED [100%]
+
+============================== warnings summary ===============================
+tests/test_wheel_integrity.py::test_wheel_contains_all_live_modules_and_entrypoints
+  C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\setuptools\config\_apply_pyprojecttoml.py:82: SetuptoolsDeprecationWarning: `project.license` as a TOML table is deprecated
+  !!
+  
+          ********************************************************************************
+          Please use a simple string containing a SPDX expression for `project.license`. You can also use `project.license-files`. (Both options available on setuptools>=77.0.0).
+  
+          By 2027-Feb-18, you need to update your project and remove deprecated calls
+          or your builds will no longer be supported.
+  
+          See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+          ********************************************************************************
+  
+  !!
+    corresp(dist, value, root_dir)
+
+tests/test_wheel_integrity.py::test_wheel_contains_all_live_modules_and_entrypoints
+  C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\setuptools\config\_apply_pyprojecttoml.py:61: SetuptoolsDeprecationWarning: License classifiers are deprecated.
+  !!
+  
+          ********************************************************************************
+          Please consider removing the following classifiers in favor of a SPDX license expression:
+  
+          License :: OSI Approved :: MIT License
+  
+          See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+          ********************************************************************************
+  
+  !!
+    dist._finalize_license_expression()
+
+tests/test_wheel_integrity.py::test_wheel_contains_all_live_modules_and_entrypoints
+  C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\setuptools\dist.py:765: SetuptoolsDeprecationWarning: License classifiers are deprecated.
+  !!
+  
+          ********************************************************************************
+          Please consider removing the following classifiers in favor of a SPDX license expression:
+  
+          License :: OSI Approved :: MIT License
+  
+          See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+          ********************************************************************************
+  
+  !!
+    self._finalize_license_expression()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 3 warnings in 2.51s ========================
+
+$ git diff -- pyproject.toml (len=0):
+$ git diff -- pyproject.toml
+exit_code=0
+[cleanup] Removed build/
+[cleanup] Removed concierge_graph.egg-info
+Final root state: {'build_exists': False, 'build_lib_exists': False, 'egg_info': []}

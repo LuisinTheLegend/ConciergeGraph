@@ -1,0 +1,3 @@
+forbidden_diff_bytes=0
+clean_root_after_pytest={'build_exists': False, 'egg_info': []}
+diff_output=''

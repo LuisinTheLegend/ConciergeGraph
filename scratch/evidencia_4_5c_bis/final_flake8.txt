@@ -1,0 +1,13 @@
+=== FLAKE8 CI EXACT ===
+$ C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe -m flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+exit_code=1
+.\.venv_310\Lib\site-packages\sympy\polys\numberfields\resolvent_lookup.py: "pyflakes[F]" failed during execution due to RecursionError('maximum recursion depth exceeded')
+Run flake8 with greater verbosity to see more details
+0
+
+=== FLAKE8 (--extend-exclude=.venv*) ===
+$ C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe -m flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --extend-exclude=.venv_310,.venv_311,.venv_312,.venv_313,.venv_clean
+exit_code=0
+0
+
+<unknown>:237: SyntaxWarning: invalid escape sequence '\`'

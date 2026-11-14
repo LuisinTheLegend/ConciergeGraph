@@ -1,0 +1,15 @@
+﻿diff --git a/tests/test_interface_contracts.py b/tests/test_interface_contracts.py
+index 1ec7224..3d9040c 100644
+--- a/tests/test_interface_contracts.py
++++ b/tests/test_interface_contracts.py
+@@ -295,6 +295,10 @@ class TestMCPToolRegistration:
+                 )
+ 
+             # 2. Transition session state to MAINTENANCE and exercise lightweight-safe tools
++            # NOTE (BL-011 dependency): transitioning PLANNING -> MAINTENANCE via
++            # concierge_set_state relies on BL-011 (MCP privilege escalation still open).
++            # After BL-011 is closed, transition the test directly via:
++            # server.governor.set_session_state("default", "MAINTENANCE")
+             state_res = call_governed(
+                 "concierge_set_state",
+                 {"state_name": "MAINTENANCE", "session_id": "default"},

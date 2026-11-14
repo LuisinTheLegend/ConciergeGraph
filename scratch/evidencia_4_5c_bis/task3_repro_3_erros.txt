@@ -1,0 +1,24 @@
+=== TASK 3 REPRO: 3 ERROS DO TRACE 4.5a VIA MCP REAL ===
+
+================ LIGHTWEIGHT=true ================
+concierge_register => {'success': True, 'project_uuid': '64f8c6ff-84fc-4e3d-86f3-a7c530b479e5', 'folder_name': 'sample_proj', 'wing': 'core', 'privacy_level': 'PUBLIC', 'duration_seconds': 0.012}
+store.list_projects() keys => ['uuid', 'folder_name', 'primary_wing', 'privacy_level', 'summary', 'created_at', 'updated_at']
+concierge_mine => {'files_processed': 2, 'categories': {'code': 2}, 'nodes_created': 4, 'embeddings_stored': 0, 'embeddings_failed': 4, 'embeddings_repaired': 0, 'tags_applied': [], 'files_skipped': 0, 'files_deleted': 0, 'summaries_generated': 0, 'errors': ['4 chunks without vectors (probable cause: model unavailable or Semantic Fallback).'], 'success': True, 'project_uuid': '64f8c6ff-84fc-4e3d-86f3-a7c530b479e5', 'project_name': 'sample_proj', 'path': 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmplfyx694z\\sample_proj', 'duration_seconds': 0.061}
+search_symbols => {'success': True, 'symbols': [{'id': 2, 'label': 'app.py::helper', 'node_type': 'FUNCTION', 'file_path': 'app.py::helper', 'summary': None}, {'id': 4, 'label': 'app.py::<module>', 'node_type': 'MODULE', 'file_path': 'app.py::<module>', 'summary': None}, {'id': 3, 'label': 'app.py::run_flow', 'node_type': 'FUNCTION', 'file_path': 'app.py::run_flow', 'summary': None}], 'duration_seconds': 0.001}
+Selected mined node_id=2 (type=int)
+[1a] concierge_commit(project_uuid='sample_proj', call_tool) => {'success': False, 'error': 'FOREIGN KEY constraint failed', 'duration_seconds': 0.003}
+[1b] concierge_commit(valid project_uuid=64f8c6ff-84fc-4e3d-86f3-a7c530b479e5, call_tool) => {'success': True, 'commit_id': 1, 'project_uuid': '64f8c6ff-84fc-4e3d-86f3-a7c530b479e5', 'phase': 'build', 'duration_seconds': 0.007}
+[2a] concierge_load via fn(node_id='2') => {'success': False, 'error': '%d format: a real number is required, not str', 'duration_seconds': 0.003}
+[2b] concierge_load via call_tool(node_id='2') => {'success': True, 'node': {'id': 2, 'project_uuid': '64f8c6ff-84fc-4e3d-86f3-a7c530b479e5', 'label': 'app.py::helper', 'summary': None, 'content': 'def helper(x: int) -> int:\n    return x + 1', 'node_type': 'FUNCTION', 'type': 'function', 'tags': None, 'file_hash': 'bd6b809222b7d632be28e35ad6c6935573fd2c2cb68bc663546b9c7395f4a710', 'last_accessed': '2026-11-14 14:54:01', 'last_commit_at': '2026-11-14 14:54:01', 'status': 'ACTIVE', 'valid_from_commit': None, 'valid_to_commit': None, 'edges_out': []}, 'duration_seconds': 0.004}
+[2c] concierge_load via call_tool(node_id=2) => success=True, node_id=2, label=app.py::helper
+VectorStore status: available=False, client_is_none=True
+[3] reset_collection via call_tool() => {'success': False, 'duration_seconds': 0.003}
+
+================ LIGHTWEIGHT=false (real Chroma PersistentClient) ================
+concierge_register => {'success': True, 'project_uuid': '38168dcd-26c3-4a78-ba62-b76787b6efc8', 'folder_name': 'sample_proj', 'wing': 'core', 'privacy_level': 'PUBLIC', 'duration_seconds': 0.015}
+store.list_projects() keys => ['uuid', 'folder_name', 'primary_wing', 'privacy_level', 'summary', 'created_at', 'updated_at']
+concierge_mine => {'files_processed': 2, 'categories': {'code': 2}, 'nodes_created': 4, 'embeddings_stored': 4, 'embeddings_failed': 0, 'embeddings_repaired': 0, 'tags_applied': [], 'files_skipped': 0, 'files_deleted': 0, 'summaries_generated': 0, 'errors': [], 'success': True, 'project_uuid': '38168dcd-26c3-4a78-ba62-b76787b6efc8', 'project_name': 'sample_proj', 'path': 'C:\\Users\\guial\\AppData\\Local\\Temp\\tmp1d71htuu\\sample_proj', 'duration_seconds': 17.711}
+search_symbols => {'success': True, 'symbols': [{'id': 2, 'label': 'app.py::helper', 'node_type': 'FUNCTION', 'file_path': 'app.py::helper', 'summary': None}, {'id': 4, 'label': 'app.py::<module>', 'node_type': 'MODULE', 'file_path': 'app.py::<module>', 'summary': None}, {'id': 3, 'label': 'app.py::run_flow', 'node_type': 'FUNCTION', 'file_path': 'app.py::run_flow', 'summary': None}], 'duration_seconds': 0.001}
+Selected mined node_id=2 (type=int)
+VectorStore status: available=True, client_is_none=False
+[3] reset_collection via call_tool() => {'success': True, 'duration_seconds': 0.023}

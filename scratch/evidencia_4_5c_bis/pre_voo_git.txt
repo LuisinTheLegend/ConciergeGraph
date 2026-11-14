@@ -1,0 +1,29 @@
+$ git pull --ff-only origin main
+From https://github.com/LuisinTheLegend/ConciergeGraph
+ * branch            main       -> FETCH_HEAD
+Already up to date.
+
+$ git rev-parse HEAD
+f66259c511808e38ad133135e9d4875cfe5a0655
+
+$ git ls-remote origin main
+f66259c511808e38ad133135e9d4875cfe5a0655	refs/heads/main
+
+PARITY_OK: HEAD == origin/main == f66259c511808e38ad133135e9d4875cfe5a0655
+
+$ Remove-Item -Recurse -Force build, concierge_graph.egg-info -ErrorAction SilentlyContinue
+$ Test-Path build
+False
+$ Get-ChildItem -Filter "*.egg-info"
+(vazio)
+
+$ git status --short
+ M scratch/build_4_5a_bis_docs.py
+ M scratch/inv_4_5a_bis_bloco1.py
+?? audits/egm/analise-completa-codebase-details.md
+?? audits/egm/analise-completa-comprehension.md
+?? audits/egm/analise-completa-design.md
+?? audits/egm/analise-completa-inventive-catalyst.md
+?? audits/egm/analise-completa-sintese.md
+?? audits/egm/analise-completa-zoom-out.md
+?? scratch/prompt_4_5b_verbatim.md

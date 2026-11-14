@@ -1,0 +1,37 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 24 items
+
+tests/test_interface_contracts.py::TestInterfaceImports::test_mcp_server_importable PASSED [  4%]
+tests/test_interface_contracts.py::TestInterfaceImports::test_action_hooks_importable PASSED [  8%]
+tests/test_interface_contracts.py::TestInterfaceImports::test_interface_package_exports PASSED [ 12%]
+tests/test_interface_contracts.py::TestGrafoConciergeServerSignature::test_accepts_concierge_param PASSED [ 16%]
+tests/test_interface_contracts.py::TestGrafoConciergeServerSignature::test_accepts_janitor_param PASSED [ 20%]
+tests/test_interface_contracts.py::TestGrafoConciergeServerSignature::test_no_legacy_sqlite_store_param PASSED [ 25%]
+tests/test_interface_contracts.py::TestGrafoConciergeServerSignature::test_no_legacy_vector_store_param PASSED [ 29%]
+tests/test_interface_contracts.py::TestGrafoConciergeServerSignature::test_no_legacy_embedding_manager_param PASSED [ 33%]
+tests/test_interface_contracts.py::TestActionHooksSignature::test_accepts_concierge_param PASSED [ 37%]
+tests/test_interface_contracts.py::TestActionHooksSignature::test_accepts_revisor_param PASSED [ 41%]
+tests/test_interface_contracts.py::TestActionHooksSignature::test_has_on_planning_method PASSED [ 45%]
+tests/test_interface_contracts.py::TestActionHooksSignature::test_has_on_execution_method PASSED [ 50%]
+tests/test_interface_contracts.py::TestActionHooksSignature::test_has_on_done_method PASSED [ 54%]
+tests/test_interface_contracts.py::TestCLIParser::test_all_subcommands_present PASSED [ 58%]
+tests/test_interface_contracts.py::TestCLIParser::test_command_count PASSED [ 62%]
+tests/test_interface_contracts.py::TestCLIParser::test_search_args_parsed PASSED [ 66%]
+tests/test_interface_contracts.py::TestCLIParser::test_mine_args_parsed PASSED [ 70%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_all_required_tools_registered PASSED [ 75%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_all_registered_tools_classified_in_governor PASSED [ 79%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_governed_call_tool_executes_and_enforces_state PASSED [ 83%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_server_name_is_grafo_concierge PASSED [ 87%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_status_has_no_chromadb_component PASSED [ 91%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_status_has_no_embedding_component PASSED [ 95%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_status_has_sqlite_component PASSED [100%]
+
+============================= 24 passed in 0.64s ==============================
