@@ -295,6 +295,10 @@ class TestMCPToolRegistration:
                 )
 
             # 2. Transition session state to MAINTENANCE and exercise lightweight-safe tools
+            # NOTE (BL-011 dependency): transitioning PLANNING -> MAINTENANCE via
+            # concierge_set_state relies on BL-011 (MCP privilege escalation still open).
+            # After BL-011 is closed, transition the test directly via:
+            # server.governor.set_session_state("default", "MAINTENANCE")
             state_res = call_governed(
                 "concierge_set_state",
                 {"state_name": "MAINTENANCE", "session_id": "default"},

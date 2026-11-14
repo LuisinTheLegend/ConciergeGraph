@@ -8,12 +8,38 @@ e não vaza diretórios de testes ou quarentena.
 
 from __future__ import annotations
 
+import shutil
 import zipfile
 from pathlib import Path
 from setuptools import build_meta
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+
+# Arquivos e diretórios copiados para uma cópia limpa em tmp_path, evitando
+# contaminação por build/ ou *.egg-info pré-existentes na raiz do repositório.
+_SOURCE_FILES = ("pyproject.toml", "main.py", "README.md", "LICENSE")
+_SOURCE_DIRS = (
+    "core",
+    "storage",
+    "ingestion",
+    "services",
+    "interface",
+    "agent",
+    "agents",
+    "scripts",
+    "tests",
+    "archive",
+)
+_IGNORE_PATTERNS = shutil.ignore_patterns(
+    "__pycache__",
+    "*.pyc",
+    "*.pyo",
+    "*.egg-info",
+    "build",
+    "dist",
+    ".pytest_cache",
+)
 
 EXPECTED_LIVE_MODULES = [
     "main.py",
@@ -50,11 +76,29 @@ EXPECTED_LIVE_MODULES = [
 ]
 
 
+def _copy_clean_source(dest: Path) -> None:
+    """Copia apenas os fontes limpos para dest, ignorando build/ e *.egg-info."""
+    dest.mkdir(parents=True, exist_ok=True)
+    for filename in _SOURCE_FILES:
+        src_file = REPO_ROOT / filename
+        if src_file.is_file():
+            shutil.copy2(src_file, dest / filename)
+    for dirname in _SOURCE_DIRS:
+        src_dir = REPO_ROOT / dirname
+        if src_dir.is_dir():
+            shutil.copytree(src_dir, dest / dirname, ignore=_IGNORE_PATTERNS)
+
+
 def test_wheel_contains_all_live_modules_and_entrypoints(tmp_path, monkeypatch):
-    """Constrói o wheel offline e valida todos os módulos vivos e entrypoints."""
-    monkeypatch.chdir(REPO_ROOT)
-    wheel_name = build_meta.build_wheel(str(tmp_path))
-    wheel_path = tmp_path / wheel_name
+    """Constrói o wheel offline em cópia limpa e valida módulos vivos e entrypoints."""
+    src_dir = tmp_path / "src"
+    dist_dir = tmp_path / "dist"
+    dist_dir.mkdir(parents=True, exist_ok=True)
+    _copy_clean_source(src_dir)
+
+    monkeypatch.chdir(src_dir)
+    wheel_name = build_meta.build_wheel(str(dist_dir))
+    wheel_path = dist_dir / wheel_name
     assert wheel_path.is_file(), f"Wheel não foi gerado em {wheel_path}"
 
     with zipfile.ZipFile(wheel_path) as zf:
