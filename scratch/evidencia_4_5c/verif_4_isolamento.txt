@@ -1,0 +1,23 @@
+# Verificação 4.4 — Isolamento dos novos testes com módulos dormentes bloqueados
+cmd: C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe -c import sys, pytest; sys.modules['interface.telemetry_api'] = None; sys.modules['core.probabilistic_retriever'] = None; raise SystemExit(pytest.main(['tests/test_mcp_governor.py', 'tests/test_semantic_facts_utility.py', '-v', '--tb=short']))
+exit_code=0
+
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 5 items
+
+tests/test_mcp_governor.py::TestMCPToolGovernor::test_should_disclose_all_tools_in_maintenance_state PASSED [ 20%]
+tests/test_mcp_governor.py::TestMCPToolGovernor::test_should_disclose_mutation_tools_in_execution_state PASSED [ 40%]
+tests/test_mcp_governor.py::TestMCPToolGovernor::test_should_filter_tools_in_planning_state PASSED [ 60%]
+tests/test_mcp_governor.py::TestMCPToolGovernor::test_should_raise_security_exception_on_direct_call_attempt PASSED [ 80%]
+tests/test_semantic_facts_utility.py::test_update_memory_utility PASSED  [100%]
+
+============================== 5 passed in 0.22s ==============================
+

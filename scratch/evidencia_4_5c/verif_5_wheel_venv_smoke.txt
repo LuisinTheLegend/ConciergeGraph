@@ -1,0 +1,52 @@
+# Verificação 4.5 — Wheel Antes/Depois + Smoke em Venv Limpa
+wheel_name=concierge_graph-3.8.2-py3-none-any.whl
+wheel_antes_count=70
+wheel_depois_count=70
+wheel_diff_lines=0 (IDENTICAL)
+
+smoke_cwd=C:\Users\guial\AppData\Local\Temp\tmpsturnekn\isolated_run
+smoke_exit_code=0
+--- STDOUT ---
+MAIN_FILE=C:\Users\guial\AppData\Local\Temp\tmpsturnekn\clean_venv\Lib\site-packages\main.py
+MCP_SERVER_FILE=C:\Users\guial\AppData\Local\Temp\tmpsturnekn\clean_venv\Lib\site-packages\interface\mcp_server.py
+TOOL_COUNT=31
+01. add_reference_wing
+02. agent_get_checkpoint
+03. agent_list_checkpoints
+04. agent_save_checkpoint
+05. concierge_commit
+06. concierge_feedback
+07. concierge_get_call_chain
+08. concierge_get_memory
+09. concierge_list_facts
+10. concierge_list_projects
+11. concierge_load
+12. concierge_mine
+13. concierge_register
+14. concierge_resume
+15. concierge_search
+16. concierge_set_memory
+17. concierge_set_state
+18. concierge_status
+19. concierge_store_fact
+20. concierge_wakeup
+21. count_embeddings
+22. delete_project
+23. find_similar
+24. get_callers
+25. get_full_topology
+26. get_implementations
+27. get_trajectories
+28. remove_reference_wing
+29. reset_collection
+30. search_symbols
+31. update_project
+--- STDERR ---
+[11/13/26 21:54:29] INFO     GrafoConciergeServer initialized mcp_server.py:230
+                             — 31 tools registered.                            
+                    INFO     Bootstrap complete — all components    main.py:328
+                             initialized.                                      
+                    INFO     Requesting stop of               connection.py:164
+                             SerializedWriteQueue...                           
+                    INFO     SerializedWriteQueue finished.   connection.py:170
+                    INFO     SqliteStore closed.                   store.py:114

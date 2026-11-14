@@ -1,0 +1,20 @@
+# Verificação 4.1 — Conservação de Testes (baseline vs pós-4.5c)
+baseline_count=478
+pos_count=486
+kept_unchanged=477
+removed_count=1
+added_count=9
+
+## Removidos do baseline (esperado: exatamente 1 ID movido de test_concurrency_stress.py):
+- tests/test_concurrency_stress.py::TestCleanDatabaseManagerSchema::test_clean_manager_does_not_leak_test_log :: PASSED
+
+## Adicionados / Movidos em pos_ids (esperado: 9 IDs):
++ tests/test_clean_database_schema.py::TestCleanDatabaseManagerSchema::test_clean_manager_does_not_leak_test_log :: PASSED
++ tests/test_interface_contracts.py::TestMCPToolRegistration::test_all_registered_tools_classified_in_governor :: PASSED
++ tests/test_interface_contracts.py::TestMCPToolRegistration::test_governed_call_tool_executes_and_enforces_state :: PASSED
++ tests/test_mcp_governor.py::TestMCPToolGovernor::test_should_disclose_all_tools_in_maintenance_state :: PASSED
++ tests/test_mcp_governor.py::TestMCPToolGovernor::test_should_disclose_mutation_tools_in_execution_state :: PASSED
++ tests/test_mcp_governor.py::TestMCPToolGovernor::test_should_filter_tools_in_planning_state :: PASSED
++ tests/test_mcp_governor.py::TestMCPToolGovernor::test_should_raise_security_exception_on_direct_call_attempt :: PASSED
++ tests/test_semantic_facts_utility.py::test_update_memory_utility :: PASSED
++ tests/test_wheel_integrity.py::test_wheel_contains_all_live_modules_and_entrypoints :: PASSED

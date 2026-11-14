@@ -1,0 +1,56 @@
+# Verificação de Citações de Linha (Regra 14)
+
+## tests/test_interface_contracts.py:214-232 (REQUIRED_TOOLS) [total_lines=255]
+L214:     REQUIRED_TOOLS = [
+L232:     ]
+
+## tests/test_interface_contracts.py:20-20 (ActionHooks import) [total_lines=255]
+L20: from interface.action_hooks import ActionHooks
+
+## tests/test_interface_contracts.py:116-123 (ActionHooks fixture/usage 1) [total_lines=255]
+L116:     def test_action_hooks_importable(self):
+L123:         assert _AH is not None
+
+## tests/test_interface_contracts.py:156-173 (ActionHooks usage 2) [total_lines=255]
+L156: class TestActionHooksSignature:
+L173: 
+
+## tests/test_progressive_tool_disclosure.py:23-35 (setUp) [total_lines=114]
+L23:     def setUp(self):
+L35: 
+
+## tests/test_progressive_tool_disclosure.py:36-82 (4 unit tests MCPToolGovernor) [total_lines=114]
+L36:     def test_should_filter_tools_in_planning_state(self):
+L82:             self.governor.validate_tool_execution("session_999", "write_file")
+
+## tests/test_progressive_tool_disclosure.py:84-110 (REST xfail test) [total_lines=114]
+L84:     @pytest.mark.xfail(
+L110:         self.assertEqual(resp_get_updated.json()["active_state"], "EXECUTION")
+
+## tests/test_probabilistic_retriever.py:18-29 (temp_db fixture) [total_lines=149]
+L18: @pytest.fixture
+L29:     conn.close()
+
+## tests/test_probabilistic_retriever.py:32-53 (test_update_memory_utility) [total_lines=149]
+L32: def test_update_memory_utility(temp_db):
+L53:     assert active[0]["utility_beta"] == 2.0
+
+## storage/semantic_logic.py:101-125 (update_memory_utility) [total_lines=125]
+L101: def update_memory_utility(conn: sqlite3.Connection, fact_id: int, was_useful: bool) -> None:
+L125:         )
+
+## tests/test_concurrency_stress.py:138-184 (TestCleanDatabaseManagerSchema) [total_lines=186]
+L138: class TestCleanDatabaseManagerSchema(unittest.TestCase):
+L184: 
+
+## core/mcp_governor.py:43-76 (TOOL_DISCLOSURE_MATRIX) [total_lines=206]
+L43:         self.TOOL_DISCLOSURE_MATRIX: Dict[str, Dict[str, List[str]]] = {
+L76:         }
+
+## core/mcp_governor.py:79-126 (TOOL_CLASSIFICATION) [total_lines=206]
+L79:         self.TOOL_CLASSIFICATION: Dict[str, str] = {
+L126:         }
+
+## interface/mcp_server.py:242-267 (_setup_tool_governance (L242-266 + L267 blank)) [total_lines=1801]
+L242:     def _setup_tool_governance(self) -> None:
+L267: 

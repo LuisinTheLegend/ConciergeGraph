@@ -1,0 +1,293 @@
+# Verificação 4.3 — Mutações Red -> Green
+
+## Mutation A1_register_tool (interface\mcp_server.py)
+RED exit_code=1
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 24 items / 17 deselected / 7 selected
+
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_all_required_tools_registered FAILED [ 14%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_all_registered_tools_classified_in_governor FAILED [ 28%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_governed_call_tool_executes_and_enforces_state FAILED [ 42%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_server_name_is_grafo_concierge PASSED [ 57%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_status_has_no_chromadb_component PASSED [ 71%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_status_has_no_embedding_component PASSED [ 85%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_status_has_sqlite_component PASSED [100%]
+
+================================== FAILURES ===================================
+_________ TestMCPToolRegistration.test_all_required_tools_registered __________
+tests\test_interface_contracts.py:254: in test_all_required_tools_registered
+    assert tool in registered, f"Contract broken: tool '{tool}' not registered"
+E   AssertionError: Contract broken: tool 'concierge_get_call_chain' not registered
+E   assert 'concierge_get_call_chain' in ['concierge_register', 'concierge_list_projects', 'concierge_mine', 'concierge_search', 'concierge_commit', 'concierge_set_state', ...]
+__ TestMCPToolRegistration.test_all_registered_tools_classified_in_governor ___
+tests\test_interface_contracts.py:264: in test_all_registered_tools_classified_in_governor
+    assert not unclassified, f"Registered tools missing from TOOL_CLASSIFICATION: {unclassified}"
+E   AssertionError: Registered tools missing from TOOL_CLASSIFICATION: ['concierge_get_call_chain_MUTATED']
+E   assert not ['concierge_get_call_chain_MUTATED']
+_ TestMCPToolRegistration.test_governed_call_tool_executes_and_enforces_state _
+tests\test_interface_contracts.py:393: in test_governed_call_tool_executes_and_enforces_state
+    chain_res = call_governed(
+tests\test_interface_contracts.py:278: in call_governed
+    return asyncio.run(server.mcp._tool_manager.call_tool(name, arguments))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\guial\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\guial\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\guial\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+interface\mcp_server.py:254: in governed_call_tool
+    return await original_tm_call_tool(name, arguments, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv_312\Lib\site-packages\mcp\server\fastmcp\tools\tool_manager.py:91: in call_tool
+    raise ToolError(f"Unknown tool: {name}")
+E   mcp.server.fastmcp.exceptions.ToolError: Unknown tool: concierge_get_call_chain
+=========================== short test summary info ===========================
+FAILED tests/test_interface_contracts.py::TestMCPToolRegistration::test_all_required_tools_registered
+FAILED tests/test_interface_contracts.py::TestMCPToolRegistration::test_all_registered_tools_classified_in_governor
+FAILED tests/test_interface_contracts.py::TestMCPToolRegistration::test_governed_call_tool_executes_and_enforces_state
+================= 3 failed, 4 passed, 17 deselected in 1.34s ==================
+GREEN exit_code=0
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 24 items / 17 deselected / 7 selected
+
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_all_required_tools_registered PASSED [ 14%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_all_registered_tools_classified_in_governor PASSED [ 28%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_governed_call_tool_executes_and_enforces_state PASSED [ 42%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_server_name_is_grafo_concierge PASSED [ 57%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_status_has_no_chromadb_component PASSED [ 71%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_status_has_no_embedding_component PASSED [ 85%]
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_status_has_sqlite_component PASSED [100%]
+
+====================== 7 passed, 17 deselected in 0.36s =======================
+
+## Mutation A2_tool_classification (core\mcp_governor.py)
+RED exit_code=1
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 24 items / 23 deselected / 1 selected
+
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_all_registered_tools_classified_in_governor FAILED [100%]
+
+================================== FAILURES ===================================
+__ TestMCPToolRegistration.test_all_registered_tools_classified_in_governor ___
+tests\test_interface_contracts.py:264: in test_all_registered_tools_classified_in_governor
+    assert not unclassified, f"Registered tools missing from TOOL_CLASSIFICATION: {unclassified}"
+E   AssertionError: Registered tools missing from TOOL_CLASSIFICATION: ['concierge_get_call_chain']
+E   assert not ['concierge_get_call_chain']
+=========================== short test summary info ===========================
+FAILED tests/test_interface_contracts.py::TestMCPToolRegistration::test_all_registered_tools_classified_in_governor
+====================== 1 failed, 23 deselected in 1.31s =======================
+GREEN exit_code=0
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 24 items / 23 deselected / 1 selected
+
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_all_registered_tools_classified_in_governor PASSED [100%]
+
+====================== 1 passed, 23 deselected in 0.36s =======================
+
+## Mutation A3_governed_call_tool (interface\mcp_server.py)
+RED exit_code=1
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 24 items / 23 deselected / 1 selected
+
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_governed_call_tool_executes_and_enforces_state FAILED [100%]
+
+================================== FAILURES ===================================
+_ TestMCPToolRegistration.test_governed_call_tool_executes_and_enforces_state _
+tests\test_interface_contracts.py:286: in test_governed_call_tool_executes_and_enforces_state
+    with pytest.raises(SecurityException):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE SecurityException
+=========================== short test summary info ===========================
+FAILED tests/test_interface_contracts.py::TestMCPToolRegistration::test_governed_call_tool_executes_and_enforces_state
+====================== 1 failed, 23 deselected in 1.17s =======================
+GREEN exit_code=0
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 24 items / 23 deselected / 1 selected
+
+tests/test_interface_contracts.py::TestMCPToolRegistration::test_governed_call_tool_executes_and_enforces_state PASSED [100%]
+
+====================== 1 passed, 23 deselected in 0.50s =======================
+
+## Mutation B_mcp_governor_planning (core\mcp_governor.py)
+RED exit_code=1
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/test_mcp_governor.py::TestMCPToolGovernor::test_should_disclose_all_tools_in_maintenance_state PASSED [ 25%]
+tests/test_mcp_governor.py::TestMCPToolGovernor::test_should_disclose_mutation_tools_in_execution_state PASSED [ 50%]
+tests/test_mcp_governor.py::TestMCPToolGovernor::test_should_filter_tools_in_planning_state FAILED [ 75%]
+tests/test_mcp_governor.py::TestMCPToolGovernor::test_should_raise_security_exception_on_direct_call_attempt FAILED [100%]
+
+================================== FAILURES ===================================
+_______ TestMCPToolGovernor.test_should_filter_tools_in_planning_state ________
+tests\test_mcp_governor.py:37: in test_should_filter_tools_in_planning_state
+    self.assertNotIn("write_file", tool_names)
+E   AssertionError: 'write_file' unexpectedly found in {'get_telemetry_snapshot', 'write_file', 'get_full_topology'}
+_ TestMCPToolGovernor.test_should_raise_security_exception_on_direct_call_attempt _
+tests\test_mcp_governor.py:70: in test_should_raise_security_exception_on_direct_call_attempt
+    with self.assertRaises(SecurityException):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: SecurityException not raised
+=========================== short test summary info ===========================
+FAILED tests/test_mcp_governor.py::TestMCPToolGovernor::test_should_filter_tools_in_planning_state
+FAILED tests/test_mcp_governor.py::TestMCPToolGovernor::test_should_raise_security_exception_on_direct_call_attempt
+========================= 2 failed, 2 passed in 1.02s =========================
+GREEN exit_code=0
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 4 items
+
+tests/test_mcp_governor.py::TestMCPToolGovernor::test_should_disclose_all_tools_in_maintenance_state PASSED [ 25%]
+tests/test_mcp_governor.py::TestMCPToolGovernor::test_should_disclose_mutation_tools_in_execution_state PASSED [ 50%]
+tests/test_mcp_governor.py::TestMCPToolGovernor::test_should_filter_tools_in_planning_state PASSED [ 75%]
+tests/test_mcp_governor.py::TestMCPToolGovernor::test_should_raise_security_exception_on_direct_call_attempt PASSED [100%]
+
+============================== 4 passed in 0.15s ==============================
+
+## Mutation C_semantic_facts_utility (storage\semantic_logic.py)
+RED exit_code=1
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_semantic_facts_utility.py::test_update_memory_utility FAILED  [100%]
+
+================================== FAILURES ===================================
+_________________________ test_update_memory_utility __________________________
+tests\test_semantic_facts_utility.py:48: in test_update_memory_utility
+    assert active[0]["utility_alpha"] == 2.0
+E   assert 1.0 == 2.0
+=========================== short test summary info ===========================
+FAILED tests/test_semantic_facts_utility.py::test_update_memory_utility - ass...
+============================== 1 failed in 0.92s ==============================
+GREEN exit_code=0
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_semantic_facts_utility.py::test_update_memory_utility PASSED  [100%]
+
+============================== 1 passed in 0.15s ==============================
+
+## Mutation D_clean_database_schema (core\database.py)
+RED exit_code=1
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_clean_database_schema.py::TestCleanDatabaseManagerSchema::test_clean_manager_does_not_leak_test_log FAILED [100%]
+
+================================== FAILURES ===================================
+__ TestCleanDatabaseManagerSchema.test_clean_manager_does_not_leak_test_log ___
+tests\test_clean_database_schema.py:42: in test_clean_manager_does_not_leak_test_log
+    self.assertNotIn(
+E   AssertionError: 'test_log' unexpectedly found in ['projects', 'nodes', 'sqlite_sequence', 'edges', 'reference_wings', 'trajectories', 'commit_log', 'user_core_memory', 'semantic_facts', 'agent_checkpoints', 'nodes_fts', 'nodes_fts_data', 'nodes_fts_idx', 'nodes_fts_docsize', 'nodes_fts_config', 'test_log'] : Tabela de teste 'test_log' vazou no schema de produção!
+=========================== short test summary info ===========================
+FAILED tests/test_clean_database_schema.py::TestCleanDatabaseManagerSchema::test_clean_manager_does_not_leak_test_log
+============================== 1 failed in 1.19s ==============================
+GREEN exit_code=0
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_clean_database_schema.py::TestCleanDatabaseManagerSchema::test_clean_manager_does_not_leak_test_log PASSED [100%]
+
+============================== 1 passed in 0.39s ==============================
+
+## Proof of clean product git diff after mutations
+git diff exit_code=0, bytes=0
