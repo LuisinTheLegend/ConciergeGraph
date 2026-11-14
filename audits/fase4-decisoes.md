@@ -102,11 +102,16 @@
 Registros oficiais das decisões do Luis que orientam a `4.5c-bis` e a futura execução da `4.5d`:
 
 - **Escolha A — `enable_probabilistic=True` após quarentena de `core/probabilistic_retriever.py` (DECIDIDA):**
-  - Quando `core/probabilistic_retriever.py` for movido para quarentena na `4.5d`, qualquer chamada com `enable_probabilistic=True` deve levantar erro explícito (`NotImplementedError` com mensagem clara em português explicando que a busca probabilística foi arquivada na V4), **sem fallback silencioso**.
+  - Quando `core/probabilistic_retriever.py` for movido para quarentena na `4.5d`, qualquer chamada com `enable_probabilistic=True` deve **falhar alto com `NotImplementedError` e mensagem explícita** (idioma da mensagem — e.g. português — é apenas sugestão do executor, não decidida), **sem fallback silencioso**.
   - A implementação no código de produção ocorrerá apenas na `4.5d` junto da quarentena (nada alterado na `4.5c-bis`).
 
-- **Escolha B — Destino de `interface/queue_writer.py` (ABERTA):**
-  - Continua **EM ABERTO** a decisão entre manter `interface/queue_writer.py` em `interface/`, movê-lo para `storage/`, ou consolidá-lo com `storage/connection.py`. Aguarda definição do Luis antes da `4.5d` (ou sub-rodada correspondente).
+- **Escolha B — Destino de `interface/queue_writer.py` — D3 de [`audits/egm/4.5b-sintese.md:55-63, 182`](file:///c:/Nexus-Memory/GrafoConcierge/audits/egm/4.5b-sintese.md#L55-L63) (EM ABERTO):**
+  - Opções em avaliação antes da `4.5d` / `4.5f`:
+    1. Tentar arquivar `interface/queue_writer.py` na sub-rodada **4.5f**, **somente com portão condicional** (remover `from interface.queue_writer import SerializedWriteQueue` em [`core/database.py:18`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py#L18), ajustar [`L27`](file:///c:/Nexus-Memory/GrafoConcierge/core/database.py#L27), remover os carregamentos `importlib.util.spec_from_file_location` em nível de módulo em `tests/test_agent_checkpointer.py`, `tests/test_mcp_server_extensions.py` e `tests/test_concurrency_stress.py`, e o import em `tests/test_graph_rag_loops.py`; exigir teste concorrente vermelho→verde + mutação dedicada em `core/database.py` sem degradar `TestConcurrencyAndDelta`); **ou**
+    2. **Adiar para a V4.1** (mantendo aviso textual "não usado em produção"; custo: duas classes com o mesmo nome por mais tempo).
+  - Decisão do Luis: **EM ABERTO** (preferência do auditor: adiar).
+
+> **Errata 4.5c-ter (2026-11-14 — Regra 10 / Regra 14):** Em `43ea935:audits/fase4-decisoes.md:104-109`, a versão da 4.5c-bis havia acrescentado indevidamente o qualificador "em português" como requisito decidido na **Escolha A** e descrito incorretamente as alternativas da **Escolha B** (citando destinos não propostos por D3 em [`audits/egm/4.5b-sintese.md:55-63, 182`](file:///c:/Nexus-Memory/GrafoConcierge/audits/egm/4.5b-sintese.md#L55-L63)). Texto acima corrigido para refletir estritamente a decisão registrada.
 
 - **Exclusão de arquivos não rastreados / pré-existentes de commit (DECIDIDA):**
   - Por decisão explícita do Luis na `4.5c-bis`, permanecem fora de commit os arquivos `audits/egm/analise-completa-*.md`, `scratch/prompt_4_5b_verbatim.md` e os dois arquivos pré-existentes modificados em `scratch/` (`scratch/build_4_5a_bis_docs.py` e `scratch/inv_4_5a_bis_bloco1.py`).

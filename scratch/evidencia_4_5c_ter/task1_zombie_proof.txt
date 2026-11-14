@@ -1,0 +1,202 @@
+=== TASK 1 PROOFS (a), (b), (c), (d) ===
+
+--- (a) ANTES: git show 43ea935:tests/test_alias_tracker.py ---
+$ delay=0.0s target=tests/_tmp_old_alias_4_5c_ter.py::TestAliasTracker::test_should_purge_zombie_node_when_buffer_timeout_expires
+exit_code=0 elapsed=5.41s
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/_tmp_old_alias_4_5c_ter.py::TestAliasTracker::test_should_purge_zombie_node_when_buffer_timeout_expires PASSED [100%]
+
+============================== warnings summary ===============================
+.venv_312\Lib\site-packages\_pytest\config\__init__.py:1507
+  C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\_pytest\config\__init__.py:1507: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; anyio
+    self._mark_plugins_for_rewrite(hook, disable_autoload)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 1 warning in 0.93s =========================
+$ delay=0.05s target=tests/_tmp_old_alias_4_5c_ter.py::TestAliasTracker::test_should_purge_zombie_node_when_buffer_timeout_expires
+exit_code=0 elapsed=5.44s
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/_tmp_old_alias_4_5c_ter.py::TestAliasTracker::test_should_purge_zombie_node_when_buffer_timeout_expires PASSED [100%]
+
+============================== warnings summary ===============================
+.venv_312\Lib\site-packages\_pytest\config\__init__.py:1507
+  C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\_pytest\config\__init__.py:1507: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; anyio
+    self._mark_plugins_for_rewrite(hook, disable_autoload)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 1 warning in 0.93s =========================
+$ delay=0.12s target=tests/_tmp_old_alias_4_5c_ter.py::TestAliasTracker::test_should_purge_zombie_node_when_buffer_timeout_expires
+exit_code=0 elapsed=5.94s
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/_tmp_old_alias_4_5c_ter.py::TestAliasTracker::test_should_purge_zombie_node_when_buffer_timeout_expires PASSED [100%]
+
+============================== warnings summary ===============================
+.venv_312\Lib\site-packages\_pytest\config\__init__.py:1507
+  C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\_pytest\config\__init__.py:1507: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; anyio
+    self._mark_plugins_for_rewrite(hook, disable_autoload)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 1 warning in 0.94s =========================
+$ delay=0.2s target=tests/_tmp_old_alias_4_5c_ter.py::TestAliasTracker::test_should_purge_zombie_node_when_buffer_timeout_expires
+exit_code=1 elapsed=6.19s
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/_tmp_old_alias_4_5c_ter.py::TestAliasTracker::test_should_purge_zombie_node_when_buffer_timeout_expires FAILED [100%]
+
+================================== FAILURES ===================================
+_ TestAliasTracker.test_should_purge_zombie_node_when_buffer_timeout_expires __
+tests\_tmp_old_alias_4_5c_ter.py:149: in test_should_purge_zombie_node_when_buffer_timeout_expires
+    self.assertEqual(
+E   AssertionError: 1 != 0 : O arquivo excluído definitivamente deveria ter sido purgado do banco pelo timer.
+============================== warnings summary ===============================
+.venv_312\Lib\site-packages\_pytest\config\__init__.py:1507
+  C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\_pytest\config\__init__.py:1507: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; anyio
+    self._mark_plugins_for_rewrite(hook, disable_autoload)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/_tmp_old_alias_4_5c_ter.py::TestAliasTracker::test_should_purge_zombie_node_when_buffer_timeout_expires
+======================== 1 failed, 1 warning in 1.89s =========================
+
+--- (b) DEPOIS: teste novo com latencia 0.2s e 1.0s ---
+$ delay=0.2s target=tests/test_alias_tracker.py::TestAliasTracker::test_should_purge_zombie_node_when_buffer_timeout_expires
+exit_code=0 elapsed=5.39s
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_alias_tracker.py::TestAliasTracker::test_should_purge_zombie_node_when_buffer_timeout_expires PASSED [100%]
+
+============================== warnings summary ===============================
+.venv_312\Lib\site-packages\_pytest\config\__init__.py:1507
+  C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\_pytest\config\__init__.py:1507: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; anyio
+    self._mark_plugins_for_rewrite(hook, disable_autoload)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 1 warning in 0.99s =========================
+$ delay=1.0s target=tests/test_alias_tracker.py::TestAliasTracker::test_should_purge_zombie_node_when_buffer_timeout_expires
+exit_code=0 elapsed=5.94s
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_alias_tracker.py::TestAliasTracker::test_should_purge_zombie_node_when_buffer_timeout_expires PASSED [100%]
+
+============================== warnings summary ===============================
+.venv_312\Lib\site-packages\_pytest\config\__init__.py:1507
+  C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\_pytest\config\__init__.py:1507: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; anyio
+    self._mark_plugins_for_rewrite(hook, disable_autoload)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 1 warning in 1.77s =========================
+
+--- (c) MUTACAO: remover DELETE de _handle_purge ---
+$ delay=0.0s target=tests/test_alias_tracker.py::TestAliasTracker::test_should_purge_zombie_node_when_buffer_timeout_expires
+exit_code=1 elapsed=10.38s
+============================= test session starts =============================
+platform win32 -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- C:\Nexus-Memory\GrafoConcierge\.venv_312\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Nexus-Memory\GrafoConcierge
+configfile: pyproject.toml
+plugins: anyio-4.16.0, reverse-1.9.0, timeout-2.4.0
+timeout: 300.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 1 item
+
+tests/test_alias_tracker.py::TestAliasTracker::test_should_purge_zombie_node_when_buffer_timeout_expires FAILED [100%]
+
+================================== FAILURES ===================================
+_ TestAliasTracker.test_should_purge_zombie_node_when_buffer_timeout_expires __
+tests\test_alias_tracker.py:156: in test_should_purge_zombie_node_when_buffer_timeout_expires
+    self.assertEqual(
+E   AssertionError: 1 != 0 : O arquivo excluído definitivamente deveria ter sido purgado do banco pelo timer.
+============================== warnings summary ===============================
+.venv_312\Lib\site-packages\_pytest\config\__init__.py:1507
+  C:\Nexus-Memory\GrafoConcierge\.venv_312\Lib\site-packages\_pytest\config\__init__.py:1507: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; anyio
+    self._mark_plugins_for_rewrite(hook, disable_autoload)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_alias_tracker.py::TestAliasTracker::test_should_purge_zombie_node_when_buffer_timeout_expires
+======================== 1 failed, 1 warning in 6.25s =========================
+
+--- DIFF DE tests/test_alias_tracker.py APOS RESTAURACAO ---
+diff --git a/tests/test_alias_tracker.py b/tests/test_alias_tracker.py
+index 094ca0a..f705cd2 100644
+--- a/tests/test_alias_tracker.py
++++ b/tests/test_alias_tracker.py
+@@ -141,8 +141,15 @@ class TestAliasTracker(unittest.TestCase):
+             1,
+         )
+ 
+-        # Aguarda o timer assíncrono de 0.5s disparar o expurgo
+-        time.sleep(0.65)
++        # Aguarda o timer assíncrono de 0.5s disparar o expurgo (espera condicional até 5s)
++        deadline = time.monotonic() + 5.0
++        while time.monotonic() < deadline:
++            remaining = self.db_manager.read_query(
++                "SELECT COUNT(*) FROM files WHERE path = 'src/zombie_file.py';"
++            )[0][0]
++            if remaining == 0:
++                break
++            time.sleep(0.05)
+ 
+         # Confirma que o callback foi executado e o nó foi purgado do banco
+         self.assertIn("src/zombie_file.py", self.purged_paths)
+
+--- (d) ESTABILIDADE: 30 execucoes seguidas ---
+30/30 runs summary: falhas=0/30, min=5.33s, max=5.69s, avg=5.47s

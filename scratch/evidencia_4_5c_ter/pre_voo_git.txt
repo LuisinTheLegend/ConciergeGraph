@@ -1,0 +1,24 @@
+$ git rev-parse HEAD
+exit_code=0
+43ea935ddcc9ea2d21542215118f67fc2cdf9dfe
+
+$ git ls-remote origin main
+exit_code=0
+43ea935ddcc9ea2d21542215118f67fc2cdf9dfe	refs/heads/main
+
+$ git status --short
+exit_code=0
+M scratch/build_4_5a_bis_docs.py
+ M scratch/inv_4_5a_bis_bloco1.py
+?? audits/egm/analise-completa-codebase-details.md
+?? audits/egm/analise-completa-comprehension.md
+?? audits/egm/analise-completa-design.md
+?? audits/egm/analise-completa-inventive-catalyst.md
+?? audits/egm/analise-completa-sintese.md
+?? audits/egm/analise-completa-zoom-out.md
+?? scratch/preflight_4_5c_ter.py
+?? scratch/prompt_4_5b_verbatim.md
+
+build_exists=False
+
+egg_info=[]
