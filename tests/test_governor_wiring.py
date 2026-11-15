@@ -77,11 +77,3 @@ def test_t4_governor_uses_shared_singleton_when_telemetry_import_fails(tmp_path,
 
     assert server._governor is shared_gov, "Servidor deve usar o singleton get_shared_governor() mesmo se telemetry_api falhar"
     store.close()
-
-
-def test_t5_action_hooks_lazy_export_preserves_contract():
-    """T5: from interface import ActionHooks continua funcionando (lazy) e interface.ActionHooks is interface.action_hooks.ActionHooks."""
-    import interface
-    from interface.action_hooks import ActionHooks as DirectActionHooks
-    assert hasattr(interface, "ActionHooks"), "interface deve expor ActionHooks"
-    assert interface.ActionHooks is DirectActionHooks, "interface.ActionHooks deve ser idêntico a interface.action_hooks.ActionHooks"

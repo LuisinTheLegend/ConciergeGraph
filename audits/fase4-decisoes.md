@@ -116,3 +116,23 @@ Registros oficiais das decisões do Luis que orientam a `4.5c-bis` e a futura ex
 - **Exclusão de arquivos não rastreados / pré-existentes de commit (DECIDIDA):**
   - Por decisão explícita do Luis na `4.5c-bis`, permanecem fora de commit os arquivos `audits/egm/analise-completa-*.md`, `scratch/prompt_4_5b_verbatim.md` e os dois arquivos pré-existentes modificados em `scratch/` (`scratch/build_4_5a_bis_docs.py` e `scratch/inv_4_5a_bis_bloco1.py`).
 
+
+---
+
+## 4. Execução da Quarentena V4 — Rodada 4.5d (2026-11-15)
+
+Registros da execução em 3 lotes (`4.5d-A`, `4.5d-B`, `4.5d-C`):
+
+- **Escolha A implementada em `core/hybrid_search.py` (DECIDIDA):**
+  - Guarda adicionada no início de `HybridSearchEngine.search()` levantando `NotImplementedError` imediatamente quando `enable_probabilistic` for verdadeiro (antes de consultar o grafo/banco), removendo o antigo `STEP 7` e o método `_apply_thompson_sampling` (que importava `core.probabilistic_retriever`).
+  - Mensagem implementada: `"Probabilistic retrieval (Thompson Sampling / core.probabilistic_retriever) is archived in V4 (D0); pass enable_probabilistic=False."` — **sugestão do executor, não decidida** (idioma não especificado pelo Luis).
+  - Coberta por `tests/test_hybrid_search_escolha_a.py` (ciclo vermelho→verde e mutação dedicada).
+
+- **Escolha B inalterada (EM ABERTO):**
+  - `interface/queue_writer.py` **não** foi movido e `core/database.py` permaneceu com 0 bytes alterados. Decisão mantida em aberto para `4.5f` ou `V4.1`.
+
+- **Modificações e arquivos arquivados em `archive/v4-experimental/` (100 arquivos via `git mv` + 2 arquivos de testes extraídos):**
+  - **Lote A (65 `git mv`):** `grafo-dashboard-web/` (40 arquivos rastreados); `core/hsm_engine.py`, `core/rate_governor.py`, `core/gating_interceptor.py`, `core/intent_classifier.py`, `core/dependencies.py`, `core/background_janitor.py`, `core/telemetry_schemas.py`, `core/security_guard.py`, `interface/telemetry_api.py`, `interface/watcher.py` (10 módulos); `tests/test_adaptive_gating.py`, `test_agent_hsm_coupling.py`, `test_dependency_injection.py`, `test_hierarchical_state_machine.py`, `test_hsm_transition_hooks_and_delta.py`, `test_rate_governor_priority.py`, `test_watcher_ignore.py`, `test_telemetry_api.py`, `test_progressive_tool_disclosure.py`, `test_checkpoint_pruning.py`, `test_graph_rag_frugal.py`, `test_graph_rag_janitor.py`, `test_e2e_concierge_integration.py`, `test_durable_checkpoints_timetravel.py`, `test_cognitive_routing_memory.py` (15 arquivos; `test_cognitive_routing_memory.py` antecipado do Lote B para o Lote A por importar `core.intent_classifier`). Criação de `archive/README.md`, ajuste em `.gitignore:69-70` e extração de `T3` de `tests/test_governor_wiring.py` para `archive/v4-experimental/tests/test_governor_wiring_archived.py`.
+  - **Lote B (21 `git mv`):** `core/delta_manager.py`, `core/delta_sync.py`, `core/alias_tracker.py`, `core/vector_reconciler.py`, `core/parser_factory.py`, `core/parsers/` (4 arquivos), `core/janitor.py`, `core/search_engine.py`, `core/federated_knowledge_router.py`, `core/global_memory_adapter.py`, `core/nozomio_router.py`, `storage/relational_db.py` (15 módulos); `tests/test_delta_sync_drift.py`, `test_ssh_language_coverage.py`, `test_multilang_parser.py`, `test_alias_tracker.py`, `test_delta_sync.py`, `test_vector_reconciler.py` (6 arquivos).
+  - **Lote C (14 `git mv` + extrações/higiene):** `agent/` (3 arquivos), `agents/` (2 arquivos), `core/probabilistic_retriever.py`, `interface/action_hooks.py` (7 módulos); `tests/test_revisor_critico.py`, `test_probabilistic_retriever.py`, `colossus_benchmark.py`, `stress_test_v2_setup.py`, `stress_test_v2_parte1.py`, `stress_test_v2_parte2.py`, `stress_test_v2_parte3.py` (7 arquivos). Remoção de `"agent*"` em `pyproject.toml`, remoção de `ActionHooks`/`__getattr__` em `interface/__init__.py`, extração de testes de `ActionHooks` em `tests/test_interface_contracts.py` para `archive/v4-experimental/tests/test_action_hooks_contracts.py`, extração de `T5` de `tests/test_governor_wiring.py` para `archive/v4-experimental/tests/test_governor_wiring_archived.py`, retarget da allowlist G2 em `tests/test_domain_neutrality_guard.py:84-87` e Escolha A em `core/hybrid_search.py` + `tests/test_hybrid_search_escolha_a.py`.
+  - **Mantidos em `tests/`:** `tests/memory_stress_test.py` (infraestrutura importada por `tests/conftest.py:8` e 4 suítes vivas, sem imports dormentes) e `tests/check_brain.py` (diagnóstico que importa apenas camadas vivas).

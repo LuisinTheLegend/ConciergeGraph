@@ -25,3 +25,11 @@ def test_t3_governor_identity_matches_telemetry_mcp_governor(tmp_path, monkeypat
     from interface.telemetry_api import mcp_governor
     assert server._governor is mcp_governor, "O governor do servidor deve ser o mesmo objeto exportado por telemetry_api"
     store.close()
+
+
+def test_t5_action_hooks_lazy_export_preserves_contract():
+    """T5 (Lote C): from interface import ActionHooks e interface.action_hooks.ActionHooks."""
+    import interface
+    from interface.action_hooks import ActionHooks as DirectActionHooks
+    assert hasattr(interface, "ActionHooks"), "interface deve expor ActionHooks"
+    assert interface.ActionHooks is DirectActionHooks, "interface.ActionHooks deve ser idêntico a interface.action_hooks.ActionHooks"

@@ -7,19 +7,8 @@ Modules:
     cli.py           -> Terminal interface (argparse) with 9 commands
 """
 
-from typing import Any
-
 from interface.mcp_server import GrafoConciergeServer
 
 __all__ = [
     "GrafoConciergeServer",
-    "ActionHooks",
-]
-
-
-def __getattr__(name: str) -> Any:
-    """Exportação preguiçosa (PEP 562) para cortar a cadeia de importação de agents.revisor_critico."""
-    if name == "ActionHooks":
-        from interface.action_hooks import ActionHooks
-        return ActionHooks
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+]

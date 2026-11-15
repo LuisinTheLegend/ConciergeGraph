@@ -81,10 +81,10 @@ def test_g2_no_retired_domain_strings_in_product_code():
         "tests/test_domain_neutrality_guard.py": "Arquivo da própria guarda G2 que define os termos proibidos e testa retrocompatibilidade em G4.",
         "audits/": "Documentos e relatórios de auditoria imutáveis ou vivos que citam o histórico dos termos.",
         "scratch/": "Scripts e artefatos de diagnóstico, investigações empíricas e benchmarks de rodadas anteriores.",
-        "tests/stress_test_v2_parte1.py": "Teste histórico de estresse da Fase 2 que usa os nomes legados como texto livre de entrada.",
-        "tests/stress_test_v2_parte2.py": "Teste histórico de estresse da Fase 2 que usa os nomes legados como texto livre de entrada.",
-        "tests/stress_test_v2_parte3.py": "Teste histórico de estresse da Fase 2 que usa os nomes legados como texto livre de entrada.",
-        "tests/test_revisor_critico.py": "Teste histórico que valida resiliência do revisor crítico a nomes arbitrários legados de alas.",
+        "archive/v4-experimental/tests/stress_test_v2_parte1.py": "Teste histórico de estresse da Fase 2 (arquivado na 4.5d) que usa os nomes legados como texto livre de entrada.",
+        "archive/v4-experimental/tests/stress_test_v2_parte2.py": "Teste histórico de estresse da Fase 2 (arquivado na 4.5d) que usa os nomes legados como texto livre de entrada.",
+        "archive/v4-experimental/tests/stress_test_v2_parte3.py": "Teste histórico de estresse da Fase 2 (arquivado na 4.5d) que usa os nomes legados como texto livre de entrada.",
+        "archive/v4-experimental/tests/test_revisor_critico.py": "Teste histórico (arquivado na 4.5d) que valida resiliência do revisor crítico a nomes arbitrários legados de alas.",
     }
 
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))

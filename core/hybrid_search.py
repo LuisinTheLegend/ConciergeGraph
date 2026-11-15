@@ -114,6 +114,12 @@ class HybridSearchEngine:
                 "is_super_node": bool,
             }
         """
+        if enable_probabilistic:
+            raise NotImplementedError(
+                "Probabilistic retrieval (Thompson Sampling / core.probabilistic_retriever) "
+                "is archived in V4 (D0); pass enable_probabilistic=False."
+            )
+
         if top_k is None:
             top_k = self._config.search_top_k
 
@@ -211,11 +217,7 @@ class HybridSearchEngine:
         # --- STEP 6: HYBRID SCORE ---
         scored_results = self._store.hybrid_search_score_batch(candidates)
 
-        # --- STEP 7: THOMPSON SAMPLING (optional) ---
-        if enable_probabilistic:
-            scored_results = self._apply_thompson_sampling(scored_results)
-
-        # --- STEP 8: SORT and TRUNCATE ---
+        # --- STEP 7: SORT and TRUNCATE ---
         scored_results.sort(key=lambda x: x.get("score_final", 0), reverse=True)
         final = scored_results[:top_k]
 
@@ -230,40 +232,6 @@ class HybridSearchEngine:
             len(candidates), len(final),
         )
         return final
-
-    # ===================================================================
-    # THOMPSON SAMPLING — Probabilistic multiplier (SA-CTS)
-    # ===================================================================
-
-    def _apply_thompson_sampling(self, results: list[dict]) -> list[dict]:
-        """Applies Thompson sampling probabilistic multiplier to score_final.
-
-        For each candidate, gets utility_alpha and utility_beta from
-        node metadata and samples a multiplier via Beta Distribution.
-        The score_final is multiplied by this factor, balancing
-        exploration (rarely accessed nodes) and exploitation (proven nodes).
-
-        Args:
-            results: List of dicts with score_final and score_breakdown.
-
-        Returns:
-            Same list with score_final adjusted by Thompson multiplier.
-        """
-        from core.probabilistic_retriever import ThompsonRetriever
-
-        for item in results:
-            try:
-                node = self._store.get_node(item["node_id"])
-                alpha = float(node.get("utility_alpha", 1.0) or 1.0)
-                beta_param = float(node.get("utility_beta", 1.0) or 1.0)
-            except Exception:
-                alpha, beta_param = 1.0, 1.0
-
-            multiplier = ThompsonRetriever.sample_multiplier(alpha, beta_param)
-            item["score_final"] = round(item["score_final"] * multiplier, 4)
-            item["score_breakdown"]["thompson_multiplier"] = round(multiplier, 4)
-
-        return results
 
     # ===================================================================
     # FALLBACK — Busca apenas FTS5 quando embedding falha

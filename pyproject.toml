@@ -100,7 +100,6 @@ include = [
     "ingestion*",
     "services*",
     "interface*",
-    "agent*",
     "scripts*",
 ]
 exclude = [
