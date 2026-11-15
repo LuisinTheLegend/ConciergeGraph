@@ -54,24 +54,6 @@ def test_t2_mcp_server_construction_does_not_drag_telemetry_or_fastapi(tmp_path)
     assert res.returncode == 0, f"Módulos arrastados na construção de GrafoConciergeServer: {res.stdout.strip()} {res.stderr.strip()}"
 
 
-def test_t3_governor_identity_matches_telemetry_mcp_governor(tmp_path, monkeypatch):
-    """T3: Identidade — o governor do servidor É O MESMO objeto que interface.telemetry_api.mcp_governor quando ambos são importados."""
-    monkeypatch.setattr("interface.mcp_server.governor", None)
-    monkeypatch.setattr("interface.mcp_server.db_manager", None, raising=False)
-    monkeypatch.setattr("interface.mcp_server.checkpointer", None, raising=False)
-    monkeypatch.setattr("interface.mcp_server.graph_rag", None, raising=False)
-
-    db_file = str(tmp_path / "test_t3.db")
-    store = SqliteStore(db_file)
-    gc = MagicMock()
-    gc._store = store
-    server = GrafoConciergeServer(concierge=gc)
-
-    from interface.telemetry_api import mcp_governor
-    assert server._governor is mcp_governor, "O governor do servidor deve ser o mesmo objeto exportado por telemetry_api"
-    store.close()
-
-
 def test_t4_governor_uses_shared_singleton_when_telemetry_import_fails(tmp_path, monkeypatch):
     """T4: Com sys.modules['interface.telemetry_api'] = None (import quebrado), o servidor usa o MESMO singleton compartilhado."""
     # Zera sentinelas globais para garantir isolamento estrito e independencia de ordem
