@@ -1,28 +1,23 @@
 """
-core/checkpointer.py — SDD-SURVIVAL-07 / SDD-SURVIVAL-20
+core/checkpointer.py — SDD-SURVIVAL-07
 
-Checkpoint Persistence and Agent State/Session Time-Travel.
+Checkpoint Persistence for Agnostic Agent State Dictionaries.
 
-Generic cartridge persisting state dictionaries and FSM snapshots of any AI agent
+Generic cartridge persisting state dictionaries of any AI agent
 as stringified JSON in SQLite WAL, isolated by composite primary key:
-(session_id, checkpoint_id) in fsm_checkpoints, and
 (agent_id, session_id, checkpoint_id) in agent_checkpoints.
 
 Design Invariants:
-  - Zero coupling: agnostic of specific agent variables or FSM structures
+  - Zero coupling: agnostic of specific agent variables
   - Hermetic isolation: composite key ensures total isolation between
-    concurrent agents, sessions, and branching timelines
+    concurrent agents, sessions, and checkpoints
   - JSON resilience: sanitizes complex non-serializable objects (locks, sockets)
-  - Deterministic Time-Travel: chronological ordering enables cognitive rollback
-    and marks associated task files as dirty for edge re-synchronization
+  - Note: legacy SDD-20 / fsm_checkpoints time-travel signatures were archived
+    in V4 (D0) and fail explicitly without writing to SQLite.
 """
 
 import json
-import logging
-import time
 from typing import Any, Dict, List, Optional, Tuple
-
-logger = logging.getLogger(__name__)
 
 
 class AgnosticCheckpointer:
@@ -75,44 +70,11 @@ class AgnosticCheckpointer:
         )
 
         if is_sdd20:
-            # SDD-20 Signature
-            if len(args) >= 5:
-                session_id = args[0]
-                checkpoint_id = args[1]
-                agent_id = args[2]
-                state_name = args[3]
-                shared_state = args[4]
-                task_id = args[5] if len(args) > 5 else kwargs.get("task_id")
-            else:
-                session_id = kwargs.get("session_id", args[0] if len(args) > 0 else "")
-                checkpoint_id = kwargs.get("checkpoint_id", args[1] if len(args) > 1 else "")
-                agent_id = kwargs.get("agent_id", args[2] if len(args) > 2 else "")
-                state_name = kwargs.get("state_name", args[3] if len(args) > 3 else "")
-                shared_state = kwargs.get("shared_state", args[4] if len(args) > 4 else {})
-                task_id = kwargs.get("task_id")
-
-            # Resilient sanitization of complex objects (e.g. locks, sockets)
-            try:
-                shared_state_json = json.dumps(shared_state, ensure_ascii=False)
-            except (TypeError, ValueError):
-                cleaned_state = self._sanitize_for_json(shared_state)
-                shared_state_json = json.dumps(cleaned_state, ensure_ascii=False)
-
-            query = """
-                INSERT INTO fsm_checkpoints (checkpoint_id, session_id, agent_id, state_name, shared_state_blob, task_id)
-                VALUES (?, ?, ?, ?, ?, ?)
-                ON CONFLICT(session_id, checkpoint_id) DO UPDATE SET
-                    state_name = excluded.state_name,
-                    shared_state_blob = excluded.shared_state_blob,
-                    task_id = excluded.task_id;
-            """
-            write_fn = getattr(self.db, "execute_write", getattr(self.db, "write_query", None))
-            success, res = write_fn(
-                query,
-                (checkpoint_id, session_id, agent_id, state_name, shared_state_json, task_id),
+            return (
+                False,
+                "SDD-20 / fsm_checkpoints signature is archived in V4 (D0); "
+                "use legacy agent_checkpoints (agent_id, session_id, checkpoint_id, state_dict).",
             )
-            err = None if success else (str(res) if res is not None else "Unknown write error")
-            return bool(success), err
         else:
             # Legacy SDD-07 Signature
             if len(args) >= 4:
@@ -156,72 +118,6 @@ class AgnosticCheckpointer:
         success, err = self.save_checkpoint_detailed(*args, **kwargs)
         self.last_error = err
         return success
-
-    # ── State Retrieval (SDD-20) ───────────────────────────────────
-
-    def load_checkpoint(self, session_id: str, checkpoint_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Retrieves and deserializes variable snapshot for a specific FSM checkpoint.
-        """
-        query = "SELECT state_name, shared_state_blob, agent_id, task_id FROM fsm_checkpoints WHERE session_id = ? AND checkpoint_id = ?;"
-        read_fn = getattr(self.db, "read_query")
-        rows = read_fn(query, (session_id, checkpoint_id))
-        if not rows:
-            return None
-
-        state_name, blob, agent_id, task_id = rows[0]
-        try:
-            shared_state = json.loads(blob)
-        except Exception:
-            shared_state = {}
-
-        return {
-            "session_id": session_id,
-            "checkpoint_id": checkpoint_id,
-            "agent_id": agent_id,
-            "state_name": state_name,
-            "task_id": task_id,
-            "shared_state": shared_state,
-        }
-
-    # ── Operational Time-Travel (SDD-20) ───────────────────────────
-
-    def execute_time_travel(self, session_id: str, target_checkpoint_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Executes physical and cognitive rollback (Time-Travel) to an earlier checkpoint.
-        Deletes future checkpoints created after the target to maintain linear determinism.
-        Marks task file (task_id) as dirty (is_dirty = 1) in relational store for re-indexing.
-        """
-        # 1. Retrieve target checkpoint data
-        target_data = self.load_checkpoint(session_id, target_checkpoint_id)
-        if not target_data:
-            return None
-
-        # 2. Retrieve creation timestamp of destination checkpoint
-        time_query = "SELECT created_at, task_id FROM fsm_checkpoints WHERE session_id = ? AND checkpoint_id = ?;"
-        read_fn = getattr(self.db, "read_query")
-        time_rows = read_fn(time_query, (session_id, target_checkpoint_id))
-        if not time_rows:
-            return None
-        created_at, task_id = time_rows[0]
-
-        # 3. Atomic Transaction: Delete "future" checkpoints and mark associated file as dirty
-        queries = [
-            ("DELETE FROM fsm_checkpoints WHERE session_id = ? AND created_at > ?;", (session_id, created_at)),
-        ]
-
-        if task_id:
-            # Force edge re-indexing for associated file (Watcher/DeltaManager)
-            queries.append(("UPDATE files SET is_dirty = 1, last_modified = ? WHERE path = ?;", (time.time(), task_id)))
-
-        write_fn = getattr(self.db, "execute_write", getattr(self.db, "write_query", None))
-        try:
-            for q, params in queries:
-                write_fn(q, params)
-            return target_data
-        except Exception as e:
-            logger.error("[TIME-TRAVEL] Rollback failure in SQLite WAL: %s", str(e))
-            return None
 
     # ── Legacy SDD-07 Methods ──────────────────────────────────────
 
