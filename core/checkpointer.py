@@ -77,16 +77,33 @@ class AgnosticCheckpointer:
             )
         else:
             # Legacy SDD-07 Signature
-            if len(args) >= 4:
-                agent_id = args[0]
-                session_id = args[1]
-                checkpoint_id = args[2]
-                state_dict = args[3]
-            else:
-                agent_id = kwargs.get("agent_id", "")
-                session_id = kwargs.get("session_id", "")
-                checkpoint_id = kwargs.get("checkpoint_id", "")
-                state_dict = kwargs.get("state_dict", {})
+            legacy_fields = (
+                ("agent_id", ""),
+                ("session_id", ""),
+                ("checkpoint_id", ""),
+                ("state_dict", {}),
+            )
+            resolved: Dict[str, Any] = {}
+            for idx, (field_name, default_val) in enumerate(legacy_fields):
+                has_pos = idx < len(args)
+                has_kw = field_name in kwargs
+                if has_pos and has_kw:
+                    return (
+                        False,
+                        f"Duplicate argument for '{field_name}': "
+                        "provided both positionally and as keyword argument.",
+                    )
+                if has_pos:
+                    resolved[field_name] = args[idx]
+                elif has_kw:
+                    resolved[field_name] = kwargs[field_name]
+                else:
+                    resolved[field_name] = default_val
+
+            agent_id = resolved["agent_id"]
+            session_id = resolved["session_id"]
+            checkpoint_id = resolved["checkpoint_id"]
+            state_dict = resolved["state_dict"]
 
             try:
                 state_blob = json.dumps(state_dict, ensure_ascii=False)

@@ -143,3 +143,98 @@ class TestCheckpointerArgAndSanitizerClosing:
             "message": "Checkpoint 'mcp_cp' saved successfully for agent 'mcp_ag'",
         }
         assert mcp_server.agent_get_checkpoint("mcp_ag", "mcp_sess", "mcp_cp") == {"k": "v"}
+
+
+class TestCheckpointerMixedArgsAndConflict:
+    def test_mixed_2_positional_2_kwargs_exact_repro_bug1(self, official_checkpointer):
+        """(a) Reproducao exata do Bug 1 deve resolver corretamente agent_id/session_id/checkpoint_id/state_dict."""
+        cp, _, db_path = official_checkpointer
+
+        res = cp.save_checkpoint_detailed("agA", "sessA", checkpoint_id="cpA", state_dict={"v": 1})
+        assert res == (True, None)
+
+        conn = sqlite3.connect(db_path)
+        try:
+            rows = conn.execute(
+                "SELECT agent_id, session_id, checkpoint_id, state_blob FROM agent_checkpoints"
+            ).fetchall()
+        finally:
+            conn.close()
+        assert len(rows) == 1
+        assert (rows[0][0], rows[0][1], rows[0][2]) == ("agA", "sessA", "cpA")
+        assert cp.get_checkpoint("agA", "sessA", "cpA") == {"v": 1}
+
+    @pytest.mark.parametrize(
+        "args,kwargs,expected_key,expected_state",
+        [
+            (("ag1",), {"session_id": "s1", "checkpoint_id": "c1", "state_dict": {"k": 1}}, ("ag1", "s1", "c1"), {"k": 1}),
+            (("ag2", "s2"), {"checkpoint_id": "c2", "state_dict": {"k": 2}}, ("ag2", "s2", "c2"), {"k": 2}),
+            (("ag3", "s3", "c3"), {"state_dict": {"k": 3}}, ("ag3", "s3", "c3"), {"k": 3}),
+        ],
+    )
+    def test_mixed_1_to_3_positionals_with_kwargs(
+        self, official_checkpointer, args, kwargs, expected_key, expected_state
+    ):
+        """(b) Combinacoes 1+3, 2+2 e 3+1 posicional+kwarg gravam na PK exata."""
+        cp, _, db_path = official_checkpointer
+
+        res = cp.save_checkpoint_detailed(*args, **kwargs)
+        assert res == (True, None)
+
+        conn = sqlite3.connect(db_path)
+        try:
+            rows = conn.execute(
+                "SELECT agent_id, session_id, checkpoint_id FROM agent_checkpoints"
+            ).fetchall()
+        finally:
+            conn.close()
+        assert rows == [expected_key]
+        assert cp.get_checkpoint(*expected_key) == expected_state
+
+    def test_kwargs_only_4_positionals_and_omitted_defaults_regression(self, official_checkpointer):
+        """(c) Regressao: so kwargs, 4 posicionais e campos ausentes com defaults atuais continuam funcionando."""
+        cp, _, _ = official_checkpointer
+
+        assert cp.save_checkpoint_detailed(
+            agent_id="ag_kw", session_id="s_kw", checkpoint_id="c_kw", state_dict={"m": "kw"}
+        ) == (True, None)
+        assert cp.get_checkpoint("ag_kw", "s_kw", "c_kw") == {"m": "kw"}
+
+        assert cp.save_checkpoint_detailed("ag_p", "s_p", "c_p", {"m": "pos"}) == (True, None)
+        assert cp.get_checkpoint("ag_p", "s_p", "c_p") == {"m": "pos"}
+
+        # Campos ausentes preservam defaults atuais ("" e {})
+        assert cp.save_checkpoint_detailed("ag_def") == (True, None)
+        assert cp.get_checkpoint("ag_def", "", "") == {}
+
+    @pytest.mark.parametrize(
+        "field_name,args,kwargs",
+        [
+            ("agent_id", ("agA",), {"agent_id": "outro", "session_id": "s", "checkpoint_id": "c", "state_dict": {}}),
+            ("session_id", ("agA", "s_pos"), {"session_id": "s_kw", "checkpoint_id": "c", "state_dict": {}}),
+            ("checkpoint_id", ("agA", "s", "c_pos"), {"checkpoint_id": "c_kw", "state_dict": {}}),
+            ("state_dict", ("agA", "s", "c", {"a": 1}), {"state_dict": {"b": 2}}),
+        ],
+    )
+    def test_duplicate_positional_and_kwarg_fails_loudly_without_writing(
+        self, official_checkpointer, field_name, args, kwargs
+    ):
+        """(d) Mesmo campo por posicao e por nome falha explicitamente sem gravar em agent_checkpoints."""
+        cp, _, db_path = official_checkpointer
+        snapshot_before = dict(vars(cp))
+
+        ok, err = cp.save_checkpoint_detailed(*args, **kwargs)
+        assert ok is False
+        assert isinstance(err, str) and field_name in err
+        assert vars(cp) == snapshot_before
+
+        wrapped_ok = cp.save_checkpoint(*args, **kwargs)
+        assert wrapped_ok is False
+        assert cp.last_error == err
+
+        conn = sqlite3.connect(db_path)
+        try:
+            count = conn.execute("SELECT COUNT(*) FROM agent_checkpoints").fetchone()[0]
+        finally:
+            conn.close()
+        assert count == 0
