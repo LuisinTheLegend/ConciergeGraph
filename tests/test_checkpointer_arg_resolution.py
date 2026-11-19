@@ -238,3 +238,43 @@ class TestCheckpointerMixedArgsAndConflict:
         finally:
             conn.close()
         assert count == 0
+
+
+class TestCheckpointerCorruptJson:
+    def test_get_checkpoint_corrupt_json_raises_contextual_value_error_without_blob(self, official_checkpointer):
+        """Bug 2: state_blob corrompido levanta ValueError citando os 3 IDs e sem vazar o blob."""
+        cp, _, db_path = official_checkpointer
+
+        ok, err = cp.save_checkpoint_detailed("ag-corrupt", "sess-corrupt", "cp-corrupt", {"ok": True})
+        assert (ok, err) == (True, None)
+
+        conn = sqlite3.connect(db_path)
+        try:
+            conn.execute(
+                "UPDATE agent_checkpoints SET state_blob = ? "
+                "WHERE agent_id = ? AND session_id = ? AND checkpoint_id = ?",
+                ("{nao json SECRET_BLOB_999", "ag-corrupt", "sess-corrupt", "cp-corrupt"),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+        with pytest.raises(ValueError) as excinfo:
+            cp.get_checkpoint("ag-corrupt", "sess-corrupt", "cp-corrupt")
+
+        msg = str(excinfo.value)
+        assert "ag-corrupt" in msg
+        assert "sess-corrupt" in msg
+        assert "cp-corrupt" in msg
+        assert "{nao json" not in msg
+        assert "SECRET_BLOB_999" not in msg
+        assert isinstance(excinfo.value.__cause__, json.JSONDecodeError)
+
+    def test_get_checkpoint_missing_and_valid_regression(self, official_checkpointer):
+        """Inexistente continua retornando {} e checkpoint valido continua retornando o dict."""
+        cp, _, _ = official_checkpointer
+
+        assert cp.get_checkpoint("ag-missing", "sess-missing", "cp-missing") == {}
+
+        assert cp.save_checkpoint_detailed("ag-ok", "sess-ok", "cp-ok", {"alpha": 1, "beta": [2, 3]}) == (True, None)
+        assert cp.get_checkpoint("ag-ok", "sess-ok", "cp-ok") == {"alpha": 1, "beta": [2, 3]}

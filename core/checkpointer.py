@@ -157,7 +157,13 @@ class AgnosticCheckpointer:
         )
         if not rows:
             return {}
-        return json.loads(rows[0][0])
+        try:
+            return json.loads(rows[0][0])
+        except json.JSONDecodeError as exc:
+            raise ValueError(
+                f"Corrupted checkpoint state_blob for agent_id='{agent_id}', "
+                f"session_id='{session_id}', checkpoint_id='{checkpoint_id}'"
+            ) from exc
 
     def list_checkpoints(
         self,

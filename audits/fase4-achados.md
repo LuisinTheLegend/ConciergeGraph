@@ -654,4 +654,38 @@ No trace sintético da Rodada 4.5a ([`scratch/evidencia_4_5a/bloco1_runtime_trac
    - **Causa raiz no trace 4.5a:** [`scratch/inv_4_5a_bloco1_runtime.py:71`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/inv_4_5a_bloco1_runtime.py#L71) ativou `GRAFO_LIGHTWEIGHT_MODE="true"`, colocando `ChromaVectorStore` em modo NO-OP intencional (`_available=False`, `_client=None` em [`storage/vector_store.py:297-302`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py#L297-L302)), o que faz `reset_collection()` retornar `False` ([`storage/vector_store.py:652-654`](file:///c:/Nexus-Memory/GrafoConcierge/storage/vector_store.py#L652-L654)).
    - **Reprodução em 4.5c-bis:** Em `GRAFO_LIGHTWEIGHT_MODE="true"` retorna `{'success': False}`; com `GRAFO_LIGHTWEIGHT_MODE="false"` e `ChromaVectorStore` real (`available=True`, `client_is_none=False`), `call_tool("reset_collection", {})` retorna `{'success': True, ...}` ([`scratch/evidencia_4_5c_bis/task3_repro_3_erros.txt:14-15, 23-24`](file:///c:/Nexus-Memory/GrafoConcierge/scratch/evidencia_4_5c_bis/task3_repro_3_erros.txt#L14-L24)).
 
+---
+
+### [F4-035] Descarte Silencioso de Argumentos Posicionais Quando Misturados com Kwargs em `AgnosticCheckpointer.save_checkpoint_detailed` (Bug 1)
+- **Status:** **aplicado pelo executor; verificação do auditor pendente**
+- **Severidade Proposta:** 🟡 MÉDIA-BAIXA
+  - **Justificativa da Severidade:** Grava o registro silenciosamente sob chave primária errada (`("", "", checkpoint_id)`) sem levantar erro nem retornar falha; todavia, o caminho de produção MCP (`interface/mcp_server.py:1744-1748`) sempre invoca com 4 argumentos posicionais e não é afetado.
+- **Arquivos & Linhas (HEAD `6da9559`):** [`core/checkpointer.py:80-89`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py#L80-L89), [`tests/test_checkpointer_arg_resolution.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_checkpointer_arg_resolution.py)
+- **Mecanismo da Falha:** No ramo legado de `save_checkpoint_detailed`, quando `is_sdd20` era `False`, havia apenas uma bifurcação `if len(args) >= 4:` (lendo somente `args[0..3]`) versus `else:` (lendo somente `kwargs.get(..., "")` / `{}`). Qualquer chamada com 1 a 3 posicionais e o restante em `kwargs` descartava silenciosamente `args[0..2]` e gravava `""` nas colunas posicionais omitidas dos `kwargs`.
+- **Reprodução Executada (`scratch/evidencia_4_5e_bis/bug1_repro.txt`):**
+  ```text
+  call: cp.save_checkpoint_detailed("agA", "sessA", checkpoint_id="cpA", state_dict={"v": 1})
+  retorno=(True, None)
+  rows_agent_checkpoints=[('', '', 'cpA', '{"v": 1}')]
+  get_checkpoint("agA", "sessA", "cpA")={}
+  ```
+- **Alteração Aplicada (Rodada 4.5e-bis, Etapa C2):** Resolução campo a campo na ordem `(agent_id, session_id, checkpoint_id, state_dict)` com precedência explícita: posicional se presente, senão kwarg se presente, senão o default atual (`""` ou `{}`); conflito entre posicional e kwarg no mesmo campo falha alto retornando `(False, "Duplicate argument for '<campo>': ...")` sem gravar no banco.
+
+---
+
+### [F4-036] Propagação de `json.JSONDecodeError` Cru Sem Contexto de Chave em `AgnosticCheckpointer.get_checkpoint` (Bug 2)
+- **Status:** **aplicado pelo executor; verificação do auditor pendente**
+- **Severidade Proposta:** 🟢 BAIXA
+  - **Justificativa da Severidade:** Ocorre apenas diante de `state_blob` corrompido ou truncado na tabela `agent_checkpoints`; o único impacto operacional era propagar `JSONDecodeError` sem identificar qual `(agent_id, session_id, checkpoint_id)` falhou.
+- **Arquivos & Linhas (HEAD `6da9559`):** [`core/checkpointer.py:141-143`](file:///c:/Nexus-Memory/GrafoConcierge/core/checkpointer.py#L141-L143), [`tests/test_checkpointer_arg_resolution.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_checkpointer_arg_resolution.py)
+- **Mecanismo da Falha:** `AgnosticCheckpointer.get_checkpoint` executava `return json.loads(rows[0][0])` diretamente após consultar `agent_checkpoints`, propagando `json.decoder.JSONDecodeError` sem identificar os três componentes da chave nem encadear erro contextualizado.
+- **Reprodução Executada (`scratch/evidencia_4_5e_bis/bug2_repro.txt`):**
+  Após `UPDATE agent_checkpoints SET state_blob = '{nao json'`:
+  ```text
+  exc_type=JSONDecodeError exc_msg='Expecting property name enclosed in double quotes: line 1 column 2 (char 1)'
+  mentions_agent_id=False mentions_session=False mentions_cp=False
+  ```
+- **Alteração Aplicada (Rodada 4.5e-bis, Etapa C3):** Captura explícita de `json.JSONDecodeError as exc` levantando `ValueError(f"Corrupted checkpoint state_blob for agent_id='{agent_id}', session_id='{session_id}', checkpoint_id='{checkpoint_id}'") from exc`, sem expor o conteúdo do blob e preservando `{}` para checkpoints inexistentes.
+
+
 

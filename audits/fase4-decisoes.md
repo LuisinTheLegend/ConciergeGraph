@@ -156,3 +156,21 @@ Registros da execução em 3 lotes (`4.5d-A`, `4.5d-B`, `4.5d-C`):
   3. Em `tests/test_governor_wiring.py`, `T1` e `T2` passam a verificar a ausência de módulos inexistentes e o cabeçalho ainda menciona o `T3` removido.
   4. Entradas fantasmas em `core/mcp_governor.py:43-126` (ex.: `retrieve_multihop_context:85`, `list_session_checkpoints:86`, `save_checkpoint:108`).
 - **Propostas adicionais registradas pelo Swarm (`audits/egm/4.5e-sintese.md`) para avaliação do auditor (NÃO implementadas na 4.5e):** bug de despacho legado com `<4` posicionais + `kwargs` ignorando `args[0..2]` (`core/checkpointer.py:80-89` pós-C2), ausência de guarda `json.JSONDecodeError` / `dict` em `get_checkpoint`, limitação `NaN`/`Inf` em `_sanitize_for_json`, e casos de borda adicionais em `tests/test_call_chain_edges_nodes.py` e `agent_list_checkpoints`.
+
+---
+
+## 6. Rodada 4.5e-bis — Correção de 2 Bugs Legados do Checkpointer e Fechamento de Mutantes (2026-11-19)
+
+- **Fechamento dos mutantes sobreviventes S1 e S2 (Etapa C1):**
+  - Testes parametrizados isolando individualmente cada um dos 4 disjuntos de `is_sdd20` (S1) e validação determinística de ordenação lexicográfica `key=str` em `set` via `{9, 10} -> [10, 9]` comprovada com `PYTHONHASHSEED=0, 1, 42` (S2) adicionados em [`tests/test_checkpointer_arg_resolution.py`](file:///c:/Nexus-Memory/GrafoConcierge/tests/test_checkpointer_arg_resolution.py).
+- **Decisões de desenho aplicadas (ambas marcadas como "sugestão do auditor, não decidida"):**
+  1. **Bug 1 — Conflito posicional × kwarg (Etapa C2):** Quando o mesmo campo legado (`agent_id`, `session_id`, `checkpoint_id`, `state_dict`) é fornecido simultaneamente por posição e por nome, `save_checkpoint_detailed` **falha alto** retornando `(False, "Duplicate argument for '<campo>': ...")` sem gravar no banco (**sugestão do auditor, não decidida**). Resolvidas combinações mistas 1+3, 2+2 e 3+1 sem alterar `is_sdd20`, o ramo SDD-20 ou o caminho MCP de 4 posicionais (`interface/mcp_server.py:1744-1748`).
+  2. **Bug 2 — Blob JSON corrompido em `get_checkpoint` (Etapa C3):** Em vez de retornar `{}` (o que confundiria dado corrompido com checkpoint inexistente), `get_checkpoint` captura `json.JSONDecodeError` e **levanta `ValueError`** citando `agent_id`, `session_id` e `checkpoint_id` sem vazar o conteúdo do blob (`raise ValueError(...) from exc`) (**sugestão do auditor, não decidida**). O retorno `{}` para checkpoint inexistente permanece inalterado.
+- **Escolha B (`interface/queue_writer.py` e `core/database.py`):**
+  - **Reafirmada ADIADA** por decisão do Luis nesta rodada (`0 bytes` alterados em `interface/queue_writer.py` e `core/database.py`).
+- **Propostas ao auditor (NÃO implementadas nesta rodada; registradas para decisão futura):**
+  1. Campos legados ausentes (`agent_id`, `session_id`, `checkpoint_id`) ainda recebem default `""` no ramo legado e gravam em `agent_checkpoints` com chave vazia sem erro.
+  2. `get_checkpoint` não valida que o JSON decodificado seja `dict` (ex.: se o blob válido decodificar para `list` ou `int`).
+  3. Valores `float('nan')` / `float('inf')` em `json.dumps` / `_sanitize_for_json`.
+  4. Casos de borda extras em `tests/test_call_chain_edges_nodes.py` e `agent_list_checkpoints` (propostos originalmente pelo Swarm na Rodada `4.5e`).
+
