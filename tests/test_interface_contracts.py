@@ -77,12 +77,16 @@ class _MockIngestionManager:
 @pytest.fixture(scope="module")
 def server(tmp_path_factory):
     """GrafoConciergeServer backed by an in-memory-like temp SQLite store."""
+    import core.mcp_governor as _gov_mod
     import interface.mcp_server as _mcp_mod
     orig_db = getattr(_mcp_mod, "db_manager", None)
     orig_cp = getattr(_mcp_mod, "checkpointer", None)
     orig_gr = getattr(_mcp_mod, "graph_rag", None)
     orig_gc = getattr(_mcp_mod, "_gc", None)
     orig_gov = getattr(_mcp_mod, "governor", None)
+    orig_shared_gov = getattr(_gov_mod, "_shared_governor", None)
+
+    _gov_mod._shared_governor = None
 
     tmp = tmp_path_factory.mktemp("interface_contracts")
     store = SqliteStore(str(tmp / "contract.db"))
@@ -104,6 +108,7 @@ def server(tmp_path_factory):
     _mcp_mod.graph_rag = orig_gr
     _mcp_mod._gc = orig_gc
     _mcp_mod.governor = orig_gov
+    _gov_mod._shared_governor = orig_shared_gov
 
 
 # ---------------------------------------------------------------------------
@@ -230,11 +235,47 @@ class TestMCPToolRegistration:
 
     def test_all_registered_tools_classified_in_governor(self, server):
         registered = set(server.mcp._tool_manager._tools.keys())
-        # Note: TOOL_CLASSIFICATION still holds 10 legacy/phantom entries until 4.5g cleanup,
-        # so 4.5c asserts registered ⊆ TOOL_CLASSIFICATION.
         classified = set(server.governor.TOOL_CLASSIFICATION.keys())
         unclassified = sorted(registered - classified)
+        phantom = sorted(classified - registered)
         assert not unclassified, f"Registered tools missing from TOOL_CLASSIFICATION: {unclassified}"
+        assert not phantom, f"Phantom tools in TOOL_CLASSIFICATION not registered on server: {phantom}"
+        assert classified == registered
+
+    def test_governor_disclosure_matrix_clean_and_valid(self, server):
+        expected_states = {
+            "PLANNING",
+            "DISCOVERY",
+            "EXECUTION",
+            "TDD_GREEN",
+            "REFACTORING",
+            "MAINTENANCE",
+            "STALL",
+            "SUCCESS",
+        }
+        assert set(server.governor.TOOL_DISCLOSURE_MATRIX.keys()) == expected_states
+        classified = set(server.governor.TOOL_CLASSIFICATION.keys())
+        valid_categories = {"READ_ONLY", "LOCAL_MUTATION", "DANGEROUS"}
+        for state_name, rules in server.governor.TOOL_DISCLOSURE_MATRIX.items():
+            assert "allowed_tools" in rules, f"State '{state_name}' missing allowed_tools"
+            allowed_tools = rules["allowed_tools"]
+            assert allowed_tools == [], (
+                f"State '{state_name}' has unexpected allowed_tools override: {allowed_tools}"
+            )
+            assert set(allowed_tools).issubset(classified), (
+                f"State '{state_name}' references unclassified tools: {sorted(set(allowed_tools) - classified)}"
+            )
+            assert set(rules["allowed_categories"]).issubset(valid_categories)
+
+    def test_governor_destructive_tools_classified_as_dangerous(self, server):
+        assert server.governor.TOOL_CLASSIFICATION["delete_project"] == "DANGEROUS"
+        assert server.governor.TOOL_CLASSIFICATION["reset_collection"] == "DANGEROUS"
+        dangerous = {
+            name
+            for name, cat in server.governor.TOOL_CLASSIFICATION.items()
+            if cat == "DANGEROUS"
+        }
+        assert dangerous == {"delete_project", "reset_collection"}
 
     def test_governed_call_tool_executes_and_enforces_state(self, server, monkeypatch):
         import interface.mcp_server as _mcp_mod
@@ -252,8 +293,9 @@ class TestMCPToolRegistration:
 
         # 1. Governance enforcement: PLANNING blocks LOCAL_MUTATION tools via governed_call_tool
         # Note: governed_call_tool checks default session when session_id is not a tool param,
-        # so set PLANNING on "default" to verify real call_tool interception cleanly.
-        orig_default = server.governor.get_session_state("default")
+        # so restore sessions_state["default"] without leaking an injected key.
+        had_default = "default" in server.governor.sessions_state
+        orig_default = server.governor.sessions_state.get("default")
         try:
             server.governor.set_session_state("default", "PLANNING")
             with pytest.raises(SecurityException):
@@ -410,7 +452,10 @@ class TestMCPToolRegistration:
             assert isinstance(list_cp_res, list)
             assert len(list_cp_res) >= 1
         finally:
-            server.governor.set_session_state("default", orig_default)
+            if had_default:
+                server.governor.sessions_state["default"] = orig_default
+            else:
+                server.governor.sessions_state.pop("default", None)
 
     def test_server_name_is_grafo_concierge(self, server):
         assert server.mcp.name == "Grafo Concierge"

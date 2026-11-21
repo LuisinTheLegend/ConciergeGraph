@@ -43,23 +43,23 @@ class MCPToolGovernor:
         self.TOOL_DISCLOSURE_MATRIX: Dict[str, Dict[str, List[str]]] = {
             "PLANNING": {
                 "allowed_categories": ["READ_ONLY"],
-                "allowed_tools": ["get_telemetry_snapshot"],
+                "allowed_tools": [],
             },
             "DISCOVERY": {
                 "allowed_categories": ["READ_ONLY"],
-                "allowed_tools": ["get_telemetry_snapshot"],
+                "allowed_tools": [],
             },
             "EXECUTION": {
                 "allowed_categories": ["READ_ONLY", "LOCAL_MUTATION"],
-                "allowed_tools": ["get_telemetry_snapshot"],
+                "allowed_tools": [],
             },
             "TDD_GREEN": {
                 "allowed_categories": ["READ_ONLY", "LOCAL_MUTATION"],
-                "allowed_tools": ["get_telemetry_snapshot"],
+                "allowed_tools": [],
             },
             "REFACTORING": {
                 "allowed_categories": ["READ_ONLY", "LOCAL_MUTATION"],
-                "allowed_tools": ["get_telemetry_snapshot"],
+                "allowed_tools": [],
             },
             "MAINTENANCE": {
                 "allowed_categories": ["READ_ONLY", "LOCAL_MUTATION", "DANGEROUS"],
@@ -67,24 +67,20 @@ class MCPToolGovernor:
             },
             "STALL": {
                 "allowed_categories": ["READ_ONLY"],
-                "allowed_tools": ["get_telemetry_snapshot"],
+                "allowed_tools": [],
             },
             "SUCCESS": {
                 "allowed_categories": ["READ_ONLY"],
-                "allowed_tools": ["get_telemetry_snapshot"],
+                "allowed_tools": [],
             },
         }
 
-        # Static tool classification catalog
+        # Static tool classification catalog (31 live MCP tools)
         self.TOOL_CLASSIFICATION: Dict[str, str] = {
             # READ_ONLY
             "get_full_topology": "READ_ONLY",
-            "get_trajectory": "READ_ONLY",
             "get_trajectories": "READ_ONLY",
             "find_similar": "READ_ONLY",
-            "retrieve_multihop_context": "READ_ONLY",
-            "list_session_checkpoints": "READ_ONLY",
-            "get_telemetry_snapshot": "READ_ONLY",
             "concierge_search": "READ_ONLY",
             "concierge_resume": "READ_ONLY",
             "concierge_load": "READ_ONLY",
@@ -102,10 +98,6 @@ class MCPToolGovernor:
             "agent_list_checkpoints": "READ_ONLY",
 
             # LOCAL_MUTATION
-            "write_file": "LOCAL_MUTATION",
-            "delete_file": "LOCAL_MUTATION",
-            "apply_alias_migration": "LOCAL_MUTATION",
-            "save_checkpoint": "LOCAL_MUTATION",
             "agent_save_checkpoint": "LOCAL_MUTATION",
             "concierge_register": "LOCAL_MUTATION",
             "concierge_mine": "LOCAL_MUTATION",
@@ -119,9 +111,7 @@ class MCPToolGovernor:
             "update_project": "LOCAL_MUTATION",
 
             # DANGEROUS
-            "execute_command": "DANGEROUS",
             "reset_collection": "DANGEROUS",
-            "purge_database": "DANGEROUS",
             "delete_project": "DANGEROUS",
         }
 
@@ -148,7 +138,7 @@ class MCPToolGovernor:
         Passive Layer (Discovery): Filters tool catalog disclosed to agent
         based on active FSM state rules.
 
-        Supports both dictionaries (e.g. `{'name': 'write_file'}`) and Tool instances.
+        Supports both dictionaries (e.g. `{'name': 'concierge_commit'}`) and Tool instances.
         """
         current_state = self.get_session_state(session_id)
         rules = self.TOOL_DISCLOSURE_MATRIX.get(
