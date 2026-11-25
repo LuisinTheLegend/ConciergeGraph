@@ -309,7 +309,6 @@ class TestMCPToolRegistration:
             # 2. Transition session state to MAINTENANCE and exercise lightweight-safe tools
             server.governor.max_state = "MAINTENANCE"
             server.governor.set_session_state("default", "MAINTENANCE")
-            server.governor.set_session_state("sess_contract_maint", "MAINTENANCE")
             assert server.governor.get_session_state("default") == "MAINTENANCE"
 
             status_res = call_governed("concierge_status", {})
@@ -444,7 +443,6 @@ class TestMCPToolRegistration:
             assert len(list_cp_res) >= 1
         finally:
             server.governor.max_state = orig_max_state
-            server.governor.sessions_state.pop("sess_contract_maint", None)
             if had_default:
                 server.governor.sessions_state["default"] = orig_default
             else:

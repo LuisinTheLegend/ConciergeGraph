@@ -6,7 +6,7 @@ Testes de fiação e isolamento do MCPToolGovernor no GrafoConciergeServer:
 - T2: construção de GrafoConciergeServer não arrasta archive/nem frameworks web externos,
       conecta ao singleton compartilhado get_shared_governor() e expõe catálogo limpo (31 == 31)
 - T4: governador usa o singleton compartilhado mesmo se telemetry_api falhar no import
-- T5: governed_list_tools filtra ferramentas FastMCP reais por session_id explícito não-"default"
+- T5: governed_list_tools filtra ferramentas FastMCP reais pela sessão ativa do transporte (sem expor catálogo sem filtro)
 """
 import asyncio
 from pathlib import Path
@@ -132,8 +132,9 @@ def test_t4_governor_uses_shared_singleton_when_telemetry_import_fails(tmp_path,
         store.close()
 
 
-def test_t5_governed_list_tools_filters_by_explicit_session_id(tmp_path, monkeypatch):
-    """T5: governed_list_tools aplica filter_tools sobre Tool reais do FastMCP por session_id explícito."""
+def test_t5_governed_list_tools_filters_by_transport_session_state(tmp_path, monkeypatch):
+    """T5: governed_list_tools sempre filtra Tool reais do FastMCP pelo estado da sessão de transporte."""
+    monkeypatch.delenv("GRAFO_DEFAULT_STATE", raising=False)
     monkeypatch.setattr("interface.mcp_server.governor", None)
     monkeypatch.setattr("interface.mcp_server.db_manager", None, raising=False)
     monkeypatch.setattr("interface.mcp_server.checkpointer", None, raising=False)
@@ -147,36 +148,50 @@ def test_t5_governed_list_tools_filters_by_explicit_session_id(tmp_path, monkeyp
         gc._store = store
         server = GrafoConciergeServer(concierge=gc)
 
-        # Sem session_id explícito -> todas as 31 ferramentas registradas
+        # Sem request_ctx ativo -> sessão "default" em PLANNING (17 ferramentas READ_ONLY)
         unscoped = asyncio.run(server.mcp.list_tools())
-        assert len(unscoped) == 31
-
-        # Sessão explícita não-"default" mantendo "default" intocado
-        sid = "sess_wiring_list"
+        assert len(unscoped) == 17
         assert "default" not in server.governor.sessions_state
+
+        # Em request_ctx com sessão de transporte dedicada -> "default" segue intocado
+        from mcp.server.lowlevel.server import request_ctx
+        from mcp.shared.context import RequestContext
+
+        class _Sess:
+            pass
+
+        sess = _Sess()
         monkeypatch.setattr(server.governor, "max_state", "MAINTENANCE")
+        tok = request_ctx.set(
+            RequestContext(request_id="t5", meta=None, session=sess, lifespan_context=None)
+        )
+        try:
+            sid = server._resolve_transport_session_id()
+            assert sid != "default"
 
-        server.governor.set_session_state(sid, "PLANNING")
-        planning_names = {t.name for t in asyncio.run(server.mcp.list_tools(session_id=sid))}
-        assert len(planning_names) == 17
-        assert "get_full_topology" in planning_names
-        assert "concierge_set_state" not in planning_names
-        assert "concierge_commit" not in planning_names
-        assert "delete_project" not in planning_names
-        assert "reset_collection" not in planning_names
+            server.governor.set_session_state(sid, "PLANNING")
+            planning_names = {t.name for t in asyncio.run(server.mcp.list_tools())}
+            assert len(planning_names) == 17
+            assert "get_full_topology" in planning_names
+            assert "concierge_set_state" not in planning_names
+            assert "concierge_commit" not in planning_names
+            assert "delete_project" not in planning_names
+            assert "reset_collection" not in planning_names
 
-        server.governor.set_session_state(sid, "EXECUTION")
-        exec_names = {t.name for t in asyncio.run(server.mcp.list_tools(session_id=sid))}
-        assert len(exec_names) == 29
-        assert "concierge_set_state" in exec_names
-        assert "concierge_commit" in exec_names
-        assert "delete_project" not in exec_names
-        assert "reset_collection" not in exec_names
+            server.governor.set_session_state(sid, "EXECUTION")
+            exec_names = {t.name for t in asyncio.run(server.mcp.list_tools())}
+            assert len(exec_names) == 29
+            assert "concierge_set_state" in exec_names
+            assert "concierge_commit" in exec_names
+            assert "delete_project" not in exec_names
+            assert "reset_collection" not in exec_names
 
-        server.governor.set_session_state(sid, "MAINTENANCE")
-        maint_names = {t.name for t in asyncio.run(server.mcp.list_tools(session_id=sid))}
-        assert len(maint_names) == 31
-        assert {"delete_project", "reset_collection"}.issubset(maint_names)
-        assert "default" not in server.governor.sessions_state
+            server.governor.set_session_state(sid, "MAINTENANCE")
+            maint_names = {t.name for t in asyncio.run(server.mcp.list_tools())}
+            assert len(maint_names) == 31
+            assert {"delete_project", "reset_collection"}.issubset(maint_names)
+            assert "default" not in server.governor.sessions_state
+        finally:
+            request_ctx.reset(tok)
     finally:
         store.close()

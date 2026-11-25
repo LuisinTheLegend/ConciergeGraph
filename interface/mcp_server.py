@@ -39,9 +39,11 @@ from __future__ import annotations
 import functools
 import logging
 import os
+import secrets
 import time
 import traceback
-from typing import Callable, Optional
+import weakref
+from typing import Any, Callable, Optional
 
 from mcp.server.fastmcp import FastMCP
 
@@ -171,6 +173,7 @@ class GrafoConciergeServer:
 
         # Creates the FastMCP server
         self._mcp = FastMCP("Grafo Concierge", host=host, port=port)
+        self._transport_sessions: weakref.WeakKeyDictionary[Any, str] = weakref.WeakKeyDictionary()
 
         # Enables CORS and optional API Key Authentication on Starlette sse_app
         original_sse_app = self._mcp.sse_app
@@ -238,31 +241,74 @@ class GrafoConciergeServer:
         """Access to the active MCPToolGovernor on the server."""
         return self._governor
 
+    def _resolve_transport_session_id(self) -> str:
+        """Resolves a server-side session identifier bound strictly to the MCP transport session."""
+        from core.mcp_governor import SecurityException
+
+        try:
+            req_ctx = self._mcp._mcp_server.request_context
+        except (AttributeError, LookupError):
+            req_ctx = None
+
+        if req_ctx is None:
+            return "default"
+
+        session_obj = getattr(req_ctx, "session", None)
+        if session_obj is None:
+            return "default"
+
+        try:
+            sid = self._transport_sessions.get(session_obj)
+            if sid is None:
+                sid = f"mcp-sess-{secrets.token_hex(16)}"
+                self._transport_sessions[session_obj] = sid
+            return sid
+        except TypeError as exc:
+            raise SecurityException(
+                "Access denied: MCP transport session does not support weak-reference binding."
+            ) from exc
+
     def _setup_tool_governance(self) -> None:
         """Configures FastMCP listing and execution interceptors under MCPToolGovernor."""
+        from core.mcp_governor import SecurityException
+
         original_tm_call_tool = self._mcp._tool_manager.call_tool
 
-        async def governed_call_tool(name: str, arguments: dict, *args, **kwargs):
-            session_id = (
-                arguments.get("session_id", "default")
-                if isinstance(arguments, dict)
-                else "default"
-            )
-            # Second Layer: Active execution validation
+        async def governed_call_tool(name: str, arguments: Any = None, *args, **kwargs):
+            session_id = self._resolve_transport_session_id()
+            if arguments is None:
+                arguments = {}
+            elif not isinstance(arguments, dict):
+                raise SecurityException(
+                    f"Access denied: invalid arguments payload type '{type(arguments).__name__}' for tool '{name}'."
+                )
+
+            # Second Layer: Active execution validation (strictly transport-bound session)
             self._governor.validate_tool_execution(session_id, name)
+
+            # Strict schema parameter allowlist: reject undeclared kwargs before FastMCP silently drops them
+            tool = self._mcp._tool_manager.get_tool(name)
+            if tool is not None:
+                declared = set((tool.parameters or {}).get("properties", {}).keys())
+                extra = sorted(set(arguments.keys()) - declared)
+                if extra:
+                    raise SecurityException(
+                        f"Access denied: undeclared arguments {extra} rejected for tool '{name}'."
+                    )
+
             return await original_tm_call_tool(name, arguments, *args, **kwargs)
 
         self._mcp._tool_manager.call_tool = governed_call_tool
 
         original_mcp_list_tools = self._mcp.list_tools
 
-        async def governed_list_tools(session_id: Optional[str] = None):
+        async def governed_list_tools():
             tools = await original_mcp_list_tools()
-            if session_id:
-                return self._governor.filter_tools(session_id, tools)
-            return tools
+            session_id = self._resolve_transport_session_id()
+            return self._governor.filter_tools(session_id, tools)
 
         self._mcp.list_tools = governed_list_tools
+        self._mcp._mcp_server.list_tools()(governed_list_tools)
 
     # ===================================================================
     # TOOL REGISTRATION
@@ -412,26 +458,25 @@ class GrafoConciergeServer:
         @self._mcp.tool(
             name="concierge_set_state",
             description=(
-                "Transitions agent mental state in MCPToolGovernor between PLANNING, "
-                "EXECUTION, and MAINTENANCE to regulate progressive tool disclosure."
+                "Transitions agent operational state in MCPToolGovernor within configured "
+                "privilege bounds for the active transport session."
             ),
         )
         def concierge_set_state(
             state_name: str,
-            session_id: str = "default",
         ) -> dict:
-            """Transitions session FSM state.
+            """Transitions active transport session operational state.
 
             Args:
                 state_name: Target state (e.g. PLANNING, EXECUTION, MAINTENANCE).
-                session_id: Target session identifier (default: 'default').
             """
+            active_sid = server._resolve_transport_session_id()
             upper_state = state_name.upper()
-            server._governor.set_session_state(session_id, upper_state)
+            server._governor.set_session_state(active_sid, upper_state)
             return {
                 "success": True,
-                "session_id": session_id,
-                "active_state": server._governor.get_session_state(session_id),
+                "session_id": active_sid,
+                "active_state": server._governor.get_session_state(active_sid),
             }
 
         # --- concierge_wakeup ---
