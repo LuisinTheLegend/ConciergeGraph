@@ -218,11 +218,13 @@ Remediação integral da Track 3 (`BL-011`, `BL-012`, `BL-013`, `BL-014`, `BL-01
   - **Decisão 3A (`BL-013` — Filtragem de `list_tools`):** `governed_list_tools` filtra sempre pela sessão vinculada ao transporte e é registrada tanto em `self._mcp.list_tools` quanto em `self._mcp._mcp_server.list_tools()`.
   - **Decisão 4A (`BL-014` + Proposta #5 da `4.5g`):** `TOOL_DISCLOSURE_MATRIX` consolidada para os 3 estados (`PLANNING`, `EXECUTION`, `MAINTENANCE`, todos com `"allowed_tools": []`); estados `default_state`/`max_state` inválidos levantam `ValueError` no `__init__`.
 - **Commits Executados na Rodada 4.6:**
-  - **C0 (`0cf527189d4d8e3e6b630e076577e0044b5f9ff4`):** Revisão pré-execução EGM + Swarm (`audits/egm/4.6-{fatos,design,critic,sintese}.md`). CI 6/6 GREEN.
+  - **C0 (`0cf527186902dc771c07c4d0b3273146614275f7`):** Revisão pré-execução EGM + Swarm (`audits/egm/4.6-{fatos,design,critic,sintese}.md`). CI 6/6 GREEN.
   - **C1 (`279f75189d4d8e3e6b630e076577e0044b5f9ff4`):** Governança de 3 estados, teto `max_state`, `PLANNING` padrão e reclassificação de `concierge_set_state` em `core/mcp_governor.py` (`17 READ_ONLY / 12 LOCAL_MUTATION / 2 DANGEROUS`; 5/5 mutantes mortos; 337 testes). CI 6/6 GREEN.
   - **C2 (`e196005114e2f5c7d9018c642372d632a0af1bf7`):** Vínculo de sessão ao transporte (`WeakKeyDictionary`), remoção de `session_id` em `concierge_set_state`, allowlist estrita de kwargs e dupla vinculação de `list_tools` em `interface/mcp_server.py` + `tests/test_mcp_security_governance.py` (5/5 mutantes mortos; 342 testes). CI 6/6 GREEN.
   - **C3 (`79afa2cca2abd4241742eecf1fbc75018e796cd4`):** Propriedade persistente `owner_hash` em `storage/schema.py`, `core/checkpointer.py`, `interface/mcp_server.py`, `main.py` + `tests/test_checkpoint_ownership.py` (5/5 mutantes mortos; 347 testes). CI 6/6 GREEN.
-  - **C4 (`docs(security)`):** Documentação viva (`.env.example`, `README.md`, `README.pt-BR.md`, `docs-grafo-concierge/README.md`, `CHANGELOG.md`, `audits/fase4-decisoes.md`) e relatório final `audits/relatorio_4_6.md`.
+  - **C4 (`04a832fa74f5c02ba72f5261a9ece5ef6ce4d605`):** Documentação viva (`.env.example`, `README.md`, `README.pt-BR.md`, `docs-grafo-concierge/README.md`, `CHANGELOG.md`, `audits/fase4-decisoes.md`) e relatório final `audits/relatorio_4_6.md`. CI 6/6 GREEN.
+- **Proposta do auditor, não implementada na 4.6:**
+  - Janela estreita de TOCTOU em leitura em `core/checkpointer.py` (`get_checkpoint` e `list_checkpoints` executam a segunda query sem `AND owner_hash = ?` após `_verify_namespace_ownership` ver namespace vazio).
 
 
 
