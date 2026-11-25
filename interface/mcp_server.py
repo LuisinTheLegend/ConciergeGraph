@@ -174,6 +174,8 @@ class GrafoConciergeServer:
         # Creates the FastMCP server
         self._mcp = FastMCP("Grafo Concierge", host=host, port=port)
         self._transport_sessions: weakref.WeakKeyDictionary[Any, str] = weakref.WeakKeyDictionary()
+        self._session_owner_tokens: weakref.WeakKeyDictionary[Any, str] = weakref.WeakKeyDictionary()
+        self._fallback_owner_token: str = secrets.token_hex(32)
 
         # Enables CORS and optional API Key Authentication on Starlette sse_app
         original_sse_app = self._mcp.sse_app
@@ -267,6 +269,66 @@ class GrafoConciergeServer:
             raise SecurityException(
                 "Access denied: MCP transport session does not support weak-reference binding."
             ) from exc
+
+    def _resolve_checkpoint_owner_token(self) -> str:
+        """Resolves the checkpoint ownership token strictly from transport/server context."""
+        from core.mcp_governor import SecurityException
+
+        try:
+            req_ctx = self._mcp._mcp_server.request_context
+        except (AttributeError, LookupError):
+            req_ctx = None
+
+        if req_ctx is not None:
+            request_obj = getattr(req_ctx, "request", None)
+            session_obj = getattr(req_ctx, "session", None)
+            if request_obj is not None:
+                headers = getattr(request_obj, "headers", None)
+                agent_hdr = ""
+                auth_hdr = ""
+                if headers is not None:
+                    if hasattr(headers, "items") and isinstance(headers, dict):
+                        lower_map = {str(k).lower(): str(v) for k, v in headers.items()}
+                        agent_hdr = lower_map.get("x-grafo-agent-token", "").strip()
+                        auth_hdr = lower_map.get("authorization", "").strip()
+                    else:
+                        agent_hdr = str(
+                            headers.get("X-Grafo-Agent-Token")
+                            or headers.get("x-grafo-agent-token")
+                            or ""
+                        ).strip()
+                        auth_hdr = str(
+                            headers.get("Authorization")
+                            or headers.get("authorization")
+                            or ""
+                        ).strip()
+                if agent_hdr:
+                    return agent_hdr
+                if auth_hdr.lower().startswith("bearer "):
+                    bearer_tok = auth_hdr[7:].strip()
+                    if bearer_tok:
+                        return bearer_tok
+            else:
+                env_tok = os.environ.get("GRAFO_AGENT_TOKEN", "").strip()
+                if env_tok:
+                    return env_tok
+
+            if session_obj is not None:
+                try:
+                    tok = self._session_owner_tokens.get(session_obj)
+                    if tok is None:
+                        tok = secrets.token_hex(32)
+                        self._session_owner_tokens[session_obj] = tok
+                    return tok
+                except TypeError as exc:
+                    raise SecurityException(
+                        "Access denied: MCP transport session does not support weak-reference binding."
+                    ) from exc
+
+        env_tok = os.environ.get("GRAFO_AGENT_TOKEN", "").strip()
+        if env_tok:
+            return env_tok
+        return self._fallback_owner_token
 
     def _setup_tool_governance(self) -> None:
         """Configures FastMCP listing and execution interceptors under MCPToolGovernor."""
@@ -957,7 +1019,13 @@ class GrafoConciergeServer:
             Returns:
                 JSON string with 'success' (bool) and 'message' (str).
             """
-            return agent_save_checkpoint(agent_id, session_id, checkpoint_id, state_dict)
+            return agent_save_checkpoint(
+                agent_id,
+                session_id,
+                checkpoint_id,
+                state_dict,
+                owner_token=server._resolve_checkpoint_owner_token(),
+            )
 
         # --- agent_get_checkpoint ---
         @self._mcp.tool(
@@ -981,7 +1049,12 @@ class GrafoConciergeServer:
             Returns:
                 Decoded state dictionary, or {} if not found.
             """
-            return agent_get_checkpoint(agent_id, session_id, checkpoint_id)
+            return agent_get_checkpoint(
+                agent_id,
+                session_id,
+                checkpoint_id,
+                owner_token=server._resolve_checkpoint_owner_token(),
+            )
 
         # --- agent_list_checkpoints ---
         @self._mcp.tool(
@@ -1003,7 +1076,11 @@ class GrafoConciergeServer:
             Returns:
                 List of dicts with 'checkpoint_id' and 'created_at' ordered ASC.
             """
-            return agent_list_checkpoints(agent_id, session_id)
+            return agent_list_checkpoints(
+                agent_id,
+                session_id,
+                owner_token=server._resolve_checkpoint_owner_token(),
+            )
 
     def _resolve_project_identifier(self, project_identifier: str) -> str:
         """Resolves project_identifier (UUID or folder_name) to project_uuid.
@@ -1780,6 +1857,7 @@ def agent_save_checkpoint(
     session_id: str,
     checkpoint_id: str,
     state_dict: dict,
+    owner_token: Optional[str] = None,
 ) -> str:
     """MCP Tool: Persists agent state in SQLite WAL via AgnosticCheckpointer.
 
@@ -1787,11 +1865,29 @@ def agent_save_checkpoint(
     """
     save_fn = getattr(checkpointer, "save_checkpoint_detailed", None)
     if callable(save_fn):
-        success, raw_err = save_fn(agent_id, session_id, checkpoint_id, state_dict)
+        if owner_token is not None:
+            success, raw_err = save_fn(
+                agent_id,
+                session_id,
+                checkpoint_id,
+                state_dict,
+                owner_token=owner_token,
+            )
+        else:
+            success, raw_err = save_fn(agent_id, session_id, checkpoint_id, state_dict)
     else:
-        success = checkpointer.save_checkpoint(
-            agent_id, session_id, checkpoint_id, state_dict
-        )
+        if owner_token is not None:
+            success = checkpointer.save_checkpoint(
+                agent_id,
+                session_id,
+                checkpoint_id,
+                state_dict,
+                owner_token=owner_token,
+            )
+        else:
+            success = checkpointer.save_checkpoint(
+                agent_id, session_id, checkpoint_id, state_dict
+            )
         raw_err = getattr(checkpointer, "last_error", None)
 
     if success:
@@ -1814,22 +1910,32 @@ def agent_get_checkpoint(
     agent_id: str,
     session_id: str,
     checkpoint_id: str,
+    owner_token: Optional[str] = None,
 ) -> dict:
     """MCP Tool: Retrieves agent state from SQLite WAL via AgnosticCheckpointer.
 
     Returns the decoded state dictionary, or {} if not found.
     """
+    if owner_token is not None:
+        return checkpointer.get_checkpoint(
+            agent_id, session_id, checkpoint_id, owner_token=owner_token
+        )
     return checkpointer.get_checkpoint(agent_id, session_id, checkpoint_id)
 
 
 def agent_list_checkpoints(
     agent_id: str,
     session_id: str,
+    owner_token: Optional[str] = None,
 ) -> list:
     """MCP Tool: Returns the chronological timeline of checkpoints for Time-Travel.
 
     Returns a list of dicts with 'checkpoint_id' and 'created_at', ordered ASC.
     """
+    if owner_token is not None:
+        return checkpointer.list_checkpoints(
+            agent_id, session_id, owner_token=owner_token
+        )
     return checkpointer.list_checkpoints(agent_id, session_id)
 
 

@@ -148,6 +148,7 @@ CREATE TABLE IF NOT EXISTS agent_checkpoints (
     session_id    TEXT NOT NULL,
     checkpoint_id TEXT NOT NULL,
     state_blob    TEXT NOT NULL,
+    owner_hash    TEXT NOT NULL DEFAULT '',
     created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (agent_id, session_id, checkpoint_id)
 );
@@ -270,6 +271,16 @@ class SchemaManager:
                 self._conn.execute("ALTER TABLE semantic_facts ADD COLUMN utility_beta REAL NOT NULL DEFAULT 1.0;")
                 self._conn.commit()
                 logger.info("Migration: 'utility_beta' column added to table 'semantic_facts'.")
+
+            # Ensure 'owner_hash' column exists in agent_checkpoints (BL-012)
+            cursor = self._conn.execute("PRAGMA table_info(agent_checkpoints)")
+            cp_cols = [row[1] for row in cursor.fetchall()]
+            if "owner_hash" not in cp_cols:
+                self._conn.execute(
+                    "ALTER TABLE agent_checkpoints ADD COLUMN owner_hash TEXT NOT NULL DEFAULT '';"
+                )
+                self._conn.commit()
+                logger.info("Migration: 'owner_hash' column added to table 'agent_checkpoints'.")
 
             # FTS5 Migration: upgrade nodes_fts to 4 columns (label, tags, summary, content)
             # with unicode61 remove_diacritics 2.

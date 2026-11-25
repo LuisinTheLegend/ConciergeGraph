@@ -100,7 +100,7 @@ def redact_log_secrets(text: str) -> str:
         return text
 
     result = text
-    for env_var in ("GRAFO_LLM_API_KEY", "GRAFO_API_KEY", "GEMINI_API_KEY"):
+    for env_var in ("GRAFO_LLM_API_KEY", "GRAFO_API_KEY", "GEMINI_API_KEY", "GRAFO_AGENT_TOKEN"):
         secret_val = os.environ.get(env_var, "").strip()
         if len(secret_val) >= 8 and secret_val in result:
             result = result.replace(secret_val, "[REDACTED]")
