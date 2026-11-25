@@ -5,6 +5,18 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### Rodada 4.7 — Hardening HTTP/SSE, Read-TOCTOU no Checkpointer e Higiene de DDL
+
+- **Hardening do `auth_middleware` HTTP/SSE (`interface/mcp_server.py`):**
+  - Removida completamente a autenticação por query string na URL em `custom_sse_app`; o middleware aceita exclusivamente header `Authorization: Bearer <key>` (prefixo `bearer` *case-insensitive*) com comparação em tempo constante via `hmac.compare_digest` e `BaseHTTPMiddleware` (compatível com Starlette 1.x).
+- **Separação Estrita entre Transporte `GRAFO_API_KEY` e Posse `X-Grafo-Agent-Token` (`interface/mcp_server.py`):**
+  - `_resolve_checkpoint_owner_token()` no ramo HTTP/SSE lê exclusivamente `X-Grafo-Agent-Token`, removendo qualquer fallback para `Authorization: Bearer`. Sem `X-Grafo-Agent-Token`, cada `ServerSession` recebe seu próprio segredo efêmero (`WeakKeyDictionary`), impedindo compartilhamento acidental de posse entre agentes autenticados pela mesma `GRAFO_API_KEY`.
+- **Redação de Credenciais Qdrant (`main.py`):**
+  - Adicionada `"GRAFO_QDRANT_API_KEY"` à lista de variáveis redigidas em `main.py::redact_log_secrets`.
+- **Fechamento Read-TOCTOU e Higiene de DDL (`core/checkpointer.py`, `tests/test_agent_checkpointer.py`):**
+  - Incluído `AND owner_hash = ?` (com `caller_hash = self._hash_owner_token(owner_token)`) nas queries de leitura de `get_checkpoint` e `list_checkpoints`.
+  - Substituído o DDL manual de 5 colunas em `tests/test_agent_checkpointer.py` pela inicialização oficial via `SchemaManager(conn).apply_full_schema()`, ampliando a suíte para **353 testes aprovados** (normal e `--reverse`).
+
 ### Rodada 4.6 — Segurança de Fronteira e Governança MCP (BL-011, BL-012, BL-013, BL-014, BL-015)
 
 - **Teto de Privilégio e Governança de 3 Estados (`core/mcp_governor.py` — BL-011, BL-014, BL-015):**

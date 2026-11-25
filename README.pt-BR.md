@@ -9,7 +9,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
 [![Protocolo MCP](https://img.shields.io/badge/Protocolo-MCP-purple.svg)](https://modelcontextprotocol.io/)
 [![Ferramentas MCP](https://img.shields.io/badge/Ferramentas%20MCP-31-blue.svg)](docs-grafo-concierge/README.md)
-[![Testes Aprovados](https://img.shields.io/badge/Testes-347%20Aprovados-brightgreen.svg)](tests/)
+[![Testes Aprovados](https://img.shields.io/badge/Testes-353%20Aprovados-brightgreen.svg)](tests/)
 
 O Grafo Concierge é um servidor de memória local-first baseado no **Model Context Protocol (MCP)** que fornece a assistentes de código (Cursor, Claude Desktop e agentes autônomos) memória persistente de projetos, busca híbrida, rastreamento recursivo de chamadas, checkpoints duráveis de agentes e governança progressiva de ferramentas — apoiado em **SQLite WAL (com FTS5)** e armazenamento vetorial plugável (**ChromaDB** por padrão, **Qdrant** opcional).
 
@@ -23,7 +23,7 @@ O Grafo Concierge é um servidor de memória local-first baseado no **Model Cont
 2. **Busca Híbrida Tri-Sinal v4 (`core/hybrid_search.py`)**: Combina similaridade vetorial densa (`sentence-transformers` + ChromaDB/Qdrant), pontuação lexical SQLite FTS5 BM25 e sinais topológicos/de recência com escopo estrito por projeto/ala e filtragem de vetores órfãos em tempo de consulta.
 3. **Ingestão AST Python e Reparo de Vetores (`ingestion/`, `services/janitor.py`)**: Percorre repositórios, extrai blocos AST Python e arestas de chamada, repara embeddings ausentes durante a mineração com relato explícito de falhas e oferece reconciliação sob demanda (`concierge sync-vector`).
 4. **GraphRAG Recursivo de Cadeia de Chamadas (`core/graph_rag.py`)**: Percorre dependências multi-hop `calls` na tabela `edges` via CTEs `WITH RECURSIVE` protegidas por guarda de ciclo delimitada por pipes (`|node|`).
-5. **Checkpoints Duráveis de Agentes com Posse Persistente (`core/checkpointer.py`)**: Persiste e recupera dicionários de estado de agentes em `agent_checkpoints` via `agent_save_checkpoint`, `agent_get_checkpoint` e `agent_list_checkpoints`, com resolução estrita de argumentos, detecção de JSON corrompido e verificação de posse por `owner_hash` SHA-256 (`GRAFO_AGENT_TOKEN` em `stdio`, ou `X-Grafo-Agent-Token` / `Authorization: Bearer` em HTTP/SSE, com fallback efêmero por `ServerSession`).
+5. **Checkpoints Duráveis de Agentes com Posse Persistente (`core/checkpointer.py`)**: Persiste e recupera dicionários de estado de agentes em `agent_checkpoints` via `agent_save_checkpoint`, `agent_get_checkpoint` e `agent_list_checkpoints`, com resolução estrita de argumentos, detecção de JSON corrompido e verificação de posse por `owner_hash` SHA-256 (`GRAFO_AGENT_TOKEN` em `stdio`, ou `X-Grafo-Agent-Token` em HTTP/SSE estritamente desacoplado de `Authorization: Bearer`, com fallback efêmero por `ServerSession`).
 6. **Governança MCP de Menor Privilégio (`core/mcp_governor.py`)**: Classifica todas as **31 ferramentas MCP vivas** em `READ_ONLY` (17), `LOCAL_MUTATION` (12) e `DANGEROUS` (2) em uma hierarquia de 3 estados (`PLANNING < EXECUTION < MAINTENANCE`), iniciando em `PLANNING` (`GRAFO_DEFAULT_STATE`) como teto de privilégio (`max_state`). As sessões são vinculadas ao transporte no servidor (`WeakKeyDictionary`), argumentos extras não declarados são rejeitados e tanto `list_tools` (`ListToolsRequest`) quanto a execução aplicam filtragem *fail-closed*.
 7. **Neutralidade de Domínio e Alas Livres**: As alas de projetos são strings livres definidas exclusivamente pelo usuário ou agente — sem taxonomias fixas de domínio no código de produto, garantido por testes-guarda AST (`tests/test_domain_neutrality_guard.py`).
 8. **Modo Lightweight e Resumos LLM Opcionais**: Defina `GRAFO_LIGHTWEIGHT_MODE=true` para operar sem modelos vetoriais pesados usando SQLite FTS5 BM25, e `GRAFO_LLM_MODEL=none` para operar 100% offline sem chamadas externas a LLMs.
@@ -129,7 +129,7 @@ Consulte [`docs-grafo-concierge/README.md`](docs-grafo-concierge/README.md) para
 
 ## Testes e Verificação
 
-O núcleo ativo V4 é coberto por **347 testes automatizados aprovados** (verificados em ordem normal e `--reverse`, além de CI em Linux e Windows):
+O núcleo ativo V4 é coberto por **353 testes automatizados aprovados** (verificados em ordem normal e `--reverse`, além de CI em Linux e Windows):
 
 ```bash
 python -m pytest tests/ -q

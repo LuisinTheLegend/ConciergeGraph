@@ -42,7 +42,8 @@ All **31 MCP tools** registered in `interface/mcp_server.py` are classified in `
 ### Governance & Checkpoint Security Model
 - **Default state & ceiling:** `GRAFO_DEFAULT_STATE` defaults to `PLANNING` (least privilege: 17 `READ_ONLY` tools) and sets `max_state`. `concierge_set_state(state_name)` no longer accepts client `session_id`, operates strictly on the transport-bound session (`WeakKeyDictionary`), and cannot escalate above `max_state`.
 - **Discovery & parameter enforcement:** Both `FastMCP.list_tools` and low-level `ListToolsRequest` filter exposed tools by the active session state, while `governed_call_tool` rejects undeclared extra arguments before execution.
-- **Persistent checkpoint ownership:** `agent_checkpoints` stores SHA-256 `owner_hash` verified via `hmac.compare_digest` over `(agent_id, session_id)` on save, get, and list. MCP resolves the owner token from `X-Grafo-Agent-Token` / `Authorization: Bearer` (HTTP/SSE) or `GRAFO_AGENT_TOKEN` (`stdio`), falling back to an ephemeral per-`ServerSession` secret when unset.
+- **Persistent checkpoint ownership:** `agent_checkpoints` stores SHA-256 `owner_hash` verified via `hmac.compare_digest` over `(agent_id, session_id)` on save, get, and list (plus SQL `AND owner_hash = ?` read-TOCTOU closure). MCP resolves the owner token strictly from `X-Grafo-Agent-Token` (HTTP/SSE, decoupled from `Authorization: Bearer` transport auth) or `GRAFO_AGENT_TOKEN` (`stdio`), falling back to an ephemeral per-`ServerSession` secret when unset.
+- **SSE transport auth:** When `GRAFO_API_KEY` is configured, `custom_sse_app` enforces constant-time `hmac.compare_digest` validation exclusively on `Authorization: Bearer <key>`.
 
 ---
 

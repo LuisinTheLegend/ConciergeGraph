@@ -226,5 +226,21 @@ Remediação integral da Track 3 (`BL-011`, `BL-012`, `BL-013`, `BL-014`, `BL-01
 - **Proposta do auditor, não implementada na 4.6:**
   - Janela estreita de TOCTOU em leitura em `core/checkpointer.py` (`get_checkpoint` e `list_checkpoints` executam a segunda query sem `AND owner_hash = ?` após `_verify_namespace_ownership` ver namespace vazio).
 
+---
+
+## 9. Rodada 4.7 — Hardening HTTP/SSE, Read-TOCTOU no Checkpointer e Higiene de DDL (2026-11-25)
+
+Remediação cirúrgica das Propostas #1, #2 e #4 da `audits/egm/4.6-sintese.md` e da observação read-TOCTOU da Seção 8, executada a partir do commit base `873e8146611acdd36483fbf7dcff65261d94794c` (sem fase Swarm C0 — Regra 15(f)) com CI 6/6 GREEN por etapa:
+
+- **Decisões Arquiteturais Homologadas pelo Humano:**
+  - **Decisão 1A (Hardening `auth_middleware` HTTP/SSE + Redação Qdrant):** Removida integralmente a autenticação por query string em `interface/mcp_server.py::custom_sse_app`. O middleware (`BaseHTTPMiddleware`) passa a aceitar exclusivamente `Authorization: Bearer <key>` (`bearer` *case-insensitive*), validado em tempo constante via `hmac.compare_digest`. Adicionada `"GRAFO_QDRANT_API_KEY"` em `main.py::redact_log_secrets`.
+  - **Decisão 2A (Separação Estrita `GRAFO_API_KEY` vs `X-Grafo-Agent-Token`):** Em `interface/mcp_server.py::_resolve_checkpoint_owner_token`, o ramo HTTP/SSE (`request_obj is not None`) passa a ler exclusivamente `X-Grafo-Agent-Token`, eliminando o fallback para `Authorization: Bearer` e isolando cada `ServerSession` sem `X-Grafo-Agent-Token` com segredo efêmero em `WeakKeyDictionary`.
+  - **Fechamento Read-TOCTOU (`core/checkpointer.py`):** `get_checkpoint` e `list_checkpoints` passam a filtrar também por `AND owner_hash = ?` (`caller_hash = self._hash_owner_token(owner_token)`) após `_verify_namespace_ownership`.
+  - **Higiene de DDL (`tests/test_agent_checkpointer.py`):** Substituído o `CREATE TABLE IF NOT EXISTS agent_checkpoints` manual pela aplicação oficial via `SchemaManager(conn).apply_full_schema()`, mantendo `queue_writer` intacto (Escolha B segue ADIADA para V4.1).
+- **Commits Executados na Rodada 4.7:**
+  - **C1 (`2dd3be7b20b4efd738713e4939fcac4b20bb328c`):** Hardening HTTP/SSE (`BaseHTTPMiddleware` + `hmac.compare_digest`, sem query string), separação estrita `X-Grafo-Agent-Token` vs Bearer e redação `GRAFO_QDRANT_API_KEY` (`tests/test_sse_auth_hardening.py`, `tests/test_checkpoint_ownership.py`, `tests/test_secret_redaction.py`; 4/4 mutantes mortos; 351 testes). CI 6/6 GREEN.
+  - **C2 (`b3b14e2879e6baef6beb74828e6461f340553e7a`):** Fechamento read-TOCTOU (`AND owner_hash = ?`) em `core/checkpointer.py::get_checkpoint` e `list_checkpoints` + migração para `SchemaManager` em `tests/test_agent_checkpointer.py` (2/2 mutantes mortos; 0 hits `CREATE TABLE`; 353 testes). CI 6/6 GREEN.
+  - **C3 (`docs(security)`):** Alinhamento documental (`.env.example`, `README.md`, `README.pt-BR.md`, `docs-grafo-concierge/README.md`, `CHANGELOG.md`, `audits/fase4-decisoes.md`) e relatório final `audits/relatorio_4_7.md`.
+
 
 
