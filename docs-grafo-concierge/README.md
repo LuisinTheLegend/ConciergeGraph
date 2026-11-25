@@ -1,69 +1,68 @@
-# 📚 Grafo Concierge — Official Documentation Hub (v4.2.0)
+# Concierge Graph — Documentation (V4 Core)
 
-Welcome to the official technical documentation for **Grafo Concierge**, the sovereign Long-Term Memory (LTM), cognitive graph server, and extreme resilience survival data engine for AI Agents and Developer IDEs.
+This directory documents the active **V4 Core** of **Concierge Graph** (`GrafoConcierge`), a local-first Long-Term Memory (LTM), Hybrid Search, and MCP Governance server for AI agents.
+
+> **Historical experimental specifications:** Earlier architecture drafts covering experimental modules moved to quarantine are preserved unmodified in [`archive/v4-experimental/docs-grafo-concierge/`](../archive/v4-experimental/docs-grafo-concierge/).
 
 ---
 
-## 🧭 Documentation Index
+## 1. Active V4 Core Architecture
 
-| Guide | Description | Target Audience |
+Concierge Graph is organized around six live Python packages plus the root entrypoint (`main.py`):
+
+| Layer | Modules | Responsibility |
 | :--- | :--- | :--- |
-| [**`01_ARCHITECTURE.md`**](01_ARCHITECTURE.md) | High-level system architecture, complete Pillars 1 to 22: Hierarchical State Machine (`core/hsm_engine.py`), Rate Governor quotas & 3-tier freezing (`core/rate_governor.py`), Adaptive Gating (`core/gating_interceptor.py`), Next.js 16 Passive Observability Cockpit, and core survival engine. | Core Contributors & Architects |
-| [**`02_MCP_TOOLS_REFERENCE.md`**](02_MCP_TOOLS_REFERENCE.md) | Complete, exhaustive catalog of all **30 native MCP Tools** plus the **HSM Hierarchical State Disclosure Matrix (SDD-21 / SDD-25)** with runtime sensitivity gating (`READ_ONLY`, `LOCAL_MUTATION`, `DANGEROUS`). | AI Agents, Prompt Engineers & IDE Users |
-| [**`03_COGNITIVE_MEMORY_AND_FACTS.md`**](03_COGNITIVE_MEMORY_AND_FACTS.md) | Deep dive into bi-temporal fact invalidation (`t_valid` / `t_invalid`), `SemanticExtractor` (ADD/UPDATE/DELETE/NOOP), Scoped Core Memory, Zero-NumPy Thompson Sampling, Durable FSM Checkpoints, and `HSMStateContext` Deep History Node integration. | ML / AI Engineers |
-| [**`04_INGESTION_AND_AST.md`**](04_INGESTION_AND_AST.md) | Multilanguage AST Parsing (`ParserFactory` for Python, TypeScript & JavaScript), Structural Semantic Alias Tracking (`core/alias_tracker.py`), Early-Exit Reactive Watcher (`.conciergeignore`), and Dual-Hash Delta Sync (SSH + LBH) with runtime drift checks on HSM session resume. | Backend Engineers & Ingestion Devs |
-| [**`05_HYBRID_SEARCH_AND_ROUTING.md`**](05_HYBRID_SEARCH_AND_ROUTING.md) | Hybrid Search v4 tri-signal scoring, Query-Time Self-Healing, Local GraphRAG recursive multi-hop traversal with cycle guards, JIT Intent Classifier in 3 layers, Federated Knowledge Router, and Rate Governor search priority triage. | Search & Retrieval Engineers |
-| [**`06_DEPLOY_AND_CONFIGURATION.md`**](06_DEPLOY_AND_CONFIGURATION.md) | Environment variables reference, Unified Concurrent DX (`npm run dev:all`), all **15 FastAPI REST & SSE Telemetry Endpoints** (`/api/telemetry/*`, `/api/governor/*`, `/api/hsm/*`, `/api/gating/*`), Next.js 16 Cockpit integration, Docker Compose, and Tailscale remote access. | DevOps, Sysadmins & Developers |
-| [**`07_MIGRATION_AND_OPERATIONS.md`**](07_MIGRATION_AND_OPERATIONS.md) | Background Janitor, Vector Reconciler, Hardware-Aware SLM Summarization, Smart Checkpoint Pruning, Cognitive Time-Travel, HSM Session Recovery runbooks, and Master Test Audit with all **326 unit & integration tests**. | Operators & Developers |
+| **Entrypoint** | `main.py` (`concierge-mcp`) | Loads environment variables, initializes SQLite/Vector/Ingestion/Facade, and starts the MCP server (`stdio` default, or `sse` on port `8000`). |
+| **Core Facade & Logic** | `core/middleware.py`, `core/hybrid_search.py`, `core/graph_rag.py`, `core/checkpointer.py`, `core/mcp_governor.py`, `core/memory_extractor.py`, `core/project_index.py`, `core/vector_backend.py`, `core/config.py`, `core/database.py` | Central `GrafoConcierge` facade, tri-signal Hybrid Search v4, recursive `calls` traversal via SQLite CTEs, durable agent checkpoints (`agent_checkpoints`), progressive MCP tool governance (`MCPToolGovernor`), semantic fact extraction, and optional Qdrant adapter. |
+| **Storage** | `storage/schema.py`, `storage/store.py`, `storage/connection.py`, `storage/logic.py`, `storage/semantic_logic.py`, `storage/vector_store.py`, `storage/base_backend.py` | SQLite WAL persistence, FTS5 full-text index, schema management, embedding manager (`sentence-transformers`), and ChromaDB default vector store. |
+| **Ingestion** | `ingestion/crawler.py`, `ingestion/parser.py`, `ingestion/orchestrator.py`, `ingestion/summarizer.py` | Directory crawling, Python AST chunking, vector reconciliation/repair during mining, and optional L0/L1/L2 LLM summarization. |
+| **Services** | `services/janitor.py` | Background and on-demand orphan vector cleanup and reconciliation (`JanitorService`). |
+| **Interface** | `interface/mcp_server.py`, `interface/cli.py` | FastMCP server exposing **31 governed MCP tools** and the `concierge` CLI with **10 subcommands**. |
+| **Scripts** | `scripts/bootstrap_core_memory.py` | Utility bootstrap script for initial memory seeding. |
 
 ---
 
-## ⚡ Quick Architecture Overview
+## 2. MCP Tools Reference (31 Live Tools)
 
-```
- ┌─────────────────────────────────────────────────────────┐
- │            MCP Clients (Claude Desktop / Cursor)        │
- │            Next.js 16 Observability Cockpit (Grid 2x2)  │
- └────────────────────────────┬────────────────────────────┘
-                              │  FastMCP (stdio / SSE) & FastAPI REST/SSE
-                              ▼
- ┌─────────────────────────────────────────────────────────┐
- │ 🌐 INTERFACE & GOVERNANCE LAYER                         │
- │ - interface/mcp_server.py (30 Native Cognitive Tools)   │
- │ - core/mcp_governor.py (Progressive Tool Disclosure)    │
- │ - core/rate_governor.py (60s Quotas: 60 RPM / 40k TPM)  │
- │ - core/gating_interceptor.py (Adaptive Gating Intercept)│
- │ - interface/telemetry_api.py (15 REST routes + SSE)     │
- │ - grafo-dashboard-web/ (Passive Cockpit 2x2: ForceGraph,│
- │   SVG Radial Gauges, HSM Inspector, Cyber Console Feed) │
- └────────────────────────────┬────────────────────────────┘
-                              │
-                              ▼
- ┌─────────────────────────────────────────────────────────┐
- │ 🧠 core/ Engine & Cognitive Slices (Pillars 1 to 22):   │
- │ - HierarchicalStateMachine (Super & Sub-States + H*)    │
- │ - HermesAgentRunner (Cognitive Execution Loop + HSM)    │
- │ - RateGovernor (High/Med/Low Priority Freezing Tiers)   │
- │ - SerializedWriteQueue (Auto-Batching + Fallback WAL)   │
- │ - IntentClassifier (JIT Regex + SQLite + Ollama SLM)    │
- │ - FederatedKnowledgeRouter (Local GraphRAG vs Fed MCP)  │
- │ - GlobalMemoryAdapter (Hybrid Context: LTM + Last 3 STM)│
- │ - DeltaManager (SSH Signature & LBH Semantic Drift)     │
- │ - AliasTracker (Atomic File Rename via Structural Hash) │
- │ - ParserFactory (Polyglot: Python, TS, TSX, JS, JSX)   │
- │ - HybridSearchEngine (Query-Time Self-Healing)          │
- │ - VectorReconciler (Background Orphan Expurging)        │
- │ - GraphRAGEngine (Supernode Filter + CTE Cycle Guards)  │
- │ - BackgroundJanitor (Hardware-Aware SLM + Smart LRU)    │
- │ - AgnosticCheckpointer (Durable Checkpoints & TimeTravel│
- │ - ThompsonRetriever (Zero-NumPy Bayesian Sampling)      │
- └─────────────┬─────────────────────────────┬─────────────┘
-               │                             │
-               ▼                             ▼
- ┌───────────────────────────┐ ┌───────────────────────────┐
- │ 📥 Ingestion & Watcher    │ │ 💾 Storage & Vector       │
- │ - Early-Exit File Watcher │ │ - SQLite WAL Engine       │
- │ - Polyglot Parser Factory │ │ - storage/relational_db.py│
- │ - Tree-sitter & Lexical   │ │ - ChromaDB / Qdrant       │
- └───────────────────────────┘ └───────────────────────────┘
-```
+All **31 MCP tools** registered in `interface/mcp_server.py` are classified in `core/mcp_governor.py` (`TOOL_CLASSIFICATION`) and governed by `MCPToolGovernor` with fail-closed defaults for unclassified names:
+
+### `READ_ONLY` (18 tools)
+- **Retrieval & Context:** `concierge_search`, `concierge_resume`, `concierge_load`, `concierge_status`, `concierge_list_projects`, `concierge_list_facts`, `concierge_get_memory`
+- **Graph & Code Symbols:** `get_full_topology`, `get_trajectories`, `find_similar`, `search_symbols`, `get_implementations`, `get_callers`, `concierge_get_call_chain`, `count_embeddings`
+- **Governance & Checkpoints:** `concierge_set_state`, `agent_get_checkpoint`, `agent_list_checkpoints`
+
+### `LOCAL_MUTATION` (11 tools)
+- **Project & Ingestion:** `concierge_register`, `concierge_mine`, `update_project`, `add_reference_wing`, `remove_reference_wing`
+- **Memory & Facts:** `concierge_commit`, `concierge_wakeup`, `concierge_store_fact`, `concierge_set_memory`, `concierge_feedback`
+- **Checkpoints:** `agent_save_checkpoint`
+
+### `DANGEROUS` (2 tools)
+- **Destructive Operations:** `delete_project`, `reset_collection`
+
+---
+
+## 3. CLI Reference (`concierge` — 10 Subcommands)
+
+Installed via `pyproject.toml` (`concierge = "interface.cli:main"`), or run with `python -m interface.cli <command>`:
+
+| Subcommand | Description |
+| :--- | :--- |
+| `register` | Registers a new project with free-form primary wing and privacy level |
+| `mine` | Ingests a project directory (crawl, Python AST parse, SQLite + vector indexing) |
+| `search` | Runs Hybrid Search v4 against a project or wing scope |
+| `wakeup` | Reactivates project context (Context Compass, reference wings, recent commits) |
+| `resume` | Returns concise macro summary of project context |
+| `commit` | Records an audited memory commit in the project ledger |
+| `load` | Lazy-loads full details and edges for a specific node ID |
+| `status` | Prints system and project health statistics |
+| `projects` | Lists all registered projects |
+| `sync-vector` | Reconciles missing or orphan embeddings in the active vector backend |
+
+---
+
+## 4. Configuration & Storage Notes
+
+- **Environment variables:** Copy `.env.example` to `.env`. LLM summarization is optional (`GRAFO_LLM_MODEL=none` disables it; non-`gemini-*` models require an explicit `GRAFO_LLM_PROVIDER` or LLM remains disabled for safety).
+- **Domain neutrality:** Wings are strictly free-form user/agent strings (`tests/test_domain_neutrality_guard.py`). Mining never mutates `primary_wing`.
+- **Probabilistic retrieval:** `enable_probabilistic=True` in `HybridSearchEngine.search()` raises `NotImplementedError` explicitly (archived under `archive/v4-experimental/`).
+- **Packaging & Docker:** Core runtime depends on 5 direct packages (`chromadb`, `mcp>=1.27,<2`, `sentence-transformers`, `python-dotenv`, `starlette`). `.dockerignore` excludes archives, audits, tests, local databases, and secrets from container build contexts.

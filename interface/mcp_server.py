@@ -12,22 +12,21 @@ v3.8.1 DRY REFACTOR: Extracted @_mcp_handler decorator eliminating timing/
 error boilerplate duplicated across 24 handler methods. Added _validate_scope()
 and aligned _handle_mine with _resolve_project_identifier().
 
-Tools exposed (6 tools — aligned with Architecture v3.8):
-    concierge_mine     → Project ingestion (crawl → parse → store)
-    concierge_search   → Hybrid Search v4 with Strict Scoping
-    concierge_commit   → Audited alterations registration
-    concierge_wakeup   → Consciousness reactivation (Compass + Wings)
-    concierge_resume   → Context Compass (concise summary)
-    concierge_load     → Lazy Load of a node on demand
-    concierge_status   → System health and statistics
-    concierge_store_fact  → Write semantic facts (via SemanticExtractor)
-    concierge_list_facts  → Read active semantic facts for a scope
-
-    SDD-08 Extensions (Standalone module-level functions):
-    agent_save_checkpoint      → Persist agent state (AgnosticCheckpointer)
-    agent_get_checkpoint       → Retrieve agent state (AgnosticCheckpointer)
-    agent_list_checkpoints     → Time-Travel timeline (AgnosticCheckpointer)
-    concierge_get_call_chain   → Recursive call chain (GraphRAGEngine)
+Tools exposed (31 MCP tools — governed by MCPToolGovernor):
+    Core memory & lifecycle:
+        concierge_register, concierge_mine, concierge_search, concierge_commit,
+        concierge_wakeup, concierge_resume, concierge_load, concierge_status,
+        concierge_feedback, concierge_list_projects, update_project, delete_project
+    Graph, topology & symbol intelligence:
+        get_full_topology, get_trajectories, find_similar, search_symbols,
+        get_implementations, get_callers, concierge_get_call_chain,
+        add_reference_wing, remove_reference_wing
+    Semantic facts, memory & vectors:
+        concierge_store_fact, concierge_list_facts, concierge_set_memory,
+        concierge_get_memory, count_embeddings, reset_collection
+    Governance & durable checkpoints:
+        concierge_set_state, agent_save_checkpoint, agent_get_checkpoint,
+        agent_list_checkpoints
 
 Architecture:
     This module is ONLY the MCP bridge ↔ Central Facade.

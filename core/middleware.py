@@ -10,7 +10,6 @@ into a clean, project-oriented public API.
 Consumers of this class:
     - interface/mcp_server.py (MCP Server → Claude Desktop, Cursor)
     - interface/cli.py (Command Line Interface)
-    - interface/action_hooks.py (Operational Modules)
     - Integration tests
 
 Public methods:

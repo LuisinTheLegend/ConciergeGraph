@@ -5,6 +5,24 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### Rodada 4.5g — Governança MCP, Empacotamento/Docker e Documentação Viva
+
+- **Governança MCP (`core/mcp_governor.py`):**
+  - Removidas 10 ferramentas fantasma de `TOOL_CLASSIFICATION`, reduzindo o catálogo de 41 para exatamente as **31 ferramentas vivas** registradas em `interface/mcp_server.py` (`18 READ_ONLY`, `11 LOCAL_MUTATION`, `2 DANGEROUS`: `delete_project`, `reset_collection`).
+  - Zerado `"allowed_tools": []` nos 7 estados da `TOOL_DISCLOSURE_MATRIX` que ainda listavam `"get_telemetry_snapshot"`, preservando as 8 chaves de estado, `BL-011` e `BL-015`.
+  - Endurecidos os contratos em `tests/test_interface_contracts.py` (igualdade estrita `registered == classified` e isolamento do `_shared_governor`), `tests/test_mcp_governor.py` (cobertura fail-closed independente em `filter_tools` e `validate_tool_execution`) e `tests/test_governor_wiring.py` (validação de `governed_list_tools` e ausência de imports de `archive/`).
+- **Dependências, `.dockerignore` e `Dockerfile`:**
+  - Criado `.dockerignore` na raiz excluindo `.git/`, `.venv*/`, `archive/`, `audits/`, `scratch/`, `tests/`, `data/`, `.env`, `docs-grafo-concierge/`, `grafo-dashboard-web/` e artefatos locais, preservando `README.md`, `LICENSE`, `pyproject.toml`, `requirements.txt`, `main.py` e os 6 pacotes vivos.
+  - Podadas 9 dependências dormentes ou transitivas de `[project].dependencies` em `pyproject.toml` e `# Core System & Framework` em `requirements.txt` (`fastapi`, `watchdog`, `pathspec`, `psutil`, `uvicorn`, `sse-starlette`, `httpx`, `pydantic`, `tenacity`), mantendo as 5 dependências diretas vivas (`chromadb`, `mcp>=1.27,<2`, `sentence-transformers`, `python-dotenv`, `starlette`), e movido `rich>=13.0` para `[dev]` / `# Test & Quality Tools`.
+  - Atualizadas as URLs em `[project.urls]` de `GrafoConcierge` para `ConciergeGraph` (mantendo `version = "3.8.2"`).
+  - Corrigida a ordem no `Dockerfile` (`COPY requirements.txt ./` → `pip install -r requirements.txt` → `COPY . .` → `pip install --no-cache-dir -e .`) para garantir que todos os 6 pacotes vivos sejam mapeados no editable install e preservar o cache de camadas.
+- **Documentação Viva e `.env.example`:**
+  - Arquivados via `git mv` os 8 documentos legados de `docs-grafo-concierge/` em `archive/v4-experimental/docs-grafo-concierge/` e criado novo `docs-grafo-concierge/README.md` refletindo o núcleo vivo V4.
+  - Reescritos `README.md`, `README.pt-BR.md` e `CONTRIBUTING.md` removendo referências ativas a módulos em quarentena, alinhando contagem de ferramentas (**31 MCP tools**), testes (**335 testes**), URLs (`ConciergeGraph`) e nota honesta sobre a versão `3.8.2` publicada no PyPI.
+  - Adicionada coluna de status (Ativo vs Quarentena) em `ATTRIBUTION_AND_LINEAGE.md`, limpo `.env.example` (preservando `# GRAFO_LLM_PROVIDER=gemini` comentado e aviso `gemini-` / `disabled`) e corrigidas docstrings em `interface/__init__.py`, `interface/mcp_server.py` e `core/middleware.py`.
+
+---
+
 ### Quebras de Compatibilidade (Breaking Changes) — Desacoplamento de Domínio ([F4-030])
 
 Em conformidade com o propósito central do **Grafo Concierge** (ser uma ferramenta de memória neutra quanto a domínio, confiável e honesta sobre o que sabe e o que não sabe), a Rodada 4.4 eliminou taxonomias fixas hardcoded e heurísticas de autocategorização que alteravam arbitrariamente a categorização definida pelo usuário.

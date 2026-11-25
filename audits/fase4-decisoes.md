@@ -174,3 +174,36 @@ Registros da execução em 3 lotes (`4.5d-A`, `4.5d-B`, `4.5d-C`):
   3. Valores `float('nan')` / `float('inf')` em `json.dumps` / `_sanitize_for_json`.
   4. Casos de borda extras em `tests/test_call_chain_edges_nodes.py` e `agent_list_checkpoints` (propostos originalmente pelo Swarm na Rodada `4.5e`).
 
+---
+
+## 7. Rodada 4.5g — Governança, Dependências/Docker e Documentação Viva (2026-11-24)
+
+Encerramento da série `4.5` (D4, D7, D8 de `audits/egm/4.5b-sintese.md`), executado em 4 commits atômicos com validação em CI (6/6 jobs) a cada etapa:
+
+- **Revisão Pré-Execução EGM + Swarm — Commit C0 (`cb195f84bfa1b636a41f48281471e82655eee25f`):**
+  - Produzidos `audits/egm/4.5g-{fatos,design,critic,sintese}.md` em modo 100% somente leitura cobrindo exclusivamente C1 e C2 (C3 excluído do Swarm conforme pedido).
+  - **Convergência integral:** 0 bloqueios que exigissem `DECISÃO HUMANA`.
+- **Governança MCP — Commit C1 (`a531739e02d153719dd9352eca5b1f36194735b6`):**
+  - `core/mcp_governor.py`: removidas 10 entradas fantasma de `TOOL_CLASSIFICATION` (`41 -> 31` ferramentas vivas: `18 READ_ONLY`, `11 LOCAL_MUTATION`, `2 DANGEROUS`: `delete_project` e `reset_collection`), zerado `"allowed_tools": []` nos 7 estados de `TOOL_DISCLOSURE_MATRIX` que ainda citavam `"get_telemetry_snapshot"`, e atualizado exemplo de docstring.
+  - Preservadas as 8 chaves de `TOOL_DISCLOSURE_MATRIX`, `BL-011` (`concierge_set_state` permanece `READ_ONLY`) e `BL-015` (`GRAFO_DEFAULT_STATE = "EXECUTION"`).
+  - Endurecidos `tests/test_mcp_governor.py`, `tests/test_interface_contracts.py` (`registered == classified` e isolamento de `_shared_governor`) e `tests/test_governor_wiring.py` (incluindo novo `T5` para `governed_list_tools`). Todas as 6 mutações (M1–M5a/M5b) mortas; suíte ampliada de 328 para **335 testes**.
+- **Dependências, `.dockerignore` e `Dockerfile` — Commit C2 (`30fa1c3740b4f039b2362cedf5e9ca80b399be89`):**
+  - Criado `.dockerignore` isolando o contexto de build (12 entradas top-level incluídas, 38 excluídas, 0 arquivos Python vivos ignorados).
+  - Reduzido `[project].dependencies` em `pyproject.toml` e `# Core System & Framework` em `requirements.txt` para exatamente as **5 dependências diretas vivas** (`chromadb>=1.0`, `mcp>=1.27,<2`, `sentence-transformers>=3.0`, `python-dotenv>=1.0`, `starlette>=0.36`); removidas 9 dependências dormentes/transitivas (`fastapi`, `watchdog`, `pathspec`, `psutil`, `uvicorn`, `sse-starlette`, `httpx`, `pydantic`, `tenacity`); movido `rich>=13.0` para `[dev]` / `# Test & Quality Tools`.
+  - Atualizadas `[project.urls]` em `pyproject.toml` para `ConciergeGraph`, mantendo `version = "3.8.2"` inalterada (sem publicação no PyPI).
+  - Ajustado `Dockerfile:10-17` (`COPY requirements.txt ./` -> `pip install -r requirements.txt` -> `COPY . .` -> `pip install --no-cache-dir -e .`), mantendo `-e .` por ancoragem de `PROJECT_ROOT` em `main.py:47` e `interface/cli.py:60`.
+  - Validado por *smoke install* em venv 100% limpo fora do repositório (`fastapi`/`watchdog`/`pathspec`/`psutil` ausentes com `PackageNotFoundError`, `concierge --help` exit 0, `concierge-mcp -> main:main`, `GrafoConciergeServer` com 31 tools e `sse_app()` Starlette).
+- **Documentação Viva — Commit C3:**
+  - Arquivados via `git mv` os 8 arquivos legados de `docs-grafo-concierge/` em `archive/v4-experimental/docs-grafo-concierge/` e criado novo `docs-grafo-concierge/README.md`.
+  - Atualizados `README.md`, `README.pt-BR.md`, `CONTRIBUTING.md`, `ATTRIBUTION_AND_LINEAGE.md`, `CHANGELOG.md`, `.env.example`, `interface/__init__.py`, `interface/mcp_server.py` (apenas docstring) e `core/middleware.py` (apenas docstring).
+  - **Escolha B (`interface/queue_writer.py` e `core/database.py`):** reafirmada **ADIADA para V4.1** (`0 bytes` alterados em toda a 4.5g).
+- **Propostas ao Auditor registradas na 4.5g (NÃO implementadas — Regra 15a/15b; detalhamento em `audits/egm/4.5g-sintese.md`):**
+  1. Runtime Docker (`ENV GRAFO_TRANSPORT=sse`, `USER` não-root, `healthcheck` real em `docker-compose.yml` sem `curl`/`|| exit 0` e remoção de `version: '3.8'`).
+  2. Separação de `requirements.txt` (produção pura) vs `requirements-dev.txt` e inclusão de `pytest-timeout>=2.2.0`.
+  3. Extras opcionais em `pyproject.toml`: `[gemini]` dedicado, `packaging` em `[dev]` e `tree_sitter` (`F4-014`).
+  4. Suporte a `--help` / argumentos CLI em `main.py` (`concierge-mcp`).
+  5. Governança MCP além de BL-011/BL-015: `governed_list_tools(session_id=None)`, validação de `GRAFO_DEFAULT_STATE` inválido no `__init__`, e avaliação de redução de `TOOL_DISCLOSURE_MATRIX` de 8 para 3 estados.
+  6. Guardas de empacotamento em `tests/test_wheel_integrity.py` e `tests/test_dependency_pins.py` (bloquear retorno de pacotes dormentes).
+  7. Higiene local de diretórios órfãos com apenas `__pycache__` (`agent/`, `agents/`, `core/parsers/`).
+
+
