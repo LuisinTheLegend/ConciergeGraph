@@ -224,10 +224,11 @@ class AgnosticCheckpointer:
         Returns {} if checkpoint does not exist (agnostic fail-safe).
         """
         self._verify_namespace_ownership(agent_id, session_id, owner_token)
+        caller_hash = self._hash_owner_token(owner_token)
         rows = self.db_manager.read_query(
             "SELECT state_blob FROM agent_checkpoints "
-            "WHERE agent_id = ? AND session_id = ? AND checkpoint_id = ?;",
-            (agent_id, session_id, checkpoint_id),
+            "WHERE agent_id = ? AND session_id = ? AND checkpoint_id = ? AND owner_hash = ?;",
+            (agent_id, session_id, checkpoint_id, caller_hash),
         )
         if not rows:
             return {}
@@ -253,11 +254,12 @@ class AgnosticCheckpointer:
         Returns list of dicts with checkpoint_id and created_at.
         """
         self._verify_namespace_ownership(agent_id, session_id, owner_token)
+        caller_hash = self._hash_owner_token(owner_token)
         rows = self.db_manager.read_query(
             "SELECT checkpoint_id, created_at FROM agent_checkpoints "
-            "WHERE agent_id = ? AND session_id = ? "
+            "WHERE agent_id = ? AND session_id = ? AND owner_hash = ? "
             "ORDER BY created_at ASC, rowid ASC;",
-            (agent_id, session_id),
+            (agent_id, session_id, caller_hash),
         )
         return [
             {"checkpoint_id": row[0], "created_at": row[1]}

@@ -453,3 +453,84 @@ def test_mcp_http_sse_decoupled_agent_token_and_ephemeral_isolation(tmp_path, mo
             )
     finally:
         store.close()
+
+
+def test_read_toctou_get_checkpoint_never_leaks_victim_row(tmp_path):
+    """Fecha janela read-TOCTOU em get_checkpoint entre pre-check vazio e leitura do blob."""
+    db_path = tmp_path / "bl012_toctou_get.db"
+    store, db_mgr, cp = _make_db_and_cp(db_path)
+    try:
+        victim_tok = "test-owner-token-victim-toctou"
+        attacker_tok = "test-owner-token-attacker-toctou"
+        victim_hash = hashlib.sha256(victim_tok.encode("utf-8")).hexdigest()
+
+        orig_read_query = db_mgr.read_query
+        race_injected = False
+
+        def _racy_read_query(query: str, params: tuple = ()):
+            nonlocal race_injected
+            rows = orig_read_query(query, params)
+            if not race_injected and "DISTINCT owner_hash" in query:
+                race_injected = True
+                assert rows == []
+                with sqlite3.connect(str(db_path)) as conn:
+                    conn.execute(
+                        "INSERT INTO agent_checkpoints "
+                        "(agent_id, session_id, checkpoint_id, state_blob, owner_hash) "
+                        "VALUES (?, ?, ?, ?, ?);",
+                        ("ag-race", "sess-race", "cp-1", json.dumps({"secret": "victim-race-data"}), victim_hash),
+                    )
+                    conn.commit()
+            return rows
+
+        db_mgr.read_query = _racy_read_query
+        got = cp.get_checkpoint("ag-race", "sess-race", "cp-1", owner_token=attacker_tok)
+        assert got == {}
+        assert race_injected is True
+
+        db_mgr.read_query = orig_read_query
+        assert cp.get_checkpoint("ag-race", "sess-race", "cp-1", owner_token=victim_tok) == {
+            "secret": "victim-race-data"
+        }
+    finally:
+        store.close()
+
+
+def test_read_toctou_list_checkpoints_never_leaks_victim_row(tmp_path):
+    """Fecha janela read-TOCTOU em list_checkpoints entre pre-check vazio e listagem."""
+    db_path = tmp_path / "bl012_toctou_list.db"
+    store, db_mgr, cp = _make_db_and_cp(db_path)
+    try:
+        victim_tok = "test-owner-token-victim-toctou-list"
+        attacker_tok = "test-owner-token-attacker-toctou-list"
+        victim_hash = hashlib.sha256(victim_tok.encode("utf-8")).hexdigest()
+
+        orig_read_query = db_mgr.read_query
+        race_injected = False
+
+        def _racy_read_query(query: str, params: tuple = ()):
+            nonlocal race_injected
+            rows = orig_read_query(query, params)
+            if not race_injected and "DISTINCT owner_hash" in query:
+                race_injected = True
+                assert rows == []
+                with sqlite3.connect(str(db_path)) as conn:
+                    conn.execute(
+                        "INSERT INTO agent_checkpoints "
+                        "(agent_id, session_id, checkpoint_id, state_blob, owner_hash) "
+                        "VALUES (?, ?, ?, ?, ?);",
+                        ("ag-race", "sess-race", "cp-secret", json.dumps({"s": 1}), victim_hash),
+                    )
+                    conn.commit()
+            return rows
+
+        db_mgr.read_query = _racy_read_query
+        listed = cp.list_checkpoints("ag-race", "sess-race", owner_token=attacker_tok)
+        assert listed == []
+        assert race_injected is True
+
+        db_mgr.read_query = orig_read_query
+        victim_list = cp.list_checkpoints("ag-race", "sess-race", owner_token=victim_tok)
+        assert [row["checkpoint_id"] for row in victim_list] == ["cp-secret"]
+    finally:
+        store.close()

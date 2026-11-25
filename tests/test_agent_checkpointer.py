@@ -12,12 +12,15 @@ Validates four isolation and integrity contracts:
 Integrates with the live concurrency infrastructure (SDD-02).
 """
 
-import unittest
-import os
-import sys
 import importlib
-import tempfile
 import json
+import os
+import sqlite3
+import sys
+import tempfile
+import unittest
+
+from storage.schema import SchemaManager
 
 
 # ── Surgical Import: loads modules directly without triggering package __init__.py ──
@@ -62,22 +65,14 @@ class TestAgnosticCheckpointerAndTimeTravel(unittest.TestCase):
     def setUp(self):
         self.db_fd, self.db_path = tempfile.mkstemp(suffix=".db")
 
+        # Apply official schema via SchemaManager before starting queue_writer
+        with sqlite3.connect(self.db_path) as conn:
+            SchemaManager(conn).apply_full_schema()
+
         # Initialize Phase 1 synchronous concurrency infrastructure
         self.write_queue = SerializedWriteQueue(self.db_path)
         self.write_queue.start()
         self.db_manager = ConciergeDatabaseManager(self.db_path, self.write_queue)
-
-        # Ensure creation of the agent_checkpoints table in SQLite WAL
-        self.db_manager.write_query(
-            "CREATE TABLE IF NOT EXISTS agent_checkpoints ("
-            "agent_id TEXT, "
-            "session_id TEXT, "
-            "checkpoint_id TEXT, "
-            "state_blob TEXT, "
-            "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-            "PRIMARY KEY (agent_id, session_id, checkpoint_id)"
-            ");"
-        )
 
         # Initialize the agnostic checkpointer
         self.checkpointer = AgnosticCheckpointer(self.db_manager)
