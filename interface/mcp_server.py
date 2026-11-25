@@ -37,6 +37,7 @@ Architecture:
 from __future__ import annotations
 
 import functools
+import hmac
 import logging
 import os
 import secrets
@@ -195,22 +196,28 @@ class GrafoConciergeServer:
                 origins = ["*"]
 
             # 1. API Key Authentication Middleware (if configured)
-            if api_key:
-                @app.middleware("http")
+            if api_key and str(api_key).strip():
+                from starlette.middleware.base import BaseHTTPMiddleware
+
+                expected_key = str(api_key).strip()
+
                 async def auth_middleware(request, call_next):
-                    # Check Authorization header (Bearer token) or query param ?token=
+                    # Validate exclusively Authorization: Bearer <key> in constant time
                     auth_header = request.headers.get("Authorization", "")
-                    token_param = request.query_params.get("token", "")
-                    
                     is_valid = False
-                    if auth_header.startswith("Bearer "):
-                        is_valid = (auth_header[7:].strip() == api_key)
-                    elif token_param:
-                        is_valid = (token_param.strip() == api_key)
+                    if auth_header[:7].lower() == "bearer ":
+                        provided_tok = auth_header[7:].strip()
+                        if provided_tok:
+                            is_valid = hmac.compare_digest(
+                                provided_tok.encode("utf-8"),
+                                expected_key.encode("utf-8"),
+                            )
 
                     if not is_valid:
                         return JSONResponse({"error": "Unauthorized access to Grafo Concierge MCP"}, status_code=401)
                     return await call_next(request)
+
+                app.add_middleware(BaseHTTPMiddleware, dispatch=auth_middleware)
 
             # 2. CORS Middleware
             allow_creds = True if origins != ["*"] else False
@@ -285,29 +292,18 @@ class GrafoConciergeServer:
             if request_obj is not None:
                 headers = getattr(request_obj, "headers", None)
                 agent_hdr = ""
-                auth_hdr = ""
                 if headers is not None:
                     if hasattr(headers, "items") and isinstance(headers, dict):
                         lower_map = {str(k).lower(): str(v) for k, v in headers.items()}
                         agent_hdr = lower_map.get("x-grafo-agent-token", "").strip()
-                        auth_hdr = lower_map.get("authorization", "").strip()
                     else:
                         agent_hdr = str(
                             headers.get("X-Grafo-Agent-Token")
                             or headers.get("x-grafo-agent-token")
                             or ""
                         ).strip()
-                        auth_hdr = str(
-                            headers.get("Authorization")
-                            or headers.get("authorization")
-                            or ""
-                        ).strip()
                 if agent_hdr:
                     return agent_hdr
-                if auth_hdr.lower().startswith("bearer "):
-                    bearer_tok = auth_hdr[7:].strip()
-                    if bearer_tok:
-                        return bearer_tok
             else:
                 env_tok = os.environ.get("GRAFO_AGENT_TOKEN", "").strip()
                 if env_tok:

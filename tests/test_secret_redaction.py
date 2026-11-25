@@ -291,3 +291,20 @@ def test_r6_exception_args_side_effect_documented_and_preserves_non_secret_text(
     assert (prefix + "[REDACTED]" + suffix) in buf.getvalue()
 
 
+def test_r4b_exact_env_qdrant_api_key_value_is_redacted(monkeypatch: pytest.MonkeyPatch) -> None:
+    """GRAFO_QDRANT_API_KEY do ambiente (>= 8 chars) deve ser redigida em redact_log_secrets e nos logs."""
+    qdrant_secret = "test_qdrant_cluster_secret_987654"
+    monkeypatch.setenv("GRAFO_QDRANT_API_KEY", qdrant_secret)
+
+    assert qdrant_secret not in main_mod.redact_log_secrets(f"qdrant_key={qdrant_secret}")
+    assert "[REDACTED]" in main_mod.redact_log_secrets(f"qdrant_key={qdrant_secret}")
+
+    main_mod.setup_logging("INFO")
+    lg, buf, rh = _make_isolated_logger()
+    lg.error("Falha ao conectar ao Qdrant com credencial=%s", qdrant_secret)
+
+    for out_name, out_text in (("StreamHandler", buf.getvalue()), ("RichLikeHandler", "\n".join(rh.rendered))):
+        assert qdrant_secret not in out_text, f"GRAFO_QDRANT_API_KEY vazou em {out_name}"
+        assert "[REDACTED]" in out_text, f"[REDACTED] ausente em {out_name}"
+
+

@@ -347,8 +347,8 @@ def test_mcp_stdio_env_and_ephemeral_session_isolation(tmp_path, monkeypatch):
         store_ephem.close()
 
 
-def test_mcp_http_sse_header_precedence_bearer_and_ephemeral(tmp_path, monkeypatch):
-    """HTTP/SSE resolve X-Grafo-Agent-Token > Authorization: Bearer > segredo efêmero da sessão."""
+def test_mcp_http_sse_decoupled_agent_token_and_ephemeral_isolation(tmp_path, monkeypatch):
+    """HTTP/SSE lê exclusivamente X-Grafo-Agent-Token (sem fallback para Bearer) ou isola via segredo efêmero."""
     db_path = tmp_path / "bl012_mcp_sse.db"
     monkeypatch.delenv("GRAFO_AGENT_TOKEN", raising=False)
 
@@ -357,19 +357,33 @@ def test_mcp_http_sse_header_precedence_bearer_and_ephemeral(tmp_path, monkeypat
         sess1 = DummyTransportSession("sse-1")
         sess2 = DummyTransportSession("sse-2")
 
-        # 1. X-Grafo-Agent-Token tem precedência sobre Authorization: Bearer
+        # 1. X-Grafo-Agent-Token identifica o dono independentemente de Authorization: Bearer
         _call_with_req_ctx(
             server,
             sess1,
             SimpleNamespace(
                 headers={
                     "X-Grafo-Agent-Token": "test-sse-header-owner",
-                    "Authorization": "Bearer test-sse-bearer-other",
+                    "Authorization": "Bearer test-sse-bearer-client-a",
                 }
             ),
             "agent_save_checkpoint",
             {"agent_id": "sse_ag", "session_id": "sse_s1", "checkpoint_id": "cp1", "state_dict": {"sse": 1}},
         )
+
+        # Reconexão em outra sessão com mesmo X-Grafo-Agent-Token (e outro Bearer) recupera normalmente
+        assert _call_with_req_ctx(
+            server,
+            sess2,
+            SimpleNamespace(
+                headers={
+                    "X-Grafo-Agent-Token": "test-sse-header-owner",
+                    "Authorization": "Bearer test-sse-bearer-client-b",
+                }
+            ),
+            "agent_get_checkpoint",
+            {"agent_id": "sse_ag", "session_id": "sse_s1", "checkpoint_id": "cp1"},
+        ) == {"sse": 1}
 
         # Mesmo com Bearer igual, outro X-Grafo-Agent-Token não acessa
         with pytest.raises((PermissionError, ToolError)) as exc_info:
@@ -379,7 +393,7 @@ def test_mcp_http_sse_header_precedence_bearer_and_ephemeral(tmp_path, monkeypat
                 SimpleNamespace(
                     headers={
                         "X-Grafo-Agent-Token": "test-sse-header-attacker",
-                        "Authorization": "Bearer test-sse-bearer-other",
+                        "Authorization": "Bearer test-sse-bearer-client-a",
                     }
                 ),
                 "agent_get_checkpoint",
@@ -388,29 +402,38 @@ def test_mcp_http_sse_header_precedence_bearer_and_ephemeral(tmp_path, monkeypat
         if isinstance(exc_info.value, ToolError):
             assert isinstance(exc_info.value.__cause__, PermissionError)
 
-        # 2. Sem X-Grafo-Agent-Token, usa Authorization: Bearer
+        # 2. Decisão 2A (4.7): mesmo Authorization: Bearer SEM X-Grafo-Agent-Token NÃO compartilha posse
+        shared_bearer = "Bearer test-shared-sse-api-key-alpha"
         _call_with_req_ctx(
             server,
             sess1,
-            SimpleNamespace(headers={"Authorization": "Bearer test-sse-bearer-owner"}),
+            SimpleNamespace(headers={"Authorization": shared_bearer}),
             "agent_save_checkpoint",
             {"agent_id": "sse_ag", "session_id": "sse_s_bearer", "checkpoint_id": "cp1", "state_dict": {"b": 2}},
         )
         assert _call_with_req_ctx(
             server,
-            sess2,
-            SimpleNamespace(headers={"Authorization": "Bearer test-sse-bearer-owner"}),
+            sess1,
+            SimpleNamespace(headers={"Authorization": shared_bearer}),
             "agent_get_checkpoint",
             {"agent_id": "sse_ag", "session_id": "sse_s_bearer", "checkpoint_id": "cp1"},
         ) == {"b": 2}
-        with pytest.raises((PermissionError, ToolError)):
-            _call_with_req_ctx(
-                server,
-                sess2,
-                SimpleNamespace(headers={"Authorization": "Bearer test-sse-bearer-wrong"}),
-                "agent_list_checkpoints",
-                {"agent_id": "sse_ag", "session_id": "sse_s_bearer"},
-            )
+
+        for tool_name, tool_args in (
+            ("agent_get_checkpoint", {"agent_id": "sse_ag", "session_id": "sse_s_bearer", "checkpoint_id": "cp1"}),
+            ("agent_list_checkpoints", {"agent_id": "sse_ag", "session_id": "sse_s_bearer"}),
+            ("agent_save_checkpoint", {"agent_id": "sse_ag", "session_id": "sse_s_bearer", "checkpoint_id": "cp1", "state_dict": {"hijack": 1}}),
+        ):
+            with pytest.raises((PermissionError, ToolError)) as exc_info:
+                _call_with_req_ctx(
+                    server,
+                    sess2,
+                    SimpleNamespace(headers={"Authorization": shared_bearer}),
+                    tool_name,
+                    tool_args,
+                )
+            if isinstance(exc_info.value, ToolError):
+                assert isinstance(exc_info.value.__cause__, PermissionError)
 
         # 3. Sem nenhum header de token em SSE, isola por ServerSession efêmero
         _call_with_req_ctx(
