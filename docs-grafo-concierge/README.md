@@ -24,20 +24,25 @@ Concierge Graph is organized around six live Python packages plus the root entry
 
 ## 2. MCP Tools Reference (31 Live Tools)
 
-All **31 MCP tools** registered in `interface/mcp_server.py` are classified in `core/mcp_governor.py` (`TOOL_CLASSIFICATION`) and governed by `MCPToolGovernor` with fail-closed defaults for unclassified names:
+All **31 MCP tools** registered in `interface/mcp_server.py` are classified in `core/mcp_governor.py` (`TOOL_CLASSIFICATION`) and governed by `MCPToolGovernor` across a 3-state privilege hierarchy (`PLANNING < EXECUTION < MAINTENANCE`) with fail-closed defaults for unclassified names:
 
-### `READ_ONLY` (18 tools)
+### `READ_ONLY` (17 tools)
 - **Retrieval & Context:** `concierge_search`, `concierge_resume`, `concierge_load`, `concierge_status`, `concierge_list_projects`, `concierge_list_facts`, `concierge_get_memory`
 - **Graph & Code Symbols:** `get_full_topology`, `get_trajectories`, `find_similar`, `search_symbols`, `get_implementations`, `get_callers`, `concierge_get_call_chain`, `count_embeddings`
-- **Governance & Checkpoints:** `concierge_set_state`, `agent_get_checkpoint`, `agent_list_checkpoints`
+- **Checkpoints:** `agent_get_checkpoint`, `agent_list_checkpoints`
 
-### `LOCAL_MUTATION` (11 tools)
+### `LOCAL_MUTATION` (12 tools)
 - **Project & Ingestion:** `concierge_register`, `concierge_mine`, `update_project`, `add_reference_wing`, `remove_reference_wing`
-- **Memory & Facts:** `concierge_commit`, `concierge_wakeup`, `concierge_store_fact`, `concierge_set_memory`, `concierge_feedback`
+- **Memory & Governance:** `concierge_commit`, `concierge_set_state`, `concierge_wakeup`, `concierge_store_fact`, `concierge_set_memory`, `concierge_feedback`
 - **Checkpoints:** `agent_save_checkpoint`
 
 ### `DANGEROUS` (2 tools)
 - **Destructive Operations:** `delete_project`, `reset_collection`
+
+### Governance & Checkpoint Security Model
+- **Default state & ceiling:** `GRAFO_DEFAULT_STATE` defaults to `PLANNING` (least privilege: 17 `READ_ONLY` tools) and sets `max_state`. `concierge_set_state(state_name)` no longer accepts client `session_id`, operates strictly on the transport-bound session (`WeakKeyDictionary`), and cannot escalate above `max_state`.
+- **Discovery & parameter enforcement:** Both `FastMCP.list_tools` and low-level `ListToolsRequest` filter exposed tools by the active session state, while `governed_call_tool` rejects undeclared extra arguments before execution.
+- **Persistent checkpoint ownership:** `agent_checkpoints` stores SHA-256 `owner_hash` verified via `hmac.compare_digest` over `(agent_id, session_id)` on save, get, and list. MCP resolves the owner token from `X-Grafo-Agent-Token` / `Authorization: Bearer` (HTTP/SSE) or `GRAFO_AGENT_TOKEN` (`stdio`), falling back to an ephemeral per-`ServerSession` secret when unset.
 
 ---
 

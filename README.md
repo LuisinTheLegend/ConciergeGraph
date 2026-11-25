@@ -9,7 +9,7 @@ English · [Português (Brasil)](README.pt-BR.md)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
 [![Protocol MCP](https://img.shields.io/badge/Protocol-MCP-purple.svg)](https://modelcontextprotocol.io/)
 [![MCP Tools](https://img.shields.io/badge/MCP%20Tools-31-blue.svg)](docs-grafo-concierge/README.md)
-[![Tests Passing](https://img.shields.io/badge/Tests-335%20Passed-brightgreen.svg)](tests/)
+[![Tests Passing](https://img.shields.io/badge/Tests-347%20Passed-brightgreen.svg)](tests/)
 
 Concierge Graph is a local-first memory server built around the **Model Context Protocol (MCP)** that gives AI coding assistants (Cursor, Claude Desktop, and autonomous agents) persistent project memory, hybrid retrieval, recursive call-chain queries, durable agent checkpoints, and governed tool disclosure — backed by **SQLite WAL (with FTS5)** and pluggable vector storage (**ChromaDB** by default, optional **Qdrant**).
 
@@ -23,8 +23,8 @@ Concierge Graph is a local-first memory server built around the **Model Context 
 2. **Tri-Signal Hybrid Search v4 (`core/hybrid_search.py`)**: Blends dense vector similarity (`sentence-transformers` + ChromaDB/Qdrant), SQLite FTS5 BM25 lexical scoring, and topological/recency signals with strict project/wing scoping and query-time orphan vector filtering.
 3. **Python AST Ingestion & Self-Healing Vectors (`ingestion/`, `services/janitor.py`)**: Crawls repositories, extracts Python AST chunks and call edges, repairs missing embeddings during mining with honest failure reporting, and supports on-demand vector reconciliation (`concierge sync-vector`).
 4. **Recursive Call-Chain GraphRAG (`core/graph_rag.py`)**: Traverses multi-hop `calls` dependencies over SQLite `edges` using `WITH RECURSIVE` CTEs protected by strict pipe-delimited cycle guards (`|node|`).
-5. **Durable Agent Checkpoints (`core/checkpointer.py`)**: Persists and retrieves structured agent state dictionaries in `agent_checkpoints` via `agent_save_checkpoint`, `agent_get_checkpoint`, and `agent_list_checkpoints` with strict argument resolution and corrupt-JSON detection.
-6. **Progressive MCP Tool Disclosure (`core/mcp_governor.py`)**: Classifies all **31 live MCP tools** into `READ_ONLY` (18), `LOCAL_MUTATION` (11), and `DANGEROUS` (2), enforcing both discovery filtering (`filter_tools`) and runtime execution checks (`validate_tool_execution`) with fail-closed defaults for unclassified tools.
+5. **Durable Agent Checkpoints with Ownership Binding (`core/checkpointer.py`)**: Persists and retrieves structured agent state dictionaries in `agent_checkpoints` via `agent_save_checkpoint`, `agent_get_checkpoint`, and `agent_list_checkpoints` with strict argument resolution, corrupt-JSON detection, and SHA-256 `owner_hash` namespace verification (`GRAFO_AGENT_TOKEN` over `stdio`, or `X-Grafo-Agent-Token` / `Authorization: Bearer` over HTTP/SSE, falling back to an ephemeral per-`ServerSession` secret).
+6. **Least-Privilege MCP Governance (`core/mcp_governor.py`)**: Classifies all **31 live MCP tools** into `READ_ONLY` (17), `LOCAL_MUTATION` (12), and `DANGEROUS` (2) across a 3-state hierarchy (`PLANNING < EXECUTION < MAINTENANCE`), defaulting to `PLANNING` (`GRAFO_DEFAULT_STATE`) as a hard privilege ceiling (`max_state`). Sessions are bound server-side to the MCP transport (`WeakKeyDictionary`), undeclared tool arguments are rejected, and both `list_tools` (`ListToolsRequest`) and runtime execution enforce fail-closed governance filtering.
 7. **Domain Neutrality & Free-Form Wings**: Project wings are strictly user- or agent-defined free-form strings — no hardcoded business taxonomies exist in product code, enforced by AST guard tests (`tests/test_domain_neutrality_guard.py`).
 8. **Optional Lightweight Mode & Optional LLM Summaries**: Set `GRAFO_LIGHTWEIGHT_MODE=true` to operate without heavy vector models using SQLite FTS5 BM25, and `GRAFO_LLM_MODEL=none` to run fully offline without external LLM calls.
 
@@ -119,8 +119,8 @@ Concierge Graph is a local-first memory server built around the **Model Context 
 
 | Category | Count | Tools |
 | :--- | :---: | :--- |
-| **`READ_ONLY`** | 18 | `concierge_search`, `concierge_resume`, `concierge_load`, `concierge_status`, `concierge_list_projects`, `concierge_list_facts`, `concierge_get_memory`, `get_full_topology`, `get_trajectories`, `find_similar`, `search_symbols`, `get_implementations`, `get_callers`, `concierge_get_call_chain`, `count_embeddings`, `concierge_set_state`, `agent_get_checkpoint`, `agent_list_checkpoints` |
-| **`LOCAL_MUTATION`** | 11 | `concierge_register`, `concierge_mine`, `concierge_commit`, `concierge_wakeup`, `concierge_store_fact`, `concierge_set_memory`, `concierge_feedback`, `update_project`, `add_reference_wing`, `remove_reference_wing`, `agent_save_checkpoint` |
+| **`READ_ONLY`** | 17 | `concierge_search`, `concierge_resume`, `concierge_load`, `concierge_status`, `concierge_list_projects`, `concierge_list_facts`, `concierge_get_memory`, `get_full_topology`, `get_trajectories`, `find_similar`, `search_symbols`, `get_implementations`, `get_callers`, `concierge_get_call_chain`, `count_embeddings`, `agent_get_checkpoint`, `agent_list_checkpoints` |
+| **`LOCAL_MUTATION`** | 12 | `concierge_register`, `concierge_mine`, `concierge_commit`, `concierge_set_state`, `concierge_wakeup`, `concierge_store_fact`, `concierge_set_memory`, `concierge_feedback`, `update_project`, `add_reference_wing`, `remove_reference_wing`, `agent_save_checkpoint` |
 | **`DANGEROUS`** | 2 | `delete_project`, `reset_collection` |
 
 See [`docs-grafo-concierge/README.md`](docs-grafo-concierge/README.md) for architecture details and the full list of CLI subcommands.
@@ -129,7 +129,7 @@ See [`docs-grafo-concierge/README.md`](docs-grafo-concierge/README.md) for archi
 
 ## Testing & Verification
 
-The active V4 core is covered by **335 passing automated tests** (verified in normal and `--reverse` order, plus CI across Linux and Windows):
+The active V4 core is covered by **347 passing automated tests** (verified in normal and `--reverse` order, plus CI across Linux and Windows):
 
 ```bash
 python -m pytest tests/ -q

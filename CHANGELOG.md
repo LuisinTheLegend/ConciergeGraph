@@ -5,6 +5,21 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### Rodada 4.6 — Segurança de Fronteira e Governança MCP (BL-011, BL-012, BL-013, BL-014, BL-015)
+
+- **Teto de Privilégio e Governança de 3 Estados (`core/mcp_governor.py` — BL-011, BL-014, BL-015):**
+  - Alterado o estado padrão `GRAFO_DEFAULT_STATE` de `"EXECUTION"` para `"PLANNING"` (menor privilégio) e imposto o teto `max_state` (`PLANNING < EXECUTION < MAINTENANCE`) com exceção explícita `SecurityException(PermissionError)` em tentativas de escalonamento acima do teto; estados `default_state` / `max_state` inválidos falham imediatamente (`ValueError`) no `__init__`.
+  - Consolidada a `TOOL_DISCLOSURE_MATRIX` de 8 para **3 estados** (`PLANNING`, `EXECUTION`, `MAINTENANCE`, todos com `"allowed_tools": []`).
+  - Reclassificada `concierge_set_state` de `READ_ONLY` para `LOCAL_MUTATION` (`17 READ_ONLY / 12 LOCAL_MUTATION / 2 DANGEROUS`).
+- **Isolamento de Sessão por Transporte e Filtragem de `list_tools` (`interface/mcp_server.py` — BL-011, BL-013):**
+  - Removido o parâmetro `session_id` controlado pelo cliente em `concierge_set_state(state_name)` e vinculada a sessão de governança estritamente à instância de transporte MCP em `WeakKeyDictionary`.
+  - Implementada allowlist estrita de parâmetros em `governed_call_tool` (rejeitando argumentos extras não declarados e payloads não-`dict` antes da invocação) e dupla vinculação de `governed_list_tools()` em `self._mcp.list_tools` e no handler low-level `ListToolsRequest`.
+- **Propriedade Persistente em Checkpoints (`storage/schema.py`, `core/checkpointer.py`, `interface/mcp_server.py`, `main.py` — BL-012):**
+  - Adicionada coluna `owner_hash TEXT NOT NULL DEFAULT ''` à tabela `agent_checkpoints` com migração idempotente `ALTER TABLE` em bancos SQLite pré-existentes sem perda de dados.
+  - Aplicada verificação constante (`hmac.compare_digest` sobre SHA-256) no namespace `(agent_id, session_id)` em `save_checkpoint_detailed`, `save_checkpoint`, `get_checkpoint` e `list_checkpoints` com política *fail-closed* (`PermissionError`).
+  - Resolvido o token de posse pelo servidor MCP (`X-Grafo-Agent-Token` > `Authorization: Bearer` em HTTP/SSE; `GRAFO_AGENT_TOKEN` em `stdio`; fallback efêmero por `ServerSession` em `WeakKeyDictionary`) e adicionada `GRAFO_AGENT_TOKEN` à função `main.py::redact_log_secrets`.
+  - Cobertura de regressão ampliada para **347 testes aprovados** (incluindo `tests/test_mcp_security_governance.py` e `tests/test_checkpoint_ownership.py`).
+
 ### Rodada 4.5g — Governança MCP, Empacotamento/Docker e Documentação Viva
 
 - **Governança MCP (`core/mcp_governor.py`):**

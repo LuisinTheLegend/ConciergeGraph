@@ -206,4 +206,23 @@ Encerramento da série `4.5` (D4, D7, D8 de `audits/egm/4.5b-sintese.md`), execu
   6. Guardas de empacotamento em `tests/test_wheel_integrity.py` e `tests/test_dependency_pins.py` (bloquear retorno de pacotes dormentes).
   7. Higiene local de diretórios órfãos com apenas `__pycache__` (`agent/`, `agents/`, `core/parsers/`).
 
+---
+
+## 8. Rodada 4.6 — Segurança de Fronteira e Governança MCP (2026-11-25)
+
+Remediação integral da Track 3 (`BL-011`, `BL-012`, `BL-013`, `BL-014`, `BL-015`) e da Proposta #5 da Rodada `4.5g`, executada a partir do commit base `e5bd4e1b608d7ce99ad2c05c7a86b4ce0813688d` com CI 6/6 GREEN por etapa:
+
+- **Decisões Arquiteturais Homologadas pelo Humano:**
+  - **Decisão 1A (`BL-011` / `BL-015` — Teto de Privilégio + Sessão Vinculada ao Transporte):** `GRAFO_DEFAULT_STATE` passa de `"EXECUTION"` para `"PLANNING"` (menor privilégio). `MCPToolGovernor` impõe `max_state` (`PLANNING < EXECUTION < MAINTENANCE`) igual ao `default_state` configurado no boot, levantando `SecurityException(PermissionError)` em qualquer tentativa de elevação acima de `max_state`. `concierge_set_state(state_name)` passa para `LOCAL_MUTATION` sem parâmetro `session_id`. `governed_call_tool` nunca lê `arguments.get("session_id")` e rejeita argumentos extras não declarados no schema da ferramenta.
+  - **Decisão 2A (`BL-012` — Posse Persistente em Checkpoints):** Adicionada coluna `owner_hash TEXT NOT NULL DEFAULT ''` em `agent_checkpoints` (`storage/schema.py`) com migração idempotente `ALTER TABLE`. O servidor MCP resolve `owner_token` na ordem `X-Grafo-Agent-Token` -> `Authorization: Bearer` -> segredo efêmero em `WeakKeyDictionary` (HTTP/SSE), ou `GRAFO_AGENT_TOKEN` -> segredo efêmero (stdio). `core/checkpointer.py` verifica SHA-256 com `hmac.compare_digest` no namespace `(agent_id, session_id)` em `save`, `get` e `list` (política *fail-closed* sem adoção silenciosa de linhas legadas `owner_hash == ''` por chamadores autenticados), e `main.py::redact_log_secrets` passa a redigir `GRAFO_AGENT_TOKEN`.
+  - **Decisão 3A (`BL-013` — Filtragem de `list_tools`):** `governed_list_tools` filtra sempre pela sessão vinculada ao transporte e é registrada tanto em `self._mcp.list_tools` quanto em `self._mcp._mcp_server.list_tools()`.
+  - **Decisão 4A (`BL-014` + Proposta #5 da `4.5g`):** `TOOL_DISCLOSURE_MATRIX` consolidada para os 3 estados (`PLANNING`, `EXECUTION`, `MAINTENANCE`, todos com `"allowed_tools": []`); estados `default_state`/`max_state` inválidos levantam `ValueError` no `__init__`.
+- **Commits Executados na Rodada 4.6:**
+  - **C0 (`0cf527189d4d8e3e6b630e076577e0044b5f9ff4`):** Revisão pré-execução EGM + Swarm (`audits/egm/4.6-{fatos,design,critic,sintese}.md`). CI 6/6 GREEN.
+  - **C1 (`279f75189d4d8e3e6b630e076577e0044b5f9ff4`):** Governança de 3 estados, teto `max_state`, `PLANNING` padrão e reclassificação de `concierge_set_state` em `core/mcp_governor.py` (`17 READ_ONLY / 12 LOCAL_MUTATION / 2 DANGEROUS`; 5/5 mutantes mortos; 337 testes). CI 6/6 GREEN.
+  - **C2 (`e196005114e2f5c7d9018c642372d632a0af1bf7`):** Vínculo de sessão ao transporte (`WeakKeyDictionary`), remoção de `session_id` em `concierge_set_state`, allowlist estrita de kwargs e dupla vinculação de `list_tools` em `interface/mcp_server.py` + `tests/test_mcp_security_governance.py` (5/5 mutantes mortos; 342 testes). CI 6/6 GREEN.
+  - **C3 (`79afa2cca2abd4241742eecf1fbc75018e796cd4`):** Propriedade persistente `owner_hash` em `storage/schema.py`, `core/checkpointer.py`, `interface/mcp_server.py`, `main.py` + `tests/test_checkpoint_ownership.py` (5/5 mutantes mortos; 347 testes). CI 6/6 GREEN.
+  - **C4 (`docs(security)`):** Documentação viva (`.env.example`, `README.md`, `README.pt-BR.md`, `docs-grafo-concierge/README.md`, `CHANGELOG.md`, `audits/fase4-decisoes.md`) e relatório final `audits/relatorio_4_6.md`.
+
+
 
