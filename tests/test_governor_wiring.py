@@ -154,11 +154,13 @@ def test_t5_governed_list_tools_filters_by_explicit_session_id(tmp_path, monkeyp
         # Sessão explícita não-"default" mantendo "default" intocado
         sid = "sess_wiring_list"
         assert "default" not in server.governor.sessions_state
+        monkeypatch.setattr(server.governor, "max_state", "MAINTENANCE")
 
         server.governor.set_session_state(sid, "PLANNING")
         planning_names = {t.name for t in asyncio.run(server.mcp.list_tools(session_id=sid))}
-        assert len(planning_names) == 18
+        assert len(planning_names) == 17
         assert "get_full_topology" in planning_names
+        assert "concierge_set_state" not in planning_names
         assert "concierge_commit" not in planning_names
         assert "delete_project" not in planning_names
         assert "reset_collection" not in planning_names
@@ -166,6 +168,7 @@ def test_t5_governed_list_tools_filters_by_explicit_session_id(tmp_path, monkeyp
         server.governor.set_session_state(sid, "EXECUTION")
         exec_names = {t.name for t in asyncio.run(server.mcp.list_tools(session_id=sid))}
         assert len(exec_names) == 29
+        assert "concierge_set_state" in exec_names
         assert "concierge_commit" in exec_names
         assert "delete_project" not in exec_names
         assert "reset_collection" not in exec_names

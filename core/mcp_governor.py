@@ -1,16 +1,16 @@
 """
-core/mcp_governor.py — SDD-SURVIVAL-21
+core/mcp_governor.py — SDD-SURVIVAL-21 (Hardened V4 Governance)
 
 Progressive Tool Disclosure on FastMCP Server.
 
 Acts as a dynamic cognitive firewall for AI agents, intercepting
-and filtering disclosed and executed tools based on the current state
-of their finite state machine (FSM).
+and filtering disclosed and executed tools based on the active
+operational state and configured privilege ceiling (max_state).
 
 Protection Layers:
   1. filter_tools: Passive listing filter (Discovery/Context Window Optimization).
   2. validate_tool_execution: Active execution barrier that blocks direct command injection
-     and raises SecurityException upon scope violations.
+     and raises SecurityException (PermissionError) upon scope violations.
 """
 
 import logging
@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Optional, Union
 logger = logging.getLogger(__name__)
 
 
-class SecurityException(Exception):
+class SecurityException(PermissionError):
     """Exception raised when an agent attempts to bypass tool governance rules."""
     pass
 
@@ -29,23 +29,22 @@ class MCPToolGovernor:
     FastMCP progressive tool disclosure and governance controller.
     """
 
-    def __init__(self, default_state: Optional[str] = None):
-        import os
-        if default_state is not None:
-            self.default_state = default_state.upper()
-        else:
-            env_default = os.environ.get("GRAFO_DEFAULT_STATE", "EXECUTION")
-            self.default_state = env_default.upper()
-        # Active session state dict: {session_id: current_fsm_state}
-        self.sessions_state: Dict[str, str] = {}
+    STATE_PRIVILEGE_RANK: Dict[str, int] = {
+        "PLANNING": 0,
+        "EXECUTION": 1,
+        "MAINTENANCE": 2,
+    }
 
-        # Strict Visibility Matrix Definition
+    def __init__(
+        self,
+        default_state: Optional[str] = None,
+        max_state: Optional[str] = None,
+    ):
+        import os
+
+        # Strict Visibility Matrix Definition (3 operational states)
         self.TOOL_DISCLOSURE_MATRIX: Dict[str, Dict[str, List[str]]] = {
             "PLANNING": {
-                "allowed_categories": ["READ_ONLY"],
-                "allowed_tools": [],
-            },
-            "DISCOVERY": {
                 "allowed_categories": ["READ_ONLY"],
                 "allowed_tools": [],
             },
@@ -53,31 +52,48 @@ class MCPToolGovernor:
                 "allowed_categories": ["READ_ONLY", "LOCAL_MUTATION"],
                 "allowed_tools": [],
             },
-            "TDD_GREEN": {
-                "allowed_categories": ["READ_ONLY", "LOCAL_MUTATION"],
-                "allowed_tools": [],
-            },
-            "REFACTORING": {
-                "allowed_categories": ["READ_ONLY", "LOCAL_MUTATION"],
-                "allowed_tools": [],
-            },
             "MAINTENANCE": {
                 "allowed_categories": ["READ_ONLY", "LOCAL_MUTATION", "DANGEROUS"],
                 "allowed_tools": [],
             },
-            "STALL": {
-                "allowed_categories": ["READ_ONLY"],
-                "allowed_tools": [],
-            },
-            "SUCCESS": {
-                "allowed_categories": ["READ_ONLY"],
-                "allowed_tools": [],
-            },
         }
 
-        # Static tool classification catalog (31 live MCP tools)
+        if default_state is not None:
+            resolved_default = default_state.strip().upper()
+        else:
+            resolved_default = os.environ.get("GRAFO_DEFAULT_STATE", "PLANNING").strip().upper()
+
+        if resolved_default not in self.TOOL_DISCLOSURE_MATRIX:
+            raise ValueError(
+                f"Invalid GRAFO_DEFAULT_STATE/default_state '{resolved_default}'. "
+                f"Expected one of {sorted(self.TOOL_DISCLOSURE_MATRIX)}."
+            )
+        self.default_state = resolved_default
+
+        if max_state is not None:
+            resolved_max = max_state.strip().upper()
+        else:
+            resolved_max = self.default_state
+
+        if resolved_max not in self.TOOL_DISCLOSURE_MATRIX:
+            raise ValueError(
+                f"Invalid max_state '{resolved_max}'. "
+                f"Expected one of {sorted(self.TOOL_DISCLOSURE_MATRIX)}."
+            )
+
+        if self.STATE_PRIVILEGE_RANK[resolved_max] < self.STATE_PRIVILEGE_RANK[self.default_state]:
+            raise ValueError(
+                f"Invalid privilege bounds: max_state '{resolved_max}' cannot be lower than "
+                f"default_state '{self.default_state}'."
+            )
+        self.max_state = resolved_max
+
+        # Active session state dict: {session_id: current_fsm_state}
+        self.sessions_state: Dict[str, str] = {}
+
+        # Static tool classification catalog (31 live MCP tools: 17 READ_ONLY, 12 LOCAL_MUTATION, 2 DANGEROUS)
         self.TOOL_CLASSIFICATION: Dict[str, str] = {
-            # READ_ONLY
+            # READ_ONLY (17)
             "get_full_topology": "READ_ONLY",
             "get_trajectories": "READ_ONLY",
             "find_similar": "READ_ONLY",
@@ -93,11 +109,11 @@ class MCPToolGovernor:
             "get_callers": "READ_ONLY",
             "count_embeddings": "READ_ONLY",
             "concierge_get_call_chain": "READ_ONLY",
-            "concierge_set_state": "READ_ONLY",
             "agent_get_checkpoint": "READ_ONLY",
             "agent_list_checkpoints": "READ_ONLY",
 
-            # LOCAL_MUTATION
+            # LOCAL_MUTATION (12)
+            "concierge_set_state": "LOCAL_MUTATION",
             "agent_save_checkpoint": "LOCAL_MUTATION",
             "concierge_register": "LOCAL_MUTATION",
             "concierge_mine": "LOCAL_MUTATION",
@@ -110,22 +126,29 @@ class MCPToolGovernor:
             "remove_reference_wing": "LOCAL_MUTATION",
             "update_project": "LOCAL_MUTATION",
 
-            # DANGEROUS
+            # DANGEROUS (2)
             "reset_collection": "DANGEROUS",
             "delete_project": "DANGEROUS",
         }
 
     def set_session_state(self, session_id: str, state_name: str) -> None:
-        """Sets active FSM state for a session."""
-        upper_state = state_name.upper()
-        if upper_state in self.TOOL_DISCLOSURE_MATRIX:
-            self.sessions_state[session_id] = upper_state
-        else:
+        """Sets active operational state for a session within the max_state privilege ceiling."""
+        upper_state = state_name.strip().upper()
+        if upper_state not in self.TOOL_DISCLOSURE_MATRIX:
             logger.warning(
                 "[MCP-GOVERNOR] Unknown state '%s' for session '%s'. Preserving current state.",
                 state_name,
                 session_id,
             )
+            return
+
+        if self.STATE_PRIVILEGE_RANK[upper_state] > self.STATE_PRIVILEGE_RANK[self.max_state]:
+            raise SecurityException(
+                f"Access denied: cannot elevate session '{session_id}' to state '{upper_state}' "
+                f"above configured privilege ceiling '{self.max_state}'."
+            )
+
+        self.sessions_state[session_id] = upper_state
 
     def get_session_state(self, session_id: str) -> str:
         """Retrieves active state of a session (or returns default_state)."""
@@ -141,9 +164,7 @@ class MCPToolGovernor:
         Supports both dictionaries (e.g. `{'name': 'concierge_commit'}`) and Tool instances.
         """
         current_state = self.get_session_state(session_id)
-        rules = self.TOOL_DISCLOSURE_MATRIX.get(
-            current_state, self.TOOL_DISCLOSURE_MATRIX[self.default_state]
-        )
+        rules = self.TOOL_DISCLOSURE_MATRIX[current_state]
 
         filtered = []
         for tool in tools_list:
@@ -168,9 +189,7 @@ class MCPToolGovernor:
         if a blocked tool is invoked.
         """
         current_state = self.get_session_state(session_id)
-        rules = self.TOOL_DISCLOSURE_MATRIX.get(
-            current_state, self.TOOL_DISCLOSURE_MATRIX[self.default_state]
-        )
+        rules = self.TOOL_DISCLOSURE_MATRIX[current_state]
         category = self.TOOL_CLASSIFICATION.get(tool_name, "DANGEROUS")
 
         if category in rules["allowed_categories"] or tool_name in rules["allowed_tools"]:

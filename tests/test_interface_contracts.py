@@ -245,15 +245,11 @@ class TestMCPToolRegistration:
     def test_governor_disclosure_matrix_clean_and_valid(self, server):
         expected_states = {
             "PLANNING",
-            "DISCOVERY",
             "EXECUTION",
-            "TDD_GREEN",
-            "REFACTORING",
             "MAINTENANCE",
-            "STALL",
-            "SUCCESS",
         }
         assert set(server.governor.TOOL_DISCLOSURE_MATRIX.keys()) == expected_states
+        assert server.governor.TOOL_CLASSIFICATION["concierge_set_state"] == "LOCAL_MUTATION"
         classified = set(server.governor.TOOL_CLASSIFICATION.keys())
         valid_categories = {"READ_ONLY", "LOCAL_MUTATION", "DANGEROUS"}
         for state_name, rules in server.governor.TOOL_DISCLOSURE_MATRIX.items():
@@ -296,6 +292,7 @@ class TestMCPToolRegistration:
         # so restore sessions_state["default"] without leaking an injected key.
         had_default = "default" in server.governor.sessions_state
         orig_default = server.governor.sessions_state.get("default")
+        orig_max_state = server.governor.max_state
         try:
             server.governor.set_session_state("default", "PLANNING")
             with pytest.raises(SecurityException):
@@ -310,16 +307,10 @@ class TestMCPToolRegistration:
                 )
 
             # 2. Transition session state to MAINTENANCE and exercise lightweight-safe tools
-            # NOTE (BL-011 dependency): transitioning PLANNING -> MAINTENANCE via
-            # concierge_set_state relies on BL-011 (MCP privilege escalation still open).
-            # After BL-011 is closed, transition the test directly via:
-            # server.governor.set_session_state("default", "MAINTENANCE")
-            state_res = call_governed(
-                "concierge_set_state",
-                {"state_name": "MAINTENANCE", "session_id": "default"},
-            )
-            assert state_res["success"] is True
-            assert state_res["active_state"] == "MAINTENANCE"
+            server.governor.max_state = "MAINTENANCE"
+            server.governor.set_session_state("default", "MAINTENANCE")
+            server.governor.set_session_state("sess_contract_maint", "MAINTENANCE")
+            assert server.governor.get_session_state("default") == "MAINTENANCE"
 
             status_res = call_governed("concierge_status", {})
             assert status_res["success"] is True
@@ -452,6 +443,8 @@ class TestMCPToolRegistration:
             assert isinstance(list_cp_res, list)
             assert len(list_cp_res) >= 1
         finally:
+            server.governor.max_state = orig_max_state
+            server.governor.sessions_state.pop("sess_contract_maint", None)
             if had_default:
                 server.governor.sessions_state["default"] = orig_default
             else:
