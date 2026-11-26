@@ -1,4 +1,4 @@
-# Grafo Concierge v3.8.2 — Production Dockerfile
+# Grafo Concierge — Production Dockerfile
 FROM python:3.12-slim AS builder
 
 WORKDIR /app
@@ -15,22 +15,33 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-RUN pip install --no-cache-dir -e .
+RUN pip install --no-cache-dir --no-deps .
 
-# Final runtime image
+# Final runtime image (non-root)
 FROM python:3.12-slim
 
 WORKDIR /app
 
+RUN groupadd --gid 10001 --system concierge && \
+    useradd --uid 10001 --gid 10001 --system --create-home --home-dir /home/concierge --shell /usr/sbin/nologin concierge && \
+    mkdir -p /app/data /home/concierge/.cache && \
+    chown -R 10001:10001 /app /home/concierge
+
 COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+ENV PATH="/opt/venv/bin:$PATH" \
+    HOME=/home/concierge \
+    GRAFO_HOST=0.0.0.0 \
+    GRAFO_PORT=8000 \
+    GRAFO_TRANSPORT=sse \
+    GRAFO_DB_PATH=/app/data/concierge.db \
+    GRAFO_CHROMA_PATH=/app/data/chroma \
+    PYTHONUNBUFFERED=1
 
-COPY . .
-
-ENV GRAFO_HOST=0.0.0.0
-ENV GRAFO_PORT=8000
-ENV PYTHONUNBUFFERED=1
+USER concierge
 
 EXPOSE 8000
 
-CMD ["python", "main.py"]
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD ["python", "-c", "import os, urllib.request; port = os.environ.get('GRAFO_PORT', '8000'); resp = urllib.request.urlopen(f'http://127.0.0.1:{port}/health', timeout=5); raise SystemExit(0 if resp.status == 200 else 1)"]
+
+CMD ["concierge-mcp"]

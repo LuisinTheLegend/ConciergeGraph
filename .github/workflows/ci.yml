@@ -48,3 +48,125 @@ jobs:
     - name: Run tests with pytest
       run: |
         pytest -v --tb=short
+
+  docker-smoke:
+    name: Docker Smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Build production Docker image
+      run: |
+        docker build -t concierge-graph:smoke .
+
+    - name: Verify non-root UID and absence of dev tools
+      run: |
+        uid="$(docker run --rm concierge-graph:smoke id -u)"
+        test "$uid" = "10001"
+        docker run --rm concierge-graph:smoke python -c "
+        import importlib.util, shutil
+        for pkg in ('pytest', 'flake8', 'mypy'):
+            assert importlib.util.find_spec(pkg) is None, f'{pkg} unexpectedly installed in runtime image'
+            assert shutil.which(pkg) is None, f'{pkg} binary unexpectedly present in runtime image'
+        "
+
+    - name: Verify CLI entrypoints
+      run: |
+        docker run --rm concierge-graph:smoke concierge --help >/dev/null
+        docker run --rm concierge-graph:smoke concierge-mcp --help >/dev/null
+        ver="$(docker run --rm concierge-graph:smoke concierge-mcp --version)"
+        echo "$ver"
+        echo "$ver" | grep -q "3.8.2"
+
+    - name: Start SSE container and validate /health and /sse endpoints
+      run: |
+        docker run -d --name concierge-smoke \
+          -p 127.0.0.1:18000:8000 \
+          -e GRAFO_LIGHTWEIGHT_MODE=true \
+          -e GRAFO_API_KEY=ci-smoke-secret-key \
+          concierge-graph:smoke
+
+        python3 - <<'PY'
+        import http.client
+        import json
+        import time
+
+        secret = "ci-smoke-secret-key"
+
+        # 1. Wait for GET /health -> 200 {"status": "ok"}
+        for attempt in range(30):
+            try:
+                conn = http.client.HTTPConnection("127.0.0.1", 18000, timeout=3)
+                conn.request("GET", "/health")
+                resp = conn.getresponse()
+                body = resp.read()
+                conn.close()
+                if resp.status == 200:
+                    payload = json.loads(body.decode("utf-8"))
+                    assert payload == {"status": "ok"}, f"Unexpected /health payload: {payload}"
+                    break
+            except Exception:
+                pass
+            time.sleep(1)
+        else:
+            raise AssertionError("Container did not become healthy on GET /health within 30s")
+
+        # 2. Confirm HEAD /health -> 200
+        conn = http.client.HTTPConnection("127.0.0.1", 18000, timeout=5)
+        conn.request("HEAD", "/health")
+        resp = conn.getresponse()
+        resp.read()
+        conn.close()
+        assert resp.status == 200, f"HEAD /health expected 200, got {resp.status}"
+
+        # 3. Confirm bypass vectors and unauthenticated MCP routes return 401
+        vectors = [
+            ("GET", "/sse"),
+            ("GET", f"/sse?token={secret}"),
+            ("GET", "/health/"),
+            ("GET", "/healthz"),
+            ("GET", "/%68ealth"),
+            ("GET", "/health/../sse"),
+            ("POST", "/health"),
+        ]
+        for method, path in vectors:
+            conn = http.client.HTTPConnection("127.0.0.1", 18000, timeout=5)
+            conn.request(method, path)
+            resp = conn.getresponse()
+            resp.read()
+            conn.close()
+            assert resp.status == 401, f"{method} {path} expected 401, got {resp.status}"
+
+        # 4. Non-hanging SSE verification with Authorization: Bearer
+        conn = http.client.HTTPConnection("127.0.0.1", 18000, timeout=5)
+        conn.request("GET", "/sse", headers={"Authorization": f"Bearer {secret}"})
+        resp = conn.getresponse()
+        ctype = resp.getheader("Content-Type", "")
+        assert resp.status == 200, f"Authorized GET /sse expected 200, got {resp.status}"
+        assert "text/event-stream" in ctype, f"Unexpected Content-Type: {ctype}"
+
+        seen_lines = []
+        found_endpoint = False
+        for _ in range(10):
+            line = resp.readline()
+            if not line:
+                break
+            seen_lines.append(line)
+            if b"/messages/" in line:
+                found_endpoint = True
+                break
+        conn.close()
+        assert found_endpoint, f"SSE endpoint event not seen in initial stream lines: {seen_lines}"
+        print("docker-smoke HTTP/SSE assertions passed.")
+        PY
+
+    - name: Collect container logs on failure and clean up
+      if: always()
+      run: |
+        if [ "${{ job.status }}" != "success" ]; then
+          docker logs concierge-smoke || true
+        fi
+        docker rm -f concierge-smoke || true

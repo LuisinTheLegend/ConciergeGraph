@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   concierge:
     build:
@@ -12,17 +10,23 @@ services:
     environment:
       - GRAFO_HOST=0.0.0.0
       - GRAFO_PORT=8000
+      - GRAFO_TRANSPORT=sse
+      - GRAFO_DB_PATH=/app/data/concierge.db
+      - GRAFO_CHROMA_PATH=/app/data/chroma
+      - GRAFO_DEFAULT_STATE=${GRAFO_DEFAULT_STATE:-PLANNING}
+      - GRAFO_AGENT_TOKEN=${GRAFO_AGENT_TOKEN:-}
       - GRAFO_LLM_API_KEY=${GRAFO_LLM_API_KEY:-}
       - GRAFO_LLM_MODEL=${GRAFO_LLM_MODEL:-gemini-2.0-flash}
       - GRAFO_VECTOR_BACKEND=${GRAFO_VECTOR_BACKEND:-chroma}
       - GRAFO_API_KEY=${GRAFO_API_KEY:-}
       - GRAFO_CORS_ORIGINS=${GRAFO_CORS_ORIGINS:-*}
     volumes:
-      - ./data:/app/data
+      - concierge_data:/app/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/ || exit 0"]
+      test: ["CMD", "python", "-c", "import os, urllib.request; port = os.environ.get('GRAFO_PORT', '8000'); resp = urllib.request.urlopen(f'http://127.0.0.1:{port}/health', timeout=5); raise SystemExit(0 if resp.status == 200 else 1)"]
       interval: 30s
       timeout: 10s
+      start_period: 15s
       retries: 3
 
   # Optional Qdrant Vector DB Service
@@ -36,3 +40,6 @@ services:
   #     - "${CONCIERGE_BIND_ADDRESS:-127.0.0.1}:6334:6334"
   #   volumes:
   #     - ./data/qdrant_storage:/qdrant/storage
+
+volumes:
+  concierge_data:
