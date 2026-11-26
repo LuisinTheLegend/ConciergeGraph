@@ -5,6 +5,21 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+- Planejado para `v4.2`: adoção opcional da arquitetura *Escolha B* (`interface/queue_writer.py`).
+
+## [4.1.0] - 2026-11-25
+
+> **Nota histórica:** a tag pré-auditoria `V4.0.0` permanece preservada sem alterações no histórico Git; o pacote publicado como `4.1.0` consolida todo o núcleo V4 auditado em substituição à versão legada `3.8.2` no PyPI.
+
+### Rodada 4.9 — Preparação de Release `v4.1.0`
+
+- **Bump e Versão Dinâmica (`pyproject.toml`, `interface/cli.py`, `interface/mcp_server.py`, `.github/workflows/ci.yml`):**
+  - Elevada a versão oficial do pacote `concierge-graph` para `4.1.0` em `pyproject.toml`.
+  - Substituídas as strings *hardcoded* `"v3.8.0"` por `_get_version()` dinâmico (`importlib.metadata` com *fallback* para `pyproject.toml`) em `interface/cli.py` (`cmd_status`, `build_parser`) e `interface/mcp_server.py` (`_handle_status`), adicionada opção `--version`/`-V` ao CLI `concierge` e validada dinamicamente a versão no job `Docker Smoke` do CI.
+- **Empacotamento, Documentação e Higiene de Relatórios (`README.md`, `README.pt-BR.md`, `audits/`):**
+  - Validados *build* limpo (`sdist` + `wheel`) e instalação isolada em ambiente virtual fora do repositório (`concierge --version` e `concierge-mcp --version` retornando `4.1.0`).
+  - Reconvertido `audits/relatorio_4_8.md` para UTF-8 estrito (`0` bytes NUL) e consolidado o relatório pré-publicação `audits/relatorio_4_9.md`.
+
 ### Rodada 4.8 — Docker Real com CI Smoke, CLI `concierge-mcp`, `/health` e Empacotamento Limpo
 
 - **CLI `concierge-mcp` (`main.py`):**

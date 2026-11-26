@@ -9,7 +9,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
 [![Protocolo MCP](https://img.shields.io/badge/Protocolo-MCP-purple.svg)](https://modelcontextprotocol.io/)
 [![Ferramentas MCP](https://img.shields.io/badge/Ferramentas%20MCP-31-blue.svg)](docs-grafo-concierge/README.md)
-[![Testes Aprovados](https://img.shields.io/badge/Testes-367%20Aprovados-brightgreen.svg)](tests/)
+[![Testes Aprovados](https://img.shields.io/badge/Testes-369%20Aprovados-brightgreen.svg)](tests/)
 
 O Grafo Concierge é um servidor de memória local-first baseado no **Model Context Protocol (MCP)** que fornece a assistentes de código (Cursor, Claude Desktop e agentes autônomos) memória persistente de projetos, busca híbrida, rastreamento recursivo de chamadas, checkpoints duráveis de agentes e governança progressiva de ferramentas — apoiado em **SQLite WAL (com FTS5)** e armazenamento vetorial plugável (**ChromaDB** por padrão, **Qdrant** opcional).
 
@@ -63,12 +63,16 @@ O Grafo Concierge é um servidor de memória local-first baseado no **Model Cont
 
 ## Início Rápido
 
-### Instalação a partir do Código-Fonte (Recomendado para o Núcleo V4)
+### Instalação Rápida (`v4.1.0`)
 
-> **Status no PyPI:** O pacote `concierge-graph` publicado no PyPI corresponde atualmente à `v3.8.2` e ainda não foi sincronizado com a consolidação do núcleo V4 presente neste repositório. Para utilizar o núcleo V4 atual, instale diretamente a partir do código-fonte.
+> **Status de Release e PyPI:** A versão `4.1.0` substitui o lançamento legado `v3.8.2` no PyPI e a tag pré-auditoria `V4.0.0` no GitHub (preservada no histórico do repositório).
 
-1. **Clonar e instalar em modo editável:**
+1. **Instalar via pip (ou a partir do código-fonte em modo editável):**
    ```bash
+   # Instalação do pacote:
+   pip install concierge-graph
+
+   # Ou em modo editável a partir da fonte:
    git clone https://github.com/LuisinTheLegend/ConciergeGraph.git
    cd ConciergeGraph
    python -m venv .venv
@@ -135,7 +139,7 @@ Consulte [`docs-grafo-concierge/README.md`](docs-grafo-concierge/README.md) para
 
 ## Testes e Verificação
 
-O núcleo ativo V4 é coberto por **367 testes automatizados aprovados** (verificados em ordem normal e `--reverse`, além de CI em Linux, Windows e `docker-smoke` em container real):
+O núcleo ativo V4 é coberto por **369 testes automatizados aprovados** (verificados em ordem normal e `--reverse`, além de CI em Linux, Windows e `docker-smoke` em container real):
 
 ```bash
 python -m pytest tests/ -q

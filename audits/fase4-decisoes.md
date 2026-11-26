@@ -260,6 +260,21 @@ Endurecimento de entrega, empacotamento PEP 639, CLI do servidor MCP e validaç�
   - **C3 (`142b995ab4699867c1323e3e069f58f8af59e67d`):** Hardening Docker não-root (`UID 10001`, SSE, `/health`), `docker-compose.yml`, job `docker-smoke` em `.github/workflows/ci.yml` e `tests/test_docker_manifests.py` (`367 testes` normal e `--reverse`). CI **7/7 GREEN** (incluindo `Docker Smoke` em `ubuntu-latest`).
   - **C4 (`docs(audit)`):** Atualização de `CONTRIBUTING.md`, `README.md`, `README.pt-BR.md`, `CHANGELOG.md`, `audits/fase4-decisoes.md` e relatório final `audits/relatorio_4_8.md`.
 
+---
+
+## 11. Rodada 4.9 — Preparação do Release `v4.1.0` (2026-11-25)
+
+Preparação final para publicação do release `v4.1.0` (sem criação de tag Git, GitHub Release ou publicação no PyPI pelo agente; ações finais exclusivas do humano), partindo do commit base `2d43180639dda65fb2aa7c6262182ff58270a342` (sem fase Swarm C0 — Regra 15(f)), mantendo a tag pré-auditoria `V4.0.0` intocada e `storage/schema.py` (`SCHEMA_VERSION = "3.8.2"`) intacto:
+
+- **Commits Executados na Rodada 4.9:**
+  - **C1 (`54d50740028211d0244532d6618f1bd53298c1e6`):** Bump de `pyproject.toml` (`3.8.2` → `4.1.0`), versão dinâmica via `_get_version()` em `interface/cli.py` (com `--version` / `-V`, `cmd_status` e descrição do parser) e `interface/mcp_server.py` (`_handle_status`), validação dinâmica da versão no job `Docker Smoke` de `.github/workflows/ci.yml` e testes (`tests/test_cli_mcp_entrypoint.py`, `tests/test_dependency_pins.py`, `tests/test_wheel_integrity.py`; 3/3 mutantes mortos; 369 testes). CI **7/7 GREEN**.
+  - **C2 (`docs(release)`):** Limpeza de comentário legado em `.env.example`, promoção do `CHANGELOG.md` para `## [4.1.0] - 2026-11-25` (com nota sobre `V4.0.0` histórica e `Escolha B` / `queue_writer` planejada para `v4.2`), atualização de `README.md` / `README.pt-BR.md`, reconversão de `audits/relatorio_4_8.md` para UTF-8 puro (`0` bytes NUL), validação pré-publicação de `sdist` + `wheel` + smoke install isolado em venv limpo fora do repositório, e relatório final `audits/relatorio_4_9.md` (UTF-8 puro).
+- **Ações Finais Reservadas ao Humano (após gate da 4.9):**
+  1. `git tag -a v4.1.0 -m "Release v4.1.0"` e `git push origin v4.1.0`
+  2. Publicação do GitHub Release `v4.1.0`
+  3. Build e upload do pacote `concierge-graph==4.1.0` no PyPI
+
+
 
 
 

@@ -9,7 +9,7 @@ English · [Português (Brasil)](README.pt-BR.md)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
 [![Protocol MCP](https://img.shields.io/badge/Protocol-MCP-purple.svg)](https://modelcontextprotocol.io/)
 [![MCP Tools](https://img.shields.io/badge/MCP%20Tools-31-blue.svg)](docs-grafo-concierge/README.md)
-[![Tests Passing](https://img.shields.io/badge/Tests-367%20Passed-brightgreen.svg)](tests/)
+[![Tests Passing](https://img.shields.io/badge/Tests-369%20Passed-brightgreen.svg)](tests/)
 
 Concierge Graph is a local-first memory server built around the **Model Context Protocol (MCP)** that gives AI coding assistants (Cursor, Claude Desktop, and autonomous agents) persistent project memory, hybrid retrieval, recursive call-chain queries, durable agent checkpoints, and governed tool disclosure — backed by **SQLite WAL (with FTS5)** and pluggable vector storage (**ChromaDB** by default, optional **Qdrant**).
 
@@ -63,12 +63,16 @@ Concierge Graph is a local-first memory server built around the **Model Context 
 
 ## Quick Start
 
-### Install from Source (Recommended for V4 Core)
+### Quick Install (`v4.1.0`)
 
-> **PyPI Status:** The package `concierge-graph` on PyPI currently reflects `v3.8.2` and has not yet been synced with the V4 core consolidation in this repository. To run the current V4 core, install directly from source.
+> **Release & PyPI Status:** Version `4.1.0` supersedes the legacy `v3.8.2` release on PyPI and the pre-audit `V4.0.0` GitHub tag (kept intact in repository history).
 
-1. **Clone and install in editable mode:**
+1. **Install via pip (or from source in editable mode):**
    ```bash
+   # Package installation:
+   pip install concierge-graph
+
+   # Or editable source checkout:
    git clone https://github.com/LuisinTheLegend/ConciergeGraph.git
    cd ConciergeGraph
    python -m venv .venv
@@ -135,7 +139,7 @@ See [`docs-grafo-concierge/README.md`](docs-grafo-concierge/README.md) for archi
 
 ## Testing & Verification
 
-The active V4 core is covered by **367 passing automated tests** (verified in normal and `--reverse` order, plus CI across Linux, Windows, and real container `docker-smoke`):
+The active V4 core is covered by **369 passing automated tests** (verified in normal and `--reverse` order, plus CI across Linux, Windows, and real container `docker-smoke`):
 
 ```bash
 python -m pytest tests/ -q
