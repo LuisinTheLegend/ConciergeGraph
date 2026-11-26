@@ -93,7 +93,7 @@ def _parse_req_file(path: Path) -> tuple[list[str], dict[str, Requirement]]:
 
 
 def test_pyproject_spdx_metadata_build_requires_and_clean_core_deps():
-    """Garante SPDX MIT, version=3.8.2, setuptools>=77, extras e core deps limpas."""
+    """Garante SPDX MIT, version=4.1.0, setuptools>=77, extras e core deps limpas."""
     with open(REPO_ROOT / "pyproject.toml", "rb") as f:
         data = tomllib.load(f)
 
@@ -106,7 +106,7 @@ def test_pyproject_spdx_metadata_build_requires_and_clean_core_deps():
     assert Version("76.99.0") not in build_reqs["setuptools"].specifier
 
     project = data["project"]
-    assert project["version"] == "3.8.2"
+    assert project["version"] == "4.1.0"
     assert project["license"] == "MIT"
     assert project.get("license-files") == ["LICENSE"]
     assert "License :: OSI Approved :: MIT License" not in project.get("classifiers", [])

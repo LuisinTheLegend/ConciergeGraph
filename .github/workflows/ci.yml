@@ -75,11 +75,14 @@ jobs:
 
     - name: Verify CLI entrypoints
       run: |
+        expected_ver="$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")"
         docker run --rm concierge-graph:smoke concierge --help >/dev/null
         docker run --rm concierge-graph:smoke concierge-mcp --help >/dev/null
-        ver="$(docker run --rm concierge-graph:smoke concierge-mcp --version)"
-        echo "$ver"
-        echo "$ver" | grep -q "3.8.2"
+        ver_cli="$(docker run --rm concierge-graph:smoke concierge --version)"
+        ver_mcp="$(docker run --rm concierge-graph:smoke concierge-mcp --version)"
+        echo "$ver_cli | $ver_mcp (expected=$expected_ver)"
+        echo "$ver_cli" | grep -q "$expected_ver"
+        echo "$ver_mcp" | grep -q "$expected_ver"
 
     - name: Start SSE container and validate /health and /sse endpoints
       run: |

@@ -54,6 +54,42 @@ from services import JanitorService
 logger = logging.getLogger("grafo-concierge.mcp")
 
 
+def _get_version() -> str:
+    """Resolve package version dynamically from metadata or pyproject.toml."""
+    import importlib.metadata
+    import re as _re
+    from pathlib import Path
+
+    try:
+        return importlib.metadata.version("concierge-graph")
+    except Exception:
+        pass
+
+    pyproject_path = Path(__file__).resolve().parent.parent / "pyproject.toml"
+    if pyproject_path.is_file():
+        try:
+            import tomllib
+            with open(pyproject_path, "rb") as f:
+                ver = tomllib.load(f).get("project", {}).get("version")
+            if isinstance(ver, str) and ver.strip():
+                return ver.strip()
+        except Exception:
+            try:
+                in_project = False
+                for line in pyproject_path.read_text(encoding="utf-8").splitlines():
+                    stripped = line.strip()
+                    if stripped.startswith("["):
+                        in_project = stripped == "[project]"
+                        continue
+                    if in_project:
+                        m = _re.match(r'^version\s*=\s*["\']([^"\']+)["\']', stripped)
+                        if m:
+                            return m.group(1).strip()
+            except Exception:
+                pass
+    return "unknown"
+
+
 # ---------------------------------------------------------------------------
 # SDD-08 / SDD-21: Module-level sentinels for standalone MCP tool functions and governance.
 # These are injectable by tests (setUp) or by the application bootstrap.
@@ -1429,7 +1465,7 @@ class GrafoConciergeServer:
         """Handler for concierge_status — delegates to Facade + components."""
         status: dict = {
             "success": True,
-            "system": "Grafo Concierge v3.8.0",
+            "system": f"Grafo Concierge v{_get_version()}",
             "components": {},
         }
 

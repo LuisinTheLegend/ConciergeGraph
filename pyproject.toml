@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 # ──────────────────────────────────────────────────────────────
 [project]
 name = "concierge-graph"
-version = "3.8.2"
+version = "4.1.0"
 description = "Long-Term Memory (LTM) Palace for AI Agents — hybrid search, semantic graphs, and MCP tools for Cursor, Claude Desktop, and autonomous agents."
 readme = "README.md"
 license = "MIT"

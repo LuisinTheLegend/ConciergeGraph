@@ -10,10 +10,16 @@ from __future__ import annotations
 
 import re
 import shutil
+import sys
 import warnings
 import zipfile
 from pathlib import Path
 from setuptools import build_meta
+
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib  # type: ignore
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -111,6 +117,11 @@ def test_wheel_contains_all_live_modules_and_entrypoints(tmp_path, monkeypatch):
     wheel_path = dist_dir / wheel_name
     assert wheel_path.is_file(), f"Wheel não foi gerado em {wheel_path}"
 
+    with open(REPO_ROOT / "pyproject.toml", "rb") as f:
+        expected_version = tomllib.load(f)["project"]["version"]
+    assert expected_version == "4.1.0"
+    assert expected_version in wheel_name
+
     with zipfile.ZipFile(wheel_path) as zf:
         names = set(zf.namelist())
         for mod_path in EXPECTED_LIVE_MODULES:
@@ -125,7 +136,7 @@ def test_wheel_contains_all_live_modules_and_entrypoints(tmp_path, monkeypatch):
         meta_entries = [n for n in names if n.endswith(".dist-info/METADATA")]
         assert len(meta_entries) == 1, f"METADATA inesperado no wheel: {meta_entries}"
         meta_lines = zf.read(meta_entries[0]).decode("utf-8").splitlines()
-        assert "Version: 3.8.2" in meta_lines
+        assert f"Version: {expected_version}" in meta_lines
         assert "License-Expression: MIT" in meta_lines
         assert "License-File: LICENSE" in meta_lines
         legacy_license_classifiers = [

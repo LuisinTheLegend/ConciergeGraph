@@ -28,14 +28,48 @@ Integration:
 from __future__ import annotations
 
 import argparse
+import importlib.metadata
 import json
 import logging
 import os
+import re as _re
 import sys
 from pathlib import Path
 from typing import Optional
 
 logger = logging.getLogger("grafo-concierge.cli")
+
+
+def _get_version() -> str:
+    """Resolve package version dynamically from installed metadata or pyproject.toml."""
+    try:
+        return importlib.metadata.version("concierge-graph")
+    except Exception:
+        pass
+
+    pyproject_path = Path(__file__).resolve().parent.parent / "pyproject.toml"
+    if pyproject_path.is_file():
+        try:
+            import tomllib
+            with open(pyproject_path, "rb") as f:
+                ver = tomllib.load(f).get("project", {}).get("version")
+            if isinstance(ver, str) and ver.strip():
+                return ver.strip()
+        except Exception:
+            try:
+                in_project = False
+                for line in pyproject_path.read_text(encoding="utf-8").splitlines():
+                    stripped = line.strip()
+                    if stripped.startswith("["):
+                        in_project = stripped == "[project]"
+                        continue
+                    if in_project:
+                        m = _re.match(r'^version\s*=\s*["\']([^"\']+)["\']', stripped)
+                        if m:
+                            return m.group(1).strip()
+            except Exception:
+                pass
+    return "unknown"
 
 
 # ---------------------------------------------------------------------------
@@ -201,7 +235,7 @@ def cmd_status(args, gc, store):
     else:
         projects = store.list_projects()
         result = {
-            "system": "Grafo Concierge v3.8.0",
+            "system": f"Grafo Concierge v{_get_version()}",
             "total_projects": len(projects),
             "projects": [
                 {"uuid": p["uuid"], "name": p.get("folder_name", ""), "wing": p.get("primary_wing", "geral")}
@@ -272,7 +306,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser(
         prog="grafo-concierge",
-        description="Grafo Concierge v3.8.0 — Sovereign Memory for AI Agents",
+        description=f"Grafo Concierge v{_get_version()} — Long-Term Memory for AI Agents",
+    )
+    parser.add_argument(
+        "--version",
+        "-V",
+        action="version",
+        version=f"%(prog)s {_get_version()}",
     )
     subparsers = parser.add_subparsers(dest="command", help="Available command")
 
