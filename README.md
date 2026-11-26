@@ -9,7 +9,7 @@ English · [Português (Brasil)](README.pt-BR.md)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
 [![Protocol MCP](https://img.shields.io/badge/Protocol-MCP-purple.svg)](https://modelcontextprotocol.io/)
 [![MCP Tools](https://img.shields.io/badge/MCP%20Tools-31-blue.svg)](docs-grafo-concierge/README.md)
-[![Tests Passing](https://img.shields.io/badge/Tests-353%20Passed-brightgreen.svg)](tests/)
+[![Tests Passing](https://img.shields.io/badge/Tests-367%20Passed-brightgreen.svg)](tests/)
 
 Concierge Graph is a local-first memory server built around the **Model Context Protocol (MCP)** that gives AI coding assistants (Cursor, Claude Desktop, and autonomous agents) persistent project memory, hybrid retrieval, recursive call-chain queries, durable agent checkpoints, and governed tool disclosure — backed by **SQLite WAL (with FTS5)** and pluggable vector storage (**ChromaDB** by default, optional **Qdrant**).
 
@@ -77,7 +77,7 @@ Concierge Graph is a local-first memory server built around the **Model Context 
    pip install --upgrade pip
    pip install -e .
    ```
-   For development and running tests:
+   For development and running tests (or install via `pip install -r requirements-dev.txt`; `requirements.txt` contains production runtime packages only):
    ```bash
    pip install -e ".[dev]"
    ```
@@ -104,7 +104,12 @@ Concierge Graph is a local-first memory server built around the **Model Context 
 3. **Run the MCP Server or CLI:**
    ```bash
    # Launch MCP server (uses GRAFO_TRANSPORT: stdio default, or sse on port 8000)
-   concierge-mcp
+   concierge-mcp --help
+   concierge-mcp --version
+   concierge-mcp --transport sse
+
+   # Or start via Docker Compose (non-root UID 10001, SSE + /health check)
+   docker compose up -d --build
 
    # Use the terminal CLI (10 subcommands)
    concierge --help
@@ -112,6 +117,7 @@ Concierge Graph is a local-first memory server built around the **Model Context 
    concierge mine --path /path/to/my-project --name my-project
    concierge search --query "authentication flow" --project <project-uuid>
    ```
+   When running over HTTP/SSE, `GET /health` and `HEAD /health` return `200 {"status": "ok"}` without requiring `GRAFO_API_KEY`, while `/sse`, `/messages/`, and all other paths remain protected by pure ASGI `Authorization: Bearer` validation.
 
 ---
 
@@ -129,7 +135,7 @@ See [`docs-grafo-concierge/README.md`](docs-grafo-concierge/README.md) for archi
 
 ## Testing & Verification
 
-The active V4 core is covered by **353 passing automated tests** (verified in normal and `--reverse` order, plus CI across Linux and Windows):
+The active V4 core is covered by **367 passing automated tests** (verified in normal and `--reverse` order, plus CI across Linux, Windows, and real container `docker-smoke`):
 
 ```bash
 python -m pytest tests/ -q

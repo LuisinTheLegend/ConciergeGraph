@@ -41,7 +41,7 @@ Concierge Graph (V4 Core) is engineered around four foundational pillars:
 
 3. **Pillar 3: MCP Governance & Local-First Security**
    - **Progressive Tool Disclosure (`core/mcp_governor.py`)**: Two-layer MCP firewall (`filter_tools` and `validate_tool_execution`) classifying all 31 live tools into `READ_ONLY`, `LOCAL_MUTATION`, and `DANGEROUS`, with fail-closed defaults for unclassified tools.
-   - **Local-First Binding & Optional SSE Auth**: Defaults to `stdio` transport or loopback `127.0.0.1` binding for SSE (`GRAFO_TRANSPORT=sse`), with optional Bearer token authentication (`GRAFO_API_KEY`).
+   - **Local-First Binding, Pure ASGI SSE Auth & Public `/health`:** Defaults to `stdio` transport or loopback `127.0.0.1` binding for SSE (`GRAFO_TRANSPORT=sse`, or `concierge-mcp --transport sse`), with constant-time `Authorization: Bearer` validation in a pure ASGI middleware (`interface/mcp_server.py`) and an unauthenticated liveness endpoint restricted strictly to exact `GET`/`HEAD /health`.
 
 4. **Pillar 4: Domain Neutrality & Free-Form Wings**
    - The engine is domain-agnostic memory infrastructure for AI and AI agents.
@@ -87,9 +87,9 @@ For documentation overview and pointers to archived experimental specs, consult 
    pip install --upgrade pip
    pip install -e ".[dev]"
    ```
-   Alternatively, install from `requirements.txt`:
+   Alternatively, install test/lint/build tooling via `requirements-dev.txt` (or production-only runtime dependencies via `requirements.txt`):
    ```bash
-   pip install -r requirements.txt
+   pip install -r requirements-dev.txt
    ```
 
 4. **Configure environment variables:**

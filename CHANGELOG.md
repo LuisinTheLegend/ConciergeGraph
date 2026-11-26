@@ -5,6 +5,21 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ## [Unreleased]
 
+### Rodada 4.8 — Docker Real com CI Smoke, CLI `concierge-mcp`, `/health` e Empacotamento Limpo
+
+- **CLI `concierge-mcp` (`main.py`):**
+  - Adicionados `_get_package_version()` (leitura via `importlib.metadata` com fallback para `pyproject.toml`), `parse_args()` e suporte a `--help`, `--version` e `--transport {stdio,sse}` antes de `setup_logging`, `decouple_stdin_from_fd0()` e `bootstrap()`, eliminando bloqueio em `stdin` e removendo `"v3.8.0"` *hardcoded* do banner (`tests/test_cli_mcp_entrypoint.py`).
+- **Rota Pública `/health` e Middleware ASGI Puro (`interface/mcp_server.py`):**
+  - Exposto endpoint de *liveness* `GET` / `HEAD /health` retornando `200 {"status": "ok"}` em `custom_sse_app`.
+  - Substituído `BaseHTTPMiddleware` por `_BearerAuthASGIMiddleware` ASGI puro com isenção restrita estritamente a `method in ("GET", "HEAD")`, `path == "/health"` e `raw_path in (None, b"", b"/health")`, mantendo `401` em `/sse`, `/messages/`, `/health/`, `/healthz`, `/%68ealth`, `/health/../sse` e `POST /health`, preservando `hmac.compare_digest` e eliminando *buffering* no *streaming* SSE.
+- **Empacotamento PEP 639 / SPDX e Separação de Dependências (`pyproject.toml`, `requirements.txt`, `requirements-dev.txt`):**
+  - Atualizado `[build-system]` para `setuptools>=77.0.0`, migrado `license = "MIT"` + `license-files = ["LICENSE"]` removendo o *classifier* legado (zero `SetuptoolsDeprecationWarning`), adicionado extra `[gemini]` e incluídos `packaging>=21.0` e `setuptools>=77.0.0` em `[dev]` (mantendo `version = "3.8.2"`).
+  - Separado `requirements.txt` (produção pura) de `requirements-dev.txt` (`-r requirements.txt` + ferramentas de teste/qualidade/build) e endurecidos `tests/test_wheel_integrity.py` e `tests/test_dependency_pins.py`.
+- **Container Não-Root e Job `docker-smoke` (`Dockerfile`, `docker-compose.yml`, `.github/workflows/ci.yml`):**
+  - Endurecido `Dockerfile` multi-stage com `pip install --no-cache-dir --no-deps .`, usuário não-root `concierge` (`UID/GID 10001`), `HOME=/home/concierge`, `/app/data` gravável, `GRAFO_TRANSPORT=sse`, `HEALTHCHECK` nativo em Python (`/health`) e `CMD ["concierge-mcp"]`.
+  - Removido `version: '3.8'` depreciado do `docker-compose.yml`, fixados `GRAFO_TRANSPORT=sse` e caminhos `/app/data/*`, adotado volume nomeado `concierge_data:/app/data`, expostos `GRAFO_DEFAULT_STATE` e `GRAFO_AGENT_TOKEN`, e corrigido `healthcheck` em Python.
+  - Adicionado job `docker-smoke` em `.github/workflows/ci.yml` (`ubuntu-latest`) validando build Docker, `UID 10001`, ausência de pacotes `dev`, CLI, `/health`, rejeição `401` e *stream* SSE autenticado — elevando o CI para **7/7 GREEN** e a suíte para **367 testes aprovados** (normal e `--reverse`).
+
 ### Rodada 4.7 — Hardening HTTP/SSE, Read-TOCTOU no Checkpointer e Higiene de DDL
 
 - **Hardening do `auth_middleware` HTTP/SSE (`interface/mcp_server.py`):**

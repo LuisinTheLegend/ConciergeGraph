@@ -242,5 +242,24 @@ Remediação cirúrgica das Propostas #1, #2 e #4 da `audits/egm/4.6-sintese.md`
   - **C2 (`b3b14e2879e6baef6beb74828e6461f340553e7a`):** Fechamento read-TOCTOU (`AND owner_hash = ?`) em `core/checkpointer.py::get_checkpoint` e `list_checkpoints` + migração para `SchemaManager` em `tests/test_agent_checkpointer.py` (2/2 mutantes mortos; 0 hits `CREATE TABLE`; 353 testes). CI 6/6 GREEN.
   - **C3 (`docs(security)`):** Alinhamento documental (`.env.example`, `README.md`, `README.pt-BR.md`, `docs-grafo-concierge/README.md`, `CHANGELOG.md`, `audits/fase4-decisoes.md`) e relatório final `audits/relatorio_4_7.md`.
 
+---
+
+## 10. Rodada 4.8 — Docker Real com CI Smoke, CLI `concierge-mcp`, `/health` e Empacotamento Limpo (2026-11-25)
+
+Endurecimento de entrega, empacotamento PEP 639, CLI do servidor MCP e validação em container real no CI (`Propostas #1, #2, #3, #4 e #6` da `audits/egm/4.5g-sintese.md`), executado a partir do commit base `3a1c378de5e01ecad1c179e92f11d3f04f2f8a31` com fase EGM+Swarm C0 somente leitura (`audits/egm/4.8-sintese.md`), mutações e CI 6/6 GREEN (C0–C2) / 7/7 GREEN (C3–C4):
+
+- **Decisões Arquiteturais Homologadas pelo Humano:**
+  - **Decisão 1A (`GET`/`HEAD /health` Público + Docker Não-Root + CI `docker-smoke`):** Exposta rota `GET`/`HEAD /health` em `interface/mcp_server.py::custom_sse_app` retornando `200 {"status": "ok"}`, isenta do middleware ASGI puro `_BearerAuthASGIMiddleware` apenas por correspondência exata (`method in ("GET", "HEAD")`, `path == "/health"`, `raw_path in (None, b"", b"/health")`). `Dockerfile` e `docker-compose.yml` corrigidos para `USER concierge` (`UID/GID 10001`), `GRAFO_TRANSPORT=sse`, `/app/data` e `HOME=/home/concierge`, named volume `concierge_data`, remoção de `version: '3.8'` e `HEALTHCHECK` Python sem `curl` ou `|| exit 0`, com job `docker-smoke` em `.github/workflows/ci.yml`.
+  - **Decisão 2A (SPDX PEP 639 + `requirements-dev.txt` + Guardas):** `pyproject.toml` atualizado para `setuptools>=77.0.0`, `license = "MIT"`, `license-files = ["LICENSE"]`, remoção do classifier MIT legado, extra `gemini`, e `packaging>=21.0` + `setuptools>=77.0.0` em `dev`. Separação entre `requirements.txt` (produção pura) e `requirements-dev.txt`, e endurecimento de `tests/test_wheel_integrity.py` e `tests/test_dependency_pins.py`.
+  - **Decisão 3A (Versionamento):** `version = "3.8.2"` preservada em `pyproject.toml` na Rodada 4.8 (sem git tags e sem publicação em PyPI). Fica registrado que **o alvo de bump de versão para `v4.1.0` ocorrerá na Rodada 4.9**, após atualização/fechamento final do `CHANGELOG.md`, e que a **Escolha B (`interface/queue_writer.py`) permanece ADIADA para `v4.2`**.
+  - **CLI `concierge-mcp` (`main.py`):** Adicionados `_get_package_version()`, `_resolve_cli_argv()`, `parse_args(argv=None)` (`--help`, `--version`, `--transport {stdio,sse}`) e banner sem versão hardcoded antes de `setup_logging`/`decouple_stdin_from_fd0`/`bootstrap`.
+- **Commits Executados na Rodada 4.8:**
+  - **C0 (`4c1f954cf8db7533c88258860f4a4da63473fb14`):** Relatórios EGM + Swarm pré-execução (`audits/egm/4.8-{fatos,design,critic,sintese}.md`). CI 6/6 GREEN.
+  - **C1 (`5f4c3458f3898310aafcec0096f104216d7ab7e1`):** CLI `concierge-mcp` (`main.py`), rota `/health` e `_BearerAuthASGIMiddleware` ASGI puro (`interface/mcp_server.py`, `tests/test_cli_mcp_entrypoint.py`, `tests/test_sse_auth_hardening.py`; 4/4 mutantes mortos; 361 testes). CI 6/6 GREEN.
+  - **C2 (`5c95a79ed378ff8ef4753042aaa54f9ccd3525a1`):** Migração SPDX PEP 639, extra `[gemini]`, split `requirements-dev.txt` e guardas de wheel/pins (`pyproject.toml`, `requirements.txt`, `requirements-dev.txt`, `tests/test_wheel_integrity.py`, `tests/test_dependency_pins.py`; 3/3 mutantes mortos; 0 `SetuptoolsDeprecationWarning`; 363 testes). CI 6/6 GREEN.
+  - **C3 (`142b995ab4699867c1323e3e069f58f8af59e67d`):** Hardening Docker não-root (`UID 10001`, SSE, `/health`), `docker-compose.yml`, job `docker-smoke` em `.github/workflows/ci.yml` e `tests/test_docker_manifests.py` (`367 testes` normal e `--reverse`). CI **7/7 GREEN** (incluindo `Docker Smoke` em `ubuntu-latest`).
+  - **C4 (`docs(audit)`):** Atualização de `CONTRIBUTING.md`, `README.md`, `README.pt-BR.md`, `CHANGELOG.md`, `audits/fase4-decisoes.md` e relatório final `audits/relatorio_4_8.md`.
+
+
 
 
