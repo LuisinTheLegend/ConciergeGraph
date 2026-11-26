@@ -33,11 +33,14 @@ from __future__ import annotations
 from dotenv import load_dotenv
 load_dotenv()
 
+import argparse
+import importlib.metadata
 import logging
 import os
 import signal
 import sys
 from pathlib import Path
+from typing import Optional
 
 # ---------------------------------------------------------------------------
 # 1. CONFIGURATION — Constants and environment variables
@@ -333,25 +336,97 @@ def bootstrap():
 # 4. MAIN — Main loop with graceful shutdown
 # ---------------------------------------------------------------------------
 
-def main() -> None:
+def _get_package_version() -> str:
+    """Resolve package version dynamically from installed metadata or pyproject.toml."""
+    try:
+        return importlib.metadata.version("concierge-graph")
+    except Exception:
+        pass
+
+    pyproject_path = PROJECT_ROOT / "pyproject.toml"
+    if pyproject_path.is_file():
+        try:
+            import tomllib  # Python 3.11+
+            with open(pyproject_path, "rb") as f:
+                data = tomllib.load(f)
+            ver = data.get("project", {}).get("version")
+            if isinstance(ver, str) and ver.strip():
+                return ver.strip()
+        except Exception:
+            try:
+                content = pyproject_path.read_text(encoding="utf-8")
+                in_project = False
+                for line in content.splitlines():
+                    stripped = line.strip()
+                    if stripped.startswith("["):
+                        in_project = stripped == "[project]"
+                        continue
+                    if in_project:
+                        match = _re.match(r'^version\s*=\s*["\']([^"\']+)["\']', stripped)
+                        if match:
+                            return match.group(1).strip()
+            except Exception:
+                pass
+    return "unknown"
+
+
+def _resolve_cli_argv(argv: Optional[list[str]]) -> list[str]:
+    """Return explicit argv or sys.argv[1:], shielding 0-arg pytest callers."""
+    if argv is not None:
+        return argv
+    if os.environ.get("PYTEST_CURRENT_TEST"):
+        argv0 = sys.argv[0] if sys.argv else ""
+        argv0_path = Path(argv0)
+        if (
+            argv0_path.stem.lower().startswith(("pytest", "py.test"))
+            or argv0_path.parent.name.lower() == "pytest"
+        ):
+            return []
+    return sys.argv[1:]
+
+
+def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
+    """Parse CLI arguments for the concierge-mcp entrypoint."""
+    parser = argparse.ArgumentParser(
+        prog="concierge-mcp",
+        description="Grafo Concierge MCP Server",
+    )
+    parser.add_argument(
+        "--transport",
+        choices=("stdio", "sse"),
+        default=None,
+        help="MCP transport mode (overrides GRAFO_TRANSPORT).",
+    )
+    parser.add_argument(
+        "--version",
+        "-V",
+        action="version",
+        version=f"%(prog)s {_get_package_version()}",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: Optional[list[str]] = None) -> None:
     """Main entry point of Grafo Concierge."""
+    args = parse_args(_resolve_cli_argv(argv))
+    transport = args.transport if args.transport is not None else TRANSPORT
 
     # ── Logging ──
     setup_logging(LOG_LEVEL)
 
     # ── Stdio Decouple (Windows only, avoids late import hang on fd 0) ──
-    if TRANSPORT == "stdio":
+    if transport == "stdio":
         decouple_stdin_from_fd0()
 
     logger.info("=" * 60)
-    logger.info("  Grafo Concierge v3.8.0 — Absolute Solidity")
+    logger.info("  Grafo Concierge v%s — Absolute Solidity", _get_package_version())
     logger.info("=" * 60)
     logger.info("  DB:       %s", DB_PATH)
     logger.info("  ChromaDB: %s (%s)", CHROMA_PATH, CHROMA_COLLECTION)
     logger.info("  Embedding: %s", EMBEDDING_MODEL)
     logger.info("  LLM:      %s", LLM_MODEL)
     logger.info("  Janitor:  %ds", JANITOR_INTERVAL)
-    logger.info("  Transport: %s", TRANSPORT)
+    logger.info("  Transport: %s", transport)
     logger.info("  Log Level: %s", LOG_LEVEL)
     logger.info("=" * 60)
 
@@ -371,8 +446,8 @@ def main() -> None:
             logger.info("Janitor in idle mode (no GRAFO_JANITOR_PROJECT defined).")
 
         # ── MCP Server ──
-        logger.info("Starting MCP server (transport=%s)...", TRANSPORT)
-        server.run(transport=TRANSPORT)
+        logger.info("Starting MCP server (transport=%s)...", transport)
+        server.run(transport=transport)
 
     except KeyboardInterrupt:
         logger.info("Interrupt received (Ctrl+C) — starting graceful shutdown...")

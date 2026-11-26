@@ -184,7 +184,12 @@ class GrafoConciergeServer:
             app = original_sse_app(*args, **kwargs)
             from starlette.middleware.cors import CORSMiddleware
             from starlette.responses import JSONResponse
-            
+
+            async def health_check(request):
+                return JSONResponse({"status": "ok"}, status_code=200)
+
+            app.add_route("/health", health_check, methods=["GET", "HEAD"])
+
             cfg = getattr(self._gc, "config", None)
             api_key = (getattr(cfg, "api_key", None) if cfg else None) or os.environ.get("GRAFO_API_KEY")
             cors_origins_env = os.environ.get("GRAFO_CORS_ORIGINS")
@@ -195,29 +200,54 @@ class GrafoConciergeServer:
             else:
                 origins = ["*"]
 
-            # 1. API Key Authentication Middleware (if configured)
+            # 1. API Key Authentication Pure ASGI Middleware (if configured)
             if api_key and str(api_key).strip():
-                from starlette.middleware.base import BaseHTTPMiddleware
+                from starlette.datastructures import Headers
 
                 expected_key = str(api_key).strip()
 
-                async def auth_middleware(request, call_next):
-                    # Validate exclusively Authorization: Bearer <key> in constant time
-                    auth_header = request.headers.get("Authorization", "")
-                    is_valid = False
-                    if auth_header[:7].lower() == "bearer ":
-                        provided_tok = auth_header[7:].strip()
-                        if provided_tok:
-                            is_valid = hmac.compare_digest(
-                                provided_tok.encode("utf-8"),
-                                expected_key.encode("utf-8"),
+                class _BearerAuthASGIMiddleware:
+                    def __init__(self, inner_app):
+                        self.app = inner_app
+
+                    async def __call__(self, scope, receive, send):
+                        if scope.get("type") != "http":
+                            await self.app(scope, receive, send)
+                            return
+
+                        method = scope.get("method", "")
+                        path = scope.get("path", "")
+                        raw_path = scope.get("raw_path")
+                        if (
+                            method in ("GET", "HEAD")
+                            and path == "/health"
+                            and (raw_path is None or raw_path == b"" or raw_path == b"/health")
+                        ):
+                            await self.app(scope, receive, send)
+                            return
+
+                        # Validate exclusively Authorization: Bearer <key> in constant time
+                        auth_header = Headers(scope=scope).get("Authorization", "")
+                        is_valid = False
+                        if auth_header[:7].lower() == "bearer ":
+                            provided_tok = auth_header[7:].strip()
+                            if provided_tok:
+                                is_valid = hmac.compare_digest(
+                                    provided_tok.encode("utf-8"),
+                                    expected_key.encode("utf-8"),
+                                )
+
+                        if not is_valid:
+                            resp = JSONResponse(
+                                {"error": "Unauthorized access to Grafo Concierge MCP"},
+                                status_code=401,
                             )
+                            await resp(scope, receive, send)
+                            return
 
-                    if not is_valid:
-                        return JSONResponse({"error": "Unauthorized access to Grafo Concierge MCP"}, status_code=401)
-                    return await call_next(request)
+                        await self.app(scope, receive, send)
 
-                app.add_middleware(BaseHTTPMiddleware, dispatch=auth_middleware)
+                app.add_middleware(_BearerAuthASGIMiddleware)
 
             # 2. CORS Middleware
             allow_creds = True if origins != ["*"] else False

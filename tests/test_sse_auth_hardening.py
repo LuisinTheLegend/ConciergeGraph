@@ -109,3 +109,91 @@ def test_sse_accepts_bearer_and_case_insensitive_scheme_using_compare_digest(tmp
         )
     finally:
         store.close()
+
+
+def test_health_get_and_head_bypass_auth_with_strict_payload(tmp_path, monkeypatch):
+    """GET /health e HEAD /health retornam 200 {'status': 'ok'} sem auth mesmo com GRAFO_API_KEY."""
+    api_key = "test-sse-health-key-alpha"
+    client, store = _make_sse_client(tmp_path, monkeypatch, api_key)
+    try:
+        r_get = client.get("/health")
+        assert r_get.status_code == 200
+        assert r_get.json() == {"status": "ok"}
+
+        r_get_q = client.get("/health?probe=1")
+        assert r_get_q.status_code == 200
+        assert r_get_q.json() == {"status": "ok"}
+
+        r_head = client.head("/health")
+        assert r_head.status_code == 200
+    finally:
+        store.close()
+
+
+def test_health_rejects_bypass_vectors_with_401(tmp_path, monkeypatch):
+    """Vetores de bypass em /health e rotas MCP seguem protegidos com HTTP 401."""
+    import asyncio
+
+    api_key = "test-sse-health-bypass-key-alpha"
+    client, store = _make_sse_client(tmp_path, monkeypatch, api_key)
+    try:
+        assert client.post("/health").status_code == 401
+        assert client.put("/health").status_code == 401
+        assert client.delete("/health").status_code == 401
+        assert client.get("/health/").status_code == 401
+        assert client.get("/healthz").status_code == 401
+        assert client.get("/health/extra").status_code == 401
+        assert client.get("/%68ealth").status_code == 401
+        assert client.get("/health%2f..%2fsse").status_code == 401
+        assert client.get("/sse").status_code == 401
+
+        # Escopo ASGI cru sem normalizacao de httpx: simula socket TCP direto com dot-segment / encoding
+        asgi_app = client.app
+
+        async def _call_raw(method: str, path: str, raw_path: bytes | None) -> int:
+            sent: list[dict] = []
+            scope = {
+                "type": "http",
+                "asgi": {"version": "3.0"},
+                "http_version": "1.1",
+                "method": method,
+                "scheme": "http",
+                "path": path,
+                "query_string": b"",
+                "headers": [(b"host", b"127.0.0.1:8000")],
+            }
+            if raw_path is not None:
+                scope["raw_path"] = raw_path
+
+            async def _receive():
+                return {"type": "http.request", "body": b"", "more_body": False}
+
+            async def _send(message):
+                sent.append(message)
+
+            await asgi_app(scope, _receive, _send)
+            start_msgs = [m for m in sent if m["type"] == "http.response.start"]
+            return start_msgs[0]["status"]
+
+        assert asyncio.run(_call_raw("GET", "/health/../sse", b"/health/../sse")) == 401
+        assert asyncio.run(_call_raw("GET", "/healthz", None)) == 401
+        assert asyncio.run(_call_raw("GET", "/health/extra", None)) == 401
+        assert asyncio.run(_call_raw("GET", "/health", b"/%68ealth")) == 401
+        assert asyncio.run(_call_raw("POST", "/health", b"/health")) == 401
+        assert asyncio.run(_call_raw("GET", "/health", b"/health")) == 200
+        assert asyncio.run(_call_raw("HEAD", "/health", b"/health")) == 200
+    finally:
+        store.close()
+
+
+def test_health_without_api_key_returns_200(tmp_path, monkeypatch):
+    """Com GRAFO_API_KEY ausente, GET /health e HEAD /health retornam 200."""
+    client, store = _make_sse_client(tmp_path, monkeypatch, "")
+    try:
+        monkeypatch.delenv("GRAFO_API_KEY", raising=False)
+        r_get = client.get("/health")
+        assert r_get.status_code == 200
+        assert r_get.json() == {"status": "ok"}
+        assert client.head("/health").status_code == 200
+    finally:
+        store.close()
