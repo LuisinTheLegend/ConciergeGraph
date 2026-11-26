@@ -1,4 +1,4 @@
-# Grafo Concierge v3.8.2 — Core & Dev Dependencies
+# Grafo Concierge — Production Dependencies
 
 # Core System & Framework
 chromadb>=1.0.0
@@ -13,9 +13,3 @@ openai>=1.0.0
 
 # Optional Vector Backends
 qdrant-client>=1.7.0
-
-# Test & Quality Tools
-pytest>=7.0.0
-flake8>=6.0.0
-mypy>=1.0.0
-rich>=13.0.0

@@ -8,7 +8,9 @@ e não vaza diretórios de testes ou quarentena.
 
 from __future__ import annotations
 
+import re
 import shutil
+import warnings
 import zipfile
 from pathlib import Path
 from setuptools import build_meta
@@ -25,8 +27,6 @@ _SOURCE_DIRS = (
     "ingestion",
     "services",
     "interface",
-    "agent",
-    "agents",
     "scripts",
     "tests",
     "archive",
@@ -97,7 +97,17 @@ def test_wheel_contains_all_live_modules_and_entrypoints(tmp_path, monkeypatch):
     _copy_clean_source(src_dir)
 
     monkeypatch.chdir(src_dir)
-    wheel_name = build_meta.build_wheel(str(dist_dir))
+    with warnings.catch_warnings(record=True) as captured_warnings:
+        warnings.simplefilter("always")
+        wheel_name = build_meta.build_wheel(str(dist_dir))
+
+    deprecation_msgs = [
+        f"{w.category.__name__}: {w.message}"
+        for w in captured_warnings
+        if "SetuptoolsDeprecationWarning" in w.category.__name__
+    ]
+    assert not deprecation_msgs, f"Warnings de empacotamento inesperados: {deprecation_msgs}"
+
     wheel_path = dist_dir / wheel_name
     assert wheel_path.is_file(), f"Wheel não foi gerado em {wheel_path}"
 
@@ -112,5 +122,51 @@ def test_wheel_contains_all_live_modules_and_entrypoints(tmp_path, monkeypatch):
         assert "concierge = interface.cli:main" in ep_text
         assert "concierge-mcp = main:main" in ep_text
 
-        leaked = [n for n in names if n.startswith("tests/") or n.startswith("archive/")]
+        meta_entries = [n for n in names if n.endswith(".dist-info/METADATA")]
+        assert len(meta_entries) == 1, f"METADATA inesperado no wheel: {meta_entries}"
+        meta_lines = zf.read(meta_entries[0]).decode("utf-8").splitlines()
+        assert "Version: 3.8.2" in meta_lines
+        assert "License-Expression: MIT" in meta_lines
+        assert "License-File: LICENSE" in meta_lines
+        legacy_license_classifiers = [
+            line for line in meta_lines if line.startswith("Classifier: License ::")
+        ]
+        assert not legacy_license_classifiers, (
+            f"Classifier de licença legado presente em METADATA: {legacy_license_classifiers}"
+        )
+
+        license_entries = [n for n in names if n.endswith(".dist-info/licenses/LICENSE")]
+        assert len(license_entries) == 1, f"LICENSE SPDX ausente no wheel: {license_entries}"
+
+        forbidden_unconditional = {
+            "fastapi",
+            "watchdog",
+            "pathspec",
+            "psutil",
+            "pytest",
+            "pytest_timeout",
+            "flake8",
+            "mypy",
+            "rich",
+            "packaging",
+            "setuptools",
+        }
+        unconditional_reqs = []
+        for line in meta_lines:
+            if not line.startswith("Requires-Dist: ") or "; extra ==" in line:
+                continue
+            raw_spec = line[len("Requires-Dist: "):].split(";", 1)[0].strip()
+            pkg_match = re.match(r"([A-Za-z0-9._-]+)", raw_spec)
+            if pkg_match:
+                norm_name = re.sub(r"[-_.]+", "_", pkg_match.group(1)).lower()
+                unconditional_reqs.append(norm_name)
+                assert norm_name not in forbidden_unconditional, (
+                    f"Dependência proibida/dev vazou para Requires-Dist core: {line}"
+                )
+
+        leaked = [
+            n
+            for n in names
+            if n.startswith(("tests/", "archive/", "agent/", "agents/"))
+        ]
         assert not leaked, f"Arquivos indevidos empacotados no wheel: {leaked}"

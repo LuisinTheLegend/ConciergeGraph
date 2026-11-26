@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0.0", "wheel"]
+requires = ["setuptools>=77.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 # ──────────────────────────────────────────────────────────────
@@ -10,7 +10,8 @@ name = "concierge-graph"
 version = "3.8.2"
 description = "Long-Term Memory (LTM) Palace for AI Agents — hybrid search, semantic graphs, and MCP tools for Cursor, Claude Desktop, and autonomous agents."
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.10"
 authors = [
     {name = "LuisinTheLegend"},
@@ -23,7 +24,6 @@ keywords = [
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
@@ -43,6 +43,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+gemini = ["google-genai>=0.1.0"]
 qdrant = ["qdrant-client>=1.7"]
 openai = ["openai>=1.0"]
 dev = [
@@ -51,6 +52,8 @@ dev = [
     "flake8>=6.0",
     "mypy>=1.0",
     "rich>=13.0",
+    "packaging>=21.0",
+    "setuptools>=77.0.0",
     "qdrant-client>=1.7",
     "google-genai>=0.1.0",
     "openai>=1.0",

@@ -1,0 +1,12 @@
+# Grafo Concierge — Development, Test & Build Dependencies
+-r requirements.txt
+
+# Test, Quality & Packaging Tools
+pytest>=7.0.0
+pytest-timeout>=2.2.0
+flake8>=6.0.0
+mypy>=1.0.0
+rich>=13.0.0
+packaging>=21.0
+setuptools>=77.0.0
+wheel
